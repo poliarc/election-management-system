@@ -7,8 +7,20 @@ import { useLocation } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
 import { useState } from "react";
 
+// Accept either a valid email or a phone number (+ optional country code, 10-15 digits)
+const identifierSchema = z
+  .string()
+  .min(3, "Identifier required")
+  .refine(
+    (v) =>
+      /@/.test(v)
+        ? z.string().email().safeParse(v).success
+        : /^\+?\d{10,15}$/.test(v),
+    "Enter a valid email address or phone number"
+  );
+
 const schema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  identifier: identifierSchema,
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -37,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex overflow-hidden">
       {/* Left Side - Animated Image/Illustration Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
@@ -50,18 +62,24 @@ export default function LoginPage() {
           <div className="max-w-md space-y-6 animate-fade-in">
             {/* Logo/Icon */}
             <div className="w-20 h-20 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-8 animate-bounce-slow">
-              <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+              <svg
+                className="w-12 h-12"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
             </div>
-            
+
             <h1 className="text-5xl font-bold leading-tight animate-slide-up">
-              Welcome to<br />Poliarc Services
+              Welcome to
+              <br />
+              Poliarc Services
             </h1>
             <p className="text-xl text-white/80 animate-slide-up delay-200">
               Secure, fast, and reliable authentication for your organization
             </p>
-            
+
             {/* Decorative Elements */}
             <div className="flex gap-4 pt-8 animate-slide-up delay-300">
               <div className="flex items-center gap-2">
@@ -86,11 +104,11 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-linear-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="w-full max-w-md animate-fade-in-up">
           {/* Brand */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
               <span className="text-2xl font-bold text-white">P</span>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -106,7 +124,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="group">
                 <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200 transition-colors">
-                  Email Address
+                  Email or Phone
                 </label>
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400 group-focus-within:text-indigo-600 transition-colors">
@@ -117,24 +135,32 @@ export default function LoginPage() {
                       stroke="currentColor"
                       strokeWidth="2"
                     >
-                      <path d="M4 6h16v12H4z" />
-                      <path d="m22 6-10 7L2 6" />
+                      <path d="M4 4h16v4H4z" />
+                      <path d="M4 12h10v8H4z" />
                     </svg>
                   </span>
                   <input
-                    type="email"
-                    {...register("email")}
+                    type="text"
+                    {...register("identifier")}
                     autoComplete="username"
-                    placeholder="you@example.com"
+                    placeholder="you@example.com or +15551234567"
                     className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-12 pr-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
-                {errors.email && (
+                {errors.identifier && (
                   <p className="text-xs text-red-500 mt-2 flex items-center gap-1 animate-shake">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
-                    {errors.email.message}
+                    {errors.identifier.message}
                   </p>
                 )}
               </div>
@@ -173,8 +199,16 @@ export default function LoginPage() {
                 </div>
                 {errors.password && (
                   <p className="text-xs text-red-500 mt-2 flex items-center gap-1 animate-shake">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {errors.password.message}
                   </p>
@@ -184,8 +218,16 @@ export default function LoginPage() {
               {error && (
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 animate-shake">
                   <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     {error}
                   </p>
@@ -195,38 +237,60 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none group"
+                className="w-full relative overflow-hidden rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {loading ? (
                     <>
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Signing in...
                     </>
                   ) : (
                     <>
                       Sign In
-                      <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                      <svg
+                        className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
                       </svg>
                     </>
                   )}
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
             </form>
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Poliarc Services Pvt Ltd. All rights reserved.
+            © {new Date().getFullYear()} Poliarc Services Pvt Ltd. All rights
+            reserved.
           </p>
         </div>
       </div>
     </div>
-    
   );
 }
 

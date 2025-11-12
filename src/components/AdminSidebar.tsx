@@ -1,40 +1,23 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { logout } from "../store/authSlice";
+import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 
-interface NavItem {
-  to: string;
-  label: string;
-}
+type NavItem = { to: string; label: string };
 
-const baseItems: NavItem[] = [{ to: "overview", label: "Overview" }];
+const adminItems: NavItem[] = [
+  { to: "overview", label: "Overview" },
+  { to: "users", label: "Users" },
+  { to: "settings", label: "Settings" },
+];
 
-const roleExtra: Record<string, NavItem[]> = {
-  Admin: [
-    { to: "users", label: "Users" },
-    { to: "settings", label: "Settings" },
-  ],
-  State: [{ to: "reports", label: "State Reports" }],
-  District: [{ to: "reports", label: "District Reports" }],
-  Assembly: [{ to: "reports", label: "Assembly Data" }],
-  Block: [{ to: "reports", label: "Block Data" }],
-  Mandal: [{ to: "reports", label: "Mandal Data" }],
-  PollingCenter: [{ to: "reports", label: "Polling Center Data" }],
-  Booth: [{ to: "reports", label: "Booth Metrics" }],
-  Karyakarta: [{ to: "tasks", label: "My Tasks" }],
-};
-
-export function Sidebar() {
+export default function AdminSidebar() {
   const user = useAppSelector((s) => s.auth.user);
-  const role = user?.role;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  if (!role) return null;
 
-  const items = [...baseItems, ...(roleExtra[role] || [])];
-  const root = ROLE_DASHBOARD_PATH[role];
-  const firstName = (user?.name || role).split(" ")[0];
+  const base = ROLE_DASHBOARD_PATH["Admin"] || "/admin";
+  const firstName = (user?.name || "Admin").split(" ")[0];
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;
@@ -55,9 +38,7 @@ export function Sidebar() {
             className="h-10 w-10 rounded-full ring-2 ring-indigo-500/20"
           />
           <div className="min-w-0">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {role} Dashboard
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Welcome</p>
             <p className="truncate font-semibold text-gray-900 dark:text-white">
               {firstName}
             </p>
@@ -67,10 +48,10 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-1">
-        {items.map((item) => (
+        {adminItems.map((item) => (
           <NavLink
             key={item.to}
-            to={`${root}/${item.to}`}
+            to={`${base}/${item.to}`}
             className={({ isActive }) =>
               [
                 "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
@@ -80,6 +61,7 @@ export function Sidebar() {
               ].join(" ")
             }
           >
+            {/* Bullet/icon placeholder for clean look without extra deps */}
             <span className="h-1.5 w-1.5 rounded-full bg-gray-400 group-hover:bg-indigo-500 group-[.active]:bg-indigo-600" />
             <span>{item.label}</span>
           </NavLink>
@@ -93,7 +75,7 @@ export function Sidebar() {
         </div>
         <div className="px-3 space-y-1">
           <NavLink
-            to={`${root}/profile`}
+            to={`${base}/profile`}
             className={({ isActive }) =>
               [
                 "block rounded-lg px-3 py-2 text-sm transition-colors",

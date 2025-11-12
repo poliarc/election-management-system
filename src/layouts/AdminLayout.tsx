@@ -1,13 +1,13 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
+import AdminSidebar from "../components/AdminSidebar";
 
 export default function AdminLayout() {
   return (
     <div className="h-screen flex flex-col">
       <Topbar />
       <div className="flex flex-1">
-        <Sidebar />
+        <AdminSidebar />
         <main className="flex-1 overflow-auto p-4">
           <Outlet />
         </main>
