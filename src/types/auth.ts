@@ -9,6 +9,9 @@ export interface User {
   phone?: string;
   name: string;
   role: Role;
+  // Panels available to this user
+  adminPanels?: Role[]; // admin-level panels this user can manage
+  userPanels?: Role[]; // user-assigned panels this user can access
 }
 
 export interface AuthState {

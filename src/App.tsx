@@ -3,6 +3,8 @@ import LoginPage from "./pages/Login";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRedirect from "./routes/RoleRedirect";
 import NotFound from "./pages/NotFound";
+import PanelSelect from "./pages/PanelSelect";
+import PanelAdminLayout from "./layouts/PanelAdminLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import StateLayout from "./layouts/StateLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
@@ -30,6 +32,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
           <Route path="dashboard" element={<RoleRedirect />} />
+          <Route path="panels" element={<PanelSelect />} />
+          <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
 
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<AdminOverview />} />
