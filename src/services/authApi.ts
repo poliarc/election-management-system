@@ -9,6 +9,8 @@ const DEMO_USERS: Array<
   Required<Pick<User, "id" | "name" | "role">> & {
     email: string;
     phone: string;
+    adminPanels?: Role[];
+    userPanels?: Role[];
   }
 > = [
   {
@@ -17,6 +19,17 @@ const DEMO_USERS: Array<
     role: "Admin",
     email: "admin@demo.io",
     phone: "+15550000001",
+    adminPanels: [
+      "State",
+      "District",
+      "Assembly",
+      "Block",
+      "Mandal",
+      "PollingCenter",
+      "Booth",
+      "Karyakarta",
+    ],
+    userPanels: [],
   },
   {
     id: "u-state-001",
@@ -24,6 +37,8 @@ const DEMO_USERS: Array<
     role: "State",
     email: "state@demo.io",
     phone: "+15550000002",
+    adminPanels: ["District", "Assembly"],
+    userPanels: ["State", "Block"],
   },
   {
     id: "u-district-001",
@@ -31,6 +46,8 @@ const DEMO_USERS: Array<
     role: "District",
     email: "district@demo.io",
     phone: "+15550000003",
+    adminPanels: ["Block", "Mandal"],
+    userPanels: ["District", "PollingCenter"],
   },
   {
     id: "u-assembly-001",
@@ -38,6 +55,8 @@ const DEMO_USERS: Array<
     role: "Assembly",
     email: "assembly@demo.io",
     phone: "+15550000004",
+    adminPanels: ["Booth"],
+    userPanels: ["Assembly", "Mandal"],
   },
   {
     id: "u-block-001",
@@ -45,6 +64,8 @@ const DEMO_USERS: Array<
     role: "Block",
     email: "block@demo.io",
     phone: "+15550000005",
+    adminPanels: ["Mandal"],
+    userPanels: ["Block", "Booth"],
   },
   {
     id: "u-mandal-001",
@@ -52,6 +73,8 @@ const DEMO_USERS: Array<
     role: "Mandal",
     email: "mandal@demo.io",
     phone: "+15550000006",
+    adminPanels: ["PollingCenter"],
+    userPanels: ["Mandal", "Booth"],
   },
   {
     id: "u-pc-001",
@@ -59,6 +82,8 @@ const DEMO_USERS: Array<
     role: "PollingCenter",
     email: "pc@demo.io",
     phone: "+15550000007",
+    adminPanels: ["Booth"],
+    userPanels: ["PollingCenter"],
   },
   {
     id: "u-booth-001",
@@ -66,6 +91,8 @@ const DEMO_USERS: Array<
     role: "Booth",
     email: "booth@demo.io",
     phone: "+15550000008",
+    adminPanels: [],
+    userPanels: ["Booth"],
   },
   {
     id: "u-karyakarta-001",
@@ -73,6 +100,8 @@ const DEMO_USERS: Array<
     role: "Karyakarta",
     email: "karyakarta@demo.io",
     phone: "+15550000009",
+    adminPanels: [],
+    userPanels: ["Karyakarta"],
   },
 ];
 
@@ -104,6 +133,8 @@ export async function mockLogin(payload: LoginPayload): Promise<LoginResponse> {
       phone: demo.phone,
       name: demo.name,
       role: demo.role as Role,
+      adminPanels: demo.adminPanels ?? [],
+      userPanels: demo.userPanels ?? [],
     };
     return { token: "mock-jwt-token", user };
   }
@@ -150,6 +181,21 @@ export async function mockLogin(payload: LoginPayload): Promise<LoginResponse> {
     phone,
     name,
     role,
+    // Fallback: ensure Admin has full admin panel access; others get their own panel as user-assigned
+    adminPanels:
+      role === "Admin"
+        ? [
+            "State",
+            "District",
+            "Assembly",
+            "Block",
+            "Mandal",
+            "PollingCenter",
+            "Booth",
+            "Karyakarta",
+          ]
+        : [],
+    userPanels: role === "Admin" ? [] : [role],
   };
 
   return {
