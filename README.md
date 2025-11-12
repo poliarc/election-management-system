@@ -102,3 +102,28 @@ Build and lint must pass; keep components small and typed. Prefer composition ov
 ---
 
 For design decisions and patterns, consult `docs/design-guidelines.md` before introducing new UI.
+
+## 🔑 Login identifiers (Email or Phone)
+
+The login form accepts either a valid email address or a phone number (10–15 digits, optional leading +) alongside the password:
+
+- Example (email): `admin@demo.io` with password `password` → role resolved from email prefix
+- Example (phone): `+15551234567` with password `password` → defaults to `Karyakarta` role
+
+### Demo Accounts (Email ↔ Phone)
+
+You can use either the email OR the phone for the same user and you'll get the identical role + user id (password for all is `password`).
+
+| Role          | Email                | Phone          |
+| ------------- | -------------------- | -------------- |
+| Admin         | `admin@demo.io`      | `+15550000001` |
+| State         | `state@demo.io`      | `+15550000002` |
+| District      | `district@demo.io`   | `+15550000003` |
+| Assembly      | `assembly@demo.io`   | `+15550000004` |
+| Block         | `block@demo.io`      | `+15550000005` |
+| Mandal        | `mandal@demo.io`     | `+15550000006` |
+| PollingCenter | `pc@demo.io`         | `+15550000007` |
+| Booth         | `booth@demo.io`      | `+15550000008` |
+| Karyakarta    | `karyakarta@demo.io` | `+15550000009` |
+
+All other valid identifiers still work; emails infer role by prefix, phones (not in table) default to Karyakarta.

@@ -1,41 +1,154 @@
-import type { LoginPayload, LoginResponse } from "../types/auth";
+import type { LoginPayload, LoginResponse, User } from "../types/auth";
 import type { Role } from "../types/roles";
 
-// Mock login function with hardcoded credentials
+// Very basic phone number heuristic (international +10-15 digits)
+const phoneRegex = /^\+?\d{10,15}$/;
+
+// Demo user directory to ensure the same account can login with email OR phone.
+const DEMO_USERS: Array<
+  Required<Pick<User, "id" | "name" | "role">> & {
+    email: string;
+    phone: string;
+  }
+> = [
+  {
+    id: "u-admin-001",
+    name: "Admin User",
+    role: "Admin",
+    email: "admin@demo.io",
+    phone: "+15550000001",
+  },
+  {
+    id: "u-state-001",
+    name: "State User",
+    role: "State",
+    email: "state@demo.io",
+    phone: "+15550000002",
+  },
+  {
+    id: "u-district-001",
+    name: "District User",
+    role: "District",
+    email: "district@demo.io",
+    phone: "+15550000003",
+  },
+  {
+    id: "u-assembly-001",
+    name: "Assembly User",
+    role: "Assembly",
+    email: "assembly@demo.io",
+    phone: "+15550000004",
+  },
+  {
+    id: "u-block-001",
+    name: "Block User",
+    role: "Block",
+    email: "block@demo.io",
+    phone: "+15550000005",
+  },
+  {
+    id: "u-mandal-001",
+    name: "Mandal User",
+    role: "Mandal",
+    email: "mandal@demo.io",
+    phone: "+15550000006",
+  },
+  {
+    id: "u-pc-001",
+    name: "Polling Center User",
+    role: "PollingCenter",
+    email: "pc@demo.io",
+    phone: "+15550000007",
+  },
+  {
+    id: "u-booth-001",
+    name: "Booth User",
+    role: "Booth",
+    email: "booth@demo.io",
+    phone: "+15550000008",
+  },
+  {
+    id: "u-karyakarta-001",
+    name: "Karyakarta User",
+    role: "Karyakarta",
+    email: "karyakarta@demo.io",
+    phone: "+15550000009",
+  },
+];
+
+function findDemoUser(identifier: string) {
+  const idLower = identifier.toLowerCase();
+  return DEMO_USERS.find(
+    (u) => u.email.toLowerCase() === idLower || u.phone === identifier
+  );
+}
+
+// Mock login function with hardcoded credentials supporting email OR phone identifier.
 export async function mockLogin(payload: LoginPayload): Promise<LoginResponse> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const { email, password } = payload;
+  const { identifier, password } = payload;
 
   // Mock validation
   if (password !== "password") {
     throw new Error("Invalid credentials");
   }
 
-  // Extract role from email prefix
-  const role: Role = email.startsWith("admin@")
-    ? "Admin"
-    : email.startsWith("state@")
-    ? "State"
-    : email.startsWith("district@")
-    ? "District"
-    : email.startsWith("assembly@")
-    ? "Assembly"
-    : email.startsWith("block@")
-    ? "Block"
-    : email.startsWith("mandal@")
-    ? "Mandal"
-    : email.startsWith("pc@")
-    ? "PollingCenter"
-    : email.startsWith("booth@")
-    ? "Booth"
-    : "Karyakarta"; // default
+  // First try to resolve against demo users for deterministic identity mapping.
+  const demo = findDemoUser(identifier);
+  if (demo) {
+    const user: User = {
+      id: demo.id,
+      email: demo.email,
+      phone: demo.phone,
+      name: demo.name,
+      role: demo.role as Role,
+    };
+    return { token: "mock-jwt-token", user };
+  }
 
-  const user = {
-    id: Math.random().toString(36).substr(2, 9),
+  // Otherwise, fallback to heuristic validation and role inference
+  const isEmail = identifier.includes("@");
+  const isPhone = phoneRegex.test(identifier);
+  if (!isEmail && !isPhone) {
+    throw new Error("Identifier must be a valid email or phone number");
+  }
+
+  let role: Role = "Karyakarta";
+  let email: string | undefined;
+  let phone: string | undefined;
+  let name: string;
+  if (isEmail) {
+    email = identifier.toLowerCase();
+    role = email.startsWith("admin@")
+      ? "Admin"
+      : email.startsWith("state@")
+      ? "State"
+      : email.startsWith("district@")
+      ? "District"
+      : email.startsWith("assembly@")
+      ? "Assembly"
+      : email.startsWith("block@")
+      ? "Block"
+      : email.startsWith("mandal@")
+      ? "Mandal"
+      : email.startsWith("pc@")
+      ? "PollingCenter"
+      : email.startsWith("booth@")
+      ? "Booth"
+      : "Karyakarta";
+    name = email.split("@")[0];
+  } else {
+    phone = identifier;
+    name = phone;
+  }
+
+  const user: User = {
+    id: Math.random().toString(36).slice(2, 11),
     email,
-    name: email.split("@")[0],
+    phone,
+    name,
     role,
   };
 
