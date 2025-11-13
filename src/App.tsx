@@ -19,7 +19,9 @@ import AdminOverview from "./pages/Admin/Overview";
 import StateOverview from "./pages/State/Overview";
 import DistrictOverview from "./pages/District/Overview";
 import AssemblyOverview from "./pages/Assembly/Overview";
+import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import BlockOverview from "./pages/Block/Overview";
+import AssemblyBlockPage from "./pages/Assembly/block/BlockPage";
 import MandalOverview from "./pages/Mandal/Overview";
 import PollingCenterOverview from "./pages/PollingCenter/Overview";
 import BoothOverview from "./pages/Booth/Overview";
@@ -52,6 +54,9 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyOverview />} />
             <Route path="overview" element={<AssemblyOverview />} />
+            <Route path="dashboard" element={<AssemblyDashboard />} />
+            <Route path="block" element={<AssemblyBlockPage />} />
+            <Route path="block/overview" element={<AssemblyBlockPage />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
             <Route index element={<BlockOverview />} />

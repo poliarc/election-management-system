@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "../components/Sidebar";
+import AssemblySidebar from "../components/AssemblySidebar";
 import { Topbar } from "../components/Topbar";
 
 export default function AssemblyLayout() {
@@ -7,7 +7,7 @@ export default function AssemblyLayout() {
     <div className="h-screen flex flex-col">
       <Topbar />
       <div className="flex flex-1">
-        <Sidebar />
+  <AssemblySidebar />
         <main className="flex-1 overflow-auto p-4">
           <Outlet />
         </main>
