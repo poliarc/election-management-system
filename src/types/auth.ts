@@ -19,7 +19,7 @@ export interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
-  theme: "light" | "dark";
+  // theme moved to ui slice
 }
 
 // Single identifier field supports either email address or phone number.

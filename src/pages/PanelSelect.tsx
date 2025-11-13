@@ -5,12 +5,6 @@ import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import type { Role } from "../types/roles";
 import { roles, RoleLabel } from "../types/roles";
 
-function roleToPathSegment(role: Role): string {
-  // ROLE_DASHBOARD_PATH[role] returns e.g., "/polling-center"; take segment
-  const path = ROLE_DASHBOARD_PATH[role] || "/";
-  return path.replace(/^\//, "");
-}
-
 export default function PanelSelect() {
   const user = useAppSelector((s) => s.auth.user);
   const navigate = useNavigate();
@@ -18,12 +12,8 @@ export default function PanelSelect() {
   const adminPanels = useMemo(() => user?.adminPanels ?? [], [user]);
   const userPanels = useMemo(() => user?.userPanels ?? [], [user]);
   const hasAnyAccess = adminPanels.length > 0 || userPanels.length > 0;
-
-  const goToAdminPanel = (role: Role) => {
-    // Navigate to dedicated Admin UI for that panel
-    const segment = roleToPathSegment(role);
-    navigate(`/admin/panel/${segment}`);
-  };
+  // Exclude Admin role from User Assigned Panels list
+  const userPanelRoles = useMemo(() => roles.filter((r) => r !== "Admin"), []);
 
   const goToUserPanel = (role: Role) => {
     navigate(ROLE_DASHBOARD_PATH[role]);
@@ -51,7 +41,11 @@ export default function PanelSelect() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Admin Panels */}
+          {/*
+            Admin Panels (temporarily disabled)
+            -------------------------------------------------
+            The entire Admin Panels section is commented out for now.
+            Restore by removing this comment wrapper when needed.
           <section>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
               Admin Panels
@@ -100,6 +94,7 @@ export default function PanelSelect() {
               })}
             </div>
           </section>
+          */}
 
           {/* User Assigned Panels */}
           <section>
@@ -107,7 +102,7 @@ export default function PanelSelect() {
               User Assigned Panels
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {roles.map((r) => {
+              {userPanelRoles.map((r) => {
                 const hasAccess = userPanels.includes(r);
                 const label = RoleLabel[r];
                 return (
