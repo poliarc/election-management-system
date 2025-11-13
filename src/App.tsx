@@ -16,7 +16,8 @@ import PollingCenterLayout from "./layouts/PollingCenterLayout";
 import BoothLayout from "./layouts/BoothLayout";
 import KaryakartaLayout from "./layouts/KaryakartaLayout";
 import AdminOverview from "./pages/Admin/Overview";
-import StateOverview from "./pages/State/Overview";
+import StateOverview from "./pages/State/Dashboard";
+import StateTeamListing from "./pages/State/state-team";
 import DistrictOverview from "./pages/District/Overview";
 import AssemblyOverview from "./pages/Assembly/Overview";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
@@ -32,7 +33,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
           <Route path="dashboard" element={<RoleRedirect />} />
@@ -45,7 +46,8 @@ export default function App() {
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
-            <Route path="overview" element={<StateOverview />} />
+            <Route path="dashboard" element={<StateOverview />} />
+            <Route path="team" element={<StateTeamListing />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictOverview />} />

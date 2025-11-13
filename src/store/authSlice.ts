@@ -14,7 +14,6 @@ const initialState: AuthState = {
   token: storage.getToken(),
   loading: false,
   error: null,
-  theme: storage.getTheme(),
 };
 
 export const login = createAsyncThunk<LoginResponse, LoginPayload>(
@@ -40,10 +39,6 @@ const authSlice = createSlice({
       storage.clearToken();
       storage.clearUser();
     },
-    toggleTheme: (state) => {
-      state.theme = state.theme === "light" ? "dark" : "light";
-      storage.setTheme(state.theme);
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -68,5 +63,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, toggleTheme } = authSlice.actions;
+export const { logout } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,9 +1,9 @@
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { toggleTheme } from "../store/authSlice";
+import { toggleTheme } from "../store/uiSlice";
 import { useEffect } from "react";
 
 export function ThemeToggle() {
-  const theme = useAppSelector((s) => s.auth.theme);
+  const theme = useAppSelector((s) => s.ui.theme);
   const dispatch = useAppDispatch();
 
   useEffect(() => {

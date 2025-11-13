@@ -17,7 +17,9 @@ const identifierSchema = z
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"entry" | "otp" | "reset" | "success">("entry");
+  const [step, setStep] = useState<"entry" | "otp" | "reset" | "success">(
+    "entry"
+  );
   const [identifier, setIdentifier] = useState("");
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
@@ -54,15 +56,15 @@ export default function ForgotPasswordPage() {
     setError("");
     const parsed = identifierSchema.safeParse(identifier);
     if (!parsed.success) {
-      // @ts-ignore
-      const msg = parsed.error?.issues?.[0]?.message || "Enter a valid identifier";
+      const msg =
+        parsed.error?.issues?.[0]?.message || "Enter a valid identifier";
       setError(msg);
       return;
     }
 
     setSending(true);
     await new Promise((r) => setTimeout(r, 700));
-    const generated = (Math.floor(100000 + Math.random() * 900000)).toString();
+    const generated = Math.floor(100000 + Math.random() * 900000).toString();
     setOtp(generated);
     setOtpSentTo(maskIdentifier(identifier));
     setResendCooldown(30);
@@ -76,7 +78,7 @@ export default function ForgotPasswordPage() {
     if (resendCooldown > 0) return;
     setResendCooldown(30);
     await new Promise((r) => setTimeout(r, 500));
-    const generated = (Math.floor(100000 + Math.random() * 900000)).toString();
+    const generated = Math.floor(100000 + Math.random() * 900000).toString();
     setOtp(generated);
     // eslint-disable-next-line no-console
     console.info("[demo] Resent OTP =", generated);
@@ -174,133 +176,163 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md animate-fade-in-up">
           {/* Brand */}
           <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
-                  <span className="text-2xl font-bold text-white">P</span>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Reset your password</h1>
-                <p className="text-gray-600 dark:text-gray-400">Follow the steps to reset your password</p>
-              </div>
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
+              <span className="text-2xl font-bold text-white">P</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Reset your password
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Follow the steps to reset your password
+            </p>
+          </div>
 
           {/* Card */}
           <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl p-8 transform hover:shadow-3xl transition-all duration-300">
-                {/* Entry */}
-                {step === "entry" && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Enter your email or phone number and we'll send a one-time code (OTP).</p>
-                    <input 
-                      value={identifier} 
-                      onChange={(e) => setIdentifier(e.target.value)} 
-                      placeholder="you@example.com or +15551234567" 
-                      className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all" 
-                    />
-                    {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={sendOtp} 
-                        disabled={sending} 
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {sending ? "Sending…" : "Send OTP"}
-                      </button>
-                      <button 
-                        onClick={() => navigate(ROUTES.LOGIN)} 
-                        className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        Back to login
-                      </button>
-                    </div>
-                  </div>
+            {/* Entry */}
+            {step === "entry" && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Enter your email or phone number and we'll send a one-time
+                  code (OTP).
+                </p>
+                <input
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="you@example.com or +15551234567"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                />
+                {error && (
+                  <p className="text-xs text-red-500 dark:text-red-400">
+                    {error}
+                  </p>
                 )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={sendOtp}
+                    disabled={sending}
+                    className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {sending ? "Sending…" : "Send OTP"}
+                  </button>
+                  <button
+                    onClick={() => navigate(ROUTES.LOGIN)}
+                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Back to login
+                  </button>
+                </div>
+              </div>
+            )}
 
-                {/* OTP */}
-                {step === "otp" && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      OTP sent to <strong className="text-gray-900 dark:text-white">{otpSentTo}</strong>. Enter it below.
-                    </p>
-                    <input 
-                      value={otpInput} 
-                      onChange={(e) => setOtpInput(e.target.value)} 
-                      placeholder="Enter OTP" 
-                      className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all" 
-                    />
-                    {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-                    <div className="flex gap-2 flex-wrap">
-                      <button 
-                        onClick={verify} 
-                        disabled={verifying} 
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {verifying ? "Verifying…" : "Verify OTP"}
-                      </button>
-                      <button 
-                        onClick={resend} 
-                        disabled={resendCooldown > 0} 
-                        className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend OTP"}
-                      </button>
-                      <button 
-                        onClick={() => navigate(ROUTES.LOGIN)} 
-                        className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
+            {/* OTP */}
+            {step === "otp" && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  OTP sent to{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    {otpSentTo}
+                  </strong>
+                  . Enter it below.
+                </p>
+                <input
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value)}
+                  placeholder="Enter OTP"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                />
+                {error && (
+                  <p className="text-xs text-red-500 dark:text-red-400">
+                    {error}
+                  </p>
                 )}
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={verify}
+                    disabled={verifying}
+                    className="inline-flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {verifying ? "Verifying…" : "Verify OTP"}
+                  </button>
+                  <button
+                    onClick={resend}
+                    disabled={resendCooldown > 0}
+                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend OTP"}
+                  </button>
+                  <button
+                    onClick={() => navigate(ROUTES.LOGIN)}
+                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
-                {/* Reset */}
-                {step === "reset" && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Create a new password for your account.</p>
-                    <input 
-                      value={newPassword} 
-                      onChange={(e) => setNewPassword(e.target.value)} 
-                      placeholder="New password" 
-                      type="password" 
-                      className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all" 
-                    />
-                    <input 
-                      value={confirmPassword} 
-                      onChange={(e) => setConfirmPassword(e.target.value)} 
-                      placeholder="Confirm password" 
-                      type="password" 
-                      className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all" 
-                    />
-                    {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={update} 
-                        disabled={updating} 
-                        className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {updating ? "Updating…" : "Update password"}
-                      </button>
-                      <button 
-                        onClick={() => navigate(ROUTES.LOGIN)} 
-                        className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
+            {/* Reset */}
+            {step === "reset" && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Create a new password for your account.
+                </p>
+                <input
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                  type="password"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                />
+                <input
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password"
+                  type="password"
+                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                />
+                {error && (
+                  <p className="text-xs text-red-500 dark:text-red-400">
+                    {error}
+                  </p>
                 )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={update}
+                    disabled={updating}
+                    className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {updating ? "Updating…" : "Update password"}
+                  </button>
+                  <button
+                    onClick={() => navigate(ROUTES.LOGIN)}
+                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
-                {/* Success */}
-                {step === "success" && (
-                  <div className="space-y-3 text-center">
-                    <p className="text-green-700 dark:text-green-400 font-medium">Your password has been reset successfully. Redirecting to login…</p>
-                    <div className="flex justify-center">
-                      <button 
-                        onClick={() => navigate(ROUTES.LOGIN)} 
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
-                      >
-                        Go to login now
-                      </button>
-                    </div>
-                  </div>
-                )}
+            {/* Success */}
+            {step === "success" && (
+              <div className="space-y-3 text-center">
+                <p className="text-green-700 dark:text-green-400 font-medium">
+                  Your password has been reset successfully. Redirecting to
+                  login…
+                </p>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => navigate(ROUTES.LOGIN)}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Go to login now
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
