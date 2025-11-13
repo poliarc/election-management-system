@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { login } from "../store/authSlice";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
 import { useState } from "react";
 
@@ -36,6 +36,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
   const [showPassword, setShowPassword] = useState(false);
+  // Forgot-password flow moved to a separate page (ForgotPassword.tsx)
 
   if (token) {
     // If already logged in, redirect to role dashboard
@@ -282,6 +283,10 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
             </form>
+
+            <div className="mt-4 text-center">
+              <Link to="/forgot-password" className="text-sm text-indigo-600 hover:underline">Forgot password?</Link>
+            </div>
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
