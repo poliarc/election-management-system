@@ -1,0 +1,46 @@
+export type Booth = {
+  id: number;
+  boothNo: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  state: string;
+  district: string;
+  assembly: string;
+  block?: string;
+  mandal?: string;
+  acNo?: string;
+  distNo?: string;
+  designation: string;
+  profileImage?: string | null;
+  status?: string | number;
+  district_id?: number;
+  assembly_id?: number;
+  polling_center_id?: number;
+  pollingCenter?: string;
+  pollingCenterNo?: string;
+};
+
+export type BoothCandidate = {
+  boothNo: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  state: string;
+  district: string;
+  assembly: string;
+  block?: string;
+  mandal?: string;
+  acNo?: string;
+  distNo?: string;
+  designation: string;
+  profileImage: FileList | null;
+  password: string;
+  district_id?: number;
+  assembly_id?: number;
+  polling_center_id?: number;
+  pollingCenter?: string;
+  pollingCenterNo?: string;
+};

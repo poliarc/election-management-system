@@ -1,0 +1,27 @@
+export type PollingCenterCandidate = {
+  id: number;
+  pollingCenter: string;
+  pollingCenterName: string;
+  Designation: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: number;
+  age: number;
+  state: string;
+  state_id?: number;
+  dist: string;
+  district_id?: number;
+  distNo?: string;
+  assembly: string;
+  assembly_id?: number;
+  acNo?: string;
+  block?: string;
+  block_id?: number | null;
+  mandal?: string;
+  mandal_id?: number | null;
+  pollingCenterNo?: string;
+  profileImage: FileList | null;
+  password: string;
+  status?: string | number;
+};
