@@ -10,42 +10,33 @@ import AdminLayout from "./layouts/AdminLayout";
 import StateLayout from "./layouts/StateLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
 import AssemblyLayout from "./layouts/AssemblyLayout";
-import BlockLayout from "./layouts/BlockLayout";
-import MandalLayout from "./layouts/MandalLayout";
-import PollingCenterLayout from "./layouts/PollingCenterLayout";
-import BoothLayout from "./layouts/BoothLayout";
-import KaryakartaLayout from "./layouts/KaryakartaLayout";
 import AdminOverview from "./pages/Admin/Overview";
 import StateOverview from "./pages/State/Dashboard";
 import StateTeamListing from "./pages/State/state-team";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
-import DistrictAssembly from "./pages/District/Assembly";
-import DistrictBlock from "./pages/District/Block";
-import DistrictMandal from "./pages/District/Mandal";
-import DistrictBooth from "./pages/District/Booth";
-import DistrictPollingCenters from "./pages/District/PollingCenters";
-import DistrictKaryakarta from "./pages/District/Karyakarta";
-import DistrictCampaigns from "./pages/District/Campaigns";
-import DistrictInitiatives from "./pages/District/Initiatives";
-import DistrictProfile from "./pages/District/Profile";
+import DistrictAssembly from "./pages/District/assembly/Assembly";
+import DistrictBlock from "./pages/District/block/Block";
+import DistrictMandal from "./pages/District/mandal/Mandal";
+import DistrictBooth from "./pages/District/booth/Booth";
+import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenters";
+import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
+import DistrictCampaigns from "./pages/District/campaign/Campaigns";
+import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
+import DistrictProfile from "./pages/District/profile/Profile";
 // import StateDistrictsListing from "./pages/State/districts";
 import StateAssemblyListing from "./pages/State/assembly";
 // import DistrictOverview from "./pages/District/Overview";
 import StateDistrictsListing from "./pages/State/districts";
 // import StateAssemblyListing from "./pages/State/assembly";
 // import DistrictOverview from "./pages/District/Overview";
-import AssemblyOverview from "./pages/Assembly/Overview";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
-import BlockOverview from "./pages/Block/Overview";
+import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
 import AssemblyBlockPage from "./pages/Assembly/block/BlockPage";
 import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
+import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
-import MandalOverview from "./pages/Mandal/Overview";
-import PollingCenterOverview from "./pages/PollingCenter/Overview";
-import BoothOverview from "./pages/Booth/Overview";
-import KaryakartaOverview from "./pages/Karyakarta/Overview";
 
 export default function App() {
   return (
@@ -88,41 +79,16 @@ export default function App() {
             <Route path="profile" element={<DistrictProfile />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
-            <Route index element={<AssemblyOverview />} />
-            <Route path="overview" element={<AssemblyOverview />} />
+            <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
+            <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<AssemblyBlockPage />} />
-            <Route path="block/overview" element={<AssemblyBlockPage />} />
             <Route path="mandal" element={<AssemblyMandalPage />} />
-            <Route path="mandal/overview" element={<AssemblyMandalPage />} />
+            <Route path="polling-center" element={<AssemblyPollingCenterPage />} />
             <Route path="booth" element={<AssemblyBoothPage />} />
-            <Route path="booth/overview" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
-            <Route
-              path="karyakarta/overview"
-              element={<AssemblyKaryakartaPage />}
-            />
           </Route>
-          <Route path="block" element={<BlockLayout />}>
-            <Route index element={<BlockOverview />} />
-            <Route path="overview" element={<BlockOverview />} />
-          </Route>
-          <Route path="mandal" element={<MandalLayout />}>
-            <Route index element={<MandalOverview />} />
-            <Route path="overview" element={<MandalOverview />} />
-          </Route>
-          <Route path="polling-center" element={<PollingCenterLayout />}>
-            <Route index element={<PollingCenterOverview />} />
-            <Route path="overview" element={<PollingCenterOverview />} />
-          </Route>
-          <Route path="booth" element={<BoothLayout />}>
-            <Route index element={<BoothOverview />} />
-            <Route path="overview" element={<BoothOverview />} />
-          </Route>
-          <Route path="karyakarta" element={<KaryakartaLayout />}>
-            <Route index element={<KaryakartaOverview />} />
-            <Route path="overview" element={<KaryakartaOverview />} />
-          </Route>
+
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

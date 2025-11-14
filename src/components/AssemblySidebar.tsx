@@ -178,11 +178,11 @@ const Icons = {
 const primaryItems: NavItem[] = [
   { to: "team", label: "Assembly Team", icon: Icons.team },
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  { to: "block/overview", label: "Block", icon: Icons.block },
-  { to: "mandal/overview", label: "Mandal", icon: Icons.mandal },
-  { to: "polling-center/overview", label: "Polling Center", icon: Icons.polling },
-  { to: "booth/overview", label: "Booth", icon: Icons.booths },
-  { to: "karyakarta/overview", label: "Karyakarta", icon: Icons.karyakarta },
+  { to: "block", label: "Block", icon: Icons.block },
+  { to: "mandal", label: "Mandal", icon: Icons.mandal },
+  { to: "polling-center", label: "Polling Center", icon: Icons.polling },
+  { to: "booth", label: "Booth", icon: Icons.booths },
+  { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
 const otherItems: NavItem[] = [
