@@ -29,6 +29,9 @@ import DistrictKaryakarta from "./pages/District/Karyakarta";
 import DistrictCampaigns from "./pages/District/Campaigns";
 import DistrictInitiatives from "./pages/District/Initiatives";
 import DistrictProfile from "./pages/District/Profile";
+import StateDistrictsListing from "./pages/State/districts";
+import StateAssemblyListing from "./pages/State/assembly";
+// import DistrictOverview from "./pages/District/Overview";
 import AssemblyOverview from "./pages/Assembly/Overview";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import BlockOverview from "./pages/Block/Overview";
@@ -61,6 +64,8 @@ export default function App() {
             <Route index element={<StateOverview />} />
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="team" element={<StateTeamListing />} />
+            <Route path="districts" element={<StateDistrictsListing />} />
+            <Route path="assembly" element={<StateAssemblyListing />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
@@ -70,7 +75,10 @@ export default function App() {
             <Route path="block" element={<DistrictBlock />} />
             <Route path="mandal" element={<DistrictMandal />} />
             <Route path="booth" element={<DistrictBooth />} />
-            <Route path="polling-centers" element={<DistrictPollingCenters />} />
+            <Route
+              path="polling-centers"
+              element={<DistrictPollingCenters />}
+            />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<DistrictCampaigns />} />
             <Route path="initiatives" element={<DistrictInitiatives />} />
@@ -87,7 +95,10 @@ export default function App() {
             <Route path="booth" element={<AssemblyBoothPage />} />
             <Route path="booth/overview" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
-            <Route path="karyakarta/overview" element={<AssemblyKaryakartaPage />} />
+            <Route
+              path="karyakarta/overview"
+              element={<AssemblyKaryakartaPage />}
+            />
           </Route>
           <Route path="block" element={<BlockLayout />}>
             <Route index element={<BlockOverview />} />
