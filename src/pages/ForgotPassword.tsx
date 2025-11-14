@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  sendOtp,
+  verifyOtp,
+  resendOtp,
+  resetPassword,
+  resetState,
+  setError,
+  decrementCooldown,
+} from "../store/passwordResetSlice";
 
 // identifier validation same as Login
 const identifierSchema = z
@@ -17,102 +27,86 @@ const identifierSchema = z
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"entry" | "otp" | "reset" | "success">(
-    "entry"
-  );
+  const dispatch = useAppDispatch();
+  const { step, identifier: storedIdentifier, maskedIdentifier, loading, error, resendCooldown, resetToken } =
+    useAppSelector((state) => state.passwordReset);
+
   const [identifier, setIdentifier] = useState("");
-  const [error, setError] = useState("");
-  const [sending, setSending] = useState(false);
-  const [otp, setOtp] = useState("");
   const [otpInput, setOtpInput] = useState("");
-  const [otpSentTo, setOtpSentTo] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [verifying, setVerifying] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [updating, setUpdating] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    // Reset state when component mounts
+    dispatch(resetState());
+  }, [dispatch]);
 
   useEffect(() => {
     let t: number | undefined;
     if (resendCooldown > 0) {
-      t = window.setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+      t = window.setTimeout(() => dispatch(decrementCooldown()), 1000);
     }
     return () => {
       if (t) clearTimeout(t);
     };
-  }, [resendCooldown]);
+  }, [resendCooldown, dispatch]);
 
-  const maskIdentifier = (id: string) => {
-    if (!id) return "";
-    if (/@/.test(id)) {
-      const [local, domain] = id.split("@");
-      const start = local.slice(0, Math.min(2, local.length));
-      return `${start}****@${domain}`;
-    }
-    return id.replace(/.*(\d{4})$/, "****$1");
-  };
-
-  const sendOtp = async () => {
-    setError("");
+  const handleSendOtp = async () => {
+    dispatch(setError(null));
     const parsed = identifierSchema.safeParse(identifier);
     if (!parsed.success) {
       const msg =
         parsed.error?.issues?.[0]?.message || "Enter a valid identifier";
-      setError(msg);
+      dispatch(setError(msg));
       return;
     }
 
-    setSending(true);
-    await new Promise((r) => setTimeout(r, 700));
-    const generated = Math.floor(100000 + Math.random() * 900000).toString();
-    setOtp(generated);
-    setOtpSentTo(maskIdentifier(identifier));
-    setResendCooldown(30);
-    // eslint-disable-next-line no-console
-    console.info("[demo] OTP for", identifier, "=", generated);
-    setSending(false);
-    setStep("otp");
+    dispatch(sendOtp(identifier));
   };
 
-  const resend = async () => {
+  const handleResendOtp = async () => {
     if (resendCooldown > 0) return;
-    setResendCooldown(30);
-    await new Promise((r) => setTimeout(r, 500));
-    const generated = Math.floor(100000 + Math.random() * 900000).toString();
-    setOtp(generated);
-    // eslint-disable-next-line no-console
-    console.info("[demo] Resent OTP =", generated);
+    dispatch(resendOtp(storedIdentifier));
   };
 
-  const verify = async () => {
-    setError("");
-    setVerifying(true);
-    await new Promise((r) => setTimeout(r, 500));
-    if (otpInput.trim() === otp) {
-      setStep("reset");
-    } else {
-      setError("Invalid OTP. Please try again.");
+  const handleVerifyOtp = async () => {
+    dispatch(setError(null));
+    if (!otpInput.trim()) {
+      dispatch(setError("Please enter the OTP"));
+      return;
     }
-    setVerifying(false);
+    dispatch(verifyOtp({ identifier: storedIdentifier, otp: otpInput }));
   };
 
-  const update = async () => {
-    setError("");
+  const handleResetPassword = async () => {
+    dispatch(setError(null));
     if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters");
+      dispatch(setError("Password must be at least 6 characters"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      dispatch(setError("Passwords do not match"));
       return;
     }
-    setUpdating(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setUpdating(false);
-    setStep("success");
-    // After a short delay, redirect to login automatically
-    setTimeout(() => navigate(ROUTES.LOGIN), 2000);
+    dispatch(
+      resetPassword({
+        identifier: storedIdentifier,
+        otp: otpInput,
+        newPassword,
+        confirmPassword,
+        resetToken: resetToken || undefined,
+      })
+    );
   };
+
+  useEffect(() => {
+    if (step === "success") {
+      const timer = setTimeout(() => navigate(ROUTES.LOGIN), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, navigate]);
 
   return (
     <div className="min-h-screen flex overflow-hidden">
@@ -209,11 +203,11 @@ export default function ForgotPasswordPage() {
                 )}
                 <div className="flex gap-2">
                   <button
-                    onClick={sendOtp}
-                    disabled={sending}
+                    onClick={handleSendOtp}
+                    disabled={loading}
                     className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
-                    {sending ? "Sending…" : "Send OTP"}
+                    {loading ? "Sending…" : "Send OTP"}
                   </button>
                   <button
                     onClick={() => navigate(ROUTES.LOGIN)}
@@ -231,7 +225,7 @@ export default function ForgotPasswordPage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   OTP sent to{" "}
                   <strong className="text-gray-900 dark:text-white">
-                    {otpSentTo}
+                    {maskedIdentifier}
                   </strong>
                   . Enter it below.
                 </p>
@@ -248,15 +242,15 @@ export default function ForgotPasswordPage() {
                 )}
                 <div className="flex gap-2 flex-wrap">
                   <button
-                    onClick={verify}
-                    disabled={verifying}
+                    onClick={handleVerifyOtp}
+                    disabled={loading}
                     className="inline-flex items-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
-                    {verifying ? "Verifying…" : "Verify OTP"}
+                    {loading ? "Verifying…" : "Verify OTP"}
                   </button>
                   <button
-                    onClick={resend}
-                    disabled={resendCooldown > 0}
+                    onClick={handleResendOtp}
+                    disabled={resendCooldown > 0 || loading}
                     className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
                     {resendCooldown > 0
@@ -279,20 +273,106 @@ export default function ForgotPasswordPage() {
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   Create a new password for your account.
                 </p>
-                <input
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password"
-                  type="password"
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
-                />
-                <input
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm password"
-                  type="password"
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password"
+                    type={showNewPassword ? "text" : "password"}
+                    className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                  >
+                    {showNewPassword ? (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {error && (
                   <p className="text-xs text-red-500 dark:text-red-400">
                     {error}
@@ -300,11 +380,11 @@ export default function ForgotPasswordPage() {
                 )}
                 <div className="flex gap-2">
                   <button
-                    onClick={update}
-                    disabled={updating}
+                    onClick={handleResetPassword}
+                    disabled={loading}
                     className="inline-flex items-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
-                    {updating ? "Updating…" : "Update password"}
+                    {loading ? "Updating…" : "Update password"}
                   </button>
                   <button
                     onClick={() => navigate(ROUTES.LOGIN)}

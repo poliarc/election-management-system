@@ -3,6 +3,10 @@ export const API_CONFIG = {
   ENDPOINTS: {
     LOGIN: '/api/users/login',
     REFRESH: '/api/users/refresh',
+    PASSWORD_RESET_SEND_OTP: '/api/password-reset/send-otp',
+    PASSWORD_RESET_VERIFY_OTP: '/api/password-reset/verify-otp',
+    PASSWORD_RESET_RESEND_OTP: '/api/password-reset/resend-otp',
+    PASSWORD_RESET_RESET: '/api/password-reset/reset-password',
   },
   TIMEOUT: 30000,
 } as const;
