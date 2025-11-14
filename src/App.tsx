@@ -18,6 +18,7 @@ import KaryakartaLayout from "./layouts/KaryakartaLayout";
 import AdminOverview from "./pages/Admin/Overview";
 import StateOverview from "./pages/State/Dashboard";
 import StateTeamListing from "./pages/State/state-team";
+import StateBlockListing from "./pages/State/block";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
 import DistrictAssembly from "./pages/District/Assembly";
@@ -46,6 +47,10 @@ import MandalOverview from "./pages/Mandal/Overview";
 import PollingCenterOverview from "./pages/PollingCenter/Overview";
 import BoothOverview from "./pages/Booth/Overview";
 import KaryakartaOverview from "./pages/Karyakarta/Overview";
+import StateMandalListing from "./pages/State/mandal";
+import StateBoothListing from "./pages/State/booth";
+import StateKaryakartaListing from "./pages/State/karyakarta";
+import StateProfile from "./pages/State/profile";
 
 export default function App() {
   return (
@@ -69,6 +74,11 @@ export default function App() {
             <Route path="team" element={<StateTeamListing />} />
             <Route path="districts" element={<StateDistrictsListing />} />
             <Route path="assembly" element={<StateAssemblyListing />} />
+            <Route path="block" element={<StateBlockListing />} />
+            <Route path="mandal" element={<StateMandalListing />} />
+            <Route path="booth" element={<StateBoothListing />} />
+            <Route path="karyakarta" element={<StateKaryakartaListing />} />
+            <Route path="profile" element={<StateProfile />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
