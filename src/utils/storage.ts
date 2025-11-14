@@ -1,6 +1,7 @@
 const ACCESS_TOKEN_KEY = "auth_access_token";
 const REFRESH_TOKEN_KEY = "auth_refresh_token";
 const USER_KEY = "auth_user";
+const AUTH_STATE_KEY = "auth_state";
 const THEME_KEY = "theme";
 
 export const storage = {
@@ -26,6 +27,15 @@ export const storage = {
     return raw ? (JSON.parse(raw) as T) : null;
   },
   clearUser: () => localStorage.removeItem(USER_KEY),
+
+  // Store complete auth state (role assignments, permissions, etc.)
+  setAuthState: (state: unknown) =>
+    localStorage.setItem(AUTH_STATE_KEY, JSON.stringify(state)),
+  getAuthState: <T>() => {
+    const raw = localStorage.getItem(AUTH_STATE_KEY);
+    return raw ? (JSON.parse(raw) as T) : null;
+  },
+  clearAuthState: () => localStorage.removeItem(AUTH_STATE_KEY),
 
   setTheme: (theme: "light" | "dark") => localStorage.setItem(THEME_KEY, theme),
   getTheme: (): "light" | "dark" =>

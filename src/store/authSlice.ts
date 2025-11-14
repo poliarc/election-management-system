@@ -8,20 +8,23 @@ import type { LoginResponseData, StateAssignment } from "../types/api";
 import { storage } from "../utils/storage";
 import * as authApi from "../services/authApi";
 
+// Try to restore auth state from localStorage
+const savedAuthState = storage.getAuthState<Partial<AuthState>>();
+
 const initialState: AuthState = {
-  user: storage.getUser(),
-  accessToken: storage.getToken('access'),
-  refreshToken: storage.getToken('refresh'),
+  user: savedAuthState?.user || storage.getUser(),
+  accessToken: savedAuthState?.accessToken || storage.getToken('access'),
+  refreshToken: savedAuthState?.refreshToken || storage.getToken('refresh'),
   loading: false,
   error: null,
-  isPartyAdmin: false,
-  isLevelAdmin: false,
-  hasStateAssignments: false,
-  partyAdminPanels: [],
-  levelAdminPanels: [],
-  stateAssignments: [],
-  permissions: null,
-  selectedAssignment: null,
+  isPartyAdmin: savedAuthState?.isPartyAdmin || false,
+  isLevelAdmin: savedAuthState?.isLevelAdmin || false,
+  hasStateAssignments: savedAuthState?.hasStateAssignments || false,
+  partyAdminPanels: savedAuthState?.partyAdminPanels || [],
+  levelAdminPanels: savedAuthState?.levelAdminPanels || [],
+  stateAssignments: savedAuthState?.stateAssignments || [],
+  permissions: savedAuthState?.permissions || null,
+  selectedAssignment: savedAuthState?.selectedAssignment || null,
 };
 
 export const login = createAsyncThunk<LoginResponseData, LoginPayload>(
@@ -59,9 +62,25 @@ const authSlice = createSlice({
       state.selectedAssignment = null;
       storage.clearToken();
       storage.clearUser();
+      storage.clearAuthState();
     },
     setSelectedAssignment: (state, action: PayloadAction<StateAssignment>) => {
       state.selectedAssignment = action.payload;
+      
+      // Persist updated state
+      storage.setAuthState({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isPartyAdmin: state.isPartyAdmin,
+        isLevelAdmin: state.isLevelAdmin,
+        hasStateAssignments: state.hasStateAssignments,
+        partyAdminPanels: state.partyAdminPanels,
+        levelAdminPanels: state.levelAdminPanels,
+        stateAssignments: state.stateAssignments,
+        permissions: state.permissions,
+        selectedAssignment: state.selectedAssignment,
+      });
     },
   },
   extraReducers: (builder) => {
@@ -95,10 +114,25 @@ const authSlice = createSlice({
           // Store permissions
           state.permissions = data.permissions;
           
-          // Persist to storage
+          // Persist to storage (tokens and user for backward compatibility)
           storage.setToken('access', data.accessToken);
           storage.setToken('refresh', data.refreshToken);
           storage.setUser(state.user);
+          
+          // Persist complete auth state
+          storage.setAuthState({
+            user: state.user,
+            accessToken: state.accessToken,
+            refreshToken: state.refreshToken,
+            isPartyAdmin: state.isPartyAdmin,
+            isLevelAdmin: state.isLevelAdmin,
+            hasStateAssignments: state.hasStateAssignments,
+            partyAdminPanels: state.partyAdminPanels,
+            levelAdminPanels: state.levelAdminPanels,
+            stateAssignments: state.stateAssignments,
+            permissions: state.permissions,
+            selectedAssignment: state.selectedAssignment,
+          });
           
           state.loading = false;
           state.error = null;
