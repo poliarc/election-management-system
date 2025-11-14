@@ -229,7 +229,7 @@ export default function StateSidebar() {
   const location = useLocation();
 
   const base = ROLE_DASHBOARD_PATH["State"] || "/state";
-  const firstName = (user?.name || "State").split(" ")[0];
+  const firstName = user?.firstName || user?.username || "State";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;

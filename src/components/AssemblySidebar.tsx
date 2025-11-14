@@ -207,7 +207,7 @@ export default function AssemblySidebar() {
   const location = useLocation();
 
   const base = ROLE_DASHBOARD_PATH["Assembly"] || "/assembly";
-  const firstName = (user?.name || "Assembly").split(" ")[0];
+  const firstName = user?.firstName || user?.username || "Assembly";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;

@@ -3,10 +3,10 @@ import { useAppSelector } from "../store/hooks";
 import { ROUTES } from "../constants/routes";
 
 export default function ProtectedRoute() {
-  const token = useAppSelector((s) => s.auth.token);
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const location = useLocation();
 
-  if (!token) {
+  if (!accessToken) {
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
   return <Outlet />;
