@@ -23,6 +23,9 @@ import AssemblyOverview from "./pages/Assembly/Overview";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import BlockOverview from "./pages/Block/Overview";
 import AssemblyBlockPage from "./pages/Assembly/block/BlockPage";
+import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
+import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
+import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import MandalOverview from "./pages/Mandal/Overview";
 import PollingCenterOverview from "./pages/PollingCenter/Overview";
 import BoothOverview from "./pages/Booth/Overview";
@@ -59,6 +62,12 @@ export default function App() {
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="block" element={<AssemblyBlockPage />} />
             <Route path="block/overview" element={<AssemblyBlockPage />} />
+            <Route path="mandal" element={<AssemblyMandalPage />} />
+            <Route path="mandal/overview" element={<AssemblyMandalPage />} />
+            <Route path="booth" element={<AssemblyBoothPage />} />
+            <Route path="booth/overview" element={<AssemblyBoothPage />} />
+            <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
+            <Route path="karyakarta/overview" element={<AssemblyKaryakartaPage />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
             <Route index element={<BlockOverview />} />
