@@ -17,7 +17,7 @@ export default function AdminSidebar() {
   const navigate = useNavigate();
 
   const base = ROLE_DASHBOARD_PATH["Admin"] || "/admin";
-  const firstName = (user?.name || "Admin").split(" ")[0];
+  const firstName = user?.firstName || user?.username || "Admin";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;

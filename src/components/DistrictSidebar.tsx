@@ -218,7 +218,7 @@ export default function DistrictSidebar() {
     const location = useLocation();
 
     const base = ROLE_DASHBOARD_PATH["District"] || "/district";
-    const firstName = (user?.name || "District").split(" ")[0];
+    const firstName = user?.firstName || user?.username || "District";
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
         firstName
     )}&background=6366f1&color=fff&bold=true`;

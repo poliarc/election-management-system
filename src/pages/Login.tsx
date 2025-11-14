@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { login } from "../store/authSlice";
+import { login, logout } from "../store/authSlice";
 import { useLocation, Link } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
 import { useState } from "react";
@@ -28,17 +28,27 @@ type FormData = z.infer<typeof schema>;
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
-  const { token, loading, error } = useAppSelector((s) => s.auth);
-  useLocation(); // reserved for future redirect back logic
+  const { accessToken, loading, error } = useAppSelector((s) => s.auth);
+  const location = useLocation();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
   const [showPassword, setShowPassword] = useState(false);
-  // Forgot-password flow moved to a separate page (ForgotPassword.tsx)
+  
+  // Check for force logout parameter
+  const searchParams = new URLSearchParams(location.search);
+  const forceLogout = searchParams.get('logout') === 'true';
+  
+  // Force logout if parameter is present
+  if (forceLogout && accessToken) {
+    dispatch(logout());
+    // Remove the logout parameter from URL
+    window.history.replaceState({}, '', '/login');
+  }
 
-  if (token) {
+  if (accessToken && !forceLogout) {
     // If already logged in, redirect to role dashboard
     return <RoleRedirect />;
   }

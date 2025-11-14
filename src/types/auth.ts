@@ -1,34 +1,52 @@
-import type { Role } from "./roles";
+import type { ApiPermissions, StateAssignment } from "./api";
 
-// Expanded user model to allow phone-based authentication.
+// Enhanced User type to match API response
 export interface User {
-  id: string;
-  // Email may be absent if the user authenticated with only a phone number.
-  email?: string;
-  // Phone number present when phone-based login used.
-  phone?: string;
-  name: string;
-  role: Role;
-  // Panels available to this user
-  adminPanels?: Role[]; // admin-level panels this user can manage
-  userPanels?: Role[]; // user-assigned panels this user can access
+  id: number;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  contactNo: string;
+  partyId: number;
+  roleId: number;
+  isSuperAdmin: boolean;
+  partyName: string;
+  role: string;
+  userType: 'superadmin' | 'partyadmin' | 'leveladmin' | 'user';
 }
 
+// Panel assignment types
+export interface PanelAssignment {
+  id: number;
+  name: string;
+  displayName: string;
+  type: 'party' | 'level' | 'state';
+  redirectUrl: string;
+  metadata?: Record<string, any>;
+}
+
+// Enhanced AuthState
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   loading: boolean;
   error: string | null;
-  // theme moved to ui slice
+  // Role assignments
+  isPartyAdmin: boolean;
+  isLevelAdmin: boolean;
+  hasStateAssignments: boolean;
+  partyAdminPanels: PanelAssignment[];
+  levelAdminPanels: PanelAssignment[];
+  stateAssignments: StateAssignment[];
+  permissions: ApiPermissions | null;
+  // Currently selected assignment (for users with multiple assignments of same type)
+  selectedAssignment: StateAssignment | null;
 }
 
-// Single identifier field supports either email address or phone number.
+// Login payload (unchanged)
 export interface LoginPayload {
-  identifier: string; // email or phone
+  identifier: string;
   password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: User;
 }
