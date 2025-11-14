@@ -209,16 +209,16 @@ const stateItems: NavItem[] = [
   { to: "team", label: "State Team", icon: Icons.team },
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
-  { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
-  { to: "vic", label: "VIC", icon: Icons.vic },
+  // { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
+  // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
 // Dropdown items
 const listItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
-  { to: "polling-centers", label: "Polling Centers", icon: Icons.polling },
-  { to: "booths", label: "Booth List", icon: Icons.booths },
+  // { to: "polling-centers", label: "Polling Centers", icon: Icons.polling },
+  { to: "booth", label: "Booth", icon: Icons.booths },
   { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
@@ -248,16 +248,16 @@ export default function StateSidebar() {
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col">
+    <aside className="w-64 lg:w-72 xl:w-80 shrink-0 h-screen border-r border-gray-200 bg-white flex flex-col overflow-hidden">
       {/* User header */}
-      <div className="px-5 py-6 border-b border-gray-200">
-        <div className="flex items-center gap-4">
+      <div className="px-4 lg:px-5 py-4 lg:py-6 border-b border-gray-200 shrink-0">
+        <div className="flex items-center gap-3 lg:gap-4">
           <img
             src={avatarUrl}
             alt={firstName}
-            className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
+            className="h-10 w-10 lg:h-11 lg:w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
               State Panel
             </p>
@@ -268,132 +268,138 @@ export default function StateSidebar() {
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-4 py-5 space-y-2">
-        {stateItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={`${base}/${item.to}`}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
-            {/** Accent bar */}
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        ))}
+      {/* Nav - Scrollable content */}
+      <div className="flex-1 overflow-y-auto">
+        <nav className="px-3 lg:px-4 py-4 lg:py-5 space-y-2">
+          {stateItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={`${base}/${item.to}`}
+              className={({ isActive }) =>
+                [
+                  "group relative flex items-center gap-3 rounded-xl px-3 lg:px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  isActive
+                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                    : "border border-transparent hover:border-gray-200",
+                ].join(" ")
+              }
+            >
+              <span className="text-indigo-600 shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+              {/** Accent bar */}
+              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+              {/** Active indicator */}
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+            </NavLink>
+          ))}
 
-        {/* List dropdown */}
-        <div>
-          <button
-            type="button"
-            aria-haspopup="true"
-            aria-expanded={listOpen}
-            onClick={() => setListOpen((v) => !v)}
-            className={[
-              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-              listOpen
-                ? "bg-gray-50 ring-1 ring-indigo-200"
-                : "border border-transparent hover:border-gray-200",
-            ].join(" ")}
-          >
-            <span className="flex items-center gap-3 text-indigo-600">
+          {/* List dropdown */}
+          <div>
+            <button
+              type="button"
+              aria-haspopup="true"
+              aria-expanded={listOpen}
+              onClick={() => setListOpen((v) => !v)}
+              className={[
+                "w-full flex items-center justify-between rounded-xl px-3 lg:px-3.5 py-2.5 text-sm font-medium transition",
+                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                listOpen
+                  ? "bg-gray-50 ring-1 ring-indigo-200"
+                  : "border border-transparent hover:border-gray-200",
+              ].join(" ")}
+            >
+              <span className="flex items-center gap-3 text-indigo-600">
+                <svg
+                  className="h-5 w-5 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    d="M4 6h16M4 12h16M4 18h16"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-black truncate">List</span>
+              </span>
               <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
+                className={[
+                  "h-4 w-4 text-indigo-600 transition-transform shrink-0",
+                  listOpen ? "rotate-180" : "rotate-0",
+                ].join(" ")}
+                viewBox="0 0 20 20"
                 fill="none"
-                stroke="currentColor"
               >
                 <path
-                  d="M4 6h16M4 12h16M4 18h16"
-                  strokeWidth={1.4}
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-black">List</span>
-            </span>
-            <svg
-              className={[
-                "h-4 w-4 text-indigo-600 transition-transform",
-                listOpen ? "rotate-180" : "rotate-0",
-              ].join(" ")}
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M6 8l4 4 4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {listOpen && (
-            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
-              {listItems.map((li) => (
-                <NavLink
-                  key={li.to}
-                  to={`${base}/${li.to}`}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-50 ring-1 ring-indigo-200"
-                        : "border border-transparent hover:border-gray-200",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{li.icon}</span>
-                  <span className="truncate">{li.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
-      </nav>
+            </button>
+            {listOpen && (
+              <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+                {listItems.map((li) => (
+                  <NavLink
+                    key={li.to}
+                    to={`${base}/${li.to}`}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                        "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-50 ring-1 ring-indigo-200"
+                          : "border border-transparent hover:border-gray-200",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600 shrink-0">{li.icon}</span>
+                    <span className="truncate">{li.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+        </nav>
+      </div>
 
-      {/* Account section */}
-      <div className="mt-auto pt-3 pb-5">
-        <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-          Account
-        </div>
-        <div className="px-4 space-y-2">
-          <NavLink
-            to={`${base}/profile`}
-            className={({ isActive }) =>
-              [
-                "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-50 ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600">{Icons.profile}</span>
-            <span>Profile</span>
-          </NavLink>
-          <button
-            onClick={onLogout}
-            className="group w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition"
-          >
-            <span>{Icons.logout}</span>
-            <span>Logout</span>
-          </button>
+      {/* Account section - Fixed at bottom */}
+      <div className="shrink-0 border-t border-gray-100 bg-gray-50/50">
+        <div className="px-3 lg:px-4 py-3 lg:py-4">
+          <div className="mb-3">
+            <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              Account
+            </div>
+          </div>
+          <div className="space-y-1">
+            <NavLink
+              to={`${base}/profile`}
+              className={({ isActive }) =>
+                [
+                  "group flex items-center gap-3 rounded-xl px-3 lg:px-3.5 py-2.5 text-sm font-medium transition",
+                  "text-black hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  isActive
+                    ? "bg-white shadow-sm ring-1 ring-indigo-200"
+                    : "border border-transparent hover:border-gray-200",
+                ].join(" ")
+              }
+            >
+              <span className="text-indigo-600 shrink-0">{Icons.profile}</span>
+              <span className="truncate">Profile</span>
+            </NavLink>
+            <button
+              onClick={onLogout}
+              className="group w-full flex items-center gap-3 rounded-xl px-3 lg:px-3.5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition border border-transparent hover:border-red-200"
+            >
+              <span className="shrink-0">{Icons.logout}</span>
+              <span className="truncate">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
     </aside>
