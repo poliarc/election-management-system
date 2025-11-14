@@ -18,7 +18,17 @@ import KaryakartaLayout from "./layouts/KaryakartaLayout";
 import AdminOverview from "./pages/Admin/Overview";
 import StateOverview from "./pages/State/Dashboard";
 import StateTeamListing from "./pages/State/state-team";
-import DistrictOverview from "./pages/District/Overview";
+import DistrictDashboard from "./pages/District/Dashboard";
+import DistrictTeam from "./pages/District/DistrictTeam";
+import DistrictAssembly from "./pages/District/Assembly";
+import DistrictBlock from "./pages/District/Block";
+import DistrictMandal from "./pages/District/Mandal";
+import DistrictBooth from "./pages/District/Booth";
+import DistrictPollingCenters from "./pages/District/PollingCenters";
+import DistrictKaryakarta from "./pages/District/Karyakarta";
+import DistrictCampaigns from "./pages/District/Campaigns";
+import DistrictInitiatives from "./pages/District/Initiatives";
+import DistrictProfile from "./pages/District/Profile";
 import AssemblyOverview from "./pages/Assembly/Overview";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import BlockOverview from "./pages/Block/Overview";
@@ -53,8 +63,18 @@ export default function App() {
             <Route path="team" element={<StateTeamListing />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
-            <Route index element={<DistrictOverview />} />
-            <Route path="overview" element={<DistrictOverview />} />
+            <Route index element={<DistrictDashboard />} />
+            <Route path="dashboard" element={<DistrictDashboard />} />
+            <Route path="district-team" element={<DistrictTeam />} />
+            <Route path="assembly" element={<DistrictAssembly />} />
+            <Route path="block" element={<DistrictBlock />} />
+            <Route path="mandal" element={<DistrictMandal />} />
+            <Route path="booth" element={<DistrictBooth />} />
+            <Route path="polling-centers" element={<DistrictPollingCenters />} />
+            <Route path="karyakarta" element={<DistrictKaryakarta />} />
+            <Route path="campaigns" element={<DistrictCampaigns />} />
+            <Route path="initiatives" element={<DistrictInitiatives />} />
+            <Route path="profile" element={<DistrictProfile />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyOverview />} />
