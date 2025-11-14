@@ -1,9 +1,7 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { setSelectedAssignment } from "../store/authSlice";
 import type { PanelAssignment } from "../types/auth";
-import type { StateAssignment } from "../types/api";
 
 // All possible level types
 const ALL_LEVELS = [
@@ -119,50 +117,7 @@ export default function PanelSelect() {
     stateAssignments,
   } = useAppSelector((s) => s.auth);
 
-  // Auto-redirect if only one assignment
-  useEffect(() => {
-    // Auto-redirect for single party admin panel
-    if (partyAdminPanels.length === 1 && levelAdminPanels.length === 0 && !hasStateAssignments) {
-      navigate(partyAdminPanels[0].redirectUrl, { replace: true });
-      return;
-    }
-
-    // Auto-redirect for single level admin panel
-    if (levelAdminPanels.length === 1 && partyAdminPanels.length === 0 && !hasStateAssignments) {
-      navigate(levelAdminPanels[0].redirectUrl, { replace: true });
-      return;
-    }
-
-    // Auto-redirect for single state assignment type with single assignment
-    if (!isPartyAdmin && !isLevelAdmin && hasStateAssignments) {
-      const groupedByType = stateAssignments.reduce((acc, assignment) => {
-        if (!acc[assignment.levelType]) {
-          acc[assignment.levelType] = [];
-        }
-        acc[assignment.levelType].push(assignment);
-        return acc;
-      }, {} as Record<string, StateAssignment[]>);
-
-      const levelTypes = Object.keys(groupedByType);
-      if (levelTypes.length === 1 && groupedByType[levelTypes[0]].length === 1) {
-        const assignment = groupedByType[levelTypes[0]][0];
-        dispatch(setSelectedAssignment(assignment));
-        const levelTypeRoutes: Record<string, string> = {
-          State: "/state",
-          District: "/district",
-          Assembly: "/assembly",
-          Block: "/block",
-          Mandal: "/mandal",
-          PollingCenter: "/polling-center",
-          Booth: "/booth",
-        };
-        const route = levelTypeRoutes[assignment.levelType];
-        if (route) {
-          navigate(route, { replace: true });
-        }
-      }
-    }
-  }, [partyAdminPanels, levelAdminPanels, hasStateAssignments, stateAssignments, navigate, dispatch, isPartyAdmin, isLevelAdmin]);
+  // No auto-redirect - let users see and choose their panels even if they have only one
 
   const handlePanelClick = (redirectUrl: string) => {
     navigate(redirectUrl);
