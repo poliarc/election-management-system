@@ -1,4 +1,4 @@
-import KaryakartaPage from "./KaryakartaPage";
+// import KaryakartaPage from "./KaryakartaPage";
 
-export { KaryakartaPage };
-export default KaryakartaPage;
+// export { KaryakartaPage };
+// export default KaryakartaPage;
