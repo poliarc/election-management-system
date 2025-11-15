@@ -21,6 +21,11 @@ interface HierarchyTableProps {
     assemblies?: HierarchyChild[];
     selectedAssembly?: string;
     onAssemblyChange?: (assemblyId: string) => void;
+    blocks?: HierarchyChild[];
+    selectedBlock?: string;
+    onBlockChange?: (blockId: string) => void;
+    assemblyName?: string;
+    blockName?: string;
 }
 
 export default function HierarchyTable({
@@ -42,6 +47,11 @@ export default function HierarchyTable({
     assemblies = [],
     selectedAssembly = '',
     onAssemblyChange,
+    blocks = [],
+    selectedBlock = '',
+    onBlockChange,
+    assemblyName = '',
+    blockName = '',
 }: HierarchyTableProps) {
     const [sortField, setSortField] = useState<'location_name' | 'total_users' | 'active_users'>('location_name');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -105,15 +115,19 @@ export default function HierarchyTable({
     return (
         <div className="space-y-6">
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
-                <h1 className="text-3xl font-bold mb-2">{title}</h1>
-                <p className="text-blue-100">Manage and view {title.toLowerCase()} information</p>
+            <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-6 text-white">
+                <h1 className="text-3xl font-bold">{title}</h1>
             </div>
 
             {/* Filters Section */}
             <div className="bg-white rounded-lg shadow-md p-6">
-                {(stateName || districtName || (assemblies.length > 0 && onAssemblyChange)) && (
-                    <div className={`grid grid-cols-1 ${assemblies.length > 0 && onAssemblyChange ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 mb-4`}>
+                {(stateName || districtName || (assemblies.length > 0 && onAssemblyChange) || (blocks.length > 0 && onBlockChange)) && (
+                    <div className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
+                        ? 'md:grid-cols-4'
+                        : assemblies.length > 0 && onAssemblyChange
+                            ? 'md:grid-cols-3'
+                            : 'md:grid-cols-2'
+                        } gap-4 mb-4`}>
                         {/* State Field (Disabled) */}
                         {stateName && (
                             <div>
@@ -149,10 +163,33 @@ export default function HierarchyTable({
                                     onChange={(e) => onAssemblyChange(e.target.value)}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
-                                    <option value="">All Assemblies</option>
+                                    <option value="">Select Assembly</option>
                                     {assemblies.map((assembly) => (
                                         <option key={assembly.location_id} value={assembly.location_id}>
                                             {assembly.location_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Block Dropdown - Only show if blocks are provided */}
+                        {blocks.length > 0 && onBlockChange && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Block</label>
+                                <select
+                                    value={selectedBlock}
+                                    onChange={(e) => onBlockChange(e.target.value)}
+                                    disabled={!selectedAssembly}
+                                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
+                                        ? 'bg-gray-100 text-gray-600 cursor-not-allowed'
+                                        : 'bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                        }`}
+                                >
+                                    <option value="">Select Block</option>
+                                    {blocks.map((block) => (
+                                        <option key={block.location_id} value={block.location_id}>
+                                            {block.location_name}
                                         </option>
                                     ))}
                                 </select>
@@ -204,7 +241,7 @@ export default function HierarchyTable({
                                     S.No
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    District
+                                    {blockName ? 'Assembly / Block' : assemblyName ? 'Assembly' : 'District'}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                     <button
@@ -258,7 +295,7 @@ export default function HierarchyTable({
                                             {(currentPage - 1) * itemsPerPage + index + 1}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                                            {districtName || parentName || 'N/A'}
+                                            {blockName ? `${assemblyName} / ${blockName}` : assemblyName || districtName || parentName || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-semibold text-gray-900">{item.location_name}</div>
@@ -311,57 +348,60 @@ export default function HierarchyTable({
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {totalItems > 0 && (
                 <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center text-sm text-gray-700">
                         <span>
                             Showing <span className="font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
                             <span className="font-semibold">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
                             <span className="font-semibold">{totalItems}</span> results
+                            {totalPages === 1 && <span className="ml-2 text-gray-500">(Page {currentPage} of {totalPages})</span>}
                         </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <button
-                            onClick={() => onPageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Previous
-                        </button>
-                        <div className="flex items-center space-x-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = currentPage - 2 + i;
-                                }
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => onPageChange(pageNum)}
-                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-700 hover:bg-gray-100'
-                                            }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
+                    {totalPages > 1 && (
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => onPageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Previous
+                            </button>
+                            <div className="flex items-center space-x-1">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i;
+                                    } else {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => onPageChange(pageNum)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                                }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                onClick={() => onPageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Next
+                            </button>
                         </div>
-                        <button
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Next
-                        </button>
-                    </div>
+                    )}
                 </div>
             )}
 
