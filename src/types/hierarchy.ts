@@ -8,6 +8,10 @@ export interface HierarchyUser {
     first_name: string;
     last_name: string;
     mobile_number: string;
+    party?: {
+        party_name: string;
+        party_code: string;
+    };
     party_name: string;
     party_id: number;
     is_active: boolean;
