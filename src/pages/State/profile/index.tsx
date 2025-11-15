@@ -1,12 +1,14 @@
-import React from "react";
-import { useForm, Controller } from "react-hook-form";
-import { useLocation } from "react-router-dom";
-
 declare global {
   interface Window {
     _profileIsEditing?: boolean;
   }
 }
+
+import React from "react";
+import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
+import { useLocation } from "react-router-dom";
+import { Plus, Trash } from "lucide-react";
+import { areAllRowsFilled } from "../../../utils/utilsForm";
 
 // Mock API hooks - replace with actual State API hooks
 const useGetProfileQuery = () => ({
@@ -160,6 +162,45 @@ type FormValues = {
   married?: string;
   marriageAnniversary?: string;
   partyJoiningDate?: string;
+  education: {
+    std: string;
+    institute: string;
+    boardUniversity: string;
+    year: string;
+  }[];
+  professionalExp: {
+    designation: string;
+    organization: string;
+    years: string;
+    durationFrom: string;
+    durationTo: string;
+  }[];
+  children: { name: string; age: string; gender: string; dob: string }[];
+  positionHeld: {
+    title: string;
+    designation: string;
+    state: string;
+    district: string;
+    durationFrom: string;
+    durationTo: string;
+  }[];
+  electionContested: {
+    electionName: string;
+    year: string;
+    result: string;
+    state: string;
+    district: string;
+    assembly: string;
+  }[];
+  publicRepresentativeDetails: {
+    electionName: string;
+    year: string;
+    result: string;
+    state: string;
+    district: string;
+    assembly: string;
+  }[];
+  vehicle: { type: string; count: string }[];
   profileImage?: File | null;
   firstName?: string;
   lastName?: string;
@@ -234,11 +275,85 @@ export const StateProfile = () => {
       married: "",
       marriageAnniversary: "",
       partyJoiningDate: "",
+      education: [],
+      professionalExp: [],
+      children: [],
+      positionHeld: [],
+      electionContested: [],
+      publicRepresentativeDetails: [],
+      vehicle: [],
       profileImage: null,
       firstName: "",
       lastName: "",
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "education",
+  });
+
+  const {
+    fields: fieldsExp,
+    append: appendExp,
+    remove: removeExp,
+  } = useFieldArray({
+    control,
+    name: "professionalExp",
+  });
+
+  const {
+    fields: fieldsChildren,
+    append: appendChildren,
+    remove: removeChildren,
+  } = useFieldArray({
+    control,
+    name: "children",
+  });
+
+  const {
+    fields: fieldsPosition,
+    append: appendPosition,
+    remove: removePosition,
+  } = useFieldArray({
+    control,
+    name: "positionHeld",
+  });
+
+  const {
+    fields: fieldsElection,
+    append: appendElection,
+    remove: removeElection,
+  } = useFieldArray({
+    control,
+    name: "electionContested",
+  });
+
+  const {
+    fields: fieldsPR,
+    append: appendPR,
+    remove: removePR,
+  } = useFieldArray({
+    control,
+    name: "publicRepresentativeDetails",
+  });
+
+  const {
+    fields: fieldsVehicle,
+    append: appendVehicle,
+    remove: removeVehicle,
+  } = useFieldArray({
+    control,
+    name: "vehicle",
+  });
+
+  const educationValues = useWatch({ control, name: "education" });
+  const experienceFields = useWatch({ control, name: "professionalExp" });
+  const childrenFields = useWatch({ control, name: "children" });
+  const positionFields = useWatch({ control, name: "positionHeld" });
+  const electionFields = useWatch({ control, name: "electionContested" });
+  const prFields = useWatch({ control, name: "publicRepresentativeDetails" });
+  const vehicleFields = useWatch({ control, name: "vehicle" });
 
   React.useEffect(() => {
     if (viewedCandidate) {
@@ -271,6 +386,13 @@ export const StateProfile = () => {
         married: "",
         marriageAnniversary: "",
         partyJoiningDate: "",
+        education: [],
+        professionalExp: [],
+        children: [],
+        positionHeld: [],
+        electionContested: [],
+        publicRepresentativeDetails: [],
+        vehicle: [],
         profileImage: null,
         firstName: viewedCandidate.firstName || "",
         lastName: viewedCandidate.lastName || "",
@@ -923,6 +1045,863 @@ export const StateProfile = () => {
                     />
                   )}
                 />
+              </div>
+            </section>
+
+            <div className="w-full flex justify-center my-6">
+              <div className="h-[1.5px] w-2/3 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
+            </div>
+
+            {/* EXTRA DETAILS */}
+            <section className="mb-8">
+              <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                {/* -------------------- EDUCATION -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">Education</h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(educationValues, [
+                            "std",
+                            "institute",
+                            "boardUniversity",
+                            "year",
+                          ])
+                        }
+                        onClick={() =>
+                          append({
+                            std: "",
+                            institute: "",
+                            boardUniversity: "",
+                            year: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(educationValues, [
+                            "std",
+                            "institute",
+                            "boardUniversity",
+                            "year",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Education
+                      </button>
+                    )}
+                  </div>
+
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`education.${index}.std`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Std / Class"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`education.${index}.institute`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="School / College / Institute"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`education.${index}.boardUniversity`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Board / University"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`education.${index}.year`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Passout Year"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- PROFESSIONAL EXPERIENCE -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">
+                      Professional Experience
+                    </h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(experienceFields, [
+                            "designation",
+                            "organization",
+                            "years",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                        }
+                        onClick={() =>
+                          appendExp({
+                            designation: "",
+                            organization: "",
+                            years: "",
+                            durationFrom: "",
+                            durationTo: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(experienceFields, [
+                            "designation",
+                            "organization",
+                            "years",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Experience
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsExp.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`professionalExp.${index}.designation`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Designation"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`professionalExp.${index}.organization`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Organization"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`professionalExp.${index}.years`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Years"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`professionalExp.${index}.durationFrom`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Duration From"
+                            type="date"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`professionalExp.${index}.durationTo`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Duration To"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removeExp(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- CHILDREN -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">Children</h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(childrenFields, [
+                            "name",
+                            "dob",
+                            "gender",
+                            "age",
+                          ])
+                        }
+                        onClick={() =>
+                          appendChildren({
+                            name: "",
+                            dob: "",
+                            gender: "",
+                            age: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(childrenFields, [
+                            "name",
+                            "dob",
+                            "gender",
+                            "age",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Child
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsChildren.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`children.${index}.name`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Child Name"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`children.${index}.gender`}
+                        control={control}
+                        render={({ field }) => (
+                          <select
+                            className="border rounded-lg p-3 w-full text-sm"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                          </select>
+                        )}
+                      />
+                      <Controller
+                        name={`children.${index}.age`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Age"
+                            type="number"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`children.${index}.dob`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Date of Birth"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removeChildren(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- POSITION HELD -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">
+                      Political Position Details
+                    </h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(positionFields, [
+                            "title",
+                            "designation",
+                            "state",
+                            "district",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                        }
+                        onClick={() =>
+                          appendPosition({
+                            title: "",
+                            designation: "",
+                            state: "",
+                            district: "",
+                            durationFrom: "",
+                            durationTo: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(positionFields, [
+                            "title",
+                            "designation",
+                            "state",
+                            "district",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Position
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsPosition.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`positionHeld.${index}.title`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Postion Title"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`positionHeld.${index}.designation`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Designation"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`positionHeld.${index}.state`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="State"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`positionHeld.${index}.district`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="District"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`positionHeld.${index}.durationFrom`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Duration From"
+                            type="date"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`positionHeld.${index}.durationTo`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Duration To"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removePosition(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- ELECTION CONTESTED -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">
+                      Election Contested
+                    </h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(electionFields, [
+                            "electionName",
+                            "year",
+                            "result",
+                            "state",
+                            "district",
+                            "assembly",
+                          ])
+                        }
+                        onClick={() =>
+                          appendElection({
+                            electionName: "",
+                            year: "",
+                            result: "",
+                            state: "",
+                            district: "",
+                            assembly: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(electionFields, [
+                            "electionName",
+                            "year",
+                            "result",
+                            "state",
+                            "district",
+                            "assembly",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Election
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsElection.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`electionContested.${index}.electionName`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Election Name"
+                            placeholder="MP, MLA, Ward, Sarpanch"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`electionContested.${index}.year`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Year"
+                            type="number"
+                            placeholder="e.g. 2024"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`electionContested.${index}.result`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Result / Remarks"
+                            placeholder=" Won, Lost, Pending"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`electionContested.${index}.state`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="State"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`electionContested.${index}.district`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="District"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`electionContested.${index}.assembly`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Assembly"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removeElection(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- PUBLIC REPRESENTATIVE DETAILS -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">
+                      Public Representative Details
+                    </h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(prFields, [
+                            "electionName",
+                            "year",
+                            "result",
+                            "state",
+                            "district",
+                            "assembly",
+                          ])
+                        }
+                        onClick={() =>
+                          appendPR({
+                            electionName: "",
+                            year: "",
+                            result: "",
+                            state: "",
+                            district: "",
+                            assembly: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(prFields, [
+                            "electionName",
+                            "year",
+                            "result",
+                            "state",
+                            "district",
+                            "assembly",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Winner
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsPR.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`publicRepresentativeDetails.${index}.electionName`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Election Name"
+                            placeholder="MP, MLA, Ward, Sarpanch"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`publicRepresentativeDetails.${index}.year`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Year"
+                            type="number"
+                            placeholder="2024"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`publicRepresentativeDetails.${index}.result`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Result / Remarks"
+                            placeholder="Won / Lost / Margin"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`publicRepresentativeDetails.${index}.state`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="State"
+                            placeholder="Enter State"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name={`publicRepresentativeDetails.${index}.district`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="District"
+                            placeholder="Enter District"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`publicRepresentativeDetails.${index}.assembly`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Assembly"
+                              placeholder="Enter Assembly"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removePR(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* -------------------- VEHICLES -------------------- */}
+                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="font-semibold text-lg">Vehicles</h2>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={
+                          !areAllRowsFilled(vehicleFields, ["type", "count"])
+                        }
+                        onClick={() =>
+                          appendVehicle({
+                            type: "",
+                            count: "",
+                          })
+                        }
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(vehicleFields, ["type", "count"])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
+                      >
+                        <Plus size={18} /> Add Vehicle
+                      </button>
+                    )}
+                  </div>
+
+                  {fieldsVehicle.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
+                      <Controller
+                        name={`vehicle.${index}.type`}
+                        control={control}
+                        render={({ field }) => (
+                          <InputField
+                            label="Vehicle Type (Two/Four)"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
+                        )}
+                      />
+                      <div className="flex gap-2 items-end">
+                        <Controller
+                          name={`vehicle.${index}.count`}
+                          control={control}
+                          render={({ field }) => (
+                            <InputField
+                              label="Number of Vehicles"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
+                          )}
+                        />
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removeVehicle(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           </form>
