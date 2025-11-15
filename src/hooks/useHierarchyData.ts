@@ -59,7 +59,9 @@ export function useHierarchyData(
 
             if (response.success) {
                 setData(response.data.children);
-                setTotalChildren(response.data.total_children);
+                // Use pagination.total if available, otherwise fall back to total_children or children length
+                const total = response.pagination?.total ?? response.data.total_children ?? response.data.children.length;
+                setTotalChildren(total);
                 setParentName(response.data.parent.location_name);
             } else {
                 setError(response.message || 'Failed to fetch data');
@@ -107,8 +109,31 @@ export function useSelectedDistrictId(): number | null {
     const [districtId, setDistrictId] = useState<number | null>(null);
 
     useEffect(() => {
+        // Initial load
         const district = getSelectedDistrict();
         setDistrictId(district?.id || null);
+
+        // Listen for storage changes (when district is changed)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'auth_state' || e.key === null) {
+                const district = getSelectedDistrict();
+                setDistrictId(district?.id || null);
+            }
+        };
+
+        // Listen for custom event (for same-tab changes)
+        const handleDistrictChange = () => {
+            const district = getSelectedDistrict();
+            setDistrictId(district?.id || null);
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('districtChanged', handleDistrictChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('districtChanged', handleDistrictChange);
+        };
     }, []);
 
     return districtId;

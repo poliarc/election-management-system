@@ -9,10 +9,11 @@ export interface HierarchyUser {
     last_name: string;
     mobile_number: string;
     party?: {
-        party_id: number;
         party_name: string;
         party_code: string;
     };
+    party_name: string;
+    party_id: number;
     is_active: boolean;
     assignment_active: boolean;
     user_active: boolean;
@@ -44,7 +45,13 @@ export interface HierarchyChildrenResponse {
     data: {
         parent: HierarchyParent;
         children: HierarchyChild[];
-        total_children: number;
+        total_children?: number; // Optional for backward compatibility
+    };
+    pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
     };
 }
 
