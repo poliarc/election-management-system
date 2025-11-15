@@ -32,27 +32,63 @@ export function useHierarchyData(
   const [totalChildren, setTotalChildren] = useState(0);
   const [parentName, setParentName] = useState("");
 
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 500);
-  const [sortBy, setSortBy] =
-    useState<HierarchyQueryParams["sortBy"]>("location_name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const limit = initialLimit;
+        setLoading(true);
+        setError(null);
 
-  const fetchData = useCallback(async () => {
-    if (!parentId) {
-      setLoading(false);
-      setError("No parent location selected");
-      return;
-    }
+        try {
+            const params: HierarchyQueryParams = {
+                page,
+                limit,
+                search: debouncedSearch || undefined,
+                sortBy,
+                order,
+            };
 
-    setLoading(true);
-    setError(null);
+            const response = await fetchHierarchyChildren(parentId, params);
 
-    try {
-      const params: HierarchyQueryParams = {
-        page,
+            if (response.success) {
+                setData(response.data.children);
+                // Use pagination.total if available, otherwise fall back to total_children or children length
+                const total = response.pagination?.total ?? response.data.total_children ?? response.data.children.length;
+                setTotalChildren(total);
+                setParentName(response.data.parent.location_name);
+            } else {
+                setError(response.message || 'Failed to fetch data');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    }, [parentId, page, limit, debouncedSearch, sortBy, order]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // Reset to page 1 when debounced search changes
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        setPage(1);
+    }, [debouncedSearch]);
+
+    return {
+        data,
+        loading,
+        error,
+        totalChildren,
+        parentName,
+        refetch: fetchData,
+        setPage,
+        setSearchInput,
+        searchInput,
+        setSortBy,
+        setOrder,
+        currentPage: page,
         limit,
         search: debouncedSearch || undefined,
         sortBy,
@@ -115,27 +151,33 @@ export function useSelectedDistrictId(): number | null {
     setDistrictId(district?.id || null);
   }, []);
 
-  return districtId;
-}
+    useEffect(() => {
+        // Initial load
+        const district = getSelectedDistrict();
+        setDistrictId(district?.id || null);
 
-// Hook to get state ID from localStorage
-export function useSelectedStateId(): number | null {
-  const [stateId, setStateId] = useState<number | null>(null);
+        // Listen for storage changes (when district is changed)
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'auth_state' || e.key === null) {
+                const district = getSelectedDistrict();
+                setDistrictId(district?.id || null);
+            }
+        };
 
-  useEffect(() => {
-    try {
-      const authState = localStorage.getItem("auth_state");
-      if (authState) {
-        const parsed = JSON.parse(authState);
-        const selectedAssignment = parsed.selectedAssignment;
-        if (selectedAssignment && selectedAssignment.levelType === "State") {
-          setStateId(selectedAssignment.stateMasterData_id);
-        }
-      }
-    } catch (err) {
-      console.error("Error reading state info:", err);
-    }
-  }, []);
+        // Listen for custom event (for same-tab changes)
+        const handleDistrictChange = () => {
+            const district = getSelectedDistrict();
+            setDistrictId(district?.id || null);
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('districtChanged', handleDistrictChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('districtChanged', handleDistrictChange);
+        };
+    }, []);
 
   return stateId;
 }
