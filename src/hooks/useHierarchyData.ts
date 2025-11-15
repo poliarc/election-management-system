@@ -33,19 +33,19 @@ export function useHierarchyData(
   const [parentName, setParentName] = useState("");
 
   const [page, setPage] = useState(1);
+  const [limit] = useState(initialLimit);
   const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 500);
   const [sortBy, setSortBy] =
     useState<HierarchyQueryParams["sortBy"]>("location_name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const limit = initialLimit;
 
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  // -----------------------
+  // FETCH FUNCTION
+  // -----------------------
   const fetchData = useCallback(async () => {
-    if (!parentId) {
-      setLoading(false);
-      setError("No parent location selected");
-      return;
-    }
+    if (parentId === null) return;
 
     setLoading(true);
     setError(null);
@@ -63,7 +63,13 @@ export function useHierarchyData(
 
       if (response.success) {
         setData(response.data.children);
-        setTotalChildren(response.data.total_children);
+
+        const total =
+          response.pagination?.total ??
+          response.data.total_children ??
+          response.data.children.length;
+
+        setTotalChildren(total);
         setParentName(response.data.parent.location_name);
       } else {
         setError(response.message || "Failed to fetch data");
@@ -75,11 +81,12 @@ export function useHierarchyData(
     }
   }, [parentId, page, limit, debouncedSearch, sortBy, order]);
 
+  // Fetch on mount and changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Reset to page 1 when debounced search changes
+  // Reset page on search change
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) {
@@ -106,36 +113,37 @@ export function useHierarchyData(
   };
 }
 
-// Hook to get district ID from localStorage
+// ----------------------------------------------------------
+// Hook to get selected district ID (clean & fixed version)
+// ----------------------------------------------------------
 export function useSelectedDistrictId(): number | null {
   const [districtId, setDistrictId] = useState<number | null>(null);
 
   useEffect(() => {
-    const district = getSelectedDistrict();
-    setDistrictId(district?.id || null);
+    const updateDistrict = () => {
+      const district = getSelectedDistrict();
+      setDistrictId(district?.id || null);
+    };
+
+    // Initial load
+    updateDistrict();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "auth_state" || e.key === null) {
+        updateDistrict();
+      }
+    };
+
+    // Custom event for same-tab updates
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("districtChanged", updateDistrict);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("districtChanged", updateDistrict);
+    };
   }, []);
 
   return districtId;
-}
-
-// Hook to get state ID from localStorage
-export function useSelectedStateId(): number | null {
-  const [stateId, setStateId] = useState<number | null>(null);
-
-  useEffect(() => {
-    try {
-      const authState = localStorage.getItem("auth_state");
-      if (authState) {
-        const parsed = JSON.parse(authState);
-        const selectedAssignment = parsed.selectedAssignment;
-        if (selectedAssignment && selectedAssignment.levelType === "State") {
-          setStateId(selectedAssignment.stateMasterData_id);
-        }
-      }
-    } catch (err) {
-      console.error("Error reading state info:", err);
-    }
-  }, []);
-
-  return stateId;
 }
