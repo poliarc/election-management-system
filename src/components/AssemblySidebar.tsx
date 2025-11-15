@@ -226,7 +226,7 @@ export default function AssemblySidebar() {
   const [openBoothMgmt, setOpenBoothMgmt] = useState<boolean>(isBoothMgmtPathActive);
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col">
+    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
       {/* User header */}
       <div className="px-5 py-6 border-b border-gray-200">
         <div className="flex items-center gap-4">
@@ -255,7 +255,7 @@ export default function AssemblySidebar() {
             to={`${base}/${item.to}`}
             className={({ isActive }) =>
               [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
                 "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
                   ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
@@ -328,7 +328,7 @@ export default function AssemblySidebar() {
                   to={`${base}/${bm.to}`}
                   className={({ isActive }) =>
                     [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
                       "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                       isActive
                         ? "bg-indigo-50 ring-1 ring-indigo-200"
@@ -351,7 +351,7 @@ export default function AssemblySidebar() {
             to={`${base}/${item.to}`}
             className={({ isActive }) =>
               [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
                 "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
                   ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
@@ -379,7 +379,7 @@ export default function AssemblySidebar() {
             to={`${base}/profile`}
             className={({ isActive }) =>
               [
-                "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",
                 "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
                   ? "bg-indigo-50 ring-1 ring-indigo-200"

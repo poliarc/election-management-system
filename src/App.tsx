@@ -37,6 +37,7 @@ import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
 import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
+import {Profile} from "./pages/Assembly/Profile";
 
 
 import AdminOverview from "./pages/Admin/Overview";
@@ -113,6 +114,7 @@ export default function App() {
             <Route path="polling-center" element={<AssemblyPollingCenterPage />} />
             <Route path="booth" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
         </Route>
