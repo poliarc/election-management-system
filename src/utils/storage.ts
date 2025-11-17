@@ -1,20 +1,23 @@
+import type { PartyType } from "../types/partyType";
+
 const ACCESS_TOKEN_KEY = "auth_access_token";
 const REFRESH_TOKEN_KEY = "auth_refresh_token";
 const USER_KEY = "auth_user";
 const AUTH_STATE_KEY = "auth_state";
 const THEME_KEY = "theme";
+const PARTY_TYPES_KEY = "party_types";
 
 export const storage = {
-  setToken: (type: 'access' | 'refresh', token: string) => {
-    const key = type === 'access' ? ACCESS_TOKEN_KEY : REFRESH_TOKEN_KEY;
+  setToken: (type: "access" | "refresh", token: string) => {
+    const key = type === "access" ? ACCESS_TOKEN_KEY : REFRESH_TOKEN_KEY;
     localStorage.setItem(key, token);
   },
-  
-  getToken: (type: 'access' | 'refresh') => {
-    const key = type === 'access' ? ACCESS_TOKEN_KEY : REFRESH_TOKEN_KEY;
+
+  getToken: (type: "access" | "refresh") => {
+    const key = type === "access" ? ACCESS_TOKEN_KEY : REFRESH_TOKEN_KEY;
     return localStorage.getItem(key);
   },
-  
+
   clearToken: () => {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -40,4 +43,12 @@ export const storage = {
   setTheme: (theme: "light" | "dark") => localStorage.setItem(THEME_KEY, theme),
   getTheme: (): "light" | "dark" =>
     (localStorage.getItem(THEME_KEY) as "light" | "dark") || "light",
+
+  // Party Types persistence (used by Party Type and Party Master pages)
+  setPartyTypes: (items: PartyType[]) =>
+    localStorage.setItem(PARTY_TYPES_KEY, JSON.stringify(items)),
+  getPartyTypes: <T = PartyType[]>() => {
+    const raw = localStorage.getItem(PARTY_TYPES_KEY);
+    return raw ? (JSON.parse(raw) as unknown as T) : ([] as unknown as T);
+  },
 };

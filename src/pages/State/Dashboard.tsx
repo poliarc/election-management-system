@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { KeyboardEvent } from "react";
+import { useHierarchyData } from "../../hooks/useHierarchyData";
 
 const CARD_THEMES = [
   {
@@ -44,6 +45,73 @@ type NavCard = {
 export default function StateOverview() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [stateId, setStateId] = useState<number | null>(null);
+  const [stateName, setStateName] = useState("");
+
+  // Get state info from localStorage
+  useEffect(() => {
+    const loadStateInfo = () => {
+      try {
+        const authState = localStorage.getItem("auth_state");
+        if (authState) {
+          const parsed = JSON.parse(authState);
+          const selectedAssignment = parsed.selectedAssignment;
+
+          if (selectedAssignment && selectedAssignment.levelType === "State") {
+            const id = selectedAssignment.stateMasterData_id;
+            const name = selectedAssignment.levelName;
+            setStateId(id);
+            setStateName(name);
+          }
+        }
+      } catch (err) {
+        console.error("Error reading state info:", err);
+      }
+    };
+
+    loadStateInfo();
+
+    // Listen for storage changes (when state is changed from topbar)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "auth_state") {
+        loadStateInfo();
+      }
+    };
+
+    // Listen for custom event (for same-tab changes)
+    const handleAuthStateChange = () => {
+      loadStateInfo();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("auth_state_changed", handleAuthStateChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("auth_state_changed", handleAuthStateChange);
+    };
+  }, []);
+
+  // Fetch districts for this state
+  const { data: districts, totalChildren: totalDistricts } = useHierarchyData(
+    stateId,
+    1000
+  );
+
+  // Calculate total users across all districts
+  const totalUsers = useMemo(() => {
+    return districts.reduce(
+      (sum, district) => sum + (district.total_users || 0),
+      0
+    );
+  }, [districts]);
+
+  const activeUsers = useMemo(() => {
+    return districts.reduce(
+      (sum, district) => sum + (district.active_users || 0),
+      0
+    );
+  }, [districts]);
 
   // Static cards; adjust paths if needed
   const navCards: NavCard[] = useMemo(
@@ -52,74 +120,76 @@ export default function StateOverview() {
         key: "district",
         title: "Districts",
         subtitle: "Manage district level overview",
-        path: "/district",
+        path: "/state/districts",
         stats: [
-          { label: "Active", value: "—" },
-          { label: "Teams", value: "—" },
+          { label: "Total", value: totalDistricts || 0 },
+          {
+            label: "Active Users",
+            value: activeUsers || 0,
+            colorClass: "text-green-600",
+          },
         ],
       },
       {
         key: "assembly",
         title: "Assemblies",
         subtitle: "Assembly constituencies",
-        path: "/assembly",
+        path: "/state/assembly",
         stats: [
-          { label: "Active", value: "—" },
-          { label: "Members", value: "—" },
+          { label: "Total Users", value: totalUsers || 0 },
+          {
+            label: "Active",
+            value: activeUsers || 0,
+            colorClass: "text-green-600",
+          },
         ],
       },
       {
         key: "block",
         title: "Blocks",
         subtitle: "Block administration",
-        path: "/block",
+        path: "/state/block",
         stats: [
-          { label: "Blocks", value: "—" },
-          { label: "Teams", value: "—" },
+          { label: "View", value: "→" },
+          { label: "Manage", value: "→" },
         ],
       },
       {
         key: "mandal",
         title: "Mandals",
         subtitle: "Mandal operations",
-        path: "/mandal",
+        path: "/state/mandal",
         stats: [
-          { label: "Mandals", value: "—" },
-          { label: "Workers", value: "—" },
-        ],
-      },
-      {
-        key: "polling-centers",
-        title: "Polling Booths",
-        subtitle: "Polling level data",
-        path: "/polling-center",
-        stats: [
-          { label: "Booths", value: "—" },
-          { label: "Volunteers", value: "—" },
+          { label: "View", value: "→" },
+          { label: "Manage", value: "→" },
         ],
       },
       {
         key: "booth",
         title: "Booths",
         subtitle: "Booth level data",
-        path: "/booth",
+        path: "/state/booth",
         stats: [
-          { label: "Booths", value: "—" },
-          { label: "Workers", value: "—" },
+          { label: "View", value: "→" },
+          { label: "Manage", value: "→" },
         ],
       },
       {
         key: "karyakarta",
         title: "Karyakarta",
         subtitle: "Grassroot workers",
-        path: "/karyakarta",
+        path: "/state/karyakarta",
         stats: [
-          { label: "Total", value: "—" },
-          { label: "Active", value: "—" },
+          { label: "Total", value: totalUsers || 0 },
+          {
+            label: "Active",
+            value: activeUsers || 0,
+            colorClass: "text-green-600",
+          },
         ],
       },
     ],
-    []
+    [totalDistricts, totalUsers, activeUsers]
   );
 
   const filteredCards = useMemo(() => {
@@ -148,7 +218,7 @@ export default function StateOverview() {
         <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-              Explore Data Layers
+              {stateName} State Dashboard
             </h1>
             <p className="text-sm text-gray-600">
               Navigate to administrative & organizational sections.
@@ -223,6 +293,85 @@ export default function StateOverview() {
           </div>
         )}
       </header>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm font-medium">
+                Total Districts
+              </p>
+              <p className="text-3xl font-bold mt-2">{totalDistricts || 0}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-linear-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium">Total Users</p>
+              <p className="text-3xl font-bold mt-2">{totalUsers || 0}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-emerald-100 text-sm font-medium">
+                Active Users
+              </p>
+              <p className="text-3xl font-bold mt-2">{activeUsers || 0}</p>
+            </div>
+            <div className="bg-white/20 rounded-full p-3">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Cards */}
       {filteredCards.length === 0 ? (
