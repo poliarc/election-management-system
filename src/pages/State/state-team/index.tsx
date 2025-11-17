@@ -1,213 +1,382 @@
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import ActionDropdown from "../../../components/common/ActionDropdown.tsx";
+import type { HierarchyUser } from "../../../types/hierarchy";
+import { API_CONFIG } from "../../../config/api";
+import { getSelectedState } from "../../../services/hierarchyApi";
 
-type Candidate = {
-  assembly: string;
-  name: string;
-  profileImage?: FileList | null;
-  designation: string; // renamed from degignation
-  phone: number;
-  city: string;
-  district: string;
-  status?: "active" | "disabled";
-  profileImageURL?: string;
-  email?: string;
-};
-
-type FilterForm = {
-  q: string;
-  show: number;
-};
-
-const STORAGE_KEY = "statecandidate";
+interface StateTeamResponse {
+  success: boolean;
+  message: string;
+  data: {
+    location: {
+      location_id: number;
+      location_name: string;
+      location_type: string;
+      parent_id: number | null;
+    };
+    total_users: number;
+    active_users: number;
+    inactive_users: number;
+    users: HierarchyUser[];
+  };
+}
 
 export default function StateTeamListing() {
-  const [rows, setRows] = useState<Candidate[]>([]);
-  // No global dropdown handling; each row uses reusable ActionDropdown
+  const [stateId, setStateId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stateData, setStateData] = useState<StateTeamResponse["data"] | null>(
+    null
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "inactive"
+  >("all");
 
-  const { register, watch } = useForm<FilterForm>({
-    defaultValues: { q: "", show: 10 },
-  });
-
-  const q = watch("q");
-  const show = watch("show");
-
+  // Get selected state id from localStorage (mirrors DistrictTeam pattern)
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsedRaw = JSON.parse(raw) as Array<Record<string, unknown>>;
-        const normalized: Candidate[] = parsedRaw.map((r) => ({
-          assembly: (r["assembly"] as string) || "",
-          name: (r["name"] as string) || "",
-          profileImage: (r["profileImage"] as FileList | null) || null,
-          designation:
-            (r["designation"] as string) || (r["degignation"] as string) || "",
-          phone: (r["phone"] as number) || 0,
-          city: (r["city"] as string) || "",
-          district: (r["district"] as string) || "",
-          status:
-            (r["status"] as "active" | "disabled" | undefined) || "active",
-          profileImageURL:
-            (r["profileImageURL"] as string | undefined) || undefined,
-          email: (r["email"] as string | undefined) || undefined,
-        }));
-        setRows(normalized);
-        return;
-      } catch {
-        // ignore parse errors
-      }
-    }
-    setRows([]);
+    const updateState = () => {
+      const selected = getSelectedState();
+      setStateId(selected?.id || null);
+    };
+    updateState();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "auth_state" || e.key === null) updateState();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("stateChanged", updateState as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("stateChanged", updateState as EventListener);
+    };
   }, []);
 
-  // Dropdown handling moved inside reusable ActionDropdown component
+  useEffect(() => {
+    const fetchStateTeam = async () => {
+      if (!stateId) {
+        setLoading(false);
+        setError("No state selected");
+        return;
+      }
 
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    return rows.filter((r) =>
-      !query
-        ? true
-        : [
-            r.name,
-            r.designation,
-            r.phone?.toString(),
-            r.email ?? "",
-            r.district,
-            r.assembly,
-            r.city,
-          ]
-            .filter(Boolean)
-            .some((v) => v!.toString().toLowerCase().includes(query))
+      setLoading(true);
+      setError(null);
+
+      try {
+        const authState = localStorage.getItem("auth_state");
+        const token = authState ? JSON.parse(authState).accessToken : null;
+        if (!token) throw new Error("Authentication required");
+
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/api/user-state-hierarchies/location/${stateId}/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data: StateTeamResponse = await response.json();
+        if (data.success) {
+          setStateData(data.data);
+        } else {
+          setError(data.message || "Failed to fetch state team");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStateTeam();
+  }, [stateId]);
+
+  const filteredUsers = useMemo(() => {
+    const list = stateData?.users || [];
+    const q = searchTerm.trim().toLowerCase();
+    return list.filter((user) => {
+      const matchesSearch =
+        q === "" ||
+        user.first_name.toLowerCase().includes(q) ||
+        user.last_name.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q) ||
+        user.mobile_number.includes(searchTerm);
+
+      const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && user.is_active) ||
+        (filterStatus === "inactive" && !user.is_active);
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [stateData?.users, searchTerm, filterStatus]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">
+            Loading state team...
+          </p>
+        </div>
+      </div>
     );
-  }, [rows, q]);
+  }
 
-  const shown = filtered.slice(0, Number(show ?? 10));
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
+          <div className="flex items-center">
+            <svg
+              className="w-6 h-6 text-red-500 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="text-red-800 font-semibold">Error</h3>
+              <p className="text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleDelete = (idx: number) => {
-    if (!confirm("Delete this member?")) return;
-    const updated = [...rows];
-    updated.splice(idx, 1);
-    setRows(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  };
+  if (!stateData) {
+    return (
+      <div className="p-6">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+          <p className="text-gray-600">No state data available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-800">State Team Members</h1>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-linear-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-6 text-white mb-6">
+        <h1 className="text-3xl font-bold">
+          {stateData.location.location_name} State Team
+        </h1>
+        <p className="text-sky-100 mt-2">Manage and view state team members</p>
       </div>
 
-      <form className="mb-4 w-full flex flex-col sm:flex-row sm:items-end gap-3">
-        <div className="flex flex-col gap-1 sm:flex-1">
-          <label htmlFor="q" className="text-sm font-medium text-gray-700">
-            Search
-          </label>
-          <input
-            id="q"
-            type="text"
-            placeholder="Search name, phone, designation..."
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("q")}
-          />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium">Total Users</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {stateData.total_users}
+              </p>
+            </div>
+            <div className="bg-blue-100 rounded-full p-3">
+              <svg
+                className="w-8 h-8 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-1 w-max sm:ml-auto">
-          <label htmlFor="show" className="text-sm font-medium text-gray-700">
-            Show Result
-          </label>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium">Active Users</p>
+              <p className="text-3xl font-bold text-green-600 mt-2">
+                {stateData.active_users}
+              </p>
+            </div>
+            <div className="bg-green-100 rounded-full p-3">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium">
+                Inactive Users
+              </p>
+              <p className="text-3xl font-bold text-red-600 mt-2">
+                {stateData.inactive_users}
+              </p>
+            </div>
+            <div className="bg-red-100 rounded-full p-3">
+              <svg
+                className="w-8 h-8 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by name, email, or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
           <select
-            id="show"
-            className="w-28 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("show", { valueAsNumber: true })}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            {[5, 10, 20, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
+            <option value="all">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
           </select>
         </div>
-      </form>
+        <p className="text-sm text-gray-600">
+          Showing {filteredUsers.length} of {stateData.users.length} users
+        </p>
+      </div>
 
-      <div className="overflow-x-auto w-full">
-        <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-white">
-          <thead className="bg-indigo-50 text-[13px]">
-            <tr>
-              <th className="px-4 py-2 font-semibold">SN</th>
-              <th className="px-4 py-2 font-semibold">State Name</th>
-              <th className="px-4 py-2 font-semibold">Designation</th>
-              <th className="px-4 py-2 font-semibold">First Name</th>
-              <th className="px-4 py-2 font-semibold">Phone No</th>
-              <th className="px-4 py-2 font-semibold">Email ID</th>
-              <th className="px-4 py-2 font-semibold">District</th>
-              <th className="px-4 py-2 font-semibold">Assembly</th>
-              <th className="px-4 py-2 font-semibold">City</th>
-              <th className="px-4 py-2 font-semibold">Status</th>
-              <th className="px-4 py-2 font-semibold">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shown.length === 0 ? (
+      {/* Users Table */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={11} className="text-center py-8 text-gray-400">
-                  No records found
-                </td>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  S.No
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Name
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Email
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Mobile
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Party
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                  Assigned Date
+                </th>
               </tr>
-            ) : (
-              shown.map((c, index) => (
-                <tr
-                  key={index}
-                  className={
-                    index % 2 === 0
-                      ? "bg-white hover:bg-indigo-50 transition"
-                      : "bg-gray-50 hover:bg-indigo-50 transition"
-                  }
-                >
-                  <td className="px-4 py-2">{index + 1}</td>
-                  <td className="px-4 py-2">{c.name || "-"}</td>
-                  <td className="px-4 py-2">{c.designation || "-"}</td>
-                  <td className="px-4 py-2">{(c.name || "-").split(" ")[0]}</td>
-                  <td className="px-4 py-2">{c.phone || "-"}</td>
-                  <td className="px-4 py-2">{c.email || "-"}</td>
-                  <td className="px-4 py-2">{c.district || "-"}</td>
-                  <td className="px-4 py-2">{c.assembly || "-"}</td>
-                  <td className="px-4 py-2">{c.city || "-"}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        c.status === "disabled"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {c.status === "disabled" ? "Inactive" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 relative">
-                    <ActionDropdown
-                      items={[
-                        {
-                          label: "View",
-                          onClick: () => alert("View profile coming soon"),
-                        },
-                        {
-                          label: "Edit",
-                          onClick: () => alert("Edit coming soon"),
-                        },
-                        {
-                          label: "Delete",
-                          onClick: () => handleDelete(index),
-                          destructive: true,
-                        },
-                      ]}
-                    />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <p className="mt-2 text-gray-500 font-medium">
+                      No users found
+                    </p>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredUsers.map((user, index) => (
+                  <tr
+                    key={user.assignment_id || index}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {user.first_name} {user.last_name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {user.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {user.mobile_number}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {user.party_name || user.party?.party_name || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          user.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {user.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {new Date(user.assigned_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -37,8 +37,7 @@ import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
 import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
-import {Profile} from "./pages/Assembly/Profile";
-
+import { Profile } from "./pages/Assembly/Profile";
 
 import AdminOverview from "./pages/Admin/Overview";
 import StateLayout from "./layouts/StateLayout";
@@ -51,6 +50,9 @@ import StateMandalListing from "./pages/State/mandal";
 import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import StateProfile from "./pages/State/profile";
+import { PartyTypePage } from "./pages/Admin/partyType";
+import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
+import { PartyWiseLevelPage } from "./pages/Admin/partyWiseLevel";
 
 export default function App() {
   return (
@@ -67,6 +69,9 @@ export default function App() {
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<AdminOverview />} />
             <Route path="overview" element={<AdminOverview />} />
+            <Route path="party-type" element={<PartyTypePage />} />
+            <Route path="party-master" element={<PartyMasterPage />} />
+            <Route path="party-wise-level" element={<PartyWiseLevelPage />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
@@ -93,7 +98,7 @@ export default function App() {
             <Route path="profile" element={<DistrictProfile />} />
           </Route>
 
-           <Route path="state" element={<StateLayout />}>
+          <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="team" element={<StateTeamListing />} />
@@ -111,12 +116,14 @@ export default function App() {
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<AssemblyBlockPage />} />
             <Route path="mandal" element={<AssemblyMandalPage />} />
-            <Route path="polling-center" element={<AssemblyPollingCenterPage />} />
+            <Route
+              path="polling-center"
+              element={<AssemblyPollingCenterPage />}
+            />
             <Route path="booth" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="profile" element={<Profile />} />
           </Route>
-
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
