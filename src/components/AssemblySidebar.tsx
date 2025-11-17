@@ -200,7 +200,7 @@ const boothManagementItems: NavItem[] = [
   { to: "booth-management/polling-support", label: "Polling Center Support Team", icon: Icons.team },
 ];
 
-export default function AssemblySidebar() {
+export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -253,6 +253,7 @@ export default function AssemblySidebar() {
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
@@ -320,12 +321,13 @@ export default function AssemblySidebar() {
               />
             </svg>
           </button>
-          {openBoothMgmt && (
+              {openBoothMgmt && (
             <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
               {boothManagementItems.map((bm) => (
                 <NavLink
                   key={bm.to}
                   to={`${base}/${bm.to}`}
+                      onClick={() => onNavigate?.()}
                   className={({ isActive }) =>
                     [
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
@@ -349,6 +351,7 @@ export default function AssemblySidebar() {
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
@@ -377,6 +380,7 @@ export default function AssemblySidebar() {
         <div className="px-4 space-y-2">
           <NavLink
             to={`${base}/profile`}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",

@@ -5,7 +5,7 @@ import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ThemeToggle } from "./ThemeToggle";
 import type { StateAssignment } from "../types/api";
 
-export function Topbar() {
+export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
   const { stateAssignments, selectedAssignment } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
@@ -75,6 +75,17 @@ export function Topbar() {
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
       <div className="container-page flex items-center justify-between py-3">
         <div className="flex items-center gap-4">
+          {/* Mobile hamburger to open sidebar */}
+          <button
+            type="button"
+            onClick={() => onToggleSidebar?.()}
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition"
+            aria-label="Open sidebar"
+          >
+            <svg className="h-6 w-6 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M4 6h16M4 12h16M4 18h16" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
           <div className="font-semibold" aria-label="Current level">
             {user?.role || "Dashboard"}
           </div>
