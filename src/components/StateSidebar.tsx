@@ -222,7 +222,7 @@ const listItems: NavItem[] = [
   { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
-export default function StateSidebar() {
+export default function StateSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -275,6 +275,7 @@ export default function StateSidebar() {
             <NavLink
               key={item.to}
               to={`${base}/${item.to}`}
+              onClick={() => onNavigate?.()}
               className={({ isActive }) =>
                 [
                   "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
@@ -348,6 +349,7 @@ export default function StateSidebar() {
                   <NavLink
                     key={li.to}
                     to={`${base}/${li.to}`}
+                    onClick={() => onNavigate?.()}
                     className={({ isActive }) =>
                       [
                         "no-underline group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
@@ -380,6 +382,7 @@ export default function StateSidebar() {
         <div className="px-4 space-y-1">
           <NavLink
             to={`${base}/profile`}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "no-underline group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
