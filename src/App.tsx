@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/Login";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -7,12 +8,8 @@ import NotFound from "./pages/NotFound";
 import PanelSelect from "./pages/PanelSelect";
 import PanelAdminLayout from "./layouts/PanelAdminLayout";
 import AdminLayout from "./layouts/AdminLayout";
-// import StateLayout from "./layouts/StateLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
 import AssemblyLayout from "./layouts/AssemblyLayout";
-// import AdminOverview from "./pages/Admin/Overview";
-// import StateOverview from "./pages/State/Dashboard";
-// import StateTeamListing from "./pages/State/state-team";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
 import DistrictAssembly from "./pages/District/assembly/Assembly";
@@ -23,13 +20,7 @@ import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenter
 import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
 import DistrictCampaigns from "./pages/District/campaign/Campaigns";
 import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
-import {DistrictProfile} from "./pages/District/profile/Profile";
-// import StateDistrictsListing from "./pages/State/districts";
-// import StateAssemblyListing from "./pages/State/assembly";
-// import DistrictOverview from "./pages/District/Overview";
-// import StateDistrictsListing from "./pages/State/districts";
-// import StateAssemblyListing from "./pages/State/assembly";
-// import DistrictOverview from "./pages/District/Overview";
+import { DistrictProfile } from "./pages/District/profile/Profile";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
 import AssemblyBlockPage from "./pages/Assembly/block/BlockPage";
@@ -37,8 +28,9 @@ import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
 import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
-import {Profile} from "./pages/Assembly/Profile/Profile";
-
+import { Profile } from "./pages/Assembly/Profile/Profile";
+import { RolePage } from "./pages/Admin/role";
+import { UserPage } from "./pages/Admin/users/UserPage";
 
 import AdminOverview from "./pages/Admin/Overview";
 import StateLayout from "./layouts/StateLayout";
@@ -52,8 +44,8 @@ import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
-import  PartyLevelManagementPage  from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
-import {StateProfile} from "./pages/State/profile";
+import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
+import { StateProfile } from "./pages/State/profile";
 
 export default function App() {
   return (
@@ -66,13 +58,17 @@ export default function App() {
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
-
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<AdminOverview />} />
             <Route path="overview" element={<AdminOverview />} />
             <Route path="party-type" element={<PartyTypePage />} />
             <Route path="party-master" element={<PartyMasterPage />} />
-            <Route path="party-wise-level" element={<PartyLevelManagementPage />} />
+            <Route
+              path="party-wise-level"
+              element={<PartyLevelManagementPage />}
+            />
+            <Route path="role" element={<RolePage />} />
+            <Route path="users" element={<UserPage />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
@@ -128,6 +124,46 @@ export default function App() {
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
+
+      {/* Toast Container for notifications */}
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{}}
+        toastOptions={{
+          // Default options for all toasts
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          // Default options for specific types
+          success: {
+            duration: 3000,
+            style: {
+              background: "#10B981",
+              color: "#fff",
+            },
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#10B981",
+            },
+          },
+          error: {
+            duration: 5000,
+            style: {
+              background: "#EF4444",
+              color: "#fff",
+            },
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#EF4444",
+            },
+          },
+        }}
+      />
     </BrowserRouter>
   );
 }

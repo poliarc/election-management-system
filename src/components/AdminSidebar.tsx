@@ -103,8 +103,8 @@ const adminItems: NavItem[] = [
   { to: "party-type", label: "Party Type", icon: Icons.partyType },
   { to: "party-master", label: "Party Master", icon: Icons.partyType },
   { to: "party-wise-level", label: "Party Wise Level", icon: Icons.partyType },
+  { to: "role", label: "Role", icon: Icons.partyType },
   { to: "users", label: "Users", icon: Icons.users },
-  { to: "settings", label: "Settings", icon: Icons.settings },
 ];
 
 export default function AdminSidebar({
