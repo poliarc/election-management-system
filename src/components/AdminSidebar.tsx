@@ -99,10 +99,10 @@ const Icons = {
 };
 
 const adminItems: NavItem[] = [
-  { to: "overview", label: "Overview", icon: Icons.dashboard },
+  // { to: "overview", label: "Overview", icon: Icons.dashboard },
   { to: "party-type", label: "Party Type", icon: Icons.partyType },
   { to: "party-master", label: "Party Master", icon: Icons.partyType },
-  { to: "party-wise-level", label: "Party Wise Level", icon: Icons.partyType },
+  // { to: "party-wise-level", label: "Party Wise Level", icon: Icons.partyType },
   { to: "role", label: "Role", icon: Icons.partyType },
   { to: "users", label: "Users", icon: Icons.users },
 ];
@@ -149,7 +149,7 @@ export default function AdminSidebar({
       </div>
 
       {/* Nav - Scrollable content */}
-      <div className="flex-1">
+      <div>
         <nav className="px-4 py-5 space-y-2">
           {adminItems.map((item) => (
             <NavLink
@@ -177,8 +177,8 @@ export default function AdminSidebar({
         </nav>
       </div>
 
-      {/* Account section - Fixed at bottom */}
-      <div className="mt-auto pt-3 pb-5">
+      {/* Account section - Immediately after nav */}
+      <div className="pt-2 pb-5">
         <div className="px-5">
           <div className="mb-3">
             <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
@@ -187,7 +187,7 @@ export default function AdminSidebar({
           </div>
         </div>
         <div className="px-4 space-y-1">
-          <NavLink
+          {/* <NavLink
             to={`${base}/profile`}
             onClick={() => onNavigate?.()}
             className={({ isActive }) =>
@@ -202,7 +202,7 @@ export default function AdminSidebar({
           >
             <span className="text-indigo-600 shrink-0">{Icons.profile}</span>
             <span className="truncate">Profile</span>
-          </NavLink>
+          </NavLink> */}
           <button
             onClick={onLogout}
             className="group w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition border border-transparent hover:border-red-200"
