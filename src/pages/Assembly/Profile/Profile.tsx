@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 import { areAllRowsFilled } from "../../../utils/utilsForm";
 import { Plus, Trash } from "lucide-react";
@@ -177,7 +177,7 @@ type FormValues = {
   role: string;
 };
 
-export const DistrictProfile = () => {
+export const Profile = () => {
   const image =
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&h=200&q=80";
 
@@ -195,7 +195,6 @@ export const DistrictProfile = () => {
     }
   });
 
-  const [userId, setUserId] = React.useState<number | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
   const [headerAvatarError, setHeaderAvatarError] = React.useState(false);
@@ -204,6 +203,7 @@ export const DistrictProfile = () => {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [pendingFile, setPendingFile] = React.useState<File | null>(null);
   const [pendingUrl, setPendingUrl] = React.useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -315,7 +315,9 @@ export const DistrictProfile = () => {
     }
   };
 
-  // Populate form when profile data loads
+ 
+
+// Populate form when profile data loads
   React.useEffect(() => {
     if (profileData) {
       reset({
@@ -360,6 +362,8 @@ export const DistrictProfile = () => {
       setUserId(profileData.user_id);
     }
   }, [profileData, reset]);
+
+
 
   // Handle profile image preview
   React.useEffect(() => {
@@ -438,7 +442,10 @@ export const DistrictProfile = () => {
     }
   };
 
-  // Form submit handler
+
+
+
+// Form submit handler
   const onSubmit = async (data: FormValues) => {
     if (!userId) return console.error("User ID not found");
 
@@ -488,6 +495,8 @@ export const DistrictProfile = () => {
       console.error("Error updating profile:", err);
     }
   };
+
+
 
   const initial = (currentUser?.firstName || "U").trim().charAt(0).toUpperCase();
 

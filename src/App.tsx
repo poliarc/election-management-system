@@ -23,7 +23,7 @@ import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenter
 import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
 import DistrictCampaigns from "./pages/District/campaign/Campaigns";
 import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
-import DistrictProfile from "./pages/District/profile/Profile";
+import {DistrictProfile} from "./pages/District/profile/Profile";
 // import StateDistrictsListing from "./pages/State/districts";
 // import StateAssemblyListing from "./pages/State/assembly";
 // import DistrictOverview from "./pages/District/Overview";
@@ -37,7 +37,8 @@ import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
 import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
-import { Profile } from "./pages/Assembly/Profile";
+import {Profile} from "./pages/Assembly/Profile/Profile";
+
 
 import AdminOverview from "./pages/Admin/Overview";
 import StateLayout from "./layouts/StateLayout";
@@ -49,10 +50,10 @@ import StateDistrictsListing from "./pages/State/districts";
 import StateMandalListing from "./pages/State/mandal";
 import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
-import StateProfile from "./pages/State/profile";
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import { PartyWiseLevelPage } from "./pages/Admin/partyWiseLevel";
+import {StateProfile} from "./pages/State/profile";
 
 export default function App() {
   return (
