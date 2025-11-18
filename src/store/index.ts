@@ -4,6 +4,7 @@ import uiReducer from "./uiSlice";
 import passwordResetReducer from "./passwordResetSlice";
 import partyReducer from "./partySlice";
 import { profileApi } from "./api/profileApi";
+import { partyTypeApi } from "./api/partyTypeApi"; // 👈 import partyTypeApi
 
 export const store = configureStore({
   reducer: {
@@ -12,9 +13,12 @@ export const store = configureStore({
     passwordReset: passwordResetReducer,
     party: partyReducer,
     [profileApi.reducerPath]: profileApi.reducer,
+    [partyTypeApi.reducerPath]: partyTypeApi.reducer, // 👈 add partyType reducer
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(profileApi.middleware),
+    getDefaultMiddleware()
+      .concat(profileApi.middleware)
+      .concat(partyTypeApi.middleware), // 👈 add partyType middleware
 });
 
 export type RootState = ReturnType<typeof store.getState>;
