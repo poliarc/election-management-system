@@ -44,7 +44,7 @@ export default function AssemblyLayout() {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4">
+       <main className="flex-1 overflow-auto p-4">
           <Outlet />
         </main>
       </div>
