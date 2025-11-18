@@ -52,7 +52,7 @@ import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
-import { PartyWiseLevelPage } from "./pages/Admin/partyWiseLevel";
+import  PartyLevelManagementPage  from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
 import {StateProfile} from "./pages/State/profile";
 
 export default function App() {
@@ -72,7 +72,7 @@ export default function App() {
             <Route path="overview" element={<AdminOverview />} />
             <Route path="party-type" element={<PartyTypePage />} />
             <Route path="party-master" element={<PartyMasterPage />} />
-            <Route path="party-wise-level" element={<PartyWiseLevelPage />} />
+            <Route path="party-wise-level" element={<PartyLevelManagementPage />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
