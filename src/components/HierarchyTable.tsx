@@ -32,6 +32,8 @@ interface HierarchyTableProps {
   onBlockChange?: (blockId: string) => void;
   assemblyName?: string;
   blockName?: string;
+  onAssignUsers?: (locationId: string, locationName: string) => void;
+  showAssignButton?: boolean;
 }
 
 export default function HierarchyTable({
@@ -61,6 +63,8 @@ export default function HierarchyTable({
   onBlockChange,
   assemblyName = "",
   blockName = "",
+  onAssignUsers,
+  showAssignButton = false,
 }: HierarchyTableProps) {
   const isAssemblyView = title?.toLowerCase().includes("assembly");
   const [sortField, setSortField] = useState<
@@ -182,126 +186,124 @@ export default function HierarchyTable({
           (districts.length > 0 && onDistrictChange) ||
           (assemblies.length > 0 && onAssemblyChange) ||
           (blocks.length > 0 && onBlockChange)) && (
-          <div
-            className={`grid grid-cols-1 ${
-              blocks.length > 0 && onBlockChange
+            <div
+              className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
                 ? "md:grid-cols-4"
                 : assemblies.length > 0 && onAssemblyChange
-                ? "md:grid-cols-3"
-                : districts.length > 0 && onDistrictChange
-                ? "md:grid-cols-2"
-                : "md:grid-cols-2"
-            } gap-4 mb-4`}
-          >
-            {/* State Field (Disabled) */}
-            {stateName && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State
-                </label>
-                <input
-                  type="text"
-                  value={stateName || parentName || "N/A"}
-                  disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-            )}
+                  ? "md:grid-cols-3"
+                  : districts.length > 0 && onDistrictChange
+                    ? "md:grid-cols-2"
+                    : "md:grid-cols-2"
+                } gap-4 mb-4`}
+            >
+              {/* State Field (Disabled) */}
+              {stateName && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={stateName || parentName || "N/A"}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                  />
+                </div>
+              )}
 
-            {/* District Dropdown - Only show if districts array is provided */}
-            {districts.length > 0 && onDistrictChange && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {isAssemblyView ? "District" : "District"}
-                </label>
-                <select
-                  value={selectedDistrict}
-                  onChange={(e) => onDistrictChange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">
-                    {isAssemblyView ? "Select District" : "Select District"}
-                  </option>
-                  {districts.map((district) => (
-                    <option
-                      key={district.location_id}
-                      value={district.location_id}
-                    >
-                      {district.location_name}
+              {/* District Dropdown - Only show if districts array is provided */}
+              {districts.length > 0 && onDistrictChange && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {isAssemblyView ? "District" : "District"}
+                  </label>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(e) => onDistrictChange(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">
+                      {isAssemblyView ? "Select District" : "Select District"}
                     </option>
-                  ))}
-                </select>
-              </div>
-            )}
+                    {districts.map((district) => (
+                      <option
+                        key={district.location_id}
+                        value={district.location_id}
+                      >
+                        {district.location_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-            {/* District Field (Disabled) - Only show when districtName is provided */}
-            {districtName && !(districts.length > 0 && onDistrictChange) && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {isAssemblyView ? "State" : "District"}
-                </label>
-                <input
-                  type="text"
-                  value={districtName || parentName || "N/A"}
-                  disabled
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-            )}
+              {/* District Field (Disabled) - Only show when districtName is provided */}
+              {districtName && !(districts.length > 0 && onDistrictChange) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {isAssemblyView ? "State" : "District"}
+                  </label>
+                  <input
+                    type="text"
+                    value={districtName || parentName || "N/A"}
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                  />
+                </div>
+              )}
 
-            {/* Assembly Dropdown - Only show if assemblies are provided */}
-            {assemblies.length > 0 && onAssemblyChange && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {isAssemblyView ? "District" : "Assembly"}
-                </label>
-                <select
-                  value={selectedAssembly}
-                  onChange={(e) => onAssemblyChange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">
-                    {isAssemblyView ? "Select District" : "Select Assembly"}
-                  </option>
-                  {assemblies.map((assembly) => (
-                    <option
-                      key={assembly.location_id}
-                      value={assembly.location_id}
-                    >
-                      {assembly.location_name}
+              {/* Assembly Dropdown - Only show if assemblies are provided */}
+              {assemblies.length > 0 && onAssemblyChange && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {isAssemblyView ? "District" : "Assembly"}
+                  </label>
+                  <select
+                    value={selectedAssembly}
+                    onChange={(e) => onAssemblyChange(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">
+                      {isAssemblyView ? "Select District" : "Select Assembly"}
                     </option>
-                  ))}
-                </select>
-              </div>
-            )}
+                    {assemblies.map((assembly) => (
+                      <option
+                        key={assembly.location_id}
+                        value={assembly.location_id}
+                      >
+                        {assembly.location_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-            {/* Block Dropdown - Only show if blocks are provided */}
-            {blocks.length > 0 && onBlockChange && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Block
-                </label>
-                <select
-                  value={selectedBlock}
-                  onChange={(e) => onBlockChange(e.target.value)}
-                  disabled={!selectedAssembly}
-                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${
-                    !selectedAssembly
+              {/* Block Dropdown - Only show if blocks are provided */}
+              {blocks.length > 0 && onBlockChange && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Block
+                  </label>
+                  <select
+                    value={selectedBlock}
+                    onChange={(e) => onBlockChange(e.target.value)}
+                    disabled={!selectedAssembly}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
                       ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                       : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  }`}
-                >
-                  <option value="">Select Block</option>
-                  {blocks.map((block) => (
-                    <option key={block.location_id} value={block.location_id}>
-                      {block.location_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        )}
+                      }`}
+                  >
+                    <option value="">Select Block</option>
+                    {blocks.map((block) => (
+                      <option key={block.location_id} value={block.location_id}>
+                        {block.location_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
 
         {/* Search Bar */}
         <div className="relative">
@@ -372,14 +374,14 @@ export default function HierarchyTable({
                   {blockName
                     ? "Assembly / Block"
                     : isAssemblyView && stateName
-                    ? "District"
-                    : assemblyName
-                    ? "Assembly"
-                    : stateName
-                    ? "State"
-                    : districtName
-                    ? "District"
-                    : "Location"}
+                      ? "District"
+                      : assemblyName
+                        ? "Assembly"
+                        : stateName
+                          ? "State"
+                          : districtName
+                            ? "District"
+                            : "Location"}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   <button
@@ -390,14 +392,14 @@ export default function HierarchyTable({
                       {blockName
                         ? "Mandal"
                         : isAssemblyView && stateName
-                        ? "Assembly"
-                        : assemblyName
-                        ? "Block"
-                        : stateName
-                        ? "District"
-                        : districtName
-                        ? "Assembly"
-                        : "Name"}
+                          ? "Assembly"
+                          : assemblyName
+                            ? "Block"
+                            : stateName
+                              ? "District"
+                              : districtName
+                                ? "Assembly"
+                                : "Name"}
                     </span>
                     <SortIcon field="location_name" />
                   </button>
@@ -463,10 +465,10 @@ export default function HierarchyTable({
                       {blockName
                         ? `${assemblyName} / ${blockName}`
                         : assemblyName ||
-                          districtName ||
-                          stateName ||
-                          parentName ||
-                          "N/A"}
+                        districtName ||
+                        stateName ||
+                        parentName ||
+                        "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">
@@ -507,52 +509,75 @@ export default function HierarchyTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        onClick={() => {
-                          console.log(
-                            "View clicked:",
-                            item.location_name,
-                            "Users count:",
-                            item.users?.length || 0
-                          );
-                          setSelectedUsers({
-                            users: item.users || [],
-                            locationName: item.location_name,
-                          });
-                        }}
-                        disabled={!item.users || item.users.length === 0}
-                        className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                          item.users && item.users.length > 0
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "View clicked:",
+                              item.location_name,
+                              "Users count:",
+                              item.users?.length || 0
+                            );
+                            setSelectedUsers({
+                              users: item.users || [],
+                              locationName: item.location_name,
+                            });
+                          }}
+                          disabled={!item.users || item.users.length === 0}
+                          className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all ${item.users && item.users.length > 0
                             ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
-                        title={
-                          item.users && item.users.length > 0
-                            ? "View Users"
-                            : "No users assigned"
-                        }
-                      >
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                            }`}
+                          title={
+                            item.users && item.users.length > 0
+                              ? "View Users"
+                              : "No users assigned"
+                          }
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        View
-                      </button>
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                          View
+                        </button>
+                        {showAssignButton && onAssignUsers && (
+                          <button
+                            onClick={() => onAssignUsers(String(item.location_id), item.location_name)}
+                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 hover:shadow-md transition-all"
+                            title="Assign Users"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                              />
+                            </svg>
+                            Assign
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -608,11 +633,10 @@ export default function HierarchyTable({
                     <button
                       key={pageNum}
                       onClick={() => onPageChange(pageNum)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === pageNum
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                        }`}
                     >
                       {pageNum}
                     </button>

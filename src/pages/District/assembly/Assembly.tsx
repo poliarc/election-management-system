@@ -1,8 +1,10 @@
 import { useHierarchyData, useSelectedDistrictId } from '../../../hooks/useHierarchyData';
 import HierarchyTable from '../../../components/HierarchyTable';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DistrictAssembly() {
+    const navigate = useNavigate();
     const districtId = useSelectedDistrictId();
     const [districtInfo, setDistrictInfo] = useState<{ state: string; district: string }>({ state: '', district: '' });
 
@@ -45,8 +47,24 @@ export default function DistrictAssembly() {
         setOrder(order);
     };
 
+    const handleAssignUsers = (assemblyId: string, assemblyName: string) => {
+        navigate(`/district/assembly/assign?assemblyId=${assemblyId}&assemblyName=${encodeURIComponent(assemblyName)}`);
+    };
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
+            <div className="mb-4 flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-gray-900">Assembly Management</h1>
+                <button
+                    onClick={() => navigate('/district/assembly/create')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Assembly
+                </button>
+            </div>
             <HierarchyTable
                 data={data}
                 loading={loading}
@@ -63,6 +81,8 @@ export default function DistrictAssembly() {
                 stateName={districtInfo.state}
                 districtName={districtInfo.district}
                 parentName={parentName}
+                onAssignUsers={handleAssignUsers}
+                showAssignButton={true}
             />
         </div>
     );
