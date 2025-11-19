@@ -7,6 +7,7 @@ import { profileApi } from "./api/profileApi";
 import { partyTypeApi } from "./api/partyTypeApi";
 import { roleApi } from "./api/roleApi";
 import { userApi } from "./api/userApi";
+import { assemblyApi } from "./api/assemblyApi";
 
 export const store = configureStore({
   reducer: {
@@ -18,13 +19,15 @@ export const store = configureStore({
     [partyTypeApi.reducerPath]: partyTypeApi.reducer,
     [roleApi.reducerPath]: roleApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
+    [assemblyApi.reducerPath]: assemblyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(profileApi.middleware)
       .concat(partyTypeApi.middleware)
       .concat(roleApi.middleware)
-      .concat(userApi.middleware),
+      .concat(userApi.middleware)
+      .concat(assemblyApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -13,6 +13,8 @@ import AssemblyLayout from "./layouts/AssemblyLayout";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
 import DistrictAssembly from "./pages/District/assembly/Assembly";
+import CreateAssembly from "./pages/District/assembly/CreateAssembly";
+import AssignAssembly from "./pages/District/assembly/AssignAssembly";
 import DistrictBlock from "./pages/District/block/Block";
 import DistrictMandal from "./pages/District/mandal/Mandal";
 import DistrictBooth from "./pages/District/booth/Booth";
@@ -82,6 +84,8 @@ export default function App() {
             <Route path="dashboard" element={<DistrictDashboard />} />
             <Route path="district-team" element={<DistrictTeam />} />
             <Route path="assembly" element={<DistrictAssembly />} />
+            <Route path="assembly/create" element={<CreateAssembly />} />
+            <Route path="assembly/assign" element={<AssignAssembly />} />
             <Route path="block" element={<DistrictBlock />} />
             <Route path="mandal" element={<DistrictMandal />} />
             <Route path="booth" element={<DistrictBooth />} />
