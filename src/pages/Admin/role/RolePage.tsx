@@ -19,24 +19,37 @@ import {
 } from "../../../store/api/roleApi";
 
 export const RolePage: React.FC = () => {
+  const [searchParams, setSearchParams] = useState<RoleSearchParams>({
+    page: 1,
+    limit: 25,
+    search: "",
+    isActive: undefined,
+  });
+
   const {
-    data: roles = [],
+    data: rolesResponse,
     isLoading,
     isError,
     isFetching,
-  } = useGetRolesQuery();
+  } = useGetRolesQuery({ page: searchParams.page, limit: searchParams.limit });
+
+  const roles = rolesResponse?.data || [];
+  const backendPagination = rolesResponse?.pagination;
+
+  // Calculate pagination - use backend data if available, otherwise calculate from filtered results
+  const pagination = backendPagination || {
+    page: searchParams.page,
+    limit: searchParams.limit,
+    total: roles.length,
+    totalPages: Math.ceil(roles.length / searchParams.limit),
+  };
+
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
   const [deleteRole, { isLoading: isDeleting }] = useDeleteRoleMutation();
   const [activateRole] = useActivateRoleMutation();
   const [deactivateRole] = useDeactivateRoleMutation();
 
-  const [searchParams, setSearchParams] = useState<RoleSearchParams>({
-    page: 1,
-    limit: 100,
-    search: "",
-    isActive: undefined,
-  });
   const [showForm, setShowForm] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -50,8 +63,16 @@ export const RolePage: React.FC = () => {
     if (searchParams.isActive !== undefined) {
       data = data.filter((r) => r.isActive === searchParams.isActive);
     }
+
+    // If backend doesn't handle pagination, do it on frontend
+    if (!backendPagination && data.length > searchParams.limit) {
+      const startIndex = (searchParams.page - 1) * searchParams.limit;
+      const endIndex = startIndex + searchParams.limit;
+      return data.slice(startIndex, endIndex);
+    }
+
     return data;
-  }, [roles, searchParams]);
+  }, [roles, searchParams, backendPagination]);
 
   const handleSearchChange = (params: RoleSearchParams) =>
     setSearchParams(params);
@@ -197,9 +218,9 @@ export const RolePage: React.FC = () => {
             initialValues={
               editingRole
                 ? {
-                    roleName: editingRole.roleName,
-                    isActive: editingRole.isActive,
-                  }
+                  roleName: editingRole.roleName,
+                  isActive: editingRole.isActive,
+                }
                 : undefined
             }
             onSubmit={editingRole ? handleUpdateRole : handleCreateRole}
@@ -217,6 +238,43 @@ export const RolePage: React.FC = () => {
         onToggleStatus={handleToggleStatus}
         loading={isLoading || isFetching || isDeleting}
       />
+
+      {/* Pagination */}
+      {!showForm && pagination.total > searchParams.limit && (
+        <div className="mt-6 flex justify-center">
+          <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+            <button
+              onClick={() =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  page: Math.max(1, prev.page - 1),
+                }))
+              }
+              disabled={searchParams.page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              Previous
+            </button>
+
+            <span className="px-4 py-2 text-sm text-gray-600 font-medium">
+              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+            </span>
+
+            <button
+              onClick={() =>
+                setSearchParams((prev) => ({
+                  ...prev,
+                  page: Math.min(pagination.totalPages, prev.page + 1),
+                }))
+              }
+              disabled={searchParams.page >= pagination.totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <Toaster

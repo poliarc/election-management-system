@@ -41,6 +41,7 @@ interface BackendUser {
   partyName?: string;
   role?: string;
   isActive: number; // 0 or 1
+  isSuperAdmin: number; // 0 or 1
   created_at: string;
 }
 
@@ -64,9 +65,8 @@ function transformUser(backendUser: BackendUser): User {
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${
-      import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
-    }/api`,
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
+      }/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("auth_access_token");
       if (token) {
@@ -78,7 +78,7 @@ export const userApi = createApi({
   }),
   tagTypes: ["User", "Party", "Role"],
   endpoints: (builder) => ({
-    getUsers: builder.query<User[], UserSearchParams>({
+    getUsers: builder.query<{ data: User[]; pagination: { page: number; limit: number; total: number; totalPages: number } }, UserSearchParams>({
       query: (params) => ({
         url: "/users/all",
         params: {
@@ -90,14 +90,18 @@ export const userApi = createApi({
           role_id: params.role_id,
         },
       }),
-      transformResponse: (response: ApiListResponse<BackendUser[]>) =>
-        (response.data || []).map(transformUser),
+      transformResponse: (response: ApiListResponse<BackendUser[]>) => ({
+        data: (response.data || [])
+          .filter((user) => user.isSuperAdmin !== 1) // Exclude super admin users
+          .map(transformUser),
+        pagination: response.pagination || { page: 1, limit: 25, total: 0, totalPages: 0 },
+      }),
       providesTags: (result) =>
         result
           ? [
-              ...result.map((u) => ({ type: "User" as const, id: u.user_id })),
-              { type: "User", id: "LIST" },
-            ]
+            ...result.data.map((u) => ({ type: "User" as const, id: u.user_id })),
+            { type: "User", id: "LIST" },
+          ]
           : [{ type: "User", id: "LIST" }],
     }),
     getUserById: builder.query<User, number | string>({
@@ -159,9 +163,9 @@ export const userApi = createApi({
       invalidatesTags: (result) =>
         result
           ? [
-              { type: "User", id: result.user_id },
-              { type: "User", id: "LIST" },
-            ]
+            { type: "User", id: result.user_id },
+            { type: "User", id: "LIST" },
+          ]
           : [{ type: "User", id: "LIST" }],
     }),
     toggleUserStatus: builder.mutation<

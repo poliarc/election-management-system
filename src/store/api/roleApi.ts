@@ -40,9 +40,8 @@ function transformRole(backendRole: BackendRole): Role {
 export const roleApi = createApi({
   reducerPath: "roleApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${
-      import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
-    }/api`,
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
+      }/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("auth_access_token");
       if (token) {
@@ -54,16 +53,21 @@ export const roleApi = createApi({
   }),
   tagTypes: ["Role"],
   endpoints: (builder) => ({
-    getRoles: builder.query<Role[], void>({
-      query: () => "/roles/all",
-      transformResponse: (response: ApiListResponse<BackendRole[]>) =>
-        (response.data || []).map(transformRole),
+    getRoles: builder.query<{ data: Role[]; pagination: { page: number; limit: number; total: number; totalPages: number } }, { page?: number; limit?: number } | void>({
+      query: (params) => ({
+        url: "/roles/all",
+        params: params ? { page: params.page || 1, limit: params.limit || 25 } : { page: 1, limit: 25 },
+      }),
+      transformResponse: (response: ApiListResponse<BackendRole[]> & { pagination?: { page: number; limit: number; total: number; totalPages: number } }) => ({
+        data: (response.data || []).map(transformRole),
+        pagination: response.pagination || { page: 1, limit: 25, total: 0, totalPages: 0 },
+      }),
       providesTags: (result) =>
         result
           ? [
-              ...result.map((r) => ({ type: "Role" as const, id: r.role_id })),
-              { type: "Role", id: "LIST" },
-            ]
+            ...result.data.map((r) => ({ type: "Role" as const, id: r.role_id })),
+            { type: "Role", id: "LIST" },
+          ]
           : [{ type: "Role", id: "LIST" }],
     }),
     getRoleById: builder.query<Role, number | string>({
@@ -95,9 +99,9 @@ export const roleApi = createApi({
         invalidatesTags: (result) =>
           result
             ? [
-                { type: "Role", id: result.role_id },
-                { type: "Role", id: "LIST" },
-              ]
+              { type: "Role", id: result.role_id },
+              { type: "Role", id: "LIST" },
+            ]
             : [{ type: "Role", id: "LIST" }],
       }
     ),

@@ -65,7 +65,7 @@ export default function App() {
           <Route path="panels" element={<PanelSelect />} />
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
           <Route path="admin" element={<AdminLayout />}>
-            <Route index element={<AdminOverview />} />
+            <Route index element={<UserPage />} />
             <Route path="overview" element={<AdminOverview />} />
             <Route path="party-type" element={<PartyTypePage />} />
             <Route path="party-master" element={<PartyMasterPage />} />

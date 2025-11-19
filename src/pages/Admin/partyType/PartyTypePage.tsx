@@ -42,8 +42,21 @@ export const PartyTypePage: React.FC = () => {
     limit: 25,
   });
 
-  // ✅ Fetch data
-  const { data: itemsFromApi, isLoading, refetch } = useGetPartyTypesQuery();
+  // ✅ Fetch data with pagination
+  const { data: itemsFromApi, isLoading, refetch } = useGetPartyTypesQuery({
+    page: searchParams.page,
+    limit: searchParams.limit
+  });
+
+  const backendPagination = itemsFromApi?.pagination;
+
+  // Calculate pagination - use backend data if available, otherwise calculate from items
+  const pagination = backendPagination || {
+    page: searchParams.page,
+    limit: searchParams.limit,
+    total: itemsFromApi?.data?.length || 0,
+    totalPages: Math.ceil((itemsFromApi?.data?.length || 0) / searchParams.limit),
+  };
 
   // ✅ Mutations
   const [createPartyType] = useCreatePartyTypeMutation();
@@ -89,8 +102,16 @@ export const PartyTypePage: React.FC = () => {
     if (typeof searchParams.isActive === "boolean") {
       list = list.filter((pt) => pt.isActive === searchParams.isActive);
     }
+
+    // If backend doesn't handle pagination, do it on frontend
+    if (!backendPagination && list.length > searchParams.limit) {
+      const startIndex = (searchParams.page - 1) * searchParams.limit;
+      const endIndex = startIndex + searchParams.limit;
+      return list.slice(startIndex, endIndex);
+    }
+
     return list;
-  }, [items, searchParams]);
+  }, [items, searchParams, backendPagination]);
 
   const handleCreateClick = () => {
     setEditingPartyType(null);
@@ -406,14 +427,12 @@ export const PartyTypePage: React.FC = () => {
                     <div className="flex items-center">
                       <div className="shrink-0 h-10 w-10">
                         <div
-                          className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                            pt.isActive ? "bg-purple-100" : "bg-gray-100"
-                          }`}
+                          className={`h-10 w-10 rounded-full flex items-center justify-center ${pt.isActive ? "bg-purple-100" : "bg-gray-100"
+                            }`}
                         >
                           <Database
-                            className={`w-5 h-5 ${
-                              pt.isActive ? "text-purple-600" : "text-gray-400"
-                            }`}
+                            className={`w-5 h-5 ${pt.isActive ? "text-purple-600" : "text-gray-400"
+                              }`}
                           />
                         </div>
                       </div>
@@ -435,9 +454,8 @@ export const PartyTypePage: React.FC = () => {
                         handleToggleStatus(pt.party_type_id, !pt.isActive)
                       }
                       className="flex items-center gap-2 hover:opacity-75 transition-opacity"
-                      title={`Click to ${
-                        pt.isActive ? "deactivate" : "activate"
-                      }`}
+                      title={`Click to ${pt.isActive ? "deactivate" : "activate"
+                        }`}
                     >
                       {pt.isActive ? (
                         <>
@@ -613,11 +631,10 @@ export const PartyTypePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${
-                    showFilters || hasActiveFilters
-                      ? "bg-purple-50 border-purple-300 text-purple-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
+                    ? "bg-purple-50 border-purple-300 text-purple-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
                   <Filter className="w-4 h-4" />
                   Filters
@@ -655,8 +672,8 @@ export const PartyTypePage: React.FC = () => {
                         searchParams.isActive === undefined
                           ? ""
                           : searchParams.isActive
-                          ? "active"
-                          : "inactive"
+                            ? "active"
+                            : "inactive"
                       }
                       onChange={(e) =>
                         handleFilterChange(
@@ -720,6 +737,43 @@ export const PartyTypePage: React.FC = () => {
 
         {/* List - Only show when not in form mode */}
         {!showForm && <List />}
+
+        {/* Pagination - Only show when not in form mode */}
+        {!showForm && pagination.total > searchParams.limit && (
+          <div className="mt-6 flex justify-center">
+            <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+              <button
+                onClick={() =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    page: Math.max(1, prev.page - 1),
+                  }))
+                }
+                disabled={searchParams.page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                Previous
+              </button>
+
+              <span className="px-4 py-2 text-sm text-gray-600 font-medium">
+                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+              </span>
+
+              <button
+                onClick={() =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    page: Math.min(pagination.totalPages, prev.page + 1),
+                  }))
+                }
+                disabled={searchParams.page >= pagination.totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && itemToDelete && (

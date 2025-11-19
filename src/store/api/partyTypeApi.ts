@@ -34,8 +34,11 @@ export const partyTypeApi = createApi({
   tagTypes: ["PartyType"],
   endpoints: (builder) => ({
     // GET all party types
-    getPartyTypes: builder.query<PartyTypeApiResponse, void>({
-      query: () => `/all`,
+    getPartyTypes: builder.query<PartyTypeApiResponse, { page?: number; limit?: number } | void>({
+      query: (params) => ({
+        url: `/all`,
+        params: params ? { page: params.page || 1, limit: params.limit || 25 } : { page: 1, limit: 25 },
+      }),
       providesTags: ["PartyType"],
     }),
 
