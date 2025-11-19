@@ -100,11 +100,11 @@ export default function DistrictDashboard() {
                 const token = authState ? JSON.parse(authState).accessToken : null;
                 if (!token) return;
 
-                // Fetch blocks for all assemblies
+                // Fetch blocks for all assemblies using the after-assembly-data API
                 const blockPromises = assemblies.map(async (assembly) => {
                     try {
                         const response = await fetch(
-                            `${API_CONFIG.BASE_URL}/api/user-state-hierarchies/hierarchy/children/${assembly.location_id}?limit=1000`,
+                            `${API_CONFIG.BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id}`,
                             {
                                 headers: {
                                     'Authorization': `Bearer ${token}`,
@@ -112,9 +112,10 @@ export default function DistrictDashboard() {
                             }
                         );
                         const data = await response.json();
+                        const blocks = data.data || [];
                         return {
-                            blocks: data.data?.children || [],
-                            total: data.pagination?.total || data.data?.children?.length || 0,
+                            blocks: blocks,
+                            total: blocks.length,
                         };
                     } catch {
                         return { blocks: [], total: 0 };
@@ -126,12 +127,12 @@ export default function DistrictDashboard() {
                 const blocksCount = blockResults.reduce((sum, r) => sum + r.total, 0);
                 setTotalBlocks(blocksCount);
 
-                // Fetch mandals for all blocks
+                // Fetch mandals/users for all blocks
                 if (allBlocks.length > 0) {
                     const mandalPromises = allBlocks.map(async (block: any) => {
                         try {
                             const response = await fetch(
-                                `${API_CONFIG.BASE_URL}/api/user-state-hierarchies/hierarchy/children/${block.location_id}?limit=1000`,
+                                `${API_CONFIG.BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
                                 {
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
@@ -139,7 +140,7 @@ export default function DistrictDashboard() {
                                 }
                             );
                             const data = await response.json();
-                            return data.pagination?.total || data.data?.children?.length || 0;
+                            return data.data?.total_users || data.data?.users?.length || 0;
                         } catch {
                             return 0;
                         }

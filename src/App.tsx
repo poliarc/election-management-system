@@ -16,6 +16,7 @@ import DistrictAssembly from "./pages/District/assembly/Assembly";
 import CreateAssembly from "./pages/District/assembly/CreateAssembly";
 import AssignAssembly from "./pages/District/assembly/AssignAssembly";
 import DistrictBlock from "./pages/District/block/Block";
+import ViewDistrictBlockUsers from "./pages/District/block/ViewDistrictBlockUsers";
 import DistrictMandal from "./pages/District/mandal/Mandal";
 import DistrictBooth from "./pages/District/booth/Booth";
 import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenters";
@@ -25,7 +26,10 @@ import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
 import { DistrictProfile } from "./pages/District/profile/Profile";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
-import AssemblyBlockPage from "./pages/Assembly/block/BlockPage";
+import BlockList from "./pages/Assembly/block/BlockList";
+import CreateBlock from "./pages/Assembly/block/CreateBlock";
+import AssignBlock from "./pages/Assembly/block/AssignBlock";
+import ViewBlockUsers from "./pages/Assembly/block/ViewBlockUsers";
 import AssemblyMandalPage from "./pages/Assembly/mandal/MandalPage";
 import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCenterPage";
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
@@ -87,6 +91,7 @@ export default function App() {
             <Route path="assembly/create" element={<CreateAssembly />} />
             <Route path="assembly/assign" element={<AssignAssembly />} />
             <Route path="block" element={<DistrictBlock />} />
+            <Route path="block/users" element={<ViewDistrictBlockUsers />} />
             <Route path="mandal" element={<DistrictMandal />} />
             <Route path="booth" element={<DistrictBooth />} />
             <Route
@@ -115,7 +120,10 @@ export default function App() {
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="team" element={<AssemblyTeam />} />
-            <Route path="block" element={<AssemblyBlockPage />} />
+            <Route path="block" element={<BlockList />} />
+            <Route path="block/create" element={<CreateBlock />} />
+            <Route path="block/assign" element={<AssignBlock />} />
+            <Route path="block/users" element={<ViewBlockUsers />} />
             <Route path="mandal" element={<AssemblyMandalPage />} />
             <Route
               path="polling-center"

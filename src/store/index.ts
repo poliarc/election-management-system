@@ -8,6 +8,7 @@ import { partyTypeApi } from "./api/partyTypeApi";
 import { roleApi } from "./api/roleApi";
 import { userApi } from "./api/userApi";
 import { assemblyApi } from "./api/assemblyApi";
+import { blockApi } from "./api/blockApi";
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     [roleApi.reducerPath]: roleApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     [assemblyApi.reducerPath]: assemblyApi.reducer,
+    [blockApi.reducerPath]: blockApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -27,7 +29,8 @@ export const store = configureStore({
       .concat(partyTypeApi.middleware)
       .concat(roleApi.middleware)
       .concat(userApi.middleware)
-      .concat(assemblyApi.middleware),
+      .concat(assemblyApi.middleware)
+      .concat(blockApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
