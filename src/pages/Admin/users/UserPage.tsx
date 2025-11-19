@@ -227,7 +227,7 @@ export const UserPage: React.FC = () => {
   //   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -364,7 +364,7 @@ export const UserPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                       <AlertTriangle className="w-6 h-6 text-red-600" />
                     </div>

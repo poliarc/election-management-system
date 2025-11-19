@@ -9,6 +9,7 @@ import { roleApi } from "./api/roleApi";
 import { userApi } from "./api/userApi";
 import { assemblyApi } from "./api/assemblyApi";
 import { blockApi } from "./api/blockApi";
+import { stateMasterApi } from "./api/stateMasterApi";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [assemblyApi.reducerPath]: assemblyApi.reducer,
     [blockApi.reducerPath]: blockApi.reducer,
+    [stateMasterApi.reducerPath]: stateMasterApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -30,7 +32,8 @@ export const store = configureStore({
       .concat(roleApi.middleware)
       .concat(userApi.middleware)
       .concat(assemblyApi.middleware)
-      .concat(blockApi.middleware),
+      .concat(blockApi.middleware)
+      .concat(stateMasterApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

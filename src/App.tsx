@@ -45,6 +45,8 @@ import StateTeamListing from "./pages/State/state-team";
 import StateBlockListing from "./pages/State/block";
 import StateAssemblyListing from "./pages/State/assembly";
 import StateDistrictsListing from "./pages/State/districts";
+import CreateDistrict from "./pages/State/districts/CreateDistrict";
+import AssignDistrict from "./pages/State/districts/AssignDistrict";
 import StateMandalListing from "./pages/State/mandal";
 import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
@@ -81,6 +83,8 @@ export default function App() {
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="team" element={<StateTeamListing />} />
             <Route path="districts" element={<StateDistrictsListing />} />
+            <Route path="districts/create" element={<CreateDistrict />} />
+            <Route path="districts/assign" element={<AssignDistrict />} />
             <Route path="assembly" element={<StateAssemblyListing />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>

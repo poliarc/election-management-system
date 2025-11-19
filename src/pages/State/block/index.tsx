@@ -1,364 +1,639 @@
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import ActionDropdown from "../../../components/common/ActionDropdown.tsx";
+import { useState, useEffect } from "react";
+import {
+  useGetBlocksByAssemblyQuery,
+  useGetBlockAssignmentsQuery,
+} from "../../../store/api/blockApi";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store";
+import { useHierarchyData } from "../../../hooks/useHierarchyData";
 
-type BlockCandidate = {
-  no: number;
-  blockName: string;
-  designation: string; // backward compatible with degignation
-  firstName: string;
-  phone: number | string;
-  email?: string;
-  status?: "active" | "disabled";
-  state?: string;
-  district?: string;
-  assembly?: string;
-};
+export default function StateBlock() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
+    null
+  );
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number | null>(
+    null
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
-type FilterForm = {
-  state: string;
-  district: string;
-  assembly: string;
-  blockName: string;
-  q: string;
-  show: number;
-};
+  const selectedAssignment = useSelector(
+    (state: RootState) => state.auth.selectedAssignment
+  );
 
-const STORAGE_KEY = "blockCandidates";
-
-export default function StateBlockListing() {
-  const [rows, setRows] = useState<BlockCandidate[]>([]);
-
-  const { register, watch } = useForm<FilterForm>({
-    defaultValues: {
-      state: "",
-      district: "",
-      assembly: "",
-      blockName: "",
-      q: "",
-      show: 10,
-    },
+  const [stateInfo, setStateInfo] = useState({
+    stateName: "",
+    stateId: 0,
   });
 
-  const selectedState = watch("state");
-  const selectedDistrict = watch("district");
-  const selectedAssembly = watch("assembly");
-  const selectedBlockName = watch("blockName");
-  const q = watch("q");
-  const show = watch("show");
+  useEffect(() => {
+    if (selectedAssignment) {
+      setStateInfo({
+        stateName: selectedAssignment.levelName,
+        stateId: selectedAssignment.stateMasterData_id,
+      });
+    }
+  }, [selectedAssignment]);
+
+  // Get districts for the state
+  const districtsData = useHierarchyData(stateInfo.stateId, 100);
+  const districts = districtsData.data || [];
+
+  // Get assemblies for the selected district
+  const assembliesData = useHierarchyData(selectedDistrictId, 100);
+  const assemblies = assembliesData.data || [];
+
+  // Reset assembly when district changes
+  useEffect(() => {
+    setSelectedAssemblyId(null);
+    setCurrentPage(1);
+  }, [selectedDistrictId]);
+
+  // Get blocks for selected assembly
+  const {
+    data: blocks = [],
+    isLoading,
+    error,
+  } = useGetBlocksByAssemblyQuery(selectedAssemblyId!, {
+    skip: !selectedAssemblyId,
+  });
+
+  // Fetch user counts for all blocks
+  const [blockUserCounts, setBlockUserCounts] = useState<
+    Record<number, number>
+  >({});
+  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+  const [selectedBlockName, setSelectedBlockName] = useState<string>("");
+
+  // Fetch users for selected block (for modal)
+  const { data: blockUsersData, isLoading: loadingUsers } =
+    useGetBlockAssignmentsQuery(selectedBlockId!, { skip: !selectedBlockId });
 
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as Array<Record<string, unknown>>;
-        const normalized: BlockCandidate[] = parsed.map((r, idx) => ({
-          no: (r["no"] as number) ?? idx + 1,
-          blockName: (r["blockName"] as string) || (r["block"] as string) || "",
-          designation:
-            (r["designation"] as string) || (r["degignation"] as string) || "",
-          firstName: (r["firstName"] as string) || (r["name"] as string) || "",
-          phone: (r["phone"] as number | string) ?? "",
-          email: (r["email"] as string | undefined) || undefined,
-          status:
-            (r["status"] as "active" | "disabled" | undefined) || "active",
-          state: (r["state"] as string | undefined) || undefined,
-          district: (r["district"] as string | undefined) || undefined,
-          assembly: (r["assembly"] as string | undefined) || undefined,
-        }));
-        setRows(normalized);
-        return;
-      } catch {
-        // ignore parse errors
+    const fetchUserCounts = async () => {
+      const counts: Record<number, number> = {};
+      for (const block of blocks) {
+        try {
+          const response = await fetch(
+            `${
+              import.meta.env.VITE_API_BASE_URL ||
+              "https://backend.peopleconnect.in"
+            }/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  "auth_access_token"
+                )}`,
+              },
+            }
+          );
+          const data = await response.json();
+          counts[block.id] =
+            data.data?.total_users || data.data?.users?.length || 0;
+        } catch (error) {
+          console.error(`Error fetching users for block ${block.id}:`, error);
+          counts[block.id] = 0;
+        }
       }
+      setBlockUserCounts(counts);
+    };
+
+    if (blocks.length > 0) {
+      fetchUserCounts();
     }
-    setRows([]);
-  }, []);
+  }, [blocks]);
 
-  const stateOptions = useMemo(() => {
-    const set = new Set<string>();
-    rows.forEach((r) => r.state && set.add(r.state));
-    return Array.from(set).sort();
-  }, [rows]);
-
-  const districtOptions = useMemo(() => {
-    const set = new Set<string>();
-    rows
-      .filter((r) => (selectedState ? r.state === selectedState : true))
-      .forEach((r) => r.district && set.add(r.district));
-    return Array.from(set).sort();
-  }, [rows, selectedState]);
-
-  const assemblyOptions = useMemo(() => {
-    const set = new Set<string>();
-    rows
-      .filter((r) => (selectedState ? r.state === selectedState : true))
-      .filter((r) =>
-        selectedDistrict ? r.district === selectedDistrict : true
-      )
-      .forEach((r) => r.assembly && set.add(r.assembly));
-    return Array.from(set).sort();
-  }, [rows, selectedState, selectedDistrict]);
-
-  const blockOptions = useMemo(() => {
-    const set = new Set<string>();
-    rows
-      .filter((r) => (selectedState ? r.state === selectedState : true))
-      .filter((r) =>
-        selectedDistrict ? r.district === selectedDistrict : true
-      )
-      .filter((r) =>
-        selectedAssembly ? r.assembly === selectedAssembly : true
-      )
-      .forEach((r) => r.blockName && set.add(r.blockName));
-    return Array.from(set).sort();
-  }, [rows, selectedState, selectedDistrict, selectedAssembly]);
-
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      const matchState = selectedState
-        ? (r.state || "") === selectedState
-        : true;
-      const matchDistrict = selectedDistrict
-        ? (r.district || "") === selectedDistrict
-        : true;
-      const matchAssembly = selectedAssembly
-        ? (r.assembly || "") === selectedAssembly
-        : true;
-      const matchBlockName = selectedBlockName
-        ? (r.blockName || "") === selectedBlockName
-        : true;
-      const hay = [
-        r.no?.toString(),
-        r.blockName,
-        r.designation,
-        r.firstName,
-        r.phone?.toString(),
-        r.email ?? "",
-        r.status === "disabled" ? "inactive" : "active",
-      ]
-        .filter(Boolean)
-        .map((v) => v!.toString().toLowerCase());
-      const matchQuery = query ? hay.some((h) => h.includes(query)) : true;
-      return (
-        matchState &&
-        matchDistrict &&
-        matchAssembly &&
-        matchBlockName &&
-        matchQuery
-      );
-    });
-  }, [
-    rows,
-    selectedState,
-    selectedDistrict,
-    selectedAssembly,
-    selectedBlockName,
-    q,
-  ]);
-
-  const shown = filtered.slice(0, Number(show ?? 10));
-
-  const handleDelete = (idx: number) => {
-    if (!confirm("Delete this block candidate?")) return;
-    const updated = [...rows];
-    updated.splice(idx, 1);
-    setRows(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  const handleViewUsers = (blockId: number, blockName: string) => {
+    setSelectedBlockId(blockId);
+    setSelectedBlockName(blockName);
   };
 
+  const handleCloseModal = () => {
+    setSelectedBlockId(null);
+    setSelectedBlockName("");
+  };
+
+  const users = blockUsersData?.users || [];
+
+  const filteredBlocks = blocks.filter((block) =>
+    block.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredBlocks.length / itemsPerPage);
+  const paginatedBlocks = filteredBlocks.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-800">Block List</h1>
-      </div>
-
-      <form className="mb-4 w-full flex flex-col sm:flex-row sm:items-end gap-3 flex-wrap">
-        <div className="flex flex-col gap-1 w-full sm:w-[180px]">
-          <label htmlFor="state" className="text-sm font-medium text-gray-700">
-            State
-          </label>
-          <select
-            id="state"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("state")}
-          >
-            <option value="">All</option>
-            {stateOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
+          <h1 className="text-3xl font-bold">Block Management</h1>
+          <p className="text-blue-100 mt-2">
+            Manage blocks across assemblies in your state
+          </p>
         </div>
 
-        <div className="flex flex-col gap-1 w-full sm:w-[180px]">
-          <label
-            htmlFor="district"
-            className="text-sm font-medium text-gray-700"
-          >
-            District
-          </label>
-          <select
-            id="district"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("district")}
-          >
-            <option value="">All</option>
-            {districtOptions.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1 w-full sm:w-[180px]">
-          <label
-            htmlFor="assembly"
-            className="text-sm font-medium text-gray-700"
-          >
-            Assembly
-          </label>
-          <select
-            id="assembly"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("assembly")}
-          >
-            <option value="">All</option>
-            {assemblyOptions.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1 w-full sm:w-[180px]">
-          <label
-            htmlFor="blockName"
-            className="text-sm font-medium text-gray-700"
-          >
-            Block Name
-          </label>
-          <select
-            id="blockName"
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("blockName")}
-          >
-            <option value="">All</option>
-            {blockOptions.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1 sm:flex-1 min-w-[220px]">
-          <label htmlFor="q" className="text-sm font-medium text-gray-700">
-            Search
-          </label>
-          <input
-            id="q"
-            type="text"
-            placeholder="Search no., block name, designation, name..."
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("q")}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1 w-max sm:ml-auto">
-          <label htmlFor="show" className="text-sm font-medium text-gray-700">
-            Show Result
-          </label>
-          <select
-            id="show"
-            className="w-28 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            {...register("show", { valueAsNumber: true })}
-          >
-            {[5, 10, 20, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </div>
-      </form>
-
-      <div className="overflow-x-auto w-full">
-        <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-white">
-          <thead className="bg-indigo-50 text-[13px]">
-            <tr>
-              <th className="px-4 py-2 font-semibold">No.</th>
-              <th className="px-4 py-2 font-semibold">BlockName</th>
-              <th className="px-4 py-2 font-semibold">Designation</th>
-              <th className="px-4 py-2 font-semibold">FirstName</th>
-              <th className="px-4 py-2 font-semibold">Phone</th>
-              <th className="px-4 py-2 font-semibold">Email</th>
-              <th className="px-4 py-2 font-semibold">Status</th>
-              <th className="px-4 py-2 font-semibold">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shown.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="text-center py-8 text-gray-400">
-                  No records found
-                </td>
-              </tr>
-            ) : (
-              shown.map((c, index) => (
-                <tr
-                  key={`${c.no}-${c.blockName}-${index}`}
-                  className={
-                    index % 2 === 0
-                      ? "bg-white hover:bg-indigo-50 transition"
-                      : "bg-gray-50 hover:bg-indigo-50 transition"
-                  }
-                >
-                  <td className="px-4 py-2">{c.no ?? index + 1}</td>
-                  <td className="px-4 py-2">{c.blockName || "-"}</td>
-                  <td className="px-4 py-2">{c.designation || "-"}</td>
-                  <td className="px-4 py-2">{c.firstName || "-"}</td>
-                  <td className="px-4 py-2">{c.phone || "-"}</td>
-                  <td className="px-4 py-2">{c.email || "-"}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        c.status === "disabled"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {c.status === "disabled" ? "Inactive" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 relative">
-                    <ActionDropdown
-                      items={[
-                        {
-                          label: "View",
-                          onClick: () => alert("View coming soon"),
-                        },
-                        {
-                          label: "Edit",
-                          onClick: () => alert("Edit coming soon"),
-                        },
-                        {
-                          label: "Delete",
-                          onClick: () => handleDelete(index),
-                          destructive: true,
-                        },
-                      ]}
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                State
+              </label>
+              <input
+                type="text"
+                value={stateInfo.stateName}
+                disabled
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                District <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedDistrictId || ""}
+                onChange={(e) => {
+                  setSelectedDistrictId(Number(e.target.value) || null);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select District</option>
+                {districts.map((district) => (
+                  <option
+                    key={district.location_id}
+                    value={district.location_id}
+                  >
+                    {district.location_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Assembly <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedAssemblyId || ""}
+                onChange={(e) => {
+                  setSelectedAssemblyId(Number(e.target.value) || null);
+                  setCurrentPage(1);
+                }}
+                disabled={!selectedDistrictId}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">Select Assembly</option>
+                {assemblies.map((assembly) => (
+                  <option
+                    key={assembly.location_id}
+                    value={assembly.location_id}
+                  >
+                    {assembly.location_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Blocks
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
-                  </td>
-                </tr>
-              ))
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by block name..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  disabled={!selectedAssemblyId}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Block List */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {!selectedAssemblyId ? (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="mt-2 text-gray-500 font-medium">
+                Please select a district and assembly to view blocks
+              </p>
+            </div>
+          ) : isLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600">Loading blocks...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-600">
+              <p>Error loading blocks</p>
+            </div>
+          ) : filteredBlocks.length === 0 ? (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+              <p className="mt-2 text-gray-500 font-medium">No blocks found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      S.No
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Block Name
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Assembly
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Total Users
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Created At
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedBlocks.map((block, index) => (
+                    <tr
+                      key={block.id}
+                      className="hover:bg-blue-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">
+                          {block.displayName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {block.assemblyName}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <svg
+                            className="w-4 h-4 text-gray-400 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                            />
+                          </svg>
+                          <span className="text-sm font-medium text-gray-900">
+                            {blockUserCounts[block.id] !== undefined
+                              ? blockUserCounts[block.id]
+                              : "..."}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {block.created_at
+                          ? new Date(block.created_at).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <button
+                          onClick={() =>
+                            handleViewUsers(block.id, block.displayName)
+                          }
+                          className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
+                        >
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {filteredBlocks.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between mt-6">
+            <div className="flex items-center text-sm text-gray-700">
+              <span>
+                Showing{" "}
+                <span className="font-semibold">
+                  {(currentPage - 1) * itemsPerPage + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold">
+                  {Math.min(currentPage * itemsPerPage, filteredBlocks.length)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold">{filteredBlocks.length}</span>{" "}
+                results
+              </span>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             )}
-          </tbody>
-        </table>
+          </div>
+        )}
+
+        {/* Modal for viewing users */}
+        {selectedBlockId && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+              {/* Modal Header */}
+              <div className="bg-linear-to-r from-blue-600 to-blue-700 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Block Users</h2>
+                    <p className="text-blue-100 mt-1">
+                      Block: {selectedBlockName}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCloseModal}
+                    className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                {loadingUsers ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600">Loading users...</p>
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="text-center py-12">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <p className="mt-2 text-gray-500 font-medium">
+                      No users assigned to this block
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            S.No
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Email
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Contact
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Party
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Assigned At
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {users.map((user: any, index: number) => (
+                          <tr
+                            key={user.assignment_id}
+                            className="hover:bg-blue-50 transition-colors"
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-semibold text-gray-900">
+                                {user.first_name} {user.last_name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {user.username}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {user.email}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {user.contact_no}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {user.partyName}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  user.user_active === 1
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {user.user_active === 1 ? "Active" : "Inactive"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {user.assigned_at
+                                ? new Date(
+                                    user.assigned_at
+                                  ).toLocaleDateString()
+                                : "N/A"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">
+                      Total Users
+                    </p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {users.length}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseModal}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,10 @@ import React from "react";
 import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 import { areAllRowsFilled } from "../../../utils/utilsForm";
 import { Plus, Trash } from "lucide-react";
-import { useGetProfileQuery, useUpdateProfileMutation } from "../../../store/api/profileApi";
+import {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+} from "../../../store/api/profileApi";
 
 // Confirmation modal for profile image upload
 const InlineConfirmationModal: React.FC<{
@@ -200,7 +203,9 @@ export const StateProfile = () => {
   const [isEditing, setIsEditing] = React.useState(false);
   const [headerAvatarError, setHeaderAvatarError] = React.useState(false);
   const [cardAvatarError, setCardAvatarError] = React.useState(false);
-  const [profileImagePreview, setProfileImagePreview] = React.useState<string | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = React.useState<
+    string | null
+  >(null);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [pendingFile, setPendingFile] = React.useState<File | null>(null);
   const [pendingUrl, setPendingUrl] = React.useState<string | null>(null);
@@ -255,22 +260,38 @@ export const StateProfile = () => {
   });
 
   // Field arrays
-  const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
+  const {
+    fields: educationFields,
+    append: appendEducation,
+    remove: removeEducation,
+  } = useFieldArray({
     control,
     name: "education",
   });
 
-  const { fields: expFields, append: appendExp, remove: removeExp } = useFieldArray({
+  const {
+    fields: expFields,
+    append: appendExp,
+    remove: removeExp,
+  } = useFieldArray({
     control,
     name: "professionalExp",
   });
 
-  const { fields: childrenFields, append: appendChildren, remove: removeChildren } = useFieldArray({
+  const {
+    fields: childrenFields,
+    append: appendChildren,
+    remove: removeChildren,
+  } = useFieldArray({
     control,
     name: "children",
   });
 
-  const { fields: positionFields, append: appendPosition, remove: removePosition } = useFieldArray({
+  const {
+    fields: positionFields,
+    append: appendPosition,
+    remove: removePosition,
+  } = useFieldArray({
     control,
     name: "positionHeld",
   });
@@ -285,7 +306,11 @@ export const StateProfile = () => {
   //   name: "publicRepresentativeDetails",
   // });
 
-  const { fields: vehicleFields, append: appendVehicle, remove: removeVehicle } = useFieldArray({
+  const {
+    fields: vehicleFields,
+    append: appendVehicle,
+    remove: removeVehicle,
+  } = useFieldArray({
     control,
     name: "vehicle",
   });
@@ -349,7 +374,8 @@ export const StateProfile = () => {
         children: profileData.children || [],
         positionHeld: profileData.positionHeld || [],
         electionContested: profileData.electionContested || [],
-        publicRepresentativeDetails: profileData.publicRepresentativeDetails || [],
+        publicRepresentativeDetails:
+          profileData.publicRepresentativeDetails || [],
         vehicle: profileData.vehicle || [],
         profileImage: null,
         partyName: profileData.partyName ?? "",
@@ -393,7 +419,9 @@ export const StateProfile = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImageSelected: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  const handleImageSelected: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -420,8 +448,11 @@ export const StateProfile = () => {
       const formData = new FormData();
       formData.append("profileImage", pendingFile);
 
-      const result = await updateProfile({ id: userId, data: formData }).unwrap();
-      
+      const result = await updateProfile({
+        id: userId,
+        data: formData,
+      }).unwrap();
+
       setCurrentUser(result);
       localStorage.setItem("user", JSON.stringify(result));
       setProfileImagePreview(null);
@@ -478,8 +509,11 @@ export const StateProfile = () => {
         vehicle: data.vehicle,
       };
 
-      const result = await updateProfile({ id: userId, data: payload }).unwrap();
-      
+      const result = await updateProfile({
+        id: userId,
+        data: payload,
+      }).unwrap();
+
       setCurrentUser(result);
       localStorage.setItem("user", JSON.stringify(result));
       setIsEditing(false);
@@ -489,7 +523,10 @@ export const StateProfile = () => {
     }
   };
 
-  const initial = (currentUser?.firstName || "U").trim().charAt(0).toUpperCase();
+  const initial = (currentUser?.firstName || "U")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   // Loading state
   if (isLoading) {
@@ -508,9 +545,13 @@ export const StateProfile = () => {
     return (
       <div className="w-full m-0 flex items-center justify-center min-h-[400px]">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-red-800 font-semibold mb-2">Failed to load profile</h3>
+          <h3 className="text-red-800 font-semibold mb-2">
+            Failed to load profile
+          </h3>
           <p className="text-red-600 text-sm">
-            {error && 'status' in error ? `Error: ${error.status}` : 'Please try again later.'}
+            {error && "status" in error
+              ? `Error: ${error.status}`
+              : "Please try again later."}
           </p>
         </div>
       </div>
@@ -521,7 +562,7 @@ export const StateProfile = () => {
     <div className="w-full m-0">
       {/* Header */}
       <div className="w-full bg-white shadow-md hover:shadow-lg transition-shadow duration-300 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 sm:p-6 border border-gray-100">
-        <div className="relative w-[74px] h-[74px] rounded-full bg-gradient-to-tr from-pink-200 via-red-100 to-yellow-100 p-[3px] shadow-inner">
+        <div className="relative w-[74px] h-[74px] rounded-full bg-linear-to-tr from-pink-200 via-red-100 to-yellow-100 p-[3px] shadow-inner">
           <div className="w-full h-full bg-white rounded-full overflow-hidden flex items-center justify-center">
             {currentUser?.profileImage && !headerAvatarError ? (
               <img
@@ -531,7 +572,9 @@ export const StateProfile = () => {
                 onError={() => setHeaderAvatarError(true)}
               />
             ) : (
-              <span className="text-xl font-semibold text-gray-700">{initial}</span>
+              <span className="text-xl font-semibold text-gray-700">
+                {initial}
+              </span>
             )}
           </div>
         </div>
@@ -556,14 +599,14 @@ export const StateProfile = () => {
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-60"
+                    className="bg-linear-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-60"
                   >
                     {isUpdating ? "Saving..." : "Save"}
                   </button>
                   <div className="flex-1" />
                   <button
                     type="button"
-                    className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
+                    className="bg-linear-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
                     onClick={() => {
                       setIsEditing(false);
                       reset();
@@ -575,7 +618,7 @@ export const StateProfile = () => {
               ) : (
                 <button
                   type="button"
-                  className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
+                  className="bg-linear-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
                   onClick={() => setIsEditing(true)}
                 >
                   Edit
@@ -695,7 +738,7 @@ export const StateProfile = () => {
             </section>
 
             <div className="w-full flex justify-center my-6">
-              <div className="h-[1.5px] w-2/3 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
+              <div className="h-[1.5px] w-2/3 bg-linear-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
             </div>
 
             {/* Dates Section */}
@@ -760,7 +803,7 @@ export const StateProfile = () => {
             </section>
 
             <div className="w-full flex justify-center my-6">
-              <div className="h-[1.5px] w-2/3 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
+              <div className="h-[1.5px] w-2/3 bg-linear-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
             </div>
 
             {/* Boolean Fields */}
@@ -820,7 +863,7 @@ export const StateProfile = () => {
             </section>
 
             <div className="w-full flex justify-center my-6">
-              <div className="h-[1.5px] w-2/3 bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
+              <div className="h-[1.5px] w-2/3 bg-linear-to-r from-blue-100 via-blue-300 to-blue-100 rounded-full" />
             </div>
 
             {/* Education Section */}
@@ -833,10 +876,29 @@ export const StateProfile = () => {
                     {isEditing && (
                       <button
                         type="button"
-                        disabled={!areAllRowsFilled(educationValues, ["std", "institute", "boardUniversity", "year"])}
-                        onClick={() => appendEducation({ std: "", institute: "", boardUniversity: "", year: "" })}
+                        disabled={
+                          !areAllRowsFilled(educationValues, [
+                            "std",
+                            "institute",
+                            "boardUniversity",
+                            "year",
+                          ])
+                        }
+                        onClick={() =>
+                          appendEducation({
+                            std: "",
+                            institute: "",
+                            boardUniversity: "",
+                            year: "",
+                          })
+                        }
                         className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(educationValues, ["std", "institute", "boardUniversity", "year"])
+                          !areAllRowsFilled(educationValues, [
+                            "std",
+                            "institute",
+                            "boardUniversity",
+                            "year",
+                          ])
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
@@ -847,26 +909,44 @@ export const StateProfile = () => {
                   </div>
 
                   {educationFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end">
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
                       <Controller
                         name={`education.${index}.std`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Std / Class" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Std / Class"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`education.${index}.institute`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="School / College / Institute" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="School / College / Institute"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`education.${index}.boardUniversity`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Board / University" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Board / University"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <div className="flex gap-2 items-end">
@@ -874,11 +954,20 @@ export const StateProfile = () => {
                           name={`education.${index}.year`}
                           control={control}
                           render={({ field }) => (
-                            <InputField label="Passout Year" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                            <InputField
+                              label="Passout Year"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
                           )}
                         />
                         {isEditing && (
-                          <button type="button" onClick={() => removeEducation(index)} className="text-red-500 hover:text-red-700 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => removeEducation(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
                             <Trash size={18} />
                           </button>
                         )}
@@ -890,14 +979,38 @@ export const StateProfile = () => {
                 {/* Professional Experience */}
                 <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-semibold text-lg">Professional Experience</h2>
+                    <h2 className="font-semibold text-lg">
+                      Professional Experience
+                    </h2>
                     {isEditing && (
                       <button
                         type="button"
-                        disabled={!areAllRowsFilled(experienceValues, ["designation", "organization", "years", "durationFrom", "durationTo"])}
-                        onClick={() => appendExp({ designation: "", organization: "", years: "", durationFrom: "", durationTo: "" })}
+                        disabled={
+                          !areAllRowsFilled(experienceValues, [
+                            "designation",
+                            "organization",
+                            "years",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                        }
+                        onClick={() =>
+                          appendExp({
+                            designation: "",
+                            organization: "",
+                            years: "",
+                            durationFrom: "",
+                            durationTo: "",
+                          })
+                        }
                         className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(experienceValues, ["designation", "organization", "years", "durationFrom", "durationTo"])
+                          !areAllRowsFilled(experienceValues, [
+                            "designation",
+                            "organization",
+                            "years",
+                            "durationFrom",
+                            "durationTo",
+                          ])
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
@@ -908,33 +1021,57 @@ export const StateProfile = () => {
                   </div>
 
                   {expFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end">
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end"
+                    >
                       <Controller
                         name={`professionalExp.${index}.designation`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Designation" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Designation"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`professionalExp.${index}.organization`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Organization" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Organization"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`professionalExp.${index}.years`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Years" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Years"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`professionalExp.${index}.durationFrom`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Duration From" type="date" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Duration From"
+                            type="date"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <div className="flex gap-2 items-end">
@@ -942,11 +1079,21 @@ export const StateProfile = () => {
                           name={`professionalExp.${index}.durationTo`}
                           control={control}
                           render={({ field }) => (
-                            <InputField label="Duration To" type="date" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                            <InputField
+                              label="Duration To"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
                           )}
                         />
                         {isEditing && (
-                          <button type="button" onClick={() => removeExp(index)} className="text-red-500 hover:text-red-700 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => removeExp(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
                             <Trash size={18} />
                           </button>
                         )}
@@ -962,10 +1109,29 @@ export const StateProfile = () => {
                     {isEditing && (
                       <button
                         type="button"
-                        disabled={!areAllRowsFilled(childrenValues, ["name", "dob", "gender", "age"])}
-                        onClick={() => appendChildren({ name: "", dob: "", gender: "", age: "" })}
+                        disabled={
+                          !areAllRowsFilled(childrenValues, [
+                            "name",
+                            "dob",
+                            "gender",
+                            "age",
+                          ])
+                        }
+                        onClick={() =>
+                          appendChildren({
+                            name: "",
+                            dob: "",
+                            gender: "",
+                            age: "",
+                          })
+                        }
                         className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(childrenValues, ["name", "dob", "gender", "age"])
+                          !areAllRowsFilled(childrenValues, [
+                            "name",
+                            "dob",
+                            "gender",
+                            "age",
+                          ])
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
@@ -976,12 +1142,20 @@ export const StateProfile = () => {
                   </div>
 
                   {childrenFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end">
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
                       <Controller
                         name={`children.${index}.name`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Child Name" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Child Name"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
@@ -989,7 +1163,9 @@ export const StateProfile = () => {
                         control={control}
                         render={({ field }) => (
                           <div className="min-w-0 mb-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Gender
+                            </label>
                             <select
                               className="border rounded-lg p-3 w-full text-sm"
                               value={field.value ?? ""}
@@ -1008,7 +1184,13 @@ export const StateProfile = () => {
                         name={`children.${index}.age`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Age" type="number" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Age"
+                            type="number"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <div className="flex gap-2 items-end">
@@ -1016,11 +1198,21 @@ export const StateProfile = () => {
                           name={`children.${index}.dob`}
                           control={control}
                           render={({ field }) => (
-                            <InputField label="Date of Birth" type="date" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                            <InputField
+                              label="Date of Birth"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
                           )}
                         />
                         {isEditing && (
-                          <button type="button" onClick={() => removeChildren(index)} className="text-red-500 hover:text-red-700 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => removeChildren(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
                             <Trash size={18} />
                           </button>
                         )}
@@ -1032,14 +1224,41 @@ export const StateProfile = () => {
                 {/* Political Position Details */}
                 <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-semibold text-lg">Political Position Details</h2>
+                    <h2 className="font-semibold text-lg">
+                      Political Position Details
+                    </h2>
                     {isEditing && (
                       <button
                         type="button"
-                        disabled={!areAllRowsFilled(positionValues, ["title", "designation", "state", "district", "durationFrom", "durationTo"])}
-                        onClick={() => appendPosition({ title: "", designation: "", state: "", district: "", durationFrom: "", durationTo: "" })}
+                        disabled={
+                          !areAllRowsFilled(positionValues, [
+                            "title",
+                            "designation",
+                            "state",
+                            "district",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                        }
+                        onClick={() =>
+                          appendPosition({
+                            title: "",
+                            designation: "",
+                            state: "",
+                            district: "",
+                            durationFrom: "",
+                            durationTo: "",
+                          })
+                        }
                         className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(positionValues, ["title", "designation", "state", "district", "durationFrom", "durationTo"])
+                          !areAllRowsFilled(positionValues, [
+                            "title",
+                            "designation",
+                            "state",
+                            "district",
+                            "durationFrom",
+                            "durationTo",
+                          ])
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
@@ -1050,40 +1269,69 @@ export const StateProfile = () => {
                   </div>
 
                   {positionFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end">
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 items-end"
+                    >
                       <Controller
                         name={`positionHeld.${index}.title`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Position Title" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Position Title"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`positionHeld.${index}.designation`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Designation" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Designation"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`positionHeld.${index}.state`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="State" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="State"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`positionHeld.${index}.district`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="District" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="District"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <Controller
                         name={`positionHeld.${index}.durationFrom`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Duration From" type="date" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Duration From"
+                            type="date"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <div className="flex gap-2 items-end">
@@ -1091,11 +1339,21 @@ export const StateProfile = () => {
                           name={`positionHeld.${index}.durationTo`}
                           control={control}
                           render={({ field }) => (
-                            <InputField label="Duration To" type="date" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                            <InputField
+                              label="Duration To"
+                              type="date"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
                           )}
                         />
                         {isEditing && (
-                          <button type="button" onClick={() => removePosition(index)} className="text-red-500 hover:text-red-700 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => removePosition(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
                             <Trash size={18} />
                           </button>
                         )}
@@ -1261,7 +1519,9 @@ export const StateProfile = () => {
                     {isEditing && (
                       <button
                         type="button"
-                        disabled={!areAllRowsFilled(vehicleValues, ["type", "count"])}
+                        disabled={
+                          !areAllRowsFilled(vehicleValues, ["type", "count"])
+                        }
                         onClick={() => appendVehicle({ type: "", count: "" })}
                         className={`flex items-center gap-1 ${
                           !areAllRowsFilled(vehicleValues, ["type", "count"])
@@ -1275,12 +1535,20 @@ export const StateProfile = () => {
                   </div>
 
                   {vehicleFields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end">
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 items-end"
+                    >
                       <Controller
                         name={`vehicle.${index}.type`}
                         control={control}
                         render={({ field }) => (
-                          <InputField label="Vehicle Type (Two/Four)" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                          <InputField
+                            label="Vehicle Type (Two/Four)"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            disabled={!isEditing}
+                          />
                         )}
                       />
                       <div className="flex gap-2 items-end">
@@ -1288,11 +1556,20 @@ export const StateProfile = () => {
                           name={`vehicle.${index}.count`}
                           control={control}
                           render={({ field }) => (
-                            <InputField label="Number of Vehicles" value={field.value ?? ""} onChange={field.onChange} disabled={!isEditing} />
+                            <InputField
+                              label="Number of Vehicles"
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              disabled={!isEditing}
+                            />
                           )}
                         />
                         {isEditing && (
-                          <button type="button" onClick={() => removeVehicle(index)} className="text-red-500 hover:text-red-700 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => removeVehicle(index)}
+                            className="text-red-500 hover:text-red-700 mb-2"
+                          >
                             <Trash size={18} />
                           </button>
                         )}
@@ -1309,12 +1586,21 @@ export const StateProfile = () => {
         <div className="w-full lg:w-[32%] xl:w-[28%] h-fit bg-white rounded-2xl border border-blue-100 p-8 flex flex-col items-center shadow-xl transition-shadow duration-300">
           <div className="relative w-full flex flex-col items-center mb-4">
             <div className="absolute left-1/2 top-0 -translate-x-1/2 z-0 w-40 h-20 rounded-b-3xl overflow-hidden">
-              <img src={image} alt="Profile bg" className="w-full h-full object-cover object-center" draggable="false" />
+              <img
+                src={image}
+                alt="Profile bg"
+                className="w-full h-full object-cover object-center"
+                draggable="false"
+              />
             </div>
             <div className="relative z-10 mt-10">
-              <span className="absolute -inset-1 rounded-full bg-gradient-to-tr from-blue-400 via-blue-200 to-blue-100 blur-sm opacity-60"></span>
+              <span className="absolute -inset-1 rounded-full bg-linear-to-tr from-blue-400 via-blue-200 to-blue-100 blur-sm opacity-60"></span>
               {profileImagePreview ? (
-                <img src={profileImagePreview} alt="Profile" className="w-32 h-32 rounded-full border-4 border-white object-cover relative z-10" />
+                <img
+                  src={profileImagePreview}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full border-4 border-white object-cover relative z-10"
+                />
               ) : currentUser?.profileImage && !cardAvatarError ? (
                 <img
                   src={currentUser.profileImage}
@@ -1328,7 +1614,13 @@ export const StateProfile = () => {
                 </div>
               )}
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageSelected} className="hidden" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelected}
+              className="hidden"
+            />
             {isEditing && (
               <button
                 type="button"
@@ -1337,7 +1629,12 @@ export const StateProfile = () => {
                 disabled={isUploading || isUpdating}
                 title={isUploading ? "Uploading..." : "Upload profile image"}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-5 h-5 text-gray-700"
+                >
                   <path d="M9 2a1 1 0 00-.894.553L7.382 4H5a3 3 0 00-3 3v10a3 3 0 003 3h14a3 3 0 003-3V7a3 3 0 00-3-3h-2.382l-.724-1.447A1 1 0 0015 2H9zm3 6a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z" />
                 </svg>
               </button>
@@ -1345,7 +1642,9 @@ export const StateProfile = () => {
           </div>
           <div className="text-center mt-8 w-full flex flex-col items-center">
             <h3 className="text-2xl font-bold text-blue-700 flex flex-col items-center">
-              <span>{watch("firstName")} {watch("lastName")}</span>
+              <span>
+                {watch("firstName")} {watch("lastName")}
+              </span>
             </h3>
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wide shadow-sm">
