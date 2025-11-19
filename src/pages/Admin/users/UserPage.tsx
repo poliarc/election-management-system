@@ -59,8 +59,9 @@ export const UserPage: React.FC = () => {
   const [toggleUserStatus, { isLoading: isToggling }] =
     useToggleUserStatusMutation();
 
-  const users = usersResponse || [];
-  const totalResults = users.length;
+  const users = usersResponse?.data || [];
+  const pagination = usersResponse?.pagination || { page: 1, limit: 25, total: 0, totalPages: 0 };
+  const totalResults = pagination.total;
   const parties = partiesResponse || [];
   const roles = rolesResponse || [];
 
@@ -184,7 +185,7 @@ export const UserPage: React.FC = () => {
       const errorMessage =
         error && typeof error === "object" && "data" in error
           ? (error as { data?: { message?: string } }).data?.message ||
-            "Failed to delete user"
+          "Failed to delete user"
           : "Failed to delete user";
       toast.error(errorMessage);
     } finally {
@@ -209,7 +210,7 @@ export const UserPage: React.FC = () => {
       const errorMessage =
         error && typeof error === "object" && "data" in error
           ? (error as { data?: { message?: string } }).data?.message ||
-            `Failed to ${isActive ? "activate" : "deactivate"} user`
+          `Failed to ${isActive ? "activate" : "deactivate"} user`
           : `Failed to ${isActive ? "activate" : "deactivate"} user`;
       toast.error(errorMessage);
     }
@@ -310,9 +311,9 @@ export const UserPage: React.FC = () => {
         )}
 
         {/* Pagination - Only show when not in form mode */}
-        {!showForm && totalResults > searchParams.limit && (
+        {!showForm && pagination.totalPages > 1 && (
           <div className="mt-6 flex justify-center">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
               <button
                 onClick={() =>
                   setSearchParams((prev) => ({
@@ -320,32 +321,25 @@ export const UserPage: React.FC = () => {
                     page: Math.max(1, prev.page - 1),
                   }))
                 }
-                disabled={searchParams.page === 1}
-                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={pagination.page === 1}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 Previous
               </button>
 
-              <span className="px-4 py-2 text-sm text-gray-600">
-                Page {searchParams.page} of{" "}
-                {Math.ceil(totalResults / searchParams.limit)}
+              <span className="px-4 py-2 text-sm text-gray-600 font-medium">
+                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
               </span>
 
               <button
                 onClick={() =>
                   setSearchParams((prev) => ({
                     ...prev,
-                    page: Math.min(
-                      Math.ceil(totalResults / searchParams.limit),
-                      prev.page + 1
-                    ),
+                    page: Math.min(pagination.totalPages, prev.page + 1),
                   }))
                 }
-                disabled={
-                  searchParams.page >=
-                  Math.ceil(totalResults / searchParams.limit)
-                }
-                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                disabled={pagination.page >= pagination.totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 Next
               </button>
@@ -417,6 +411,6 @@ export const UserPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
