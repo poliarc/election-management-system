@@ -7,7 +7,9 @@ import type { StateAssignment } from "../types/api";
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
-  const { stateAssignments, selectedAssignment } = useAppSelector((s) => s.auth);
+  const { stateAssignments, selectedAssignment } = useAppSelector(
+    (s) => s.auth
+  );
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -20,7 +22,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
-      if (assignmentMenuRef.current && !assignmentMenuRef.current.contains(e.target as Node)) {
+      if (
+        assignmentMenuRef.current &&
+        !assignmentMenuRef.current.contains(e.target as Node)
+      ) {
         setAssignmentMenuOpen(false);
       }
     };
@@ -48,25 +53,25 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     setAssignmentMenuOpen(false);
-    
+
     // Navigate to the appropriate route based on level type
     const levelTypeRoutes: Record<string, string> = {
-      'State': '/state',
-      'District': '/district',
-      'Assembly': '/assembly',
-      'Block': '/block',
-      'Mandal': '/mandal',
-      'PollingCenter': '/polling-center',
-      'Booth': '/booth',
+      State: "/state",
+      District: "/district",
+      Assembly: "/assembly",
+      Block: "/block",
+      Mandal: "/mandal",
+      PollingCenter: "/polling-center",
+      Booth: "/booth",
     };
-    
+
     const route = levelTypeRoutes[assignment.levelType];
     if (route) {
       navigate(route);
     }
   };
 
-  const firstName = (user?.firstName || user?.username || "User");
+  const firstName = user?.firstName || user?.username || "User";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=ffffff&color=111827&bold=true`;
@@ -82,14 +87,24 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
             className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition"
             aria-label="Open sidebar"
           >
-            <svg className="h-6 w-6 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M4 6h16M4 12h16M4 18h16" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              className="h-6 w-6 text-gray-700"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                d="M4 6h16M4 12h16M4 18h16"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
           <div className="font-semibold" aria-label="Current level">
             {user?.role || "Dashboard"}
           </div>
-          
+
           {/* Assignment Switcher - Show when user has multiple assignments of same type */}
           {hasMultipleAssignments && selectedAssignment && (
             <div className="relative" ref={assignmentMenuRef}>
@@ -98,8 +113,18 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 onClick={() => setAssignmentMenuOpen((s) => !s)}
                 className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
               >
-                <svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  className="h-4 w-4 text-gray-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span className="font-medium text-gray-700 dark:text-gray-200">
                   {selectedAssignment.levelName}
@@ -120,7 +145,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   />
                 </svg>
               </button>
-              
+
               {assignmentMenuOpen && (
                 <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -132,25 +157,47 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       onClick={() => handleAssignmentSwitch(assignment)}
                       className={[
                         "flex w-full items-start gap-3 rounded-xl px-3 py-2 text-left transition-colors",
-                        selectedAssignment.assignment_id === assignment.assignment_id
+                        selectedAssignment.assignment_id ===
+                        assignment.assignment_id
                           ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
                           : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
                       ].join(" ")}
                     >
-                      <svg className="h-5 w-5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="h-5 w-5 mt-0.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{assignment.levelName}</div>
+                        <div className="font-medium truncate">
+                          {assignment.levelName}
+                        </div>
                         {assignment.parentLevelName && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {assignment.parentLevelName}
                           </div>
                         )}
                       </div>
-                      {selectedAssignment.assignment_id === assignment.assignment_id && (
-                        <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      {selectedAssignment.assignment_id ===
+                        assignment.assignment_id && (
+                        <svg
+                          className="h-5 w-5 shrink-0"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       )}
                     </button>

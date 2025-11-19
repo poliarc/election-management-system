@@ -12,7 +12,6 @@ export default function AdminLayout() {
       <Topbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
 
       <div className="flex flex-1 overflow-hidden">
-        
         {/* Desktop Sidebar */}
         <div className="hidden lg:block w-68 shrink-0 h-full overflow-y-auto">
           <AdminSidebar />
@@ -21,7 +20,11 @@ export default function AdminLayout() {
         {/* Mobile Sidebar Drawer */}
         <div
           className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300
-          ${sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+          ${
+            sidebarOpen
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
         >
           {/* Background Overlay */}
           <div
@@ -34,8 +37,12 @@ export default function AdminLayout() {
             className={`
               absolute left-0 top-0 bottom-0 w-68 bg-white shadow-lg overflow-y-auto
               transform transition-all duration-300
-              ease-[cubic-bezier(0.22,_1,_0.36,_1)]
-              ${sidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}
+              ease-[cubic-bezier(0.22,1,0.36,1)]
+              ${
+                sidebarOpen
+                  ? "translate-x-0 opacity-100"
+                  : "-translate-x-4 opacity-0"
+              }
             `}
           >
             <AdminSidebar onNavigate={() => setSidebarOpen(false)} />
