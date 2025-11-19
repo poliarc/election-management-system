@@ -143,16 +143,6 @@ export default function AssignBlock() {
                         </p>
                     </div>
 
-                    {/* Debug Info */}
-                    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-sm font-semibold text-yellow-800 mb-2">Debug Info:</p>
-                        <p className="text-xs text-yellow-700">Party ID: {partyId || "Not set"}</p>
-                        <p className="text-xs text-yellow-700">Loading: {loadingUsers ? "Yes" : "No"}</p>
-                        <p className="text-xs text-yellow-700">Users count: {users.length}</p>
-                        <p className="text-xs text-yellow-700">Filtered users: {filteredUsers.length}</p>
-                        <p className="text-xs text-yellow-700">Error: {usersError ? JSON.stringify(usersError) : "None"}</p>
-                    </div>
-
                     <div className="mb-4">
                         <input
                             type="text"
