@@ -8,9 +8,9 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import toast from "react-hot-toast";
 
-export default function CreateBlock() {
+export default function CreateMandal() {
     const navigate = useNavigate();
-    const [blockName, setBlockName] = useState("");
+    const [mandalName, setMandalName] = useState("");
     const [levelType, setLevelType] = useState("");
     const [partyId, setPartyId] = useState<number | null>(null);
     const [createBlock, { isLoading }] = useCreateBlockMutation();
@@ -19,11 +19,10 @@ export default function CreateBlock() {
         (state: RootState) => state.auth.selectedAssignment
     );
 
-    const [assemblyInfo, setAssemblyInfo] = useState({
+    const [blockInfo, setBlockInfo] = useState({
+        blockName: "",
         assemblyName: "",
-        districtName: "",
-        stateName: "",
-        assemblyId: 0,
+        blockId: 0,
     });
 
     useEffect(() => {
@@ -40,11 +39,10 @@ export default function CreateBlock() {
 
     useEffect(() => {
         if (selectedAssignment) {
-            setAssemblyInfo({
-                assemblyName: selectedAssignment.levelName,
-                districtName: selectedAssignment.parentLevelName || "",
-                stateName: "",
-                assemblyId: selectedAssignment.stateMasterData_id,
+            setBlockInfo({
+                blockName: selectedAssignment.displayName || selectedAssignment.levelName,
+                assemblyName: selectedAssignment.assemblyName || "",
+                blockId: selectedAssignment.level_id || 0,
             });
         }
     }, [selectedAssignment]);
@@ -68,13 +66,13 @@ export default function CreateBlock() {
             return;
         }
 
-        if (!blockName.trim()) {
-            toast.error("Please enter block name");
+        if (!mandalName.trim()) {
+            toast.error("Please enter display name");
             return;
         }
 
-        if (!assemblyInfo.assemblyId) {
-            toast.error("Assembly information not found");
+        if (!blockInfo.blockId) {
+            toast.error("Block information not found");
             return;
         }
 
@@ -87,13 +85,13 @@ export default function CreateBlock() {
         try {
             await createBlock({
                 levelName: levelType.trim(),
-                displayName: blockName.trim(),
-                parentAssemblyId: assemblyInfo.assemblyId,
+                displayName: mandalName.trim(),
+                parentId: blockInfo.blockId,
                 partyLevelId: selectedLevel.party_wise_id,
             }).unwrap();
 
             toast.success(`${levelType} created successfully`);
-            navigate("/assembly/block");
+            navigate("/block/mandal");
         } catch (error: any) {
             toast.error(error?.data?.message || `Failed to create ${levelType}`);
         }
@@ -107,12 +105,12 @@ export default function CreateBlock() {
                     <div className="flex items-center gap-3 mb-2">
                         <div className="bg-white/20 p-2 rounded-lg">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-bold">Create New Block</h1>
+                        <h1 className="text-3xl font-bold">Create New Mandal</h1>
                     </div>
-                    <p className="text-blue-100 ml-14">Add a new block to your assembly</p>
+                    <p className="text-blue-100 ml-14">Add a new mandal to your block</p>
                 </div>
 
                 {/* Context Info Card */}
@@ -123,20 +121,6 @@ export default function CreateBlock() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-start gap-3">
                             <div className="bg-blue-100 p-2 rounded-lg mt-1">
-                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-medium">District</p>
-                                <p className="text-lg font-semibold text-gray-900">
-                                    {assemblyInfo.districtName || "N/A"}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="bg-blue-100 p-2 rounded-lg mt-1">
                                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
@@ -144,7 +128,20 @@ export default function CreateBlock() {
                             <div>
                                 <p className="text-xs text-gray-500 font-medium">Assembly</p>
                                 <p className="text-lg font-semibold text-gray-900">
-                                    {assemblyInfo.assemblyName || "N/A"}
+                                    {blockInfo.assemblyName || "N/A"}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-lg mt-1">
+                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 font-medium">Block</p>
+                                <p className="text-lg font-semibold text-gray-900">
+                                    {blockInfo.blockName || "N/A"}
                                 </p>
                             </div>
                         </div>
@@ -170,7 +167,7 @@ export default function CreateBlock() {
                                     value={levelType}
                                     onChange={(e) => setLevelType(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-400"
-                                    placeholder="e.g., Block, Ward, Zone, etc."
+                                    placeholder="e.g., Mandal, Ward, Booth, etc."
                                     required
                                     disabled={isLoading}
                                 />
@@ -184,22 +181,22 @@ export default function CreateBlock() {
                         </div>
 
                         <div>
-                            <label htmlFor="blockName" className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label htmlFor="mandalName" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Display Name <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
                                 </div>
                                 <input
                                     type="text"
-                                    id="blockName"
-                                    value={blockName}
-                                    onChange={(e) => setBlockName(e.target.value)}
+                                    id="mandalName"
+                                    value={mandalName}
+                                    onChange={(e) => setMandalName(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-400"
-                                    placeholder="e.g., Badli Block 1, Central Block, etc."
+                                    placeholder="e.g., Jeevan Park Mandal 1, Central Mandal, etc."
                                     required
                                     disabled={isLoading}
                                 />
@@ -212,8 +209,8 @@ export default function CreateBlock() {
                         <div className="flex gap-4 pt-4">
                             <button
                                 type="submit"
-                                disabled={isLoading || !levelType.trim() || !blockName.trim() || !selectedLevel}
-                                title={!selectedLevel ? `Level type "${levelType}" not configured` : !levelType.trim() ? "Please enter level type" : !blockName.trim() ? "Please enter display name" : ""}
+                                disabled={isLoading || !levelType.trim() || !mandalName.trim() || !selectedLevel}
+                                title={!selectedLevel ? `Level type "${levelType}" not configured` : !levelType.trim() ? "Please enter level type" : !mandalName.trim() ? "Please enter display name" : ""}
                                 className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
                             >
                                 {isLoading ? (
@@ -235,7 +232,7 @@ export default function CreateBlock() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => navigate("/assembly/block")}
+                                onClick={() => navigate("/block/mandal")}
                                 disabled={isLoading}
                                 className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center justify-center gap-2"
                             >
@@ -257,8 +254,8 @@ export default function CreateBlock() {
                         <div className="text-sm text-blue-800">
                             <p className="font-semibold mb-1">Quick Tips:</p>
                             <ul className="list-disc list-inside space-y-1 text-blue-700">
-                                <li>Block will be created under the current assembly</li>
-                                <li>You can assign users to this block after creation</li>
+                                <li>Mandal will be created under the current block</li>
+                                <li>You can assign users to this mandal after creation</li>
                                 <li>Use a descriptive name for easy identification</li>
                             </ul>
                         </div>

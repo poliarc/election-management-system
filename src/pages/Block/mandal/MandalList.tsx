@@ -1,108 +1,79 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetBlocksByAssemblyQuery, useGetBlockAssignmentsQuery } from "../../../store/api/blockApi";
+import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
+import { useGetBlockAssignmentsQuery } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 
-export default function BlockList() {
+export default function MandalList() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBlockFilter, setSelectedBlockFilter] = useState<string>("");
+    const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
+    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
+    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
-    const [selectedBlockName, setSelectedBlockName] = useState<string>("");
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
 
-    const [assemblyInfo, setAssemblyInfo] = useState({
+    const [blockInfo, setBlockInfo] = useState({
+        blockName: "",
         assemblyName: "",
-        districtName: "",
-        stateName: "",
-        assemblyId: 0,
+        blockId: 0,
     });
 
     useEffect(() => {
         if (selectedAssignment) {
-            setAssemblyInfo({
-                assemblyName: selectedAssignment.levelName,
-                districtName: selectedAssignment.parentLevelName || "",
-                stateName: "",
-                assemblyId: selectedAssignment.stateMasterData_id,
+            setBlockInfo({
+                blockName: selectedAssignment.displayName || selectedAssignment.levelName,
+                assemblyName: selectedAssignment.assemblyName || "",
+                blockId: selectedAssignment.level_id || 0,
             });
         }
     }, [selectedAssignment]);
 
-    const { data: blocks = [], isLoading, error } = useGetBlocksByAssemblyQuery(
-        assemblyInfo.assemblyId,
-        { skip: !assemblyInfo.assemblyId }
+    const { data: hierarchyData, isLoading, error } = useGetBlockHierarchyQuery(
+        blockInfo.blockId,
+        { skip: !blockInfo.blockId }
     );
 
-    // Fetch users for selected block (for modal)
-    const { data: blockUsersData, isLoading: loadingUsers } = useGetBlockAssignmentsQuery(
-        selectedBlockId!,
-        { skip: !selectedBlockId }
+    // Fetch users for selected mandal (for modal)
+    const { data: mandalUsersData, isLoading: loadingUsers } = useGetBlockAssignmentsQuery(
+        selectedMandalId!,
+        { skip: !selectedMandalId }
     );
 
-    // Fetch user counts for all blocks
-    const [blockUserCounts, setBlockUserCounts] = useState<Record<number, number>>({});
+    const mandals = hierarchyData?.children || [];
 
-    useEffect(() => {
-        const fetchUserCounts = async () => {
-            const counts: Record<number, number> = {};
-            for (const block of blocks) {
-                try {
-                    const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"}/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                            },
-                        }
-                    );
-                    const data = await response.json();
-                    counts[block.id] = data.data?.total_users || data.data?.users?.length || 0;
-                } catch (error) {
-                    console.error(`Error fetching users for block ${block.id}:`, error);
-                    counts[block.id] = 0;
-                }
-            }
-            setBlockUserCounts(counts);
-        };
-
-        if (blocks.length > 0) {
-            fetchUserCounts();
-        }
-    }, [blocks]);
-
-    const filteredBlocks = blocks.filter((block) => {
-        const matchesSearch = block.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedBlockFilter === "" || block.id.toString() === selectedBlockFilter;
+    const filteredMandals = mandals.filter((mandal) => {
+        const matchesSearch = mandal.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = selectedMandalFilter === "" || mandal.id.toString() === selectedMandalFilter;
         return matchesSearch && matchesFilter;
     });
 
-    const handleViewUsers = (blockId: number, blockName: string) => {
-        setSelectedBlockId(blockId);
-        setSelectedBlockName(blockName);
+    const handleViewUsers = (mandalId: number, mandalName: string) => {
+        setSelectedMandalId(mandalId);
+        setSelectedMandalName(mandalName);
     };
 
     const handleCloseModal = () => {
-        setSelectedBlockId(null);
-        setSelectedBlockName("");
+        setSelectedMandalId(null);
+        setSelectedMandalName("");
     };
 
-    const users = blockUsersData?.users || [];
+    const users = mandalUsersData?.users || [];
 
-    const totalPages = Math.ceil(filteredBlocks.length / itemsPerPage);
-    const paginatedBlocks = filteredBlocks.slice(
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredMandals.length / itemsPerPage);
+    const paginatedMandals = filteredMandals.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
@@ -111,75 +82,75 @@ export default function BlockList() {
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="bg-white/20 p-2 rounded-lg">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
                                 </div>
-                                <h1 className="text-3xl font-bold">Block Management</h1>
+                                <h1 className="text-3xl font-bold">Mandal Management</h1>
                             </div>
                             <p className="text-blue-100 ml-14">
-                                Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
+                                Block: {blockInfo.blockName} | Assembly: {blockInfo.assemblyName}
                             </p>
                         </div>
                         <button
-                            onClick={() => navigate("/assembly/block/create")}
+                            onClick={() => navigate("/block/mandal/create")}
                             className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold flex items-center gap-2 shadow-md"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add Block
+                            Add Mandal
                         </button>
                     </div>
                 </div>
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                District
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.districtName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Assembly
                             </label>
                             <input
                                 type="text"
-                                value={assemblyInfo.assemblyName}
+                                value={blockInfo.assemblyName}
                                 disabled
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Block
+                                Block
+                            </label>
+                            <input
+                                type="text"
+                                value={blockInfo.blockName}
+                                disabled
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Filter by Mandal
                             </label>
                             <select
-                                value={selectedBlockFilter}
+                                value={selectedMandalFilter}
                                 onChange={(e) => {
-                                    setSelectedBlockFilter(e.target.value);
+                                    setSelectedMandalFilter(e.target.value);
                                     setCurrentPage(1);
                                 }}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="">All Blocks</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
+                                <option value="">All Mandals</option>
+                                {mandals.map((mandal) => (
+                                    <option key={mandal.id} value={mandal.id}>
+                                        {mandal.displayName}
                                     </option>
                                 ))}
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Blocks
+                                Search Mandals
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -189,7 +160,7 @@ export default function BlockList() {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search by block name..."
+                                    placeholder="Search by mandal name..."
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value);
@@ -202,132 +173,128 @@ export default function BlockList() {
                     </div>
                 </div>
 
-                {/* Block List */}
+                {/* Mandal List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     {isLoading ? (
                         <div className="text-center py-12">
-                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                            <p className="mt-4 text-gray-600">Loading blocks...</p>
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p className="mt-4 text-gray-600">Loading mandals...</p>
                         </div>
                     ) : error ? (
                         <div className="text-center py-12 text-red-600">
-                            <p>Error loading blocks</p>
+                            <p>Error loading mandals</p>
                         </div>
-                    ) : filteredBlocks.length === 0 ? (
+                    ) : filteredMandals.length === 0 ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No blocks found</p>
+                            <p className="mt-2 text-gray-500 font-medium">No mandals found</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            S.No
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            District
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Assembly
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Level Type
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Display Name
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Total Users
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Created At
-                                        </th>
-                                        <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {paginatedBlocks.map((block, index) => (
-                                        <tr key={block.id} className="hover:bg-blue-50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {(currentPage - 1) * itemsPerPage + index + 1}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                    {assemblyInfo.districtName}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                    {block.assemblyName}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    {block.levelName || "Block"}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-semibold text-gray-900">
-                                                    {block.displayName}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gradient-to-r from-blue-50 to-blue-100">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        S.No
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Level Type
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Display Name
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Users
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Created Date
+                                    </th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {paginatedMandals.map((mandal, index) => (
+                                    <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {(currentPage - 1) * itemsPerPage + index + 1}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {mandal.levelName || "Mandal"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-blue-100 p-2 rounded-lg">
+                                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                                     </svg>
-                                                    <span className="text-sm font-medium text-gray-900">
-                                                        {blockUserCounts[block.id] !== undefined ? blockUserCounts[block.id] : '...'}
-                                                    </span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                {block.created_at ? new Date(block.created_at).toLocaleDateString() : "N/A"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleViewUsers(block.id, block.displayName)}
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                        View
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/assembly/block/assign?blockId=${block.id}&blockName=${encodeURIComponent(block.displayName)}`
-                                                            )
-                                                        }
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                        </svg>
-                                                        Assign
-                                                    </button>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-gray-900">{mandal.displayName}</p>
+                                                    <p className="text-xs text-gray-500">{mandal.partyLevelDisplayName}</p>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {mandal.user_count} users
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${mandal.isActive === 1
+                                                ? "bg-green-100 text-green-800"
+                                                : "bg-red-100 text-red-800"
+                                                }`}>
+                                                {mandal.isActive === 1 ? "Active" : "Inactive"}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
+                                                    className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
+                                                >
+                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`
+                                                        )
+                                                    }
+                                                    className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all"
+                                                >
+                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                                    </svg>
+                                                    Assign
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
 
                 {/* Pagination */}
-                {filteredBlocks.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between">
+                {filteredMandals.length > 0 && (
+                    <div className="mt-6 bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center text-sm text-gray-700">
                             <span>
                                 Showing{" "}
@@ -336,9 +303,9 @@ export default function BlockList() {
                                 </span>{" "}
                                 to{" "}
                                 <span className="font-semibold">
-                                    {Math.min(currentPage * itemsPerPage, filteredBlocks.length)}
+                                    {Math.min(currentPage * itemsPerPage, filteredMandals.length)}
                                 </span>{" "}
-                                of <span className="font-semibold">{filteredBlocks.length}</span> results
+                                of <span className="font-semibold">{filteredMandals.length}</span> results
                             </span>
                         </div>
                         {totalPages > 1 && (
@@ -389,15 +356,15 @@ export default function BlockList() {
                 )}
 
                 {/* Modal for viewing users */}
-                {selectedBlockId && (
+                {selectedMandalId && (
                     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
                             {/* Modal Header */}
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-2xl font-bold">Block Users</h2>
-                                        <p className="text-blue-100 mt-1">Block: {selectedBlockName}</p>
+                                        <h2 className="text-2xl font-bold">Mandal Users</h2>
+                                        <p className="text-blue-100 mt-1">Mandal: {selectedMandalName}</p>
                                     </div>
                                     <button
                                         onClick={handleCloseModal}
@@ -422,7 +389,7 @@ export default function BlockList() {
                                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this block</p>
+                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this mandal</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
@@ -496,43 +463,6 @@ export default function BlockList() {
                                         </table>
                                     </div>
                                 )}
-                            </div>
-
-                            {/* Modal Footer */}
-                            <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-blue-100 p-2 rounded-lg">
-                                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500 font-medium">Total Users</p>
-                                        <p className="text-xl font-bold text-gray-900">{users.length}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => {
-                                            handleCloseModal();
-                                            navigate(
-                                                `/assembly/block/assign?blockId=${selectedBlockId}&blockName=${encodeURIComponent(selectedBlockName)}`
-                                            );
-                                        }}
-                                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                        </svg>
-                                        Assign Users
-                                    </button>
-                                    <button
-                                        onClick={handleCloseModal}
-                                        className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>

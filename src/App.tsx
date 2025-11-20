@@ -10,6 +10,7 @@ import PanelAdminLayout from "./layouts/PanelAdminLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
 import AssemblyLayout from "./layouts/AssemblyLayout";
+import BlockLayout from "./layouts/BlockLayout";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
 import DistrictAssembly from "./pages/District/assembly/Assembly";
@@ -35,6 +36,13 @@ import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCen
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import { Profile } from "./pages/Assembly/Profile/Profile";
+import BlockDashboard from "./pages/Block/Dashboard";
+import BlockTeam from "./pages/Block/BlockTeam";
+import MandalList from "./pages/Block/mandal/MandalList";
+import CreateMandal from "./pages/Block/mandal/CreateMandal";
+import AssignMandal from "./pages/Block/mandal/AssignMandal";
+import ViewMandalUsers from "./pages/Block/mandal/ViewMandalUsers";
+import { Profile as BlockProfile } from "./pages/Block/Profile/Profile";
 import { RolePage } from "./pages/Admin/role";
 import { UserPage } from "./pages/Admin/users/UserPage";
 
@@ -136,6 +144,16 @@ export default function App() {
             <Route path="booth" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="profile" element={<Profile />} />
+          </Route>
+          <Route path="block" element={<BlockLayout />}>
+            <Route index element={<BlockDashboard />} />
+            <Route path="dashboard" element={<BlockDashboard />} />
+            <Route path="team" element={<BlockTeam />} />
+            <Route path="mandal" element={<MandalList />} />
+            <Route path="mandal/create" element={<CreateMandal />} />
+            <Route path="mandal/assign" element={<AssignMandal />} />
+            <Route path="mandal/users" element={<ViewMandalUsers />} />
+            <Route path="profile" element={<BlockProfile />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

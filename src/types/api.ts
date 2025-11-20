@@ -82,11 +82,20 @@ export interface LevelAdminDetail {
 export interface StateAssignment {
   assignment_id: number;
   stateMasterData_id: number;
+  afterAssemblyData_id?: number; // For Block level assignments
   levelName: string;
   levelType: string;
+  level_id?: number;
   parentId: number | null;
   parentLevelName: string | null;
   parentLevelType: string | null;
+  displayName?: string; // Display name from API (e.g., "Badli Block")
+  // Additional fields for Block level
+  parentAssemblyId?: number;
+  assemblyName?: string;
+  assemblyType?: string;
+  assignment_active?: number;
+  assigned_at?: string;
 }
 
 // Permissions
