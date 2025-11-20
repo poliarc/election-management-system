@@ -1,47 +1,141 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
-import { useGetBlockAssignmentsQuery } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 
-export default function MandalList() {
-    const navigate = useNavigate();
+export default function StateMandalList() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
+    const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
+    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
     const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
-    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
-    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
+    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
+
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [assemblies, setAssemblies] = useState<any[]>([]);
+    const [blocks, setBlocks] = useState<any[]>([]);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
 
-    const [blockInfo, setBlockInfo] = useState({
-        blockName: "",
-        assemblyName: "",
-        blockId: 0,
+    const [stateInfo, setStateInfo] = useState({
+        stateName: "",
+        stateId: 0,
     });
 
     useEffect(() => {
         if (selectedAssignment) {
-            setBlockInfo({
-                blockName: selectedAssignment.displayName || selectedAssignment.levelName,
-                assemblyName: selectedAssignment.assemblyName || "",
-                blockId: selectedAssignment.level_id || 0,
+            setStateInfo({
+                stateName: selectedAssignment.levelName || "",
+                stateId: selectedAssignment.stateMasterData_id || 0,
             });
         }
     }, [selectedAssignment]);
 
-    const { data: hierarchyData, isLoading, error } = useGetBlockHierarchyQuery(
-        blockInfo.blockId,
-        { skip: !blockInfo.blockId }
-    );
+    // Fetch districts using user-state-hierarchies API
+    useEffect(() => {
+        const fetchDistricts = async () => {
+            if (!stateInfo.stateId) return;
+            try {
+                console.log("Fetching districts for state ID:", stateInfo.stateId);
+                const response = await fetch(
+                    `https://backend.peopleconnect.in/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}?page=1&limit=100`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const data = await response.json();
+                console.log("Districts API response:", data);
+                if (data.success && data.data) {
+                    // Map the response to match expected format
+                    const mappedDistricts = data.data.children.map((district: any) => ({
+                        id: district.location_id || district.id,
+                        displayName: district.location_name,
+                        levelName: "District",
+                        location_id: district.location_id,
+                    }));
+                    setDistricts(mappedDistricts);
+                }
+            } catch (error) {
+                console.error("Error fetching districts:", error);
+            }
+        };
+        fetchDistricts();
+    }, [stateInfo.stateId]);
 
-    const { data: mandalUsersData, isLoading: loadingUsers } = useGetBlockAssignmentsQuery(
-        selectedMandalId!,
-        { skip: !selectedMandalId }
+    // Fetch assemblies when district is selected using user-state-hierarchies API
+    useEffect(() => {
+        const fetchAssemblies = async () => {
+            if (!selectedDistrictId) {
+                setAssemblies([]);
+                return;
+            }
+            try {
+                console.log("Fetching assemblies for district ID:", selectedDistrictId);
+                const response = await fetch(
+                    `https://backend.peopleconnect.in/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const data = await response.json();
+                console.log("Assemblies API response:", data);
+                if (data.success && data.data) {
+                    // Map the response to match expected format
+                    const mappedAssemblies = data.data.children.map((assembly: any) => ({
+                        id: assembly.location_id || assembly.id,
+                        displayName: assembly.location_name,
+                        levelName: "Assembly",
+                        location_id: assembly.location_id,
+                    }));
+                    setAssemblies(mappedAssemblies);
+                }
+            } catch (error) {
+                console.error("Error fetching assemblies:", error);
+            }
+        };
+        fetchAssemblies();
+    }, [selectedDistrictId]);
+
+    // Fetch blocks when assembly is selected
+    useEffect(() => {
+        const fetchBlocks = async () => {
+            if (!selectedAssemblyId) {
+                setBlocks([]);
+                return;
+            }
+            try {
+                const response = await fetch(
+                    `https://backend.peopleconnect.in/api/after-assembly-data/assembly/${selectedAssemblyId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const data = await response.json();
+                if (data.success) {
+                    setBlocks(data.data || []);
+                }
+            } catch (error) {
+                console.error("Error fetching blocks:", error);
+            }
+        };
+        fetchBlocks();
+    }, [selectedAssemblyId]);
+
+    // Fetch mandals for selected block
+    const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(
+        selectedBlockId,
+        { skip: !selectedBlockId }
     );
 
     const mandals = hierarchyData?.children || [];
@@ -62,7 +156,8 @@ export default function MandalList() {
         setSelectedMandalName("");
     };
 
-    const users = mandalUsersData?.users || [];
+    const selectedMandal = mandals.find(m => m.id === selectedMandalId);
+    const users = selectedMandal?.assigned_users || [];
 
     const totalPages = Math.ceil(filteredMandals.length / itemsPerPage);
     const paginatedMandals = filteredMandals.slice(
@@ -92,45 +187,93 @@ export default function MandalList() {
                                 <h1 className="text-3xl font-bold">Mandal Management</h1>
                             </div>
                             <p className="text-blue-100 ml-14">
-                                Block: {blockInfo.blockName} | Assembly: {blockInfo.assemblyName}
+                                State: {stateInfo.stateName}
                             </p>
                         </div>
-                        <button
-                            onClick={() => navigate("/block/mandal/create")}
-                            className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold flex items-center gap-2 shadow-md"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Mandal
-                        </button>
                     </div>
                 </div>
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Assembly
+                                State
                             </label>
                             <input
                                 type="text"
-                                value={blockInfo.assemblyName}
+                                value={stateInfo.stateName}
                                 disabled
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Block
+                                Select District <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="text"
-                                value={blockInfo.blockName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
+                            <select
+                                value={selectedDistrictId}
+                                onChange={(e) => {
+                                    setSelectedDistrictId(Number(e.target.value));
+                                    setSelectedAssemblyId(0);
+                                    setSelectedBlockId(0);
+                                    setSelectedMandalFilter("");
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value={0}>Select District</option>
+                                {districts.map((district) => (
+                                    <option key={district.location_id || district.id} value={district.location_id || district.id}>
+                                        {district.displayName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Assembly <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={selectedAssemblyId}
+                                onChange={(e) => {
+                                    setSelectedAssemblyId(Number(e.target.value));
+                                    setSelectedBlockId(0);
+                                    setSelectedMandalFilter("");
+                                    setCurrentPage(1);
+                                }}
+                                disabled={!selectedDistrictId}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            >
+                                <option value={0}>Select Assembly</option>
+                                {assemblies.map((assembly) => (
+                                    <option key={assembly.location_id || assembly.id} value={assembly.location_id || assembly.id}>
+                                        {assembly.displayName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Block <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={selectedBlockId}
+                                onChange={(e) => {
+                                    setSelectedBlockId(Number(e.target.value));
+                                    setSelectedMandalFilter("");
+                                    setCurrentPage(1);
+                                }}
+                                disabled={!selectedAssemblyId}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            >
+                                <option value={0}>Select Block</option>
+                                {blocks.map((block) => (
+                                    <option key={block.id} value={block.id}>
+                                        {block.displayName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -142,7 +285,8 @@ export default function MandalList() {
                                     setSelectedMandalFilter(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={!selectedBlockId}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             >
                                 <option value="">All Mandals</option>
                                 {mandals.map((mandal) => (
@@ -164,13 +308,14 @@ export default function MandalList() {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search by mandal name..."
+                                    placeholder="Search..."
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    disabled={!selectedBlockId}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -179,7 +324,14 @@ export default function MandalList() {
 
                 {/* Mandal List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {isLoading ? (
+                    {!selectedBlockId ? (
+                        <div className="text-center py-12">
+                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="mt-2 text-gray-500 font-medium">Please select District, Assembly, and Block to view mandals</p>
+                        </div>
+                    ) : loadingMandals ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             <p className="mt-4 text-gray-600">Loading mandals...</p>
@@ -201,27 +353,16 @@ export default function MandalList() {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                S.No
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Level Type
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Display Name
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Users
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Created Date
-                                            </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Actions
-                                            </th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">District</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assembly</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Block</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created Date</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -229,6 +370,21 @@ export default function MandalList() {
                                             <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                        {districts.find(d => d.id === selectedDistrictId)?.displayName}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                        {assemblies.find(a => a.id === selectedAssemblyId)?.displayName}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                                        {hierarchyData?.parent.displayName}
+                                                    </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -265,31 +421,16 @@ export default function MandalList() {
                                                     {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                            View
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`
-                                                                )
-                                                            }
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                            </svg>
-                                                            Assign
-                                                        </button>
-                                                    </div>
+                                                    <button
+                                                        onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
+                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        View
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -303,15 +444,9 @@ export default function MandalList() {
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                         <div className="text-sm text-gray-700">
                                             <span>
-                                                Showing{" "}
-                                                <span className="font-semibold">
-                                                    {(currentPage - 1) * itemsPerPage + 1}
-                                                </span>{" "}
-                                                to{" "}
-                                                <span className="font-semibold">
-                                                    {Math.min(currentPage * itemsPerPage, filteredMandals.length)}
-                                                </span>{" "}
-                                                of <span className="font-semibold">{filteredMandals.length}</span> results
+                                                Showing <span className="font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+                                                <span className="font-semibold">{Math.min(currentPage * itemsPerPage, filteredMandals.length)}</span> of{" "}
+                                                <span className="font-semibold">{filteredMandals.length}</span> results
                                             </span>
                                         </div>
                                         {totalPages > 1 && (
@@ -369,7 +504,6 @@ export default function MandalList() {
                 {selectedMandalId && (
                     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                            {/* Modal Header */}
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white flex-shrink-0">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -386,15 +520,8 @@ export default function MandalList() {
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Modal Body */}
                             <div className="p-6 overflow-y-auto flex-1">
-                                {loadingUsers ? (
-                                    <div className="text-center py-12">
-                                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                        <p className="mt-4 text-gray-600">Loading users...</p>
-                                    </div>
-                                ) : users.length === 0 ? (
+                                {users.length === 0 ? (
                                     <div className="text-center py-12">
                                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -406,61 +533,32 @@ export default function MandalList() {
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50 sticky top-0">
                                                 <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        S.No
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Name
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Email
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Contact
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Party
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Status
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Assigned At
-                                                    </th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Name</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Contact</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Party</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned At</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
                                                 {users.map((user: any, index: number) => (
                                                     <tr key={user.assignment_id || index} className="hover:bg-blue-50 transition-colors">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {index + 1}
-                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-gray-900">
-                                                                {user.first_name} {user.last_name}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {user.username}
-                                                            </div>
+                                                            <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
+                                                            <div className="text-xs text-gray-500">{user.username}</div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.email || "N/A"}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.contact_no || "N/A"}
-                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email || "N/A"}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.contact_no || "N/A"}</td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                                 {user.partyName || "N/A"}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span
-                                                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.user_active === 1
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : "bg-red-100 text-red-800"
-                                                                    }`}
-                                                            >
+                                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.user_active === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                                                 {user.user_active === 1 ? "Active" : "Inactive"}
                                                             </span>
                                                         </td>
@@ -494,12 +592,6 @@ export default function MandalList() {
                 }
                 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
                     background: #2563eb;
-                }
-                .scrollbar-track-gray-200::-webkit-scrollbar-track {
-                    background: #e5e7eb;
-                }
-                .scrollbar-thumb-blue-500::-webkit-scrollbar-thumb {
-                    background: #3b82f6;
                 }
             `}</style>
         </div>

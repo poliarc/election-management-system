@@ -1,47 +1,48 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
-import { useGetBlockAssignmentsQuery } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 
 export default function MandalList() {
-    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
     const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
-    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
-    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
+    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
 
-    const [blockInfo, setBlockInfo] = useState({
-        blockName: "",
+    const [assemblyInfo, setAssemblyInfo] = useState({
         assemblyName: "",
-        blockId: 0,
+        districtName: "",
+        assemblyId: 0,
     });
 
     useEffect(() => {
         if (selectedAssignment) {
-            setBlockInfo({
-                blockName: selectedAssignment.displayName || selectedAssignment.levelName,
-                assemblyName: selectedAssignment.assemblyName || "",
-                blockId: selectedAssignment.level_id || 0,
+            setAssemblyInfo({
+                assemblyName: selectedAssignment.levelName || "",
+                districtName: selectedAssignment.parentLevelName || "",
+                assemblyId: selectedAssignment.stateMasterData_id || 0,
             });
         }
     }, [selectedAssignment]);
 
-    const { data: hierarchyData, isLoading, error } = useGetBlockHierarchyQuery(
-        blockInfo.blockId,
-        { skip: !blockInfo.blockId }
+    // Fetch blocks for the assembly
+    const { data: blocks = [] } = useGetBlocksByAssemblyQuery(
+        assemblyInfo.assemblyId,
+        { skip: !assemblyInfo.assemblyId }
     );
 
-    const { data: mandalUsersData, isLoading: loadingUsers } = useGetBlockAssignmentsQuery(
-        selectedMandalId!,
-        { skip: !selectedMandalId }
+    // Fetch mandals for selected block
+    const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(
+        selectedBlockId,
+        { skip: !selectedBlockId }
     );
 
     const mandals = hierarchyData?.children || [];
@@ -62,7 +63,8 @@ export default function MandalList() {
         setSelectedMandalName("");
     };
 
-    const users = mandalUsersData?.users || [];
+    const selectedMandal = mandals.find(m => m.id === selectedMandalId);
+    const users = selectedMandal?.assigned_users || [];
 
     const totalPages = Math.ceil(filteredMandals.length / itemsPerPage);
     const paginatedMandals = filteredMandals.slice(
@@ -75,6 +77,13 @@ export default function MandalList() {
             setCurrentPage(totalPages);
         }
     }, [totalPages, currentPage]);
+
+    // Auto-select first block if available
+    useEffect(() => {
+        if (blocks.length > 0 && !selectedBlockId) {
+            setSelectedBlockId(blocks[0].id);
+        }
+    }, [blocks, selectedBlockId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
@@ -92,18 +101,9 @@ export default function MandalList() {
                                 <h1 className="text-3xl font-bold">Mandal Management</h1>
                             </div>
                             <p className="text-blue-100 ml-14">
-                                Block: {blockInfo.blockName} | Assembly: {blockInfo.assemblyName}
+                                Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
                             </p>
                         </div>
-                        <button
-                            onClick={() => navigate("/block/mandal/create")}
-                            className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold flex items-center gap-2 shadow-md"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Mandal
-                        </button>
                     </div>
                 </div>
 
@@ -116,21 +116,31 @@ export default function MandalList() {
                             </label>
                             <input
                                 type="text"
-                                value={blockInfo.assemblyName}
+                                value={assemblyInfo.assemblyName}
                                 disabled
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Block
+                                Select Block <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="text"
-                                value={blockInfo.blockName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
+                            <select
+                                value={selectedBlockId}
+                                onChange={(e) => {
+                                    setSelectedBlockId(Number(e.target.value));
+                                    setSelectedMandalFilter("");
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value={0}>Select a Block</option>
+                                {blocks.map((block) => (
+                                    <option key={block.id} value={block.id}>
+                                        {block.displayName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -142,7 +152,8 @@ export default function MandalList() {
                                     setSelectedMandalFilter(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={!selectedBlockId}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             >
                                 <option value="">All Mandals</option>
                                 {mandals.map((mandal) => (
@@ -170,7 +181,8 @@ export default function MandalList() {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    disabled={!selectedBlockId}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -179,7 +191,14 @@ export default function MandalList() {
 
                 {/* Mandal List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {isLoading ? (
+                    {!selectedBlockId ? (
+                        <div className="text-center py-12">
+                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
+                        </div>
+                    ) : loadingMandals ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             <p className="mt-4 text-gray-600">Loading mandals...</p>
@@ -203,6 +222,9 @@ export default function MandalList() {
                                         <tr>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 S.No
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                Block
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Level Type
@@ -229,6 +251,11 @@ export default function MandalList() {
                                             <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                        {hierarchyData?.parent.displayName}
+                                                    </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -275,19 +302,6 @@ export default function MandalList() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                             </svg>
                                                             View
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`
-                                                                )
-                                                            }
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                            </svg>
-                                                            Assign
                                                         </button>
                                                     </div>
                                                 </td>
@@ -389,12 +403,7 @@ export default function MandalList() {
 
                             {/* Modal Body */}
                             <div className="p-6 overflow-y-auto flex-1">
-                                {loadingUsers ? (
-                                    <div className="text-center py-12">
-                                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                        <p className="mt-4 text-gray-600">Loading users...</p>
-                                    </div>
-                                ) : users.length === 0 ? (
+                                {users.length === 0 ? (
                                     <div className="text-center py-12">
                                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />

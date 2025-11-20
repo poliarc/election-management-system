@@ -108,17 +108,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
   return (
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
-      <div className="container-page flex items-center justify-between py-3">
-        <div className="flex items-center gap-4">
+      <div className="container-page flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           {/* Mobile hamburger to open sidebar */}
           <button
             type="button"
             onClick={() => onToggleSidebar?.()}
-            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition flex-shrink-0"
             aria-label="Open sidebar"
           >
             <svg
-              className="h-6 w-6 text-gray-700"
+              className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 dark:text-gray-300"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -131,20 +131,20 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               />
             </svg>
           </button>
-          <div className="font-semibold" aria-label="Current level">
+          <div className="font-semibold text-sm sm:text-base truncate" aria-label="Current level">
             {user?.role || "Dashboard"}
           </div>
 
           {/* Assignment Switcher - Show when user has multiple assignments of same type */}
           {hasMultipleAssignments && selectedAssignment && (
-            <div className="relative" ref={assignmentMenuRef}>
+            <div className="relative hidden md:block" ref={assignmentMenuRef}>
               <button
                 type="button"
                 onClick={() => setAssignmentMenuOpen((s) => !s)}
-                className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 max-w-[200px]"
               >
                 <svg
-                  className="h-4 w-4 text-gray-500"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -156,11 +156,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-medium text-gray-700 dark:text-gray-200">
+                <span className="font-medium text-gray-700 dark:text-gray-200 truncate">
                   {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
                 <svg
-                  className={`h-4 w-4 text-gray-500 transition-transform ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform flex-shrink-0 ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -176,7 +176,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               </button>
 
               {assignmentMenuOpen && (
-                <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto">
+                <div className="absolute left-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     Switch {currentLevelType}
                   </div>
@@ -185,7 +185,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       key={assignment.assignment_id}
                       onClick={() => handleAssignmentSwitch(assignment)}
                       className={[
-                        "flex w-full items-start gap-3 rounded-xl px-3 py-2 text-left transition-colors",
+                        "flex w-full items-start gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors",
                         selectedAssignment.assignment_id ===
                           assignment.assignment_id
                           ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
@@ -193,7 +193,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       ].join(" ")}
                     >
                       <svg
-                        className="h-5 w-5 mt-0.5 shrink-0"
+                        className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 shrink-0"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -206,7 +206,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         />
                       </svg>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                        <div className="font-medium truncate text-xs sm:text-sm">
                           {assignment.displayName || assignment.levelName}
                         </div>
                         {assignment.parentLevelName && (
@@ -218,7 +218,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       {selectedAssignment.assignment_id ===
                         assignment.assignment_id && (
                           <svg
-                            className="h-5 w-5 shrink-0"
+                            className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
@@ -236,7 +236,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3" ref={menuRef}>
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0" ref={menuRef}>
           <ThemeToggle />
           {user && (
             <div className="relative">
@@ -245,13 +245,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen((s) => !s)}
-                className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-3 py-1.5 shadow-sm hover:shadow transition text-sm dark:border-gray-700 dark:bg-gray-800"
+                className="flex items-center gap-1.5 sm:gap-3 rounded-2xl border border-gray-200 bg-white px-2 sm:px-3 py-1.5 shadow-sm hover:shadow transition text-xs sm:text-sm dark:border-gray-700 dark:bg-gray-800"
               >
-                <span className="text-gray-700 dark:text-gray-200">
+                <span className="text-gray-700 dark:text-gray-200 hidden sm:inline">
                   Hello, <span className="font-medium">{firstName}</span>
                 </span>
                 <svg
-                  className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform ${open ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -267,20 +267,20 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 <img
                   src={avatarUrl}
                   alt="avatar"
-                  className="h-9 w-9 rounded-full ring-1 ring-gray-200 object-cover"
+                  className="h-7 w-7 sm:h-9 sm:w-9 rounded-full ring-1 ring-gray-200 object-cover"
                 />
               </button>
               {open && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800"
+                  className="absolute right-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 z-50"
                 >
                   <NavLink
                     to={`${getProfileRoute()}`}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       [
-                        "flex items-center gap-3 rounded-xl px-3 py-2 transition-colors",
+                        "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
                         isActive
                           ? "bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white"
                           : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
@@ -288,7 +288,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     }
                   >
                     <svg
-                      className="h-5 w-5 text-gray-500"
+                      className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -300,17 +300,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    My Profile
+                    <span className="text-xs sm:text-sm">My Profile</span>
                   </NavLink>
 
-                  {/* Assignment Switcher in Profile Menu */}
-                  {/* {hasMultipleAssignments && selectedAssignment && (
+                  {/* Assignment Switcher in Profile Menu - Mobile Only */}
+                  {hasMultipleAssignments && selectedAssignment && (
                     <>
-                      <div className="my-2 border-t border-gray-200 dark:border-gray-700" />
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      <div className="my-2 border-t border-gray-200 dark:border-gray-700 md:hidden" />
+                      <div className="px-2 sm:px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide md:hidden">
                         Switch {currentLevelType}
                       </div>
-                      <div className="max-h-48 overflow-y-auto">
+                      <div className="max-h-48 overflow-y-auto md:hidden">
                         {sameTypeAssignments.map((assignment) => (
                           <button
                             key={assignment.assignment_id}
@@ -319,17 +319,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                               setOpen(false);
                             }}
                             className={[
-                              "flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left transition-colors",
+                              "flex w-full items-start gap-2 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors",
                               selectedAssignment.assignment_id === assignment.assignment_id
                                 ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200"
                                 : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
                             ].join(" ")}
                           >
-                            <svg className="h-5 w-5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate text-xs">{assignment.levelName}</div>
+                              <div className="font-medium truncate text-xs sm:text-sm">{assignment.displayName || assignment.levelName}</div>
                               {assignment.parentLevelName && (
                                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                   {assignment.parentLevelName}
@@ -344,19 +344,19 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-2 border-t border-gray-200 dark:border-gray-700" />
+                      <div className="my-2 border-t border-gray-200 dark:border-gray-700 md:hidden" />
                     </>
-                  )} */}
+                  )}
 
                   <button
                     onClick={() => {
                       setOpen(false);
                       dispatch(logout());
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    className="flex w-full items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                   >
                     <svg
-                      className="h-5 w-5"
+                      className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -373,7 +373,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         strokeLinejoin="round"
                       />
                     </svg>
-                    Logout
+                    <span className="text-xs sm:text-sm">Logout</span>
                   </button>
                 </div>
               )}
