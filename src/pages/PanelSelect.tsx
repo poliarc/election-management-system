@@ -115,6 +115,7 @@ export default function PanelSelect() {
     partyAdminPanels,
     levelAdminPanels,
     stateAssignments,
+    permissions,
   } = useAppSelector((s) => s.auth);
 
   // No auto-redirect - let users see and choose their panels even if they have only one
@@ -124,8 +125,19 @@ export default function PanelSelect() {
   };
 
   const handleLevelClick = (levelType: string, route: string) => {
-    // Get all assignments for this level type
-    const levelAssignments = stateAssignments.filter((a) => a.levelType === levelType);
+    // Get all assignments for this level type from stateAssignments
+    let levelAssignments = stateAssignments.filter((a) => a.levelType === levelType);
+
+    // For Block level, also check permissions.accessibleBlocks
+    if (levelType === 'Block' && permissions?.accessibleBlocks && permissions.accessibleBlocks.length > 0) {
+      // Transform Block assignments to match StateAssignment structure
+      levelAssignments = permissions.accessibleBlocks.map((block) => ({
+        ...block,
+        levelType: 'Block',
+        stateMasterData_id: block.afterAssemblyData_id || 0,
+        // displayName comes from API (e.g., "Badli Block")
+      }));
+    }
 
     if (levelAssignments.length === 0) return;
 
@@ -148,6 +160,11 @@ export default function PanelSelect() {
     acc[assignment.levelType] = (acc[assignment.levelType] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+
+  // Add Block assignments from permissions
+  if (permissions?.accessibleBlocks && permissions.accessibleBlocks.length > 0) {
+    levelAssignmentCounts['Block'] = permissions.accessibleBlocks.length;
+  }
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] p-6 bg-gray-50 dark:bg-gray-900">

@@ -7,7 +7,7 @@ import type { StateAssignment } from "../types/api";
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
-  const { stateAssignments, selectedAssignment } = useAppSelector(
+  const { stateAssignments, selectedAssignment, permissions } = useAppSelector(
     (s) => s.auth
   );
   const dispatch = useAppDispatch();
@@ -45,9 +45,22 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
   // Get assignments of the same type as currently selected
   const currentLevelType = selectedAssignment?.levelType;
-  const sameTypeAssignments = currentLevelType
-    ? stateAssignments.filter((a) => a.levelType === currentLevelType)
-    : [];
+  let sameTypeAssignments: StateAssignment[] = [];
+
+  if (currentLevelType) {
+    if (currentLevelType === 'Block' && permissions?.accessibleBlocks) {
+      // For Block level, use permissions.accessibleBlocks
+      sameTypeAssignments = permissions.accessibleBlocks.map((block) => ({
+        ...block,
+        levelType: 'Block',
+        stateMasterData_id: block.afterAssemblyData_id || 0,
+        // displayName comes from API (e.g., "Badli Block")
+      }));
+    } else {
+      sameTypeAssignments = stateAssignments.filter((a) => a.levelType === currentLevelType);
+    }
+  }
+
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
@@ -75,6 +88,23 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=ffffff&color=111827&bold=true`;
+
+  // Get profile route based on current level type
+  const getProfileRoute = () => {
+    if (!currentLevelType) return "/profile";
+
+    const profileRoutes: Record<string, string> = {
+      State: "/state/profile",
+      District: "/district/profile",
+      Assembly: "/assembly/profile",
+      Block: "/block/profile",
+      Mandal: "/mandal/profile",
+      PollingCenter: "/polling-center/profile",
+      Booth: "/booth/profile",
+    };
+
+    return profileRoutes[currentLevelType] || "/profile";
+  };
 
   return (
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
@@ -127,12 +157,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   />
                 </svg>
                 <span className="font-medium text-gray-700 dark:text-gray-200">
-                  {selectedAssignment.levelName}
+                  {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
                 <svg
-                  className={`h-4 w-4 text-gray-500 transition-transform ${
-                    assignmentMenuOpen ? "rotate-180" : "rotate-0"
-                  }`}
+                  className={`h-4 w-4 text-gray-500 transition-transform ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
+                    }`}
                   viewBox="0 0 20 20"
                   fill="none"
                 >
@@ -158,7 +187,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       className={[
                         "flex w-full items-start gap-3 rounded-xl px-3 py-2 text-left transition-colors",
                         selectedAssignment.assignment_id ===
-                        assignment.assignment_id
+                          assignment.assignment_id
                           ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
                           : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
                       ].join(" ")}
@@ -178,7 +207,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       </svg>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">
-                          {assignment.levelName}
+                          {assignment.displayName || assignment.levelName}
                         </div>
                         {assignment.parentLevelName && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -188,18 +217,18 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       </div>
                       {selectedAssignment.assignment_id ===
                         assignment.assignment_id && (
-                        <svg
-                          className="h-5 w-5 shrink-0"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
+                          <svg
+                            className="h-5 w-5 shrink-0"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
                     </button>
                   ))}
                 </div>
@@ -222,9 +251,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   Hello, <span className="font-medium">{firstName}</span>
                 </span>
                 <svg
-                  className={`h-4 w-4 text-gray-500 transition-transform ${
-                    open ? "rotate-180" : "rotate-0"
-                  }`}
+                  className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : "rotate-0"
+                    }`}
                   viewBox="0 0 20 20"
                   fill="none"
                 >
@@ -248,7 +276,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   className="absolute right-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800"
                 >
                   <NavLink
-                    to={`/assembly/profile`}
+                    to={`${getProfileRoute()}`}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       [

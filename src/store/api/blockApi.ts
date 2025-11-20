@@ -19,9 +19,10 @@ export interface Block {
 }
 
 export interface CreateBlockRequest {
-    levelName: "Block";
+    levelName: string; // Can be any level type (Block, Mandal, Ward, Booth, etc.)
     displayName: string;
-    parentAssemblyId: number;
+    parentAssemblyId?: number; // Optional for Block
+    parentId?: number; // Optional for Mandal
     partyLevelId: number;
 }
 
