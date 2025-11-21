@@ -38,8 +38,12 @@ interface BackendUser {
   contact_no: string;
   party_id: number;
   role_id: number;
+  state_id?: number;
+  district_id?: number;
   partyName?: string;
   role?: string;
+  stateName?: string;
+  districtName?: string;
   isActive: number; // 0 or 1
   isSuperAdmin: number; // 0 or 1
   created_at: string;
@@ -55,8 +59,12 @@ function transformUser(backendUser: BackendUser): User {
     contact_no: backendUser.contact_no,
     party_id: backendUser.party_id,
     role_id: backendUser.role_id,
+    state_id: backendUser.state_id,
+    district_id: backendUser.district_id,
     partyName: backendUser.partyName,
     role: backendUser.role,
+    stateName: backendUser.stateName,
+    districtName: backendUser.districtName,
     isActive: backendUser.isActive === 1,
     created_at: backendUser.created_at,
   };
@@ -136,7 +144,9 @@ export const userApi = createApi({
         body: {
           ...body,
           party_id: Number(body.party_id),
-          role_id: Number(body.role_id),
+          ...(body.role_id && { role_id: Number(body.role_id) }),
+          ...(body.state_id && { state_id: Number(body.state_id) }),
+          ...(body.district_id && { district_id: Number(body.district_id) }),
         },
       }),
       transformResponse: (response: ApiItemResponse<BackendUser>) =>
@@ -156,6 +166,8 @@ export const userApi = createApi({
             party_id: Number(data.party_id),
           }),
           ...(data.role_id !== undefined && { role_id: Number(data.role_id) }),
+          ...(data.state_id !== undefined && { state_id: Number(data.state_id) }),
+          ...(data.district_id !== undefined && { district_id: Number(data.district_id) }),
         },
       }),
       transformResponse: (response: ApiItemResponse<BackendUser>) =>

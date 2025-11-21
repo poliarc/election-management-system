@@ -43,6 +43,8 @@ export const UserPage: React.FC = () => {
     limit: 25,
   });
 
+  const formRef = React.useRef<HTMLDivElement>(null);
+
   // API hooks
   const {
     data: usersResponse,
@@ -164,6 +166,9 @@ export const UserPage: React.FC = () => {
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setShowForm(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleDeleteUser = async (userId: number) => {
@@ -274,7 +279,7 @@ export const UserPage: React.FC = () => {
 
         {/* Form Modal */}
         {showForm && (
-          <div className="mb-6">
+          <div ref={formRef} className="mb-6">
             <UserForm
               user={editingUser}
               onSave={editingUser ? handleUpdateUser : handleCreateUser}

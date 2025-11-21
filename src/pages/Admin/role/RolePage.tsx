@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Shield, Plus, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { RoleSearchFilter } from "./RoleSearchFilter";
@@ -25,6 +25,8 @@ export const RolePage: React.FC = () => {
     search: "",
     isActive: undefined,
   });
+
+  const formRef = useRef<HTMLDivElement>(null);
 
   const {
     data: rolesResponse,
@@ -147,6 +149,9 @@ export const RolePage: React.FC = () => {
   const startEdit = (role: Role) => {
     setEditingRole(role);
     setShowForm(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const cancelForm = () => {
@@ -213,7 +218,7 @@ export const RolePage: React.FC = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="mb-6">
+        <div ref={formRef} className="mb-6">
           <RoleForm
             initialValues={
               editingRole

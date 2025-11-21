@@ -6,8 +6,12 @@ export type User = {
   contact_no: string;
   party_id: number;
   role_id: number;
+  state_id?: number;
+  district_id?: number;
   partyName?: string;
   role?: string;
+  stateName?: string;
+  districtName?: string;
   isActive: boolean;
   created_at: string;
 };
@@ -17,9 +21,11 @@ export type UserForm = {
   last_name: string;
   email: string;
   password?: string;
-  contact_no: string;
+  contact_no?: string;
   party_id: number;
-  role_id: number;
+  role_id?: number;
+  state_id?: number;
+  district_id?: number;
   isActive?: boolean;
 };
 
