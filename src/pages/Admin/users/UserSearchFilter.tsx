@@ -31,7 +31,8 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [localSearch, onSearchChange, searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localSearch]);
 
   const handleFilterChange = (key: keyof UserSearchParams, value: unknown) => {
     onSearchChange({
@@ -77,11 +78,10 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${
-              showFilters || hasActiveFilters
+            className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
                 ? "bg-blue-50 border-blue-300 text-blue-700"
                 : "border-gray-300 text-gray-700 hover:bg-gray-50"
-            }`}
+              }`}
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -126,8 +126,8 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
                   searchParams.isActive === undefined
                     ? ""
                     : searchParams.isActive
-                    ? "active"
-                    : "inactive"
+                      ? "active"
+                      : "inactive"
                 }
                 onChange={(e) =>
                   handleFilterChange(
