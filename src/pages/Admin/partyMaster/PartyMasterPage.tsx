@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   fetchParties,
@@ -50,6 +50,8 @@ export const PartyMasterPage: React.FC = () => {
   const [localSearch, setLocalSearch] = useState<string>(queryParams.search || "");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
+  const formRef = useRef<HTMLDivElement>(null);
+
   // Load initial data
   useEffect(() => {
     dispatch(fetchParties(queryParams));
@@ -95,6 +97,9 @@ export const PartyMasterPage: React.FC = () => {
   const handleEdit = (party: Party) => {
     setEditing(party);
     setShowForm(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleDeleteClick = (party: Party) => {
@@ -536,7 +541,7 @@ export const PartyMasterPage: React.FC = () => {
       </div>
 
       {showForm && (
-        <div className="mb-6">
+        <div ref={formRef} className="mb-6">
           <div className="mb-3">
             <h2 className="text-xl font-semibold text-gray-800">
               {editing ? "Edit Party" : "Create New Party"}

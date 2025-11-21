@@ -7,11 +7,16 @@ interface ApiResponse<T> {
 }
 
 export interface StateMasterData {
-  stateMasterData_id: number;
+  id: number;
+  stateMasterData_id?: number;
   levelName: string;
   levelType: string;
-  parentId: number;
-  created_at?: string;
+  ParentId: number | null;
+  parentId?: number;
+  isActive: number;
+  isDelete: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreateStateMasterDataRequest {
@@ -60,6 +65,24 @@ export const stateMasterApi = createApi({
   }),
   tagTypes: ["StateMaster", "UserHierarchyAssignment"],
   endpoints: (builder) => ({
+    getAllStateMasterData: builder.query<StateMasterData[], void>({
+      query: () => "/state-master-data/all",
+      transformResponse: (response: any) => {
+        console.log("State Master API Full Response:", response);
+        // Handle both array and object responses
+        if (Array.isArray(response)) {
+          return response;
+        }
+        // If response has data property
+        if (response?.data) {
+          console.log("State Master Data:", response.data);
+          return Array.isArray(response.data) ? response.data : [];
+        }
+        return [];
+      },
+      providesTags: ["StateMaster"],
+    }),
+
     createStateMasterData: builder.mutation<
       StateMasterData,
       CreateStateMasterDataRequest
@@ -103,6 +126,7 @@ export const stateMasterApi = createApi({
 });
 
 export const {
+  useGetAllStateMasterDataQuery,
   useCreateStateMasterDataMutation,
   useCreateUserHierarchyAssignmentMutation,
   useDeleteAssignedLocationsMutation,

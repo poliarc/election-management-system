@@ -7,6 +7,7 @@ import type {
   Party,
   Role,
 } from "../../../types/user";
+import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 
 interface UserFormProps {
   user?: User | null;
@@ -32,6 +33,9 @@ export const UserForm: React.FC<UserFormProps> = ({
   const [showPassword, setShowPassword] = React.useState(false);
   const isEditing = !!user;
 
+  // Fetch state master data
+  const { data: stateMasterData = [], isLoading: isLoadingStates } = useGetAllStateMasterDataQuery();
+
   const {
     register,
     handleSubmit,
@@ -42,27 +46,56 @@ export const UserForm: React.FC<UserFormProps> = ({
   } = useForm<UserFormType>({
     defaultValues: user
       ? {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          contact_no: user.contact_no,
-          party_id: user.party_id,
-          role_id: user.role_id,
-          isActive: user.isActive,
-        }
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        contact_no: user.contact_no,
+        party_id: user.party_id,
+        role_id: user.role_id || undefined,
+        state_id: user.state_id || undefined,
+        district_id: user.district_id || undefined,
+        isActive: user.isActive,
+      }
       : {
-          first_name: "",
-          last_name: "",
-          email: "",
-          password: "",
-          contact_no: "",
-          party_id: 0,
-          role_id: 0,
-          isActive: true,
-        },
+        first_name: "",
+        last_name: "",
+        email: "",
+        password: "",
+        contact_no: "",
+        party_id: 0,
+        role_id: undefined,
+        state_id: undefined,
+        district_id: undefined,
+        isActive: true,
+      },
   });
 
   const watchIsActive = watch("isActive", user?.isActive ?? true);
+  const watchStateId = watch("state_id");
+
+  // Filter states and districts
+  const states = React.useMemo(() => {
+    console.log("All stateMasterData:", stateMasterData);
+    const filtered = stateMasterData.filter(item => item.levelType === "State" && item.isActive === 1);
+    console.log("Filtered states:", filtered);
+    return filtered;
+  }, [stateMasterData]);
+
+  const districts = React.useMemo(() =>
+    stateMasterData.filter(item =>
+      item.levelType === "District" &&
+      item.isActive === 1 &&
+      (watchStateId ? item.ParentId === Number(watchStateId) : true)
+    ),
+    [stateMasterData, watchStateId]
+  );
+
+  // Reset district when state changes
+  React.useEffect(() => {
+    if (watchStateId && user?.state_id !== watchStateId) {
+      setValue("district_id", undefined);
+    }
+  }, [watchStateId, setValue, user?.state_id]);
 
   React.useEffect(() => {
     if (user) {
@@ -72,7 +105,9 @@ export const UserForm: React.FC<UserFormProps> = ({
         email: user.email,
         contact_no: user.contact_no,
         party_id: user.party_id,
-        role_id: user.role_id,
+        role_id: user.role_id || undefined,
+        state_id: user.state_id || undefined,
+        district_id: user.district_id || undefined,
         isActive: user.isActive,
       });
     }
@@ -128,9 +163,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                       message: "First name must be at least 2 characters",
                     },
                   })}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.first_name ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.first_name ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter first name"
                 />
                 {errors.first_name && (
@@ -153,9 +187,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                       message: "Last name must be at least 2 characters",
                     },
                   })}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.last_name ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.last_name ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter last name"
                 />
                 {errors.last_name && (
@@ -180,9 +213,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                     message: "Invalid email address",
                   },
                 })}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? "border-red-500" : "border-gray-300"
+                  }`}
                 placeholder="Enter email address"
               />
               {errors.email && (
@@ -195,21 +227,19 @@ export const UserForm: React.FC<UserFormProps> = ({
             {/* Contact Number */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Number *
+                Contact Number
               </label>
               <input
                 type="tel"
                 {...register("contact_no", {
-                  required: "Contact number is required",
                   pattern: {
                     value: /^[0-9]{10}$/,
                     message: "Contact number must be 10 digits",
                   },
                 })}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.contact_no ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="Enter 10-digit contact number"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.contact_no ? "border-red-500" : "border-gray-300"
+                  }`}
+                placeholder="Enter 10-digit contact number (optional)"
               />
               {errors.contact_no && (
                 <p className="text-red-500 text-sm mt-1">
@@ -238,16 +268,15 @@ export const UserForm: React.FC<UserFormProps> = ({
                     ...(isEditing
                       ? {}
                       : {
-                          required: "Password is required",
-                          minLength: {
-                            value: 6,
-                            message: "Password must be at least 6 characters",
-                          },
-                        }),
+                        required: "Password is required",
+                        minLength: {
+                          value: 6,
+                          message: "Password must be at least 6 characters",
+                        },
+                      }),
                   })}
-                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.password ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder={
                     isEditing
                       ? "Enter new password (optional)"
@@ -292,9 +321,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                         message: "Please select a party",
                       },
                     })}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.party_id ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.party_id ? "border-red-500" : "border-gray-300"
+                      }`}
                   >
                     <option value={0}>Select a party</option>
                     {activeParties.map((party) => (
@@ -313,7 +341,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role *
+                  Role
                 </label>
                 {isLoadingRoles ? (
                   <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
@@ -322,17 +350,15 @@ export const UserForm: React.FC<UserFormProps> = ({
                 ) : (
                   <select
                     {...register("role_id", {
-                      required: "Role selection is required",
-                      min: {
-                        value: 1,
-                        message: "Please select a role",
+                      setValueAs: (value) => {
+                        // Convert to number, but return undefined if 0 or empty
+                        const numValue = Number(value);
+                        return numValue === 0 || !value ? undefined : numValue;
                       },
                     })}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.role_id ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value={0}>Select a role</option>
+                    <option value="">Select a role (optional)</option>
                     {activeRoles.map((role) => (
                       <option key={role.role_id} value={role.role_id}>
                         {role.role}
@@ -340,9 +366,107 @@ export const UserForm: React.FC<UserFormProps> = ({
                     ))}
                   </select>
                 )}
-                {errors.role_id && (
+              </div>
+            </div>
+
+            {/* State and District Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  State {!isEditing && "*"}
+                </label>
+                {isLoadingStates ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                    <span className="text-gray-500">Loading states...</span>
+                  </div>
+                ) : (
+                  <select
+                    {...register("state_id", {
+                      setValueAs: (value) => {
+                        const numValue = Number(value);
+                        return numValue === 0 || !value ? undefined : numValue;
+                      },
+                      ...(isEditing
+                        ? {}
+                        : {
+                          required: "State selection is required",
+                          validate: (value) => {
+                            if (!value) {
+                              return "Please select a state";
+                            }
+                            return true;
+                          },
+                        }),
+                    })}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.state_id ? "border-red-500" : "border-gray-300"
+                      }`}
+                  >
+                    <option value="">
+                      {isEditing ? "Select a state (optional)" : "Select a state"}
+                    </option>
+                    {states.map((state) => (
+                      <option key={state.id} value={state.id}>
+                        {state.levelName}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {errors.state_id && (
                   <p className="text-red-500 text-sm mt-1">
-                    {errors.role_id.message}
+                    {errors.state_id.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  District {!isEditing && "*"}
+                </label>
+                {isLoadingStates ? (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                    <span className="text-gray-500">Loading districts...</span>
+                  </div>
+                ) : (
+                  <select
+                    {...register("district_id", {
+                      setValueAs: (value) => {
+                        const numValue = Number(value);
+                        return numValue === 0 || !value ? undefined : numValue;
+                      },
+                      ...(isEditing
+                        ? {}
+                        : {
+                          required: "District selection is required",
+                          validate: (value) => {
+                            if (!value) {
+                              return "Please select a district";
+                            }
+                            return true;
+                          },
+                        }),
+                    })}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.district_id ? "border-red-500" : "border-gray-300"
+                      }`}
+                    disabled={!watchStateId}
+                  >
+                    <option value="">
+                      {isEditing ? "Select a district (optional)" : "Select a district"}
+                    </option>
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.levelName}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {errors.district_id && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.district_id.message}
+                  </p>
+                )}
+                {!watchStateId && !isEditing && (
+                  <p className="text-gray-500 text-xs mt-1">
+                    Please select a state first
                   </p>
                 )}
               </div>
