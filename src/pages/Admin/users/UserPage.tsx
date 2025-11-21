@@ -323,7 +323,7 @@ export const UserPage: React.FC = () => {
                 onClick={() =>
                   setSearchParams((prev) => ({
                     ...prev,
-                    page: Math.max(1, prev.page - 1),
+                    page: prev.page! - 1,
                   }))
                 }
                 disabled={pagination.page === 1}
@@ -340,7 +340,7 @@ export const UserPage: React.FC = () => {
                 onClick={() =>
                   setSearchParams((prev) => ({
                     ...prev,
-                    page: Math.min(pagination.totalPages, prev.page + 1),
+                    page: prev.page! + 1,
                   }))
                 }
                 disabled={pagination.page >= pagination.totalPages}
