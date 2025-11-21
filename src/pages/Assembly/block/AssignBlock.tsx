@@ -109,8 +109,11 @@ export default function AssignBlock() {
                 `Successfully assigned ${selectedUsers.length} user(s) to block`
             );
             navigate("/assembly/block");
+            window.location.reload();
         } catch (error: any) {
-            toast.error(error?.data?.message || "Failed to assign users");
+            console.error(error?.data?.message);
+            navigate("/assembly/block");
+            window.location.reload();
         }
     };
 

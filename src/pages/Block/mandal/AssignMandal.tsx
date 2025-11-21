@@ -94,8 +94,11 @@ export default function AssignMandal() {
                 `Successfully assigned ${selectedUsers.length} user(s) to mandal`
             );
             navigate("/block/mandal");
+            window.location.reload();
         } catch (error: any) {
-            toast.error(error?.data?.message || "Failed to assign users");
+            console.error(error?.data?.message);
+            navigate("/block/mandal");
+            window.location.reload();
         }
     };
 

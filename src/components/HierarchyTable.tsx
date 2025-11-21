@@ -74,6 +74,8 @@ export default function HierarchyTable({
   const [selectedUsers, setSelectedUsers] = useState<{
     users: HierarchyChild["users"];
     locationName: string;
+    locationId: number;
+    locationType: HierarchyChild["location_type"];
   } | null>(null);
 
   const handleSort = (field: typeof sortField) => {
@@ -521,6 +523,8 @@ export default function HierarchyTable({
                             setSelectedUsers({
                               users: item.users || [],
                               locationName: item.location_name,
+                              locationId: item.location_id,
+                              locationType: item.location_type,
                             });
                           }}
                           disabled={!item.users || item.users.length === 0}
@@ -660,8 +664,16 @@ export default function HierarchyTable({
         <UserDetailsModal
           users={selectedUsers.users}
           locationName={selectedUsers.locationName}
+          locationId={selectedUsers.locationId}
+          locationType={selectedUsers.locationType}
           isOpen={true}
           onClose={() => setSelectedUsers(null)}
+          onUserDeleted={() => {
+            // Close modal and let parent component refresh
+            setSelectedUsers(null);
+            // Trigger a page refresh to reload data
+            window.location.reload();
+          }}
         />
       )}
     </div>
