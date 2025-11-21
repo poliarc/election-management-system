@@ -25,12 +25,32 @@ export interface CreateUserHierarchyAssignmentRequest {
   stateMasterData_id: number;
 }
 
+export interface DeleteAssignedLocationsRequest {
+  userId: number;
+  stateMasterData_id: number;
+}
+
+export interface DeleteAssignedLocationsResponse {
+  success: boolean;
+  message: string;
+  deleted: Array<{
+    id: number;
+    locationId: number;
+    user_id: number;
+  }>;
+  errors: any[];
+  summary: {
+    total: number;
+    success: number;
+    failed: number;
+  };
+}
+
 export const stateMasterApi = createApi({
   reducerPath: "stateMasterApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${
-      import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
-    }/api`,
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
+      }/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("auth_access_token");
       if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -67,10 +87,23 @@ export const stateMasterApi = createApi({
         response.data,
       invalidatesTags: ["UserHierarchyAssignment"],
     }),
+
+    deleteAssignedLocations: builder.mutation<
+      DeleteAssignedLocationsResponse,
+      DeleteAssignedLocationsRequest
+    >({
+      query: (body) => ({
+        url: "/user-state-hierarchies/delete-assigned-locations",
+        method: "DELETE",
+        body,
+      }),
+      invalidatesTags: ["UserHierarchyAssignment", "StateMaster"],
+    }),
   }),
 });
 
 export const {
   useCreateStateMasterDataMutation,
   useCreateUserHierarchyAssignmentMutation,
+  useDeleteAssignedLocationsMutation,
 } = stateMasterApi;

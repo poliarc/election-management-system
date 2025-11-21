@@ -11,6 +11,7 @@ import { assemblyApi } from "./api/assemblyApi";
 import { blockApi } from "./api/blockApi";
 import { stateMasterApi } from "./api/stateMasterApi";
 import { blockTeamApi } from "./api/blockTeamApi";
+import { afterAssemblyApi } from "./api/afterAssemblyApi";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     [blockApi.reducerPath]: blockApi.reducer,
     [stateMasterApi.reducerPath]: stateMasterApi.reducer,
     [blockTeamApi.reducerPath]: blockTeamApi.reducer,
+    [afterAssemblyApi.reducerPath]: afterAssemblyApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -36,7 +38,8 @@ export const store = configureStore({
       .concat(assemblyApi.middleware)
       .concat(blockApi.middleware)
       .concat(stateMasterApi.middleware)
-      .concat(blockTeamApi.middleware),
+      .concat(blockTeamApi.middleware)
+      .concat(afterAssemblyApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
