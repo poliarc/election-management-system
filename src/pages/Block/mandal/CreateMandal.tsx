@@ -76,18 +76,12 @@ export default function CreateMandal() {
             return;
         }
 
-        if (!selectedLevel) {
-            const availableLevels = partyLevels.map(l => l.level_name).join(", ");
-            toast.error(`Level type "${levelType}" not found. Available levels: ${availableLevels || "None"}`);
-            return;
-        }
-
         try {
             await createBlock({
                 levelName: levelType.trim(),
                 displayName: mandalName.trim(),
                 parentId: blockInfo.blockId,
-                partyLevelId: selectedLevel.party_wise_id,
+                partyLevelId: selectedLevel?.party_wise_id || null,
             }).unwrap();
 
             toast.success(`${levelType} created successfully`);
@@ -209,8 +203,7 @@ export default function CreateMandal() {
                         <div className="flex gap-4 pt-4">
                             <button
                                 type="submit"
-                                disabled={isLoading || !levelType.trim() || !mandalName.trim() || !selectedLevel}
-                                title={!selectedLevel ? `Level type "${levelType}" not configured` : !levelType.trim() ? "Please enter level type" : !mandalName.trim() ? "Please enter display name" : ""}
+                                disabled={isLoading || !levelType.trim() || !mandalName.trim()}
                                 className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center gap-2"
                             >
                                 {isLoading ? (
