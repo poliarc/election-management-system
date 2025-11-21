@@ -62,6 +62,11 @@ import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
 import { StateProfile } from "./pages/State/profile";
+import PartyAdminLayout from "./layouts/PartyAdminLayout";
+import { PartyAdminDashboard } from "./pages/PartyAdmin/Dashboard";
+import { PartyAdminLevels } from "./pages/PartyAdmin/Levels";
+import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
+import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 
 export default function App() {
   return (
@@ -74,6 +79,17 @@ export default function App() {
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
+
+          {/* Party Admin Routes */}
+          <Route path="partyadmin/:partyId" element={<PartyAdminLayout />}>
+            <Route index element={<PartyAdminDashboard />} />
+            <Route path="dashboard" element={<PartyAdminDashboard />} />
+            <Route path="levels" element={<PartyAdminLevels />} />
+            <Route path="levels/:stateId" element={<PartyAdminLevels />} />
+            <Route path="users" element={<PartyAdminUsers />} />
+            <Route path="roles" element={<PartyAdminRoles />} />
+          </Route>
+
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<UserPage />} />
             <Route path="overview" element={<AdminOverview />} />

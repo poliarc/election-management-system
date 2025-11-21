@@ -5,7 +5,7 @@ export type User = {
   email: string;
   contact_no: string;
   party_id: number;
-  role_id: number;
+  role_id?: number;
   state_id?: number;
   district_id?: number;
   partyName?: string;
@@ -36,6 +36,8 @@ export type UserSearchParams = {
   isActive?: boolean;
   party_id?: number;
   role_id?: number;
+  state_id?: number;
+  district_id?: number;
 };
 
 export type Party = {
