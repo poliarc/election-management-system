@@ -23,7 +23,7 @@ export interface CreateBlockRequest {
     displayName: string;
     parentAssemblyId?: number; // Optional for Block
     parentId?: number; // Optional for Mandal
-    partyLevelId: number;
+    partyLevelId?: number | null; // Optional - allows creating any level type
 }
 
 export interface BlockAssignment {
