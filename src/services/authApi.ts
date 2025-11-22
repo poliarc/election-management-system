@@ -19,11 +19,11 @@ function buildLoginRequest(identifier: string, password: string): LoginRequest {
 // Main login function
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   const request = buildLoginRequest(payload.identifier, payload.password);
-  
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-    
+
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LOGIN), {
       method: 'POST',
       headers: {
@@ -32,14 +32,16 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
       body: JSON.stringify(request),
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+      const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+      // Handle nested error structure: { success: false, error: { message, code, timestamp } }
+      const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+      throw new Error(errorMessage);
     }
-    
+
     return response.json();
   } catch (error) {
     if (error instanceof Error) {
@@ -75,7 +77,7 @@ export function transformPartyAdminPanels(
   details: PartyAdminDetail[] | null
 ): PanelAssignment[] {
   if (!details) return [];
-  
+
   return details.map(detail => ({
     id: detail.party_id,
     name: detail.partyName,
@@ -95,7 +97,7 @@ export function transformLevelAdminPanels(
   details: LevelAdminDetail[] | null
 ): PanelAssignment[] {
   if (!details) return [];
-  
+
   return details.map(detail => ({
     id: detail.party_wise_id,
     name: detail.level_name,

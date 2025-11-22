@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { login, logout } from "../store/authSlice";
 import { useLocation, Link } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 // Accept either a valid email or a phone number (+ optional country code, 10-15 digits)
 const identifierSchema = z
@@ -36,17 +37,26 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [previousAccessToken, setPreviousAccessToken] = useState<string | null>(null);
+
   // Check for force logout parameter
   const searchParams = new URLSearchParams(location.search);
   const forceLogout = searchParams.get('logout') === 'true';
-  
+
   // Force logout if parameter is present
   if (forceLogout && accessToken) {
     dispatch(logout());
     // Remove the logout parameter from URL
     window.history.replaceState({}, '', '/login');
   }
+
+  // Show success toast when login is successful
+  useEffect(() => {
+    if (accessToken && accessToken !== previousAccessToken && !forceLogout) {
+      toast.success("Login successful");
+      setPreviousAccessToken(accessToken);
+    }
+  }, [accessToken, previousAccessToken, forceLogout]);
 
   if (accessToken && !forceLogout) {
     // If already logged in, redirect to role dashboard
