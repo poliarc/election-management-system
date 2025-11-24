@@ -26,11 +26,15 @@ export default function UserAssignment() {
 
     const [selectedDistrict, setSelectedDistrict] = useState<HierarchyChild | null>(null);
     const [selectedAssembly, setSelectedAssembly] = useState<HierarchyChild | null>(null);
-    const [selectedLevel, setSelectedLevel] = useState<AfterAssemblyData | null>(null);
+
+    // Dynamic hierarchy path: array of selected levels from root to current
+    const [hierarchyPath, setHierarchyPath] = useState<AfterAssemblyData[]>([]);
+    // Available options for each level in the hierarchy
+    const [levelOptions, setLevelOptions] = useState<AfterAssemblyData[][]>([]);
 
     const [loading, setLoading] = useState(true);
     const [assembliesLoading, setAssembliesLoading] = useState(false);
-    const [levelsLoading, setLevelsLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState(false);
     const [usersLoading, setUsersLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -49,6 +53,32 @@ export default function UserAssignment() {
     });
 
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
+
+    // Handle selecting a level in the hierarchy
+    const handleLevelSelect = (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
+        if (!selectedLevel) {
+            // Clear from this level onwards
+            setHierarchyPath(prev => prev.slice(0, levelIndex));
+            setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+            return;
+        }
+
+        // Update hierarchy path
+        const newPath = [...hierarchyPath.slice(0, levelIndex), selectedLevel];
+        setHierarchyPath(newPath);
+
+        // Load children for the next level
+        const children = levelData.filter(l => l.parentId === selectedLevel.id);
+        if (children.length > 0) {
+            setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), children]);
+        } else {
+            // No more children, remove any levels after this
+            setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+        }
+    };
+
+    // Get the currently selected level (last in hierarchy path)
+    const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
 
     // Load districts
     useEffect(() => {
@@ -104,34 +134,42 @@ export default function UserAssignment() {
         loadAssemblies();
     }, [selectedDistrict]);
 
-    // Load level data when assembly is selected
+    // Load level data when assembly is selected - load all levels for the assembly
     useEffect(() => {
         const loadLevelData = async () => {
             if (!selectedAssembly) {
                 setLevelData([]);
+                setHierarchyPath([]);
+                setLevelOptions([]);
                 return;
             }
 
             try {
-                setLevelsLoading(true);
+                setDataLoading(true);
                 const response = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
 
                 if (response.success) {
                     setLevelData(response.data);
+                    // Initialize with root level options
+                    const rootLevels = response.data.filter((l: AfterAssemblyData) => l.parentId === null);
+                    setLevelOptions([rootLevels]);
+                    setHierarchyPath([]);
                 }
             } catch (error) {
                 toast.error("Failed to load level data");
             } finally {
-                setLevelsLoading(false);
+                setDataLoading(false);
             }
         };
 
         loadLevelData();
     }, [selectedAssembly]);
 
-    // Load assigned users when level is selected
+    // Load assigned users when hierarchy path changes (when a level is selected)
     useEffect(() => {
         const loadAssignedUsers = async () => {
+            const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
+
             if (!selectedLevel) {
                 setAssignedUsers([]);
                 return;
@@ -157,7 +195,7 @@ export default function UserAssignment() {
         };
 
         loadAssignedUsers();
-    }, [selectedLevel]);
+    }, [hierarchyPath]);
 
     // Load all available users
     useEffect(() => {
@@ -189,34 +227,35 @@ export default function UserAssignment() {
     }, [currentPanel]);
 
     const assignedUserIds = useMemo(() => {
-        return new Set(assignedUsers.map((u) => u.user_id || u.id));
+        return new Set((assignedUsers || []).map((u) => u.user_id || u.id));
     }, [assignedUsers]);
 
     const unassignedUsers = useMemo(() => {
-        return allUsers.filter((user) => !assignedUserIds.has(user.user_id));
+        return (allUsers || []).filter((user) => !assignedUserIds.has(user.user_id));
     }, [allUsers, assignedUserIds]);
 
-    const filteredUnassignedUsers = unassignedUsers.filter((user) =>
-        user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUnassignedUsers = (unassignedUsers || []).filter((user) =>
+        user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleAssignUser = async (userId: number) => {
-        if (!selectedLevel) return;
+        const currentLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
+        if (!currentLevel) return;
 
         try {
             setProcessingUserId(userId);
             const response = await assignUserToAfterAssembly({
                 user_id: userId,
-                afterAssemblyData_id: selectedLevel.id,
+                afterAssemblyData_id: currentLevel.id,
             });
 
             if (response.success) {
                 toast.success("User assigned successfully");
 
                 // Reload assigned users
-                const updatedResponse = await fetchAssignedUsersForLevel(selectedLevel.id);
+                const updatedResponse = await fetchAssignedUsersForLevel(currentLevel.id);
                 if (updatedResponse.success && updatedResponse.users) {
                     setAssignedUsers(updatedResponse.users);
                 }
@@ -238,7 +277,7 @@ export default function UserAssignment() {
     };
 
     const handleUnassignUser = async () => {
-        if (!confirmModal.userId || !confirmModal.levelId || !selectedLevel) return;
+        if (!confirmModal.userId || !confirmModal.levelId) return;
 
         try {
             setProcessingUserId(confirmModal.userId);
@@ -250,8 +289,8 @@ export default function UserAssignment() {
             if (response.success) {
                 toast.success("User unassigned successfully");
 
-                // Reload assigned users
-                const updatedResponse = await fetchAssignedUsersForLevel(selectedLevel.id);
+                // Reload assigned users using the levelId from confirmModal
+                const updatedResponse = await fetchAssignedUsersForLevel(confirmModal.levelId);
                 if (updatedResponse.success && updatedResponse.users) {
                     setAssignedUsers(updatedResponse.users);
                 }
@@ -286,130 +325,102 @@ export default function UserAssignment() {
                 </div>
             </div>
 
-            {/* Selection Columns */}
-            <div className="mb-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Districts Column */}
-                <div className="lg:col-span-4">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
-                            <h2 className="text-lg font-bold text-white">Districts</h2>
-                        </div>
-                        <div className="max-h-[500px] overflow-y-auto">
-                            {loading ? (
-                                <div className="p-8 text-center">
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mx-auto"></div>
-                                </div>
-                            ) : districts.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No districts found</div>
-                            ) : (
-                                districts.map((district) => (
-                                    <button
-                                        key={district.location_id}
-                                        onClick={() => {
-                                            setSelectedDistrict(district);
-                                            setSelectedAssembly(null);
-                                            setSelectedLevel(null);
-                                        }}
-                                        className={`w-full p-4 text-left border-b border-gray-100 hover:bg-blue-50 transition-all ${selectedDistrict?.location_id === district.location_id
-                                            ? "bg-blue-50 border-l-4 border-l-blue-500"
-                                            : "border-l-4 border-l-transparent"
-                                            }`}
-                                    >
-                                        <p className={`font-semibold ${selectedDistrict?.location_id === district.location_id
-                                            ? "text-blue-700"
-                                            : "text-gray-900"
-                                            }`}>
-                                            {district.location_name}
-                                        </p>
-                                    </button>
-                                ))
-                            )}
-                        </div>
+            {/* Selection Dropdowns */}
+            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {/* District Select */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Select District
+                        </label>
+                        <select
+                            value={selectedDistrict?.location_id || ""}
+                            onChange={(e) => {
+                                const district = districts.find(d => d.location_id === Number(e.target.value));
+                                setSelectedDistrict(district || null);
+                                setSelectedAssembly(null);
+                                setHierarchyPath([]);
+                                setLevelOptions([]);
+                            }}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                            disabled={loading}
+                        >
+                            <option value="">-- Select District --</option>
+                            {(districts || []).map((district) => (
+                                <option key={district.location_id} value={district.location_id}>
+                                    {district.location_name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Assembly Select */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Select Assembly
+                        </label>
+                        <select
+                            value={selectedAssembly?.location_id || ""}
+                            onChange={(e) => {
+                                const assembly = assemblies.find(a => a.location_id === Number(e.target.value));
+                                setSelectedAssembly(assembly || null);
+                                setHierarchyPath([]);
+                                setLevelOptions([]);
+                            }}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                            disabled={!selectedDistrict || assembliesLoading}
+                        >
+                            <option value="">-- Select Assembly --</option>
+                            {(assemblies || []).map((assembly) => (
+                                <option key={assembly.location_id} value={assembly.location_id}>
+                                    {assembly.location_name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
-                {/* Assemblies Column */}
-                <div className="lg:col-span-4">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4">
-                            <h2 className="text-lg font-bold text-white">Assemblies</h2>
-                        </div>
-                        <div className="max-h-[500px] overflow-y-auto">
-                            {!selectedDistrict ? (
-                                <div className="p-8 text-center text-gray-500">Select a district</div>
-                            ) : assembliesLoading ? (
-                                <div className="p-8 text-center">
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-indigo-600 mx-auto"></div>
-                                </div>
-                            ) : assemblies.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No assemblies found</div>
-                            ) : (
-                                assemblies.map((assembly) => (
-                                    <button
-                                        key={assembly.location_id}
-                                        onClick={() => {
-                                            setSelectedAssembly(assembly);
-                                            setSelectedLevel(null);
-                                        }}
-                                        className={`w-full p-4 text-left border-b border-gray-100 hover:bg-indigo-50 transition-all ${selectedAssembly?.location_id === assembly.location_id
-                                            ? "bg-indigo-50 border-l-4 border-l-indigo-500"
-                                            : "border-l-4 border-l-transparent"
-                                            }`}
-                                    >
-                                        <p className={`font-semibold ${selectedAssembly?.location_id === assembly.location_id
-                                            ? "text-indigo-700"
-                                            : "text-gray-900"
-                                            }`}>
-                                            {assembly.location_name}
-                                        </p>
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic Hierarchy Selects */}
+                {selectedAssembly && levelOptions.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {levelOptions.map((options, index) => {
+                            const selectedValue = hierarchyPath[index]?.id || "";
+                            const levelLabel = index === 0 ? "Root Level" : `Level ${index + 1}`;
 
-                {/* Child Levels Column */}
-                <div className="lg:col-span-4">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4">
-                            <h2 className="text-lg font-bold text-white">Child Levels</h2>
-                        </div>
-                        <div className="max-h-[500px] overflow-y-auto">
-                            {!selectedAssembly ? (
-                                <div className="p-8 text-center text-gray-500">Select an assembly</div>
-                            ) : levelsLoading ? (
-                                <div className="p-8 text-center">
-                                    <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-purple-600 mx-auto"></div>
-                                </div>
-                            ) : levelData.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No child levels found</div>
-                            ) : (
-                                levelData.map((level) => (
-                                    <button
-                                        key={level.id}
-                                        onClick={() => {
-                                            setSelectedLevel(level);
+                            return (
+                                <div key={index}>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        {levelLabel}
+                                    </label>
+                                    <select
+                                        value={selectedValue}
+                                        onChange={(e) => {
+                                            const level = options.find(l => l.id === Number(e.target.value));
+                                            handleLevelSelect(index, level || null);
                                             setShowAssignModal(false);
                                         }}
-                                        className={`w-full p-4 text-left border-b border-gray-100 hover:bg-purple-50 transition-all ${selectedLevel?.id === level.id
-                                            ? "bg-purple-50 border-l-4 border-l-purple-500"
-                                            : "border-l-4 border-l-transparent"
-                                            }`}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
                                     >
-                                        <p className={`font-semibold ${selectedLevel?.id === level.id
-                                            ? "text-purple-700"
-                                            : "text-gray-900"
-                                            }`}>
-                                            {level.displayName}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-1">{level.levelName}</p>
-                                    </button>
-                                ))
-                            )}
-                        </div>
+                                        <option value="">-- Select {levelLabel} --</option>
+                                        {options.map((level) => (
+                                            <option key={level.id} value={level.id}>
+                                                {level.displayName} ({level.levelName})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        })}
                     </div>
-                </div>
+                )}
+
+                {/* Loading States */}
+                {(loading || assembliesLoading || dataLoading) && (
+                    <div className="mt-4 flex items-center justify-center text-gray-500">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mr-2"></div>
+                        <span className="text-sm">Loading...</span>
+                    </div>
+                )}
             </div>
 
             {/* Users Section */}
@@ -438,8 +449,8 @@ export default function UserAssignment() {
                         <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
                             <div className="flex justify-between items-center">
                                 <div className="text-white">
-                                    <h2 className="text-2xl font-bold">{selectedLevel.displayName}</h2>
-                                    <p className="text-purple-100 text-sm mt-1">{selectedLevel.levelName}</p>
+                                    <h2 className="text-2xl font-bold">{selectedLevel?.displayName || 'Level'}</h2>
+                                    <p className="text-purple-100 text-sm mt-1">{selectedLevel?.levelName || ''}</p>
                                 </div>
                                 <button
                                     onClick={() => setShowAssignModal(!showAssignModal)}
@@ -484,7 +495,7 @@ export default function UserAssignment() {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            assignedUsers.map((user) => (
+                                            (assignedUsers || []).map((user) => (
                                                 <tr key={user.user_id || user.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                                         {user.first_name || user.firstName} {user.last_name || user.lastName}
@@ -495,13 +506,15 @@ export default function UserAssignment() {
                                                     </td>
                                                     <td className="px-6 py-4 text-sm">
                                                         <button
-                                                            onClick={() =>
-                                                                openUnassignModal(
-                                                                    user.user_id || user.id,
-                                                                    `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
-                                                                    selectedLevel.id
-                                                                )
-                                                            }
+                                                            onClick={() => {
+                                                                if (selectedLevel?.id) {
+                                                                    openUnassignModal(
+                                                                        user.user_id || user.id,
+                                                                        `${user.first_name || user.firstName} ${user.last_name || user.lastName}`,
+                                                                        selectedLevel.id
+                                                                    );
+                                                                }
+                                                            }}
                                                             disabled={processingUserId === (user.user_id || user.id)}
                                                             className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
                                                         >
@@ -540,7 +553,7 @@ export default function UserAssignment() {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            filteredUnassignedUsers.map((user) => (
+                                            (filteredUnassignedUsers || []).map((user) => (
                                                 <tr key={user.user_id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                                         {user.first_name} {user.last_name}

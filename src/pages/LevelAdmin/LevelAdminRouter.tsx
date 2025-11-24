@@ -3,7 +3,7 @@ import { useAppSelector } from "../../store/hooks";
 import LevelAdminDashboard from "./stateLevel/Dashboard";
 import { DistrictLevelDashboard } from "./districtLevel";
 import { AssemblyLevelDashboard } from "./assemblyLevel";
-import { AfterAssemblyLevelDashboard } from "./afterAssemblyLevel";
+import { SubLevelDashboard } from "./subLevel";
 
 export function LevelAdminDashboardRouter() {
     const { levelId } = useParams<{ levelId: string }>();
@@ -12,6 +12,10 @@ export function LevelAdminDashboardRouter() {
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
 
     // Determine which dashboard to show based on panel name
+    if (currentPanel?.name === "State") {
+        return <LevelAdminDashboard />;
+    }
+
     if (currentPanel?.name === "District") {
         return <DistrictLevelDashboard />;
     }
@@ -20,10 +24,6 @@ export function LevelAdminDashboardRouter() {
         return <AssemblyLevelDashboard />;
     }
 
-    if (currentPanel?.name === "Block") {
-        return <AfterAssemblyLevelDashboard />;
-    }
-
-    // Default to State level dashboard
-    return <LevelAdminDashboard />;
+    // All other levels (Block, Mandal, Polling Center, Booth, etc.) use SubLevel
+    return <SubLevelDashboard />;
 }

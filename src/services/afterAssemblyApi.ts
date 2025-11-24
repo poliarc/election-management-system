@@ -49,7 +49,7 @@ export interface AssignUserPayload {
 
 export interface UnassignUserPayload {
     user_id: number;
-    afterAssemblyData_id: number;
+    afterAssemblyData_ids: number[];
 }
 
 // Create after assembly data
@@ -277,6 +277,31 @@ export async function fetchAssignedUsersForLevel(
     if (!response.ok) {
         const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
         throw new Error(error.message || "Failed to fetch assigned users");
+    }
+
+    return response.json();
+}
+
+// Fetch child levels by parent ID
+export async function fetchChildLevelsByParent(
+    parentId: number
+): Promise<{ success: boolean; message: string; data: AfterAssemblyData[] }> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const url = `${API_CONFIG.BASE_URL}/api/after-assembly-data/parent/${parentId}/children`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch child levels");
     }
 
     return response.json();
