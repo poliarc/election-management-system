@@ -67,6 +67,9 @@ import { PartyAdminDashboard } from "./pages/PartyAdmin/Dashboard";
 import { PartyAdminLevels } from "./pages/PartyAdmin/Levels";
 import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
+import LevelAdminLayout from "./layouts/LevelAdminLayout";
+import LevelAdminDashboard from "./pages/LevelAdmin/Dashboard";
+import UserManagement from "./pages/LevelAdmin/UserManagement";
 
 export default function App() {
   return (
@@ -88,6 +91,13 @@ export default function App() {
             <Route path="levels/:stateId" element={<PartyAdminLevels />} />
             <Route path="users" element={<PartyAdminUsers />} />
             <Route path="roles" element={<PartyAdminRoles />} />
+          </Route>
+
+          {/* Level Admin Routes */}
+          <Route path="leveladmin/:levelId" element={<LevelAdminLayout />}>
+            <Route index element={<LevelAdminDashboard />} />
+            <Route path="dashboard" element={<LevelAdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
