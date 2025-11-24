@@ -1,15 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
-import ConfirmationModal from "../../components/ConfirmationModal";
+import ConfirmationModal from "../../../components/ConfirmationModal";
 import {
     fetchUsersByPartyAndState,
     fetchAssignedUsers,
     assignUserToState,
     unassignUserFromState,
     type User,
-} from "../../services/levelAdminApi";
+} from "../../../services/levelAdminApi";
 
 interface AssignedUser {
     assignment_id?: number;
