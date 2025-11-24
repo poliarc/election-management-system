@@ -3,6 +3,7 @@ import { useAppSelector } from "../../store/hooks";
 import LevelAdminDashboard from "./stateLevel/Dashboard";
 import { DistrictLevelDashboard } from "./districtLevel";
 import { AssemblyLevelDashboard } from "./assemblyLevel";
+import { AfterAssemblyLevelDashboard } from "./afterAssemblyLevel";
 
 export function LevelAdminDashboardRouter() {
     const { levelId } = useParams<{ levelId: string }>();
@@ -17,6 +18,10 @@ export function LevelAdminDashboardRouter() {
 
     if (currentPanel?.name === "Assembly") {
         return <AssemblyLevelDashboard />;
+    }
+
+    if (currentPanel?.name === "Block") {
+        return <AfterAssemblyLevelDashboard />;
     }
 
     // Default to State level dashboard
