@@ -26,6 +26,7 @@ export interface User {
     stateName: string;
     districtName: string | null;
     isActive: number;
+    isSuperAdmin?: number | boolean;
 }
 
 export interface UsersFilterResponse {

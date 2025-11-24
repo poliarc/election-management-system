@@ -73,7 +73,9 @@ export default function UserManagement() {
                 );
 
                 if (response.success) {
-                    setAllUsers(response.data);
+                    // Filter out super admin users
+                    const filteredUsers = response.data.filter((user: User) => !user.isSuperAdmin);
+                    setAllUsers(filteredUsers);
                     setTotalPages(response.pagination.totalPages);
                 }
             } catch (error) {
@@ -200,7 +202,9 @@ export default function UserManagement() {
                     50
                 );
                 if (availableResponse.success) {
-                    setAllUsers(availableResponse.data);
+                    // Filter out super admin users
+                    const filteredUsers = availableResponse.data.filter((user: User) => !user.isSuperAdmin);
+                    setAllUsers(filteredUsers);
                     setTotalPages(availableResponse.pagination.totalPages);
                 }
             }
@@ -272,7 +276,9 @@ export default function UserManagement() {
                     50
                 );
                 if (availableResponse.success) {
-                    setAllUsers(availableResponse.data);
+                    // Filter out super admin users
+                    const filteredUsers = availableResponse.data.filter((user: User) => !user.isSuperAdmin);
+                    setAllUsers(filteredUsers);
                     setTotalPages(availableResponse.pagination.totalPages);
                 }
             }
