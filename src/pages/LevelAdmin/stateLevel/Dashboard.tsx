@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAppSelector } from "../../store/hooks";
-import { fetchAssignedUsers } from "../../services/levelAdminApi";
+import { useAppSelector } from "../../../store/hooks";
+import { fetchAssignedUsers } from "../../../services/levelAdminApi";
 
 export default function LevelAdminDashboard() {
     const { levelId } = useParams<{ levelId: string }>();

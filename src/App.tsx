@@ -68,8 +68,8 @@ import { PartyAdminLevels } from "./pages/PartyAdmin/Levels";
 import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
-import LevelAdminDashboard from "./pages/LevelAdmin/Dashboard";
-import UserManagement from "./pages/LevelAdmin/UserManagement";
+import LevelAdminDashboard from "./pages/LevelAdmin/stateLevel/Dashboard";
+import UserManagement from "./pages/LevelAdmin/stateLevel/UserManagement";
 
 export default function App() {
   return (
