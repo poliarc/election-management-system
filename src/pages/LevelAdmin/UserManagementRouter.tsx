@@ -3,6 +3,7 @@ import { useAppSelector } from "../../store/hooks";
 import UserManagement from "./stateLevel/UserManagement";
 import { DistrictUserManagement } from "./districtLevel";
 import { AssemblyUserManagement } from "./assemblyLevel";
+import { UserAssignment } from "./afterAssemblyLevel";
 
 export function UserManagementRouter() {
     const { levelId } = useParams<{ levelId: string }>();
@@ -17,6 +18,10 @@ export function UserManagementRouter() {
 
     if (currentPanel?.name === "Assembly") {
         return <AssemblyUserManagement />;
+    }
+
+    if (currentPanel?.name === "Block") {
+        return <UserAssignment />;
     }
 
     // Default to State level user management
