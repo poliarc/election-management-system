@@ -24,6 +24,12 @@ export const campaignSchema = yup.object().shape({
       if (!start_date || !value) return true;
       return new Date(value) >= new Date(start_date);
     }),
+  images: yup.array().of(yup.string().url("Must be a valid URL")).default([]),
+  target_levels: yup.array().of(yup.string()).default([]),
 });
 
-export type CampaignFormData = yup.InferType<typeof campaignSchema>;
+export type CampaignFormData = yup.InferType<typeof campaignSchema> & {
+  imageFiles?: File[];
+  targetScopes?: { levelType: string; level_id: string }[];
+  autoInclude?: boolean;
+};
