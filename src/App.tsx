@@ -100,6 +100,7 @@ export default function App() {
             <Route path="users" element={<UserManagementRouter />} />
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
+            <Route path="create-user" element={<UserManagementRouter />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
