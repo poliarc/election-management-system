@@ -209,7 +209,7 @@ const stateItems: NavItem[] = [
   { to: "team", label: "State Team", icon: Icons.team },
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
-  // { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
+  { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
   // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
@@ -222,7 +222,11 @@ const listItems: NavItem[] = [
   { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
-export default function StateSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function StateSidebar({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

@@ -58,6 +58,8 @@ import AssignDistrict from "./pages/State/districts/AssignDistrict";
 import StateMandalListing from "./pages/State/mandal";
 import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
+import { CampaignsStatePage } from "./pages/State/campaigns";
+import { CampaignReportsPage } from "./pages/State/campaigns/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
@@ -153,6 +155,8 @@ export default function App() {
             <Route path="mandal" element={<StateMandalListing />} />
             <Route path="booth" element={<StateBoothListing />} />
             <Route path="karyakarta" element={<StateKaryakartaListing />} />
+            <Route path="campaigns" element={<CampaignsStatePage />} />
+            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="profile" element={<StateProfile />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
