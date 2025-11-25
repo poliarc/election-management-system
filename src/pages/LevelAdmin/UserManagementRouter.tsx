@@ -4,6 +4,7 @@ import UserManagement from "./stateLevel/UserManagement";
 import { DistrictUserManagement } from "./districtLevel";
 import { AssemblyUserManagement } from "./assemblyLevel";
 import { SubLevelManagement, SubLevelUserAssignment } from "./subLevel";
+import BoothManagement from "./subLevel/BoothManagement";
 
 export function UserManagementRouter() {
     const { levelId } = useParams<{ levelId: string }>();
@@ -14,6 +15,9 @@ export function UserManagementRouter() {
 
     // Check if we're on the assign-users route for sub-levels
     const isAssignUsersRoute = location.pathname.includes('/assign-users');
+
+    // Check if we're on the manage-booths route
+    const isManageBoothsRoute = location.pathname.includes('/manage-booths');
 
     // Determine which user management to show based on panel name
     if (currentPanel?.name === "State") {
@@ -29,6 +33,11 @@ export function UserManagementRouter() {
     }
 
     // All other levels (Block, Mandal, Polling Center, Booth, etc.)
+    // Show BoothManagement for /manage-booths route
+    if (isManageBoothsRoute) {
+        return <BoothManagement />;
+    }
+
     // Show UserAssignment for /assign-users route, otherwise SubLevelManagement
     if (isAssignUsersRoute) {
         return <SubLevelUserAssignment />;
