@@ -82,10 +82,33 @@ export const CampaignsStatePage = () => {
       location?: string;
       start_date?: string;
       end_date?: string;
-      images?: string[];
+      images?: (string | undefined)[];
+      imageFiles?: File[];
     }) => {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Convert File objects to data URLs
+      let imageUrls: string[] = [];
+
+      if (data.imageFiles && data.imageFiles.length > 0) {
+        // Convert uploaded files to data URLs
+        const fileToDataUrl = (file: File): Promise<string> => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        };
+
+        imageUrls = await Promise.all(data.imageFiles.map(fileToDataUrl));
+      } else {
+        // Filter out undefined values from images array if no files uploaded
+        imageUrls = (data.images ?? []).filter(
+          (img): img is string => typeof img === "string"
+        );
+      }
 
       if (editingCampaign) {
         // Update existing campaign
@@ -95,7 +118,7 @@ export const CampaignsStatePage = () => {
           location: data.location,
           start_date: data.start_date,
           end_date: data.end_date,
-          images: data.images || [],
+          images: imageUrls,
         });
 
         if (updated) {
@@ -109,7 +132,7 @@ export const CampaignsStatePage = () => {
           location: data.location,
           start_date: data.start_date,
           end_date: data.end_date,
-          images: data.images || [],
+          images: imageUrls,
         });
 
         setCampaigns(getAllCampaigns());
