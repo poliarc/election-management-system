@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  getAllCampaigns,
-  getAllReports,
-} from "../../../modules/campaigns/data/staticCampaignData";
+import { getAllCampaigns, getAllReports } from "../data/staticCampaignData";
 
 export const CampaignReportsPage = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(

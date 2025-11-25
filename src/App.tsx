@@ -22,7 +22,6 @@ import DistrictMandal from "./pages/District/mandal/Mandal";
 import DistrictBooth from "./pages/District/booth/Booth";
 import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenters";
 import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
-import DistrictCampaigns from "./pages/District/campaign/Campaigns";
 import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
 import { DistrictProfile } from "./pages/District/profile/Profile";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
@@ -58,8 +57,8 @@ import AssignDistrict from "./pages/State/districts/AssignDistrict";
 import StateMandalListing from "./pages/State/mandal";
 import StateBoothListing from "./pages/State/booth";
 import StateKaryakartaListing from "./pages/State/karyakarta";
-import { CampaignsStatePage } from "./pages/State/campaigns";
-import { CampaignReportsPage } from "./pages/State/campaigns/CampaignReportsPage";
+import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
+import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
@@ -140,7 +139,8 @@ export default function App() {
               element={<DistrictPollingCenters />}
             />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
-            <Route path="campaigns" element={<DistrictCampaigns />} />
+            <Route path="campaigns" element={<CampaignsStatePage />} />
+            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="initiatives" element={<DistrictInitiatives />} />
             <Route path="profile" element={<DistrictProfile />} />
           </Route>
@@ -174,6 +174,8 @@ export default function App() {
             />
             <Route path="booth" element={<AssemblyBoothPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
+            <Route path="campaigns" element={<CampaignsStatePage />} />
+            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>

@@ -11,7 +11,7 @@ import {
   deleteCampaign,
   endCampaign,
   getReportsByCampaignId,
-} from "../../../modules/campaigns/data/staticCampaignData";
+} from "../data/staticCampaignData";
 
 type ViewMode = "listing" | "form" | "details";
 
