@@ -5,6 +5,7 @@ import { DistrictUserManagement } from "./districtLevel";
 import { AssemblyUserManagement } from "./assemblyLevel";
 import { SubLevelManagement, SubLevelUserAssignment } from "./subLevel";
 import BoothManagement from "./subLevel/BoothManagement";
+import { LevelAdminCreateUser } from "./CreateUser";
 
 export function UserManagementRouter() {
     const { levelId } = useParams<{ levelId: string }>();
@@ -18,6 +19,14 @@ export function UserManagementRouter() {
 
     // Check if we're on the manage-booths route
     const isManageBoothsRoute = location.pathname.includes('/manage-booths');
+
+    // Check if we're on the create-user route
+    const isCreateUserRoute = location.pathname.includes('/create-user');
+
+    // Show Create User page for all panels
+    if (isCreateUserRoute) {
+        return <LevelAdminCreateUser />;
+    }
 
     // Determine which user management to show based on panel name
     if (currentPanel?.name === "State") {
