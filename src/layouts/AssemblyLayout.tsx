@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import AssemblySidebar from "../components/AssemblySidebar";
 import { Topbar } from "../components/Topbar";
+import GlobalChat from "../components/GlobalChat";
 
 export default function AssemblyLayout() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -48,6 +49,7 @@ export default function AssemblyLayout() {
           <Outlet />
         </main>
       </div>
+      <GlobalChat />
     </div>
   );
 }
