@@ -36,6 +36,26 @@ import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import { Profile } from "./pages/Assembly/Profile/Profile";
 import VoterListPage from "./pages/Assembly/voters/VoterListPage";
+import AlphabeticalListPage from "./pages/Assembly/voterReport/Alphabetical/AlphabeticalListPage";
+import AgeWiseListPage from "./pages/Assembly/voterReport/AgeWise/AgeWiseListPage";
+import FamilyReportPage from "./pages/Assembly/voterReport/Family/FamilyReportPage";
+import FamilyHeadReportPage from "./pages/Assembly/voterReport/FamilyHead/FamilyHeadReportPage";
+import DoubleNameReportPage from "./pages/Assembly/voterReport/DoubleName/DoubleNameReportPage";
+import MarriedWomenReportPage from "./pages/Assembly/voterReport/MarriedWomen/MarriedWomenReportPage";
+import SingleVoterReportPage from "./pages/Assembly/voterReport/SingleVoter/SingleVoterReportPage";
+import AddressWiseListPage from "./pages/Assembly/voterReport/AddressWise/AddressWiseListPage";
+import SurnameReportPage from "./pages/Assembly/voterReport/Surname/SurnameReportPage";
+import CasteWiseReportPage from "./pages/Assembly/voterReport/CasteWise/CasteWiseReportPage";
+import PartyWiseListPage from "./pages/Assembly/voterReport/PartyWise/PartyWiseListPage";
+import DeadAliveListPage from "./pages/Assembly/voterReport/DeadAlive/DeadAliveListPage";
+import BirthWiseListPage from "./pages/Assembly/voterReport/BirthWise/BirthWiseListPage";
+import EducationWiseListPage from "./pages/Assembly/voterReport/EducationWise/EducationWiseListPage";
+import HomeShiftedListPage from "./pages/Assembly/voterReport/HomeShifted/HomeShiftedListPage";
+import OutsideLocationListPage from "./pages/Assembly/voterReport/OutsideLocation/OutsideLocationListPage";
+import ProfessionWiseListPage from "./pages/Assembly/voterReport/ProfessionWise/ProfessionWiseListPage";
+import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachListPage";
+import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
+import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
 import BlockDashboard from "./pages/Block/Dashboard";
 import BlockTeam from "./pages/Block/BlockTeam";
 import MandalList from "./pages/Block/mandal/MandalList";
@@ -174,6 +194,26 @@ export default function App() {
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="voter-report/alphabetical" element={<AlphabeticalListPage />} />
+            <Route path="voter-report/age-wise" element={<AgeWiseListPage />} />
+            <Route path="voter-report/family" element={<FamilyReportPage />} />
+            <Route path="voter-report/family-head" element={<FamilyHeadReportPage />} />
+            <Route path="voter-report/double-name" element={<DoubleNameReportPage />} />
+            <Route path="voter-report/married-women" element={<MarriedWomenReportPage />} />
+            <Route path="voter-report/single-voter" element={<SingleVoterReportPage />} />
+            <Route path="voter-report/address-wise" element={<AddressWiseListPage />} />
+            <Route path="voter-report/surname" element={<SurnameReportPage />} />
+            <Route path="voter-report/caste-wise" element={<CasteWiseReportPage />} />
+            <Route path="voter-report/party-wise" element={<PartyWiseListPage />} />
+            <Route path="voter-report/dead-alive" element={<DeadAliveListPage />} />
+            <Route path="voter-report/birth-wise" element={<BirthWiseListPage />} />
+            <Route path="voter-report/education-wise" element={<EducationWiseListPage />} />
+            <Route path="voter-report/home-shifted" element={<HomeShiftedListPage />} />
+            <Route path="voter-report/outside-location" element={<OutsideLocationListPage />} />
+            <Route path="voter-report/profession-wise" element={<ProfessionWiseListPage />} />
+            <Route path="voter-report/approach" element={<ApproachListPage />} />
+            <Route path="voter-report/labharthi" element={<LabharthiListPage />} />
+            <Route path="voter-report/family-labels" element={<FamilyLabelsPage />} />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />

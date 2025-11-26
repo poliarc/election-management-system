@@ -32,6 +32,7 @@ export interface VoterListCandidate {
     gender?: string;
     age?: number;
     birth_date_eng?: string;
+    voter_dob?: string;
     m_section_name?: string;
     voter_first_name_en?: string;
     voter_last_name_en?: string;
