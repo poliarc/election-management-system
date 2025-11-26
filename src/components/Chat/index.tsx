@@ -523,7 +523,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
         { other_user_id: chat.id },
         {
             skip: isGroup || !chat.id,
-            pollingInterval: 15000, // Poll every 15 seconds for open chats (backup)
+            pollingInterval: 3000, // Poll every 3 seconds as backup
             refetchOnMountOrArgChange: true
         }
     );
@@ -532,7 +532,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
         { group_id: chat.id },
         {
             skip: !isGroup || !chat.id,
-            pollingInterval: 15000, // Poll every 15 seconds for open chats (backup)
+            pollingInterval: 3000, // Poll every 3 seconds as backup
             refetchOnMountOrArgChange: true
         }
     );
@@ -565,8 +565,10 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
     }, [directMessages, groupMessages, localMessages, isGroup]);
 
     useEffect(() => {
+        console.log('[ChatPopup] Socket connected:', socketService.isConnected());
+
         const handleNewMessage = (newMessage: any) => {
-            console.log('[ChatPopup] Received message:', newMessage);
+            console.log('[ChatPopup] Received socket message:', newMessage, 'for chat:', chat.id);
             const currentUserId = parseInt(localStorage.getItem("userId") || "0");
 
             if (isGroup) {
@@ -762,27 +764,71 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
 
     const handleSend = async () => {
         if (!message.trim() && selectedFiles.length === 0) return;
+
+        const messageText = message.trim() || "Sent files";
+        const tempId = `temp-${Date.now()}`;
+
+        // Optimistic update - show message immediately
+        const optimisticMessage = {
+            [isGroup ? 'Id' : 'chat_id']: tempId,
+            sender_id: currentUserId,
+            [isGroup ? 'GroupId' : 'receiver_id']: chat.id,
+            message: messageText,
+            message_type: selectedFiles.length > 0 ? "file" : "text",
+            files: selectedFiles.length > 0 ? selectedFiles.map(f => ({
+                url: URL.createObjectURL(f),
+                name: f.name,
+                size: f.size,
+                type: f.type
+            })) : null,
+            read_at: null,
+            isDelete: 0,
+            created_at: new Date().toISOString(),
+            sender_name: "You",
+            sender_email: "",
+            sender_image: null,
+            _optimistic: true
+        };
+
+        setLocalMessages(prev => [...prev, optimisticMessage]);
+
+        // Clear input immediately
+        const messageCopy = message;
+        const filesCopy = [...selectedFiles];
+        setMessage("");
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+
         try {
-            if (isGroup) {
-                await sendGroupMessage({
+            await (isGroup
+                ? sendGroupMessage({
                     group_id: chat.id,
-                    message: message.trim() || "Sent files",
-                    files: selectedFiles.length > 0 ? selectedFiles : undefined
-                }).unwrap();
-            } else {
-                await sendDirectMessage({
+                    message: messageText,
+                    files: filesCopy.length > 0 ? filesCopy : undefined
+                }).unwrap()
+                : sendDirectMessage({
                     receiver_id: chat.id,
-                    message: message.trim() || "Sent files",
-                    files: selectedFiles.length > 0 ? selectedFiles : undefined
-                }).unwrap();
-            }
-            setMessage("");
-            setSelectedFiles([]);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
+                    message: messageText,
+                    files: filesCopy.length > 0 ? filesCopy : undefined
+                }).unwrap()
+            );
+
+            // Remove optimistic message and let the real one come through socket
+            setLocalMessages(prev => prev.filter(msg =>
+                (msg.chat_id || msg.Id) !== tempId
+            ));
         } catch (error) {
             console.error("Failed to send message:", error);
+            // Remove optimistic message on error
+            setLocalMessages(prev => prev.filter(msg =>
+                (msg.chat_id || msg.Id) !== tempId
+            ));
+            // Restore the message
+            setMessage(messageCopy);
+            setSelectedFiles(filesCopy);
+            toast.error("Failed to send message");
         }
     };
 
