@@ -172,6 +172,21 @@ const Icons = {
       />
     </svg>
   ),
+  report: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 // Top-level items
@@ -185,7 +200,7 @@ const primaryItems: NavItem[] = [
   { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
-const otherItems: NavItem[] = [
+const otherItemsBefore: NavItem[] = [
   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
   // {
   //   to: "assigned-campaigns",
@@ -195,6 +210,8 @@ const otherItems: NavItem[] = [
   { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
   { to: "search-voter", label: "Search Voter", icon: Icons.search },
 ];
+
+const otherItemsAfter: NavItem[] = [];
 
 // Booth Management dropdown items
 const boothManagementItems: NavItem[] = [
@@ -226,6 +243,33 @@ export default function AssemblySidebar({
 }: {
   onNavigate?: () => void;
 }) {
+// Voter Reports dropdown items
+const voterReportsItems: NavItem[] = [
+  { to: "voter-report/alphabetical", label: "Alphabetical List", icon: Icons.report },
+  { to: "voter-report/age-wise", label: "Age Wise List", icon: Icons.report },
+  { to: "voter-report/family", label: "Family Report", icon: Icons.report },
+  { to: "voter-report/family-head", label: "Family Head Report", icon: Icons.report },
+  { to: "voter-report/double-name", label: "Double Name Lists", icon: Icons.report },
+  { to: "voter-report/married-women", label: "Married Women Report", icon: Icons.report },
+  { to: "voter-report/single-voter", label: "Single Voter Report", icon: Icons.report },
+  { to: "voter-report/address-wise", label: "Address Wise List", icon: Icons.report },
+  { to: "voter-report/surname", label: "Surname Report", icon: Icons.report },
+  { to: "voter-report/family-labels", label: "Family Labels", icon: Icons.report },
+  { to: "voter-report/caste-wise", label: "Caste Wise List", icon: Icons.report },
+  // { to: "voter-report/area-wise", label: "Area Wise List", icon: Icons.report },
+  { to: "voter-report/party-wise", label: "Party Wise List", icon: Icons.report },
+  { to: "voter-report/dead-alive", label: "Dead/Alive List", icon: Icons.report },
+  { to: "voter-report/birth-wise", label: "Birth Wise List", icon: Icons.report },
+  { to: "voter-report/education-wise", label: "Education Wise List", icon: Icons.report },
+  { to: "voter-report/home-shifted", label: "Home Shifted List", icon: Icons.report },
+  { to: "voter-report/profession-wise", label: "Profession Wise List", icon: Icons.report },
+  { to: "voter-report/outside-location", label: "Outside Location Wise List", icon: Icons.report },
+  { to: "voter-report/labharthi", label: "Labharthi List", icon: Icons.report },
+  { to: "voter-report/approach", label: "Approach List", icon: Icons.report },
+  // { to: "voter-report/survey", label: "Voter Survey List", icon: Icons.report },
+];
+
+export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -253,6 +297,14 @@ export default function AssemblySidebar({
   const [openBoothMgmt, setOpenBoothMgmt] = useState<boolean>(
     isBoothMgmtPathActive
   );
+
+  // Determine if any voter report item is active to default-open the dropdown
+  const isVoterReportPathActive = useMemo(
+    () =>
+      voterReportsItems.some((vr) => location.pathname.startsWith(`${base}/${vr.to}`)),
+    [location.pathname, base]
+  );
+  const [openVoterReports, setOpenVoterReports] = useState<boolean>(isVoterReportPathActive);
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
@@ -301,6 +353,7 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
 
         {/* Booth Management dropdown */}
         <div>
@@ -374,9 +427,94 @@ export default function AssemblySidebar({
             </div>
           )}
         </div>
+        {/* Other items before Voter Reports */}
+        {otherItemsBefore.map((item) => (
+          <NavLink
+            key={item.to}
+            to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
+            className={({ isActive }) =>
+              [
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                isActive
+                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                  : "border border-transparent hover:border-gray-200",
+              ].join(" ")
+            }
+          >
+            <span className="text-indigo-600 shrink-0">{item.icon}</span>
+            <span className="truncate">{item.label}</span>
+            {/** Accent bar */}
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+            {/** Active indicator */}
+            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+          </NavLink>
+        ))}
 
-        {/* Other items */}
-        {otherItems.map((item) => (
+        {/* Voter Reports dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openVoterReports}
+            onClick={() => setOpenVoterReports((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openVoterReports
+                ? "bg-gray-50 ring-1 ring-indigo-200"
+                : "border border-transparent hover:border-gray-200",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.report}
+              <span className="text-black">Voter Reports</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openVoterReports ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openVoterReports && (
+            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1 max-h-96 overflow-y-auto">
+              {voterReportsItems.map((vr) => (
+                <NavLink
+                  key={vr.to}
+                  to={`${base}/${vr.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-50 ring-1 ring-indigo-200"
+                        : "border border-transparent hover:border-gray-200",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{vr.icon}</span>
+                  <span className="truncate">{vr.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Other items after Voter Reports */}
+        {otherItemsAfter.map((item) => (
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
@@ -400,6 +538,7 @@ export default function AssemblySidebar({
           </NavLink>
         ))}
       </nav>
+
 
       {/* Account section */}
       <div className="mt-auto pt-3 pb-5">

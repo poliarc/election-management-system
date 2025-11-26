@@ -14,6 +14,8 @@ import { blockTeamApi } from "./api/blockTeamApi";
 import { afterAssemblyApi } from "./api/afterAssemblyApi";
 import { partyWiseLevelApi } from "./api/partyWiseLevelApi";
 import { partyUserApi } from "./api/partyUserApi";
+import { votersApi } from "./api/votersApi";
+import { chatApi } from "../services/chatApi";
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +34,8 @@ export const store = configureStore({
     [afterAssemblyApi.reducerPath]: afterAssemblyApi.reducer,
     [partyWiseLevelApi.reducerPath]: partyWiseLevelApi.reducer,
     [partyUserApi.reducerPath]: partyUserApi.reducer,
+    [votersApi.reducerPath]: votersApi.reducer,
+    [chatApi.reducerPath]: chatApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -45,7 +49,9 @@ export const store = configureStore({
       .concat(blockTeamApi.middleware)
       .concat(afterAssemblyApi.middleware)
       .concat(partyWiseLevelApi.middleware)
-      .concat(partyUserApi.middleware),
+      .concat(partyUserApi.middleware)
+      .concat(votersApi.middleware)
+      .concat(chatApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

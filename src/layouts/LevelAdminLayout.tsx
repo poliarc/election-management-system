@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import LevelAdminSidebar from "../components/LevelAdminSidebar";
 import { Topbar } from "../components/Topbar";
 import { useState } from "react";
+import GlobalChat from "../components/GlobalChat";
 
 export default function LevelAdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -51,6 +52,9 @@ export default function LevelAdminLayout() {
                     <Outlet />
                 </main>
             </div>
+
+            {/* Global Chat - Available on all pages */}
+            <GlobalChat />
         </div>
     );
 }
