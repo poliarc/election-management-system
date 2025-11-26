@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import StateSidebar from "../components/StateSidebar";
 import { Topbar } from "../components/Topbar";
 import { useState } from "react";
+import GlobalChat from "../components/GlobalChat";
 
 export default function StateLayout() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -19,11 +20,10 @@ export default function StateLayout() {
         {/* Mobile Sidebar Drawer */}
         <div
           className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 
-          ${
-            sidebarOpen
+          ${sidebarOpen
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none"
-          }`}
+            }`}
         >
           {/* Fade Overlay */}
           <div
@@ -37,10 +37,9 @@ export default function StateLayout() {
               absolute left-0 top-0 bottom-0 w-68 bg-white shadow-lg overflow-y-auto
               transform transition-all duration-300 
               ease-[cubic-bezier(0.22,1,0.36,1)]
-              ${
-                sidebarOpen
-                  ? "translate-x-0 opacity-100"
-                  : "-translate-x-4 opacity-0"
+              ${sidebarOpen
+                ? "translate-x-0 opacity-100"
+                : "-translate-x-4 opacity-0"
               }
             `}
           >
@@ -53,6 +52,9 @@ export default function StateLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Global Chat - Available on all pages */}
+      <GlobalChat />
     </div>
   );
 }

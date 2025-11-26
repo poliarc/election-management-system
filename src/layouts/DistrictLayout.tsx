@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import DistrictSidebar from "../components/DistrictSidebar";
 import { Topbar } from "../components/Topbar";
 import { useState } from "react";
+import GlobalChat from "../components/GlobalChat";
 
 export default function DistrictLayout() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -48,6 +49,9 @@ export default function DistrictLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Global Chat - Available on all pages */}
+      <GlobalChat />
     </div>
   );
 }

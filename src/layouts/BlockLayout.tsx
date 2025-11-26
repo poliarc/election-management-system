@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import BlockSidebar from "../components/BlockSidebar";
 import { Topbar } from "../components/Topbar";
+import GlobalChat from "../components/GlobalChat";
 
 export default function BlockLayout() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -48,6 +49,9 @@ export default function BlockLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Global Chat - Available on all pages */}
+      <GlobalChat />
     </div>
   );
 }

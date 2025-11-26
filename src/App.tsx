@@ -71,6 +71,7 @@ import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
+import ChatPage from "./pages/Chat/ChatPage";
 
 export default function App() {
   return (
@@ -98,6 +99,7 @@ export default function App() {
           <Route path="leveladmin/:levelId" element={<LevelAdminLayout />}>
             <Route index element={<LevelAdminDashboardRouter />} />
             <Route path="dashboard" element={<LevelAdminDashboardRouter />} />
+            <Route path="chat" element={<ChatPage />} />
             <Route path="users" element={<UserManagementRouter />} />
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
