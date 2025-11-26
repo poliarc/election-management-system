@@ -159,6 +159,7 @@ export const VoterEditForm: React.FC<Props> = ({
                         <DisplayField label="Voter ID" value={initialValues?.voter_id_epic_no} />
                         <DisplayField label="Gender" value={initialValues?.gender} />
                         <DisplayField label="Age" value={initialValues?.age} />
+                        <DisplayField label="Date of Birth" value={initialValues?.voter_dob} />
                         <DisplayField label="Relation" value={initialValues?.relation} />
                         <DisplayField label="Part No" value={initialValues?.part_no} />
                         <DisplayField label="Serial No" value={initialValues?.sl_no_in_part} />
@@ -197,6 +198,20 @@ export const VoterEditForm: React.FC<Props> = ({
                     />
                 </div>
 
+                {/* Voter Information - Editable */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Voter Information</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <LabeledInput label="Date of Birth" field="voter_dob" register={register} type="date" disabled={editingSection !== 'voter_info'} />
+                    </div>
+                    <ActionButtons
+                        isEditing={editingSection === 'voter_info'}
+                        onEdit={() => handleEdit('voter_info')}
+                        onSave={handleSave}
+                        onCancel={handleCancel}
+                    />
+                </div>
+
                 {/* Political Profiling - Editable */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                     <h2 className="text-lg font-semibold mb-4 text-gray-900">Political Profiling</h2>
@@ -210,7 +225,18 @@ export const VoterEditForm: React.FC<Props> = ({
                         <LabeledInput label="Profession Type" field="profession_type" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Profession Sub Category" field="profession_sub_catg" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Education" field="education" register={register} disabled={editingSection !== 'political'} />
-                        <LabeledInput label="Expired/Alive" field="expired_alive" register={register} disabled={editingSection !== 'political'} />
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium mb-1.5 text-gray-700">Expired/Alive</label>
+                            <select
+                                {...register("expired_alive")}
+                                disabled={editingSection !== 'political'}
+                                className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                            >
+                                <option value="">Select...</option>
+                                <option value="Alive">Alive</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
                         <LabeledInput label="Approach Count" field="approch_count" register={register} type="number" disabled={editingSection !== 'political'} />
                         <LabeledInput label="Approach Reason" field="approach_reason" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Labarthi State" field="labarthi_state" register={register} disabled={editingSection !== 'political'} />
