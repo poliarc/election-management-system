@@ -11,7 +11,7 @@ export default function AssemblyLayout() {
       <Topbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
 
       <div className="flex flex-1 overflow-hidden">
-        
+
         {/* Desktop sidebar */}
         <div className="hidden lg:block w-68 shrink-0 h-full overflow-y-auto">
           <AssemblySidebar />
@@ -44,7 +44,7 @@ export default function AssemblyLayout() {
         </div>
 
         {/* Page Content */}
-       <main className="flex-1 overflow-auto p-4">
+        <main className="flex-1 overflow-auto p-4">
           <Outlet />
         </main>
       </div>
