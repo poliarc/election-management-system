@@ -1,10 +1,11 @@
+import { AssignedEventsPage } from "../../../modules/initative/AssignedEventsPage";
+
 export default function DistrictInitiatives() {
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Assigned Events</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-                <p className="text-gray-600">Assigned events will be displayed here</p>
-            </div>
-        </div>
-    );
+  // For static implementation, using hardcoded district ID
+  // In real app, this would come from user context/auth
+  const userLevelId = 1; // District ID
+
+  return (
+    <AssignedEventsPage userLevelType="DISTRICT" userLevelId={userLevelId} />
+  );
 }

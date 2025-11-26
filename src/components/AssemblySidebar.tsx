@@ -187,20 +187,45 @@ const primaryItems: NavItem[] = [
 
 const otherItems: NavItem[] = [
   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
-  { to: "assigned-campaigns", label: "Assigned Campaigns", icon: Icons.campaigns },
+  // {
+  //   to: "assigned-campaigns",
+  //   label: "Assigned Campaigns",
+  //   icon: Icons.campaigns,
+  // },
+  { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
   { to: "search-voter", label: "Search Voter", icon: Icons.search },
 ];
 
 // Booth Management dropdown items
 const boothManagementItems: NavItem[] = [
-  { to: "booth-management/dashboard", label: "Dashboard", icon: Icons.dashboard },
+  {
+    to: "booth-management/dashboard",
+    label: "Dashboard",
+    icon: Icons.dashboard,
+  },
   { to: "booth-management/agents", label: "Booth Agents", icon: Icons.team },
-  { to: "booth-management/inside", label: "Booth Inside Team", icon: Icons.team },
-  { to: "booth-management/outside", label: "Booth Outside Team", icon: Icons.team },
-  { to: "booth-management/polling-support", label: "Polling Center Support Team", icon: Icons.team },
+  {
+    to: "booth-management/inside",
+    label: "Booth Inside Team",
+    icon: Icons.team,
+  },
+  {
+    to: "booth-management/outside",
+    label: "Booth Outside Team",
+    icon: Icons.team,
+  },
+  {
+    to: "booth-management/polling-support",
+    label: "Polling Center Support Team",
+    icon: Icons.team,
+  },
 ];
 
-export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function AssemblySidebar({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -220,10 +245,14 @@ export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => voi
   // Determine if any booth management item is active to default-open the dropdown
   const isBoothMgmtPathActive = useMemo(
     () =>
-      boothManagementItems.some((bm) => location.pathname.startsWith(`${base}/${bm.to}`)),
+      boothManagementItems.some((bm) =>
+        location.pathname.startsWith(`${base}/${bm.to}`)
+      ),
     [location.pathname, base]
   );
-  const [openBoothMgmt, setOpenBoothMgmt] = useState<boolean>(isBoothMgmtPathActive);
+  const [openBoothMgmt, setOpenBoothMgmt] = useState<boolean>(
+    isBoothMgmtPathActive
+  );
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
@@ -321,13 +350,13 @@ export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => voi
               />
             </svg>
           </button>
-              {openBoothMgmt && (
+          {openBoothMgmt && (
             <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
               {boothManagementItems.map((bm) => (
                 <NavLink
                   key={bm.to}
                   to={`${base}/${bm.to}`}
-                      onClick={() => onNavigate?.()}
+                  onClick={() => onNavigate?.()}
                   className={({ isActive }) =>
                     [
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
