@@ -35,6 +35,7 @@ import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCen
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import { Profile } from "./pages/Assembly/Profile/Profile";
+import VoterListPage from "./pages/Assembly/voters/VoterListPage";
 import BlockDashboard from "./pages/Block/Dashboard";
 import BlockTeam from "./pages/Block/BlockTeam";
 import MandalList from "./pages/Block/mandal/MandalList";
@@ -100,6 +101,7 @@ export default function App() {
             <Route index element={<LevelAdminDashboardRouter />} />
             <Route path="dashboard" element={<LevelAdminDashboardRouter />} />
             <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="users" element={<UserManagementRouter />} />
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
@@ -121,6 +123,7 @@ export default function App() {
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
             <Route path="dashboard" element={<StateOverview />} />
+            <Route path="chat" element={<ChatPage />} />
             <Route path="team" element={<StateTeamListing />} />
             <Route path="districts" element={<StateDistrictsListing />} />
             <Route path="districts/create" element={<CreateDistrict />} />
@@ -130,6 +133,8 @@ export default function App() {
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
             <Route path="dashboard" element={<DistrictDashboard />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="district-team" element={<DistrictTeam />} />
             <Route path="assembly" element={<DistrictAssembly />} />
             <Route path="assembly/create" element={<CreateAssembly />} />
@@ -152,6 +157,7 @@ export default function App() {
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
             <Route path="dashboard" element={<StateOverview />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="team" element={<StateTeamListing />} />
             <Route path="districts" element={<StateDistrictsListing />} />
             <Route path="assembly" element={<StateAssemblyListing />} />
@@ -166,6 +172,8 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />
@@ -185,6 +193,8 @@ export default function App() {
           <Route path="block" element={<BlockLayout />}>
             <Route index element={<BlockDashboard />} />
             <Route path="dashboard" element={<BlockDashboard />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="team" element={<BlockTeam />} />
             <Route path="mandal" element={<MandalList />} />
             <Route path="mandal/create" element={<CreateMandal />} />
