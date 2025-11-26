@@ -14,6 +14,7 @@ import { blockTeamApi } from "./api/blockTeamApi";
 import { afterAssemblyApi } from "./api/afterAssemblyApi";
 import { partyWiseLevelApi } from "./api/partyWiseLevelApi";
 import { partyUserApi } from "./api/partyUserApi";
+import { votersApi } from "./api/votersApi";
 import { chatApi } from "../services/chatApi";
 
 export const store = configureStore({
@@ -33,6 +34,7 @@ export const store = configureStore({
     [afterAssemblyApi.reducerPath]: afterAssemblyApi.reducer,
     [partyWiseLevelApi.reducerPath]: partyWiseLevelApi.reducer,
     [partyUserApi.reducerPath]: partyUserApi.reducer,
+    [votersApi.reducerPath]: votersApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -48,6 +50,7 @@ export const store = configureStore({
       .concat(afterAssemblyApi.middleware)
       .concat(partyWiseLevelApi.middleware)
       .concat(partyUserApi.middleware)
+      .concat(votersApi.middleware)
       .concat(chatApi.middleware),
 });
 
