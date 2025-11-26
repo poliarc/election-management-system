@@ -238,38 +238,97 @@ const boothManagementItems: NavItem[] = [
   },
 ];
 
-export default function AssemblySidebar({
-  onNavigate,
-}: {
-  onNavigate?: () => void;
-}) {
 // Voter Reports dropdown items
 const voterReportsItems: NavItem[] = [
-  { to: "voter-report/alphabetical", label: "Alphabetical List", icon: Icons.report },
+  {
+    to: "voter-report/alphabetical",
+    label: "Alphabetical List",
+    icon: Icons.report,
+  },
   { to: "voter-report/age-wise", label: "Age Wise List", icon: Icons.report },
   { to: "voter-report/family", label: "Family Report", icon: Icons.report },
-  { to: "voter-report/family-head", label: "Family Head Report", icon: Icons.report },
-  { to: "voter-report/double-name", label: "Double Name Lists", icon: Icons.report },
-  { to: "voter-report/married-women", label: "Married Women Report", icon: Icons.report },
-  { to: "voter-report/single-voter", label: "Single Voter Report", icon: Icons.report },
-  { to: "voter-report/address-wise", label: "Address Wise List", icon: Icons.report },
+  {
+    to: "voter-report/family-head",
+    label: "Family Head Report",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/double-name",
+    label: "Double Name Lists",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/married-women",
+    label: "Married Women Report",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/single-voter",
+    label: "Single Voter Report",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/address-wise",
+    label: "Address Wise List",
+    icon: Icons.report,
+  },
   { to: "voter-report/surname", label: "Surname Report", icon: Icons.report },
-  { to: "voter-report/family-labels", label: "Family Labels", icon: Icons.report },
-  { to: "voter-report/caste-wise", label: "Caste Wise List", icon: Icons.report },
+  {
+    to: "voter-report/family-labels",
+    label: "Family Labels",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/caste-wise",
+    label: "Caste Wise List",
+    icon: Icons.report,
+  },
   // { to: "voter-report/area-wise", label: "Area Wise List", icon: Icons.report },
-  { to: "voter-report/party-wise", label: "Party Wise List", icon: Icons.report },
-  { to: "voter-report/dead-alive", label: "Dead/Alive List", icon: Icons.report },
-  { to: "voter-report/birth-wise", label: "Birth Wise List", icon: Icons.report },
-  { to: "voter-report/education-wise", label: "Education Wise List", icon: Icons.report },
-  { to: "voter-report/home-shifted", label: "Home Shifted List", icon: Icons.report },
-  { to: "voter-report/profession-wise", label: "Profession Wise List", icon: Icons.report },
-  { to: "voter-report/outside-location", label: "Outside Location Wise List", icon: Icons.report },
+  {
+    to: "voter-report/party-wise",
+    label: "Party Wise List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/dead-alive",
+    label: "Dead/Alive List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/birth-wise",
+    label: "Birth Wise List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/education-wise",
+    label: "Education Wise List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/home-shifted",
+    label: "Home Shifted List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/profession-wise",
+    label: "Profession Wise List",
+    icon: Icons.report,
+  },
+  {
+    to: "voter-report/outside-location",
+    label: "Outside Location Wise List",
+    icon: Icons.report,
+  },
   { to: "voter-report/labharthi", label: "Labharthi List", icon: Icons.report },
   { to: "voter-report/approach", label: "Approach List", icon: Icons.report },
   // { to: "voter-report/survey", label: "Voter Survey List", icon: Icons.report },
 ];
 
-export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function AssemblySidebar({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
   const user = useAppSelector((s) => s.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -301,10 +360,14 @@ export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => voi
   // Determine if any voter report item is active to default-open the dropdown
   const isVoterReportPathActive = useMemo(
     () =>
-      voterReportsItems.some((vr) => location.pathname.startsWith(`${base}/${vr.to}`)),
+      voterReportsItems.some((vr) =>
+        location.pathname.startsWith(`${base}/${vr.to}`)
+      ),
     [location.pathname, base]
   );
-  const [openVoterReports, setOpenVoterReports] = useState<boolean>(isVoterReportPathActive);
+  const [openVoterReports, setOpenVoterReports] = useState<boolean>(
+    isVoterReportPathActive
+  );
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
@@ -353,7 +416,6 @@ export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => voi
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
-
 
         {/* Booth Management dropdown */}
         <div>
@@ -538,7 +600,6 @@ export default function AssemblySidebar({ onNavigate }: { onNavigate?: () => voi
           </NavLink>
         ))}
       </nav>
-
 
       {/* Account section */}
       <div className="mt-auto pt-3 pb-5">
