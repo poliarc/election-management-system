@@ -24,6 +24,8 @@ import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenter
 import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
 import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
 import { DistrictProfile } from "./pages/District/profile/Profile";
+import AssemblyAssignedEvents from "./pages/Assembly/assigned-events/AssignedEvents";
+import BlockAssignedEvents from "./pages/Block/assigned-events/AssignedEvents";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
 import BlockList from "./pages/Assembly/block/BlockList";
@@ -228,6 +230,10 @@ export default function App() {
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
+            <Route
+              path="assigned-events"
+              element={<AssemblyAssignedEvents />}
+            />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
@@ -240,6 +246,7 @@ export default function App() {
             <Route path="mandal/create" element={<CreateMandal />} />
             <Route path="mandal/assign" element={<AssignMandal />} />
             <Route path="mandal/users" element={<ViewMandalUsers />} />
+            <Route path="assigned-events" element={<BlockAssignedEvents />} />
             <Route path="profile" element={<BlockProfile />} />
           </Route>
         </Route>
