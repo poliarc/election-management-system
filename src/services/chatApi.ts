@@ -229,8 +229,8 @@ export const chatApi = createApi({
         }),
 
         getGroupConversation: builder.query<ChatMessage[], { group_id: number; page?: number; limit?: number }>({
-            query: ({ group_id, limit = 50 }) =>
-                `/group/conversation?group_id=${group_id}&page=${group_id}&limit=${limit}`,
+            query: ({ group_id, page = 1, limit = 50 }) =>
+                `/group/conversation?group_id=${group_id}&page=${page}&limit=${limit}`,
             transformResponse: (response: { data: ChatMessage[] }) => response.data,
             providesTags: (_result, _error, arg) => [{ type: "GroupMessages", id: arg.group_id }],
             keepUnusedDataFor: 0, // Don't cache, always fetch fresh
