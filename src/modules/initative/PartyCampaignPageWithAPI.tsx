@@ -1,9 +1,11 @@
 import type { Campaign, CampaignEvent } from "../../types/initative";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, Bell, Plus, TrendingUp } from "lucide-react";
 import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
+import { useIntegratedInitiative } from "../../hooks/useIntegratedInitiative";
+import { CAMPAIGN_CONFIG } from "../../config/campaignConfig";
 import {
   getCampaignsByLevel,
   updateCampaignAcceptanceStatus,
@@ -34,8 +36,22 @@ const isCampaignRelevantToDistrict = (
 };
 
 export const PartyCampaignPage: React.FC = () => {
+  // Integrated initiative hook
+  const {
+    getMyCampaigns,
+    acceptCampaign,
+    declineCampaign,
+    loading: apiLoading,
+    error: apiError,
+    debugContext,
+  } = useIntegratedInitiative();
+
   // Using static district_id for demo
   const district_id: number = 1;
+
+  // State for API campaigns
+  const [apiCampaigns, setApiCampaigns] = useState<Campaign[]>([]);
+  const [useApiData, setUseApiData] = useState(false);
 
   const deduplicateCampaigns = (campaigns: Campaign[]) => {
     const map = new Map<number, Campaign & { scopes: unknown[] }>();
@@ -159,9 +175,38 @@ export const PartyCampaignPage: React.FC = () => {
     };
   };
 
-  // Get static campaigns for district level
+  // Load campaigns from API or static data
+  useEffect(() => {
+    const loadCampaigns = async () => {
+      try {
+        debugContext();
+        const response = await getMyCampaigns({ isActive: 1 });
+
+        if (response.success && response.campaigns.length > 0) {
+          console.log("Loaded campaigns from API:", response.campaigns);
+          setApiCampaigns(response.campaigns);
+          setUseApiData(true);
+        } else {
+          console.log("No API campaigns found, using static data");
+          setUseApiData(false);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load campaigns from API, using static data:",
+          error
+        );
+        setUseApiData(false);
+      }
+    };
+
+    loadCampaigns();
+  }, [getMyCampaigns, debugContext]);
+
+  // Get campaigns based on data source
   const staticCampaigns = getCampaignsByLevel("DISTRICT", district_id);
-  const campaigns = deduplicateCampaigns(staticCampaigns);
+  const campaignsToUse = useApiData ? apiCampaigns : staticCampaigns;
+  const campaigns = deduplicateCampaigns(campaignsToUse);
+
   const [selectedCampaign, setSelectedCampaign] =
     useState<CampaignEvent | null>(null);
 
@@ -201,29 +246,77 @@ export const PartyCampaignPage: React.FC = () => {
   };
 
   const handleAcceptInvitation = async () => {
+    const campaignId = selectedNotificationForDetail?.campaign_id;
     const acceptanceId = selectedNotificationForDetail?.acceptance_id;
-    if (!acceptanceId) {
-      alert("Invalid campaign scope.");
+
+    if (!campaignId) {
+      alert("Invalid campaign.");
       return;
     }
 
-    updateCampaignAcceptanceStatus(acceptanceId, "accepted");
-    alert("You have accepted this campaign.");
-    setSelectedNotificationForDetail(null);
-    // In a real app, you would refresh the data here
+    try {
+      if (useApiData) {
+        // Use integrated API
+        await acceptCampaign(campaignId, acceptanceId);
+        alert("You have accepted this campaign.");
+
+        // Refresh campaigns
+        const response = await getMyCampaigns({ isActive: 1 });
+        if (response.success) {
+          setApiCampaigns(response.campaigns);
+        }
+      } else {
+        // Use static data
+        if (!acceptanceId) {
+          alert("Invalid campaign scope.");
+          return;
+        }
+        updateCampaignAcceptanceStatus(acceptanceId, "accepted");
+        alert("You have accepted this campaign.");
+      }
+
+      setSelectedNotificationForDetail(null);
+    } catch (error) {
+      console.error("Failed to accept campaign:", error);
+      alert("Failed to accept campaign. Please try again.");
+    }
   };
 
   const handleDeclineInvitation = async () => {
+    const campaignId = selectedNotificationForDetail?.campaign_id;
     const acceptanceId = selectedNotificationForDetail?.acceptance_id;
-    if (!acceptanceId) {
-      alert("Invalid campaign scope.");
+
+    if (!campaignId) {
+      alert("Invalid campaign.");
       return;
     }
 
-    updateCampaignAcceptanceStatus(acceptanceId, "declined");
-    alert("You declined this campaign.");
-    setSelectedNotificationForDetail(null);
-    // In a real app, you would refresh the data here
+    try {
+      if (useApiData) {
+        // Use integrated API
+        await declineCampaign(campaignId, acceptanceId);
+        alert("You declined this campaign.");
+
+        // Refresh campaigns
+        const response = await getMyCampaigns({ isActive: 1 });
+        if (response.success) {
+          setApiCampaigns(response.campaigns);
+        }
+      } else {
+        // Use static data
+        if (!acceptanceId) {
+          alert("Invalid campaign scope.");
+          return;
+        }
+        updateCampaignAcceptanceStatus(acceptanceId, "declined");
+        alert("You declined this campaign.");
+      }
+
+      setSelectedNotificationForDetail(null);
+    } catch (error) {
+      console.error("Failed to decline campaign:", error);
+      alert("Failed to decline campaign. Please try again.");
+    }
   };
 
   // Expects a FormData from the modal/form
@@ -252,11 +345,28 @@ export const PartyCampaignPage: React.FC = () => {
     (n) => filter === "all" || n.acceptance_status === filter
   );
 
-  // No loading or error states needed with static data
-
   return (
     <div className="min-h-screen bg-gray-50 rounded-2xl shadow-md p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
+        {/* API Error Display */}
+        {apiError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            API Error: {apiError}
+          </div>
+        )}
+
+        {/* API Loading Indicator */}
+        {apiLoading && (
+          <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+            Loading campaigns...
+          </div>
+        )}
+
+        {/* Data Source Indicator */}
+        <div className="mb-4 p-2 bg-gray-100 border border-gray-300 text-gray-700 rounded text-sm">
+          Data Source: {useApiData ? "Backend API" : "Static Data"}
+          {useApiData && ` (${apiCampaigns.length} campaigns loaded)`}
+        </div>
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

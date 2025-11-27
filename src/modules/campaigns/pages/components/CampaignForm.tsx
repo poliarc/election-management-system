@@ -3,13 +3,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Send, Plus, X } from "lucide-react";
 import React from "react";
 import {
-  campaignSchema,
-  type CampaignFormData,
+  legacyCampaignSchema,
+  type LegacyCampaignFormData,
 } from "../../../../schemas/campaignSchema";
 import type { Campaign } from "../../../../types/campaign";
 
 interface CampaignFormProps {
-  onSubmit: (data: CampaignFormData) => Promise<void>;
+  onSubmit: (data: LegacyCampaignFormData) => Promise<void>;
   onCancel: () => void;
   initialData?: Partial<Campaign>;
 }
@@ -233,8 +233,8 @@ export const CampaignForm = ({
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
-  } = useForm<CampaignFormData>({
-    resolver: yupResolver(campaignSchema),
+  } = useForm<LegacyCampaignFormData>({
+    resolver: yupResolver(legacyCampaignSchema),
     defaultValues: {
       title: initialData?.name || "",
       description: initialData?.description || "",
@@ -277,7 +277,7 @@ export const CampaignForm = ({
     };
   }, [imagePreviews]);
 
-  const handleFormSubmit = async (data: CampaignFormData) => {
+  const handleFormSubmit = async (data: LegacyCampaignFormData) => {
     // Transform districtSelectors into targetScopes
     const targetScopes: { levelType: string; level_id: string }[] = [];
     districtSelectors.forEach((selector) => {
