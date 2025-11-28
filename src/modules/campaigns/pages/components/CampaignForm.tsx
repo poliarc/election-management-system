@@ -152,18 +152,30 @@ export const CampaignForm = ({
     null
   );
 
+  // Get user's current level type from localStorage
+  const [userLevelType, setUserLevelType] = React.useState<string>("State");
+  const [userParentId, setUserParentId] = React.useState<number | null>(null);
+
   React.useEffect(() => {
     // Read localStorage auth_state using storage helper
     const auth = storage.getAuthState<{
-      selectedAssignment?: { stateMasterData_id?: number; levelType?: string };
+      selectedAssignment?: {
+        stateMasterData_id?: number;
+        levelType?: string;
+        parentId?: number;
+      };
       user?: { partyId?: number };
     }>();
     const sId: number | null =
       auth?.selectedAssignment?.stateMasterData_id ?? null;
     const pId: number | null = auth?.user?.partyId ?? null;
+    const levelType = auth?.selectedAssignment?.levelType ?? "State";
+    const parentId = auth?.selectedAssignment?.parentId ?? null;
     setStateId(sId);
     setPartyId(pId);
-    setCampaignLevel(auth?.selectedAssignment?.levelType ?? "State");
+    setCampaignLevel(levelType);
+    setUserLevelType(levelType);
+    setUserParentId(parentId);
   }, []);
 
   React.useEffect(() => {
@@ -181,13 +193,49 @@ export const CampaignForm = ({
     () => hierarchy?.stateHierarchy ?? [],
     [hierarchy]
   );
-  const districtsData = React.useMemo(
-    () =>
-      stateHierarchy.filter(
-        (n) => n.levelType === "District" && n.ParentId === stateId
-      ),
-    [stateHierarchy, stateId]
-  );
+  const districtsData = React.useMemo(() => {
+    // For District-level users, we need to fetch districts under the parent state (parentId)
+    // For State-level users, fetch districts under their state (stateId)
+    const parentStateId =
+      userLevelType === "District" && userParentId !== null
+        ? userParentId
+        : stateId;
+
+    const allDistricts = stateHierarchy.filter(
+      (n) => n.levelType === "District" && n.ParentId === parentStateId
+    );
+
+    // If user is at District level, only show their own district (stateMasterData_id)
+    if (userLevelType === "District" && stateId !== null) {
+      return allDistricts.filter((n) => n.id === stateId);
+    }
+
+    return allDistricts;
+  }, [stateHierarchy, stateId, userLevelType, userParentId]);
+  // Auto-select district for District-level users
+  React.useEffect(() => {
+    if (
+      userLevelType === "District" &&
+      stateId !== null &&
+      districtsData.length > 0
+    ) {
+      setDistrictSelectors((prev) => {
+        // Check if district is not already selected
+        const currentDistrictIds = prev[0]?.district_ids || [];
+        if (currentDistrictIds.length === 0) {
+          // Auto-select the user's district (stateMasterData_id)
+          return [
+            {
+              ...prev[0],
+              district_ids: [String(stateId)],
+            },
+          ];
+        }
+        return prev;
+      });
+    }
+  }, [userLevelType, stateId, districtsData]);
+
   const assembliesByDistrict = React.useCallback(
     (districtId: string) =>
       stateHierarchy.filter(
@@ -552,6 +600,13 @@ export const CampaignForm = ({
 
     const hasAutoInclude = districtSelectors.some((sel) => sel.autoInclude);
 
+    // When creating campaign from District level, use parentId as state_id (the actual state)
+    // Otherwise use stateId (which is stateMasterData_id from assignment)
+    const campaignStateId =
+      userLevelType === "District" && userParentId !== null
+        ? userParentId
+        : stateId;
+
     await onSubmit({
       ...data,
       imageFiles: selectedImages,
@@ -559,7 +614,7 @@ export const CampaignForm = ({
       autoInclude: hasAutoInclude,
       hierarchySelections,
       campaignLevel,
-      stateId,
+      stateId: campaignStateId,
       partyId,
     });
   };
@@ -725,117 +780,132 @@ export const CampaignForm = ({
 
                 {/* Cascading Dropdowns */}
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-start relative">
-                  {/* District Dropdown with Checkboxes */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      District ({sel.district_ids.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDropdown(idx, "districtOpen");
-                      }}
-                      className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50"
-                    >
-                      {sel.district_ids.length > 0
-                        ? `${sel.district_ids.length} selected`
-                        : "Select Districts"}
-                    </button>
-                    {sel.districtOpen && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                      >
-                        {(loadingHierarchy || hierarchyError) && (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            {loadingHierarchy ? "Loading…" : hierarchyError}
+                  {/* District Dropdown with Checkboxes - Hide if user is at District level or below */}
+                  {userLevelType !== "District" &&
+                    userLevelType !== "Assembly" && (
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          District ({sel.district_ids.length})
+                        </label>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDropdown(idx, "districtOpen");
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50"
+                        >
+                          {sel.district_ids.length > 0
+                            ? `${sel.district_ids.length} selected`
+                            : "Select Districts"}
+                        </button>
+                        {sel.districtOpen && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                          >
+                            {(loadingHierarchy || hierarchyError) && (
+                              <div className="px-3 py-2 text-sm text-gray-500">
+                                {loadingHierarchy ? "Loading…" : hierarchyError}
+                              </div>
+                            )}
+                            {districtsData.map((district) => (
+                              <label
+                                key={district.id}
+                                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={sel.district_ids.includes(
+                                    String(district.id)
+                                  )}
+                                  onChange={() =>
+                                    toggleCheckbox(
+                                      idx,
+                                      "district_ids",
+                                      String(district.id)
+                                    )
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm">
+                                  {district.levelName}
+                                </span>
+                              </label>
+                            ))}
                           </div>
                         )}
-                        {districtsData.map((district) => (
-                          <label
-                            key={district.id}
-                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={sel.district_ids.includes(
-                                String(district.id)
-                              )}
-                              onChange={() =>
-                                toggleCheckbox(
-                                  idx,
-                                  "district_ids",
-                                  String(district.id)
-                                )
-                              }
-                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                            />
-                            <span className="ml-2 text-sm">
-                              {district.levelName}
-                            </span>
-                          </label>
-                        ))}
                       </div>
                     )}
-                  </div>
 
-                  {/* Assembly Dropdown with Checkboxes */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Assembly ({sel.assembly_ids.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDropdown(idx, "assemblyOpen");
-                      }}
-                      disabled={sel.district_ids.length === 0}
-                      className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                      {sel.assembly_ids.length > 0
-                        ? `${sel.assembly_ids.length} selected`
-                        : sel.district_ids.length === 0
-                        ? "Select District first"
-                        : "Select Assemblies"}
-                    </button>
-                    {sel.assemblyOpen && sel.district_ids.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                  {/* Assembly Dropdown with Checkboxes - Hide if user is at Assembly level */}
+                  {userLevelType !== "Assembly" && (
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Assembly ({sel.assembly_ids.length})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDropdown(idx, "assemblyOpen");
+                        }}
+                        disabled={
+                          userLevelType !== "District" &&
+                          sel.district_ids.length === 0
+                        }
+                        className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       >
-                        {sel.district_ids
-                          .flatMap((dId) => assembliesByDistrict(dId))
-                          .map((assembly: StateHierarchyNode) => (
-                            <label
-                              key={assembly.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={sel.assembly_ids.includes(
-                                  String(assembly.id)
-                                )}
-                                onChange={() =>
-                                  toggleCheckbox(
-                                    idx,
-                                    "assembly_ids",
+                        {sel.assembly_ids.length > 0
+                          ? `${sel.assembly_ids.length} selected`
+                          : userLevelType === "District"
+                          ? "Select Assemblies"
+                          : sel.district_ids.length === 0
+                          ? "Select District first"
+                          : "Select Assemblies"}
+                      </button>
+                      {sel.assemblyOpen &&
+                        (userLevelType === "District" ||
+                          sel.district_ids.length > 0) && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                          >
+                            {(userLevelType === "District"
+                              ? assembliesByDistrict(String(stateId))
+                              : sel.district_ids.flatMap((dId) =>
+                                  assembliesByDistrict(dId)
+                                )
+                            ).map((assembly: StateHierarchyNode) => (
+                              <label
+                                key={assembly.id}
+                                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={sel.assembly_ids.includes(
                                     String(assembly.id)
-                                  )
-                                }
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              <span className="ml-2 text-sm">
-                                {assembly.levelName}
-                              </span>
-                            </label>
-                          ))}
-                      </div>
-                    )}
-                  </div>
+                                  )}
+                                  onChange={() =>
+                                    toggleCheckbox(
+                                      idx,
+                                      "assembly_ids",
+                                      String(assembly.id)
+                                    )
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm">
+                                  {assembly.levelName}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                  )}
 
-                  {/* First dynamic after-assembly dropdown (root level) */}
+                  {/* First dynamic after-assembly dropdown (root level) - Start from here if user is at Assembly level */}
                   <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {afterAssemblyLevelLabels.first} ({sel.mandal_ids.length})
@@ -846,23 +916,33 @@ export const CampaignForm = ({
                         e.stopPropagation();
                         toggleDropdown(idx, "mandalOpen");
                       }}
-                      disabled={sel.assembly_ids.length === 0}
+                      disabled={
+                        userLevelType !== "Assembly" &&
+                        sel.assembly_ids.length === 0
+                      }
                       className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       {sel.mandal_ids.length > 0
                         ? `${sel.mandal_ids.length} selected`
+                        : userLevelType === "Assembly"
+                        ? `Select ${afterAssemblyLevelLabels.first}`
                         : sel.assembly_ids.length === 0
                         ? "Select Assembly first"
                         : `Select ${afterAssemblyLevelLabels.first}`}
                     </button>
-                    {sel.mandalOpen && sel.assembly_ids.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                      >
-                        {sel.assembly_ids
-                          .flatMap((aId) => afterAssemblyNodes(aId, null))
-                          .map((mandal) => (
+                    {sel.mandalOpen &&
+                      (userLevelType === "Assembly" ||
+                        sel.assembly_ids.length > 0) && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                        >
+                          {(userLevelType === "Assembly"
+                            ? afterAssemblyNodes(String(stateId), null)
+                            : sel.assembly_ids.flatMap((aId) =>
+                                afterAssemblyNodes(aId, null)
+                              )
+                          ).map((mandal) => (
                             <label
                               key={mandal.id}
                               className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
@@ -886,8 +966,8 @@ export const CampaignForm = ({
                               </span>
                             </label>
                           ))}
-                      </div>
-                    )}
+                        </div>
+                      )}
                   </div>
 
                   {/* Second dynamic after-assembly dropdown (children of first level) */}
