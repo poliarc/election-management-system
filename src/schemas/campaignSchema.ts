@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import type { CampaignHierarchySelection } from "../types/campaign";
 
 export const campaignSchema = yup.object().shape({
   title: yup
@@ -32,4 +33,8 @@ export type CampaignFormData = yup.InferType<typeof campaignSchema> & {
   imageFiles?: File[];
   targetScopes?: { levelType: string; level_id: string }[];
   autoInclude?: boolean;
+  hierarchySelections?: CampaignHierarchySelection[];
+  campaignLevel?: string;
+  stateId?: number | null;
+  partyId?: number | null;
 };

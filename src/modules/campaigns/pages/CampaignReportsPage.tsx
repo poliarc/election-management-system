@@ -15,24 +15,45 @@ export const CampaignReportsPage = () => {
     ? allReports.filter((r) => r.campaign_id === Number(selectedCampaignId))
     : allReports;
 
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const hasSearch = normalizedSearch.length > 0;
+  const matchesSearchTerm = (value?: string | null) => {
+    if (!hasSearch || !value) {
+      return false;
+    }
+    return value.toLowerCase().includes(normalizedSearch);
+  };
+  const matchesPhone = (value?: string | null) => {
+    if (!hasSearch || !value) {
+      return false;
+    }
+    return value.toLowerCase().includes(normalizedSearch);
+  };
+
   // Further filter by search term
-  const searchedReports = filteredReports.filter(
-    (report) =>
-      !searchTerm ||
-      report.personName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.personPhone.includes(searchTerm) ||
-      report.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const searchedReports = filteredReports.filter((report) => {
+    if (!hasSearch) {
+      return true;
+    }
+    return (
+      matchesSearchTerm(report.personName) ||
+      matchesPhone(report.personPhone) ||
+      matchesSearchTerm(report.location)
+    );
+  });
 
   const selectedCampaign = campaigns.find((c) => c.id === selectedCampaignId);
 
   // Calculate stats
   const stats = {
     totalReports: filteredReports.length,
-    totalAttendees: filteredReports.reduce((sum, r) => sum + r.attendees, 0),
+    totalAttendees: filteredReports.reduce(
+      (sum, r) => sum + (r.attendees ?? 0),
+      0
+    ),
     avgAttendees: filteredReports.length
       ? Math.round(
-          filteredReports.reduce((sum, r) => sum + r.attendees, 0) /
+          filteredReports.reduce((sum, r) => sum + (r.attendees ?? 0), 0) /
             filteredReports.length
         )
       : 0,
@@ -64,7 +85,7 @@ export const CampaignReportsPage = () => {
               {campaigns.map((campaign) => (
                 <option key={campaign.id} value={campaign.id}>
                   {campaign.name} (
-                  {campaign.status === 1 ? "Active" : "Completed"})
+                  {campaign.status === 0 ? "Completed" : "Active"})
                 </option>
               ))}
             </select>
@@ -190,7 +211,9 @@ export const CampaignReportsPage = () => {
                           {report.attendees}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {new Date(report.date).toLocaleDateString()}
+                          {report.date
+                            ? new Date(report.date).toLocaleDateString()
+                            : "N/A"}
                         </td>
                       </tr>
                     );

@@ -4,19 +4,37 @@ import type { Campaign, CampaignReport } from "../../../../types/campaign";
 interface CampaignDetailsProps {
   campaign: Campaign;
   reports: CampaignReport[];
+  reportsLoading?: boolean;
+  reportsError?: string | null;
+  isReportsUsingFallback?: boolean;
+  onReloadReports?: () => void | Promise<void>;
   onBack: () => void;
-  onEditCampaign: (campaign: Campaign) => void;
-  onEndCampaign: (campaignId: string, campaignTitle: string) => void;
+  onEditCampaign: (campaign: Campaign) => void | Promise<void>;
+  onEndCampaign: (campaign: Campaign) => void;
 }
 
 export const CampaignDetails = ({
   campaign,
-  reports,
+  reports = [],
+  reportsLoading = false,
+  reportsError = null,
+  isReportsUsingFallback = false,
+  onReloadReports,
   onBack,
   onEditCampaign,
   onEndCampaign,
 }: CampaignDetailsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const isCampaignActive = (campaignData: Campaign) => {
+    if (typeof campaignData.isActive === "number") {
+      return campaignData.isActive !== 0;
+    }
+    if (campaignData.status === undefined || campaignData.status === null) {
+      return true;
+    }
+    return campaignData.status !== 0;
+  };
+  const isActive = isCampaignActive(campaign);
 
   const filteredReports = reports.filter(
     (report) =>
@@ -25,6 +43,10 @@ export const CampaignDetails = ({
         report.personName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (report.personPhone && report.personPhone.includes(searchTerm))
   );
+  const participantCountLabel =
+    reportsLoading && reports.length === 0
+      ? "loading..."
+      : `${filteredReports.length} reports`;
 
   return (
     <div className="space-y-6 p-4 rounded-xl shadow-md bg-gray-50">
@@ -70,7 +92,7 @@ export const CampaignDetails = ({
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-gray-900">
-                Participants Activity ({filteredReports.length} reports)
+                Participants Activity ({participantCountLabel})
               </h2>
               <div className="flex gap-2 items-center w-full sm:w-auto">
                 <input
@@ -83,7 +105,40 @@ export const CampaignDetails = ({
               </div>
             </div>
 
-            {filteredReports.length === 0 ? (
+            {(reportsLoading || reportsError || isReportsUsingFallback) && (
+              <div className="space-y-3 mb-4">
+                {reportsLoading && (
+                  <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-800">
+                    Loading participant activity...
+                  </div>
+                )}
+                {reportsError && (
+                  <div className="flex flex-wrap items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                    <span>{reportsError}</span>
+                    {onReloadReports && (
+                      <button
+                        type="button"
+                        onClick={onReloadReports}
+                        className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-900 hover:bg-red-100"
+                      >
+                        Retry
+                      </button>
+                    )}
+                  </div>
+                )}
+                {isReportsUsingFallback && !reportsError && (
+                  <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-900">
+                    Showing cached reports because live data is unavailable.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {reportsLoading && filteredReports.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Loading participant reports...</p>
+              </div>
+            ) : filteredReports.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-600">
                   {searchTerm
@@ -119,10 +174,10 @@ export const CampaignDetails = ({
                         <td className="px-4 py-3">
                           <div>
                             <p className="font-semibold text-gray-900 text-sm">
-                              {report.personName}
+                              {report.personName || "N/A"}
                             </p>
                             <p className="text-gray-600 text-xs">
-                              {report.personPhone}
+                              {report.personPhone || "N/A"}
                             </p>
                           </div>
                         </td>
@@ -132,13 +187,15 @@ export const CampaignDetails = ({
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {report.attendees}
+                          {report.attendees ?? 0}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {new Date(report.date).toLocaleDateString()}
+                          {report.date
+                            ? new Date(report.date).toLocaleDateString()
+                            : "N/A"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {report.location}
+                          {report.location || "N/A"}
                         </td>
                       </tr>
                     ))}
@@ -161,12 +218,12 @@ export const CampaignDetails = ({
                 <span className="text-gray-600">Status</span>
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
-                    campaign.status === 1
+                    isActive
                       ? "bg-green-100 text-green-800"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  {campaign.status === 1 ? "active" : "completed"}
+                  {isActive ? "active" : "completed"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -194,7 +251,7 @@ export const CampaignDetails = ({
               Actions
             </h2>
             <div className="space-y-3">
-              {campaign.status === 1 && (
+              {isActive && (
                 <>
                   <button
                     onClick={() => onEditCampaign(campaign)}
@@ -203,14 +260,14 @@ export const CampaignDetails = ({
                     Edit Campaign
                   </button>
                   <button
-                    onClick={() => onEndCampaign(campaign.id, campaign.name)}
+                    onClick={() => onEndCampaign(campaign)}
                     className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition"
                   >
                     End Campaign
                   </button>
                 </>
               )}
-              {campaign.status === 0 && (
+              {!isActive && (
                 <div className="text-center py-4 text-gray-500 text-sm">
                   Campaign has been completed
                 </div>
