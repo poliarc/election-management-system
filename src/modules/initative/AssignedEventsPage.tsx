@@ -12,7 +12,7 @@ import {
 } from "./data/staticInitiativeData";
 
 interface AssignedEventsPageProps {
-  userLevelType: "DISTRICT" | "ASSEMBLY" | "BLOCK";
+  userLevelType: "DISTRICT" | "ASSEMBLY" | "BLOCK" | "AFTER_ASSEMBLY" | "SUB_LEVEL";
   userLevelId: number;
 }
 
@@ -268,20 +268,18 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key)}
-                  className={`flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base ${
-                    filter === tab.key
+                  className={`flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base ${filter === tab.key
                       ? "bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg"
                       : "text-gray-600 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <span className="truncate">{tab.label}</span>
                   {tab.count > 0 && (
                     <span
-                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
-                        filter === tab.key
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${filter === tab.key
                           ? "bg-white bg-opacity-25 text-white"
                           : "bg-gray-200 text-gray-600"
-                      }`}
+                        }`}
                     >
                       {tab.count}
                     </span>

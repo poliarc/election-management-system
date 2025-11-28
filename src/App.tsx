@@ -95,6 +95,12 @@ import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
 import ChatPage from "./pages/Chat/ChatPage";
+import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
+import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
+import { AfterAssemblyPanelDashboard, AfterAssemblyPanelTeam, AfterAssemblyChildHierarchy, AfterAssemblyAssignedEvents } from "./pages/AfterAssemblyPanel";
+import { SubLevelPanelDashboard, SubLevelPanelTeam, SubLevelChildHierarchy, SubLevelAssignedEvents } from "./pages/SubLevelPanel";
+import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
+import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 
 export default function App() {
   return (
@@ -248,6 +254,32 @@ export default function App() {
             <Route path="mandal/users" element={<ViewMandalUsers />} />
             <Route path="assigned-events" element={<BlockAssignedEvents />} />
             <Route path="profile" element={<BlockProfile />} />
+          </Route>
+
+          {/* After Assembly Panel Routes */}
+          <Route path="afterassembly/:levelId" element={<AfterAssemblyPanelLayout />}>
+            <Route index element={<AfterAssemblyPanelDashboard />} />
+            <Route path="dashboard" element={<AfterAssemblyPanelDashboard />} />
+            <Route path="team" element={<AfterAssemblyPanelTeam />} />
+            <Route path="child-hierarchy" element={<AfterAssemblyChildHierarchy />} />
+            <Route path="booths" element={<AfterAssemblyBooths />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="assigned-events" element={<AfterAssemblyAssignedEvents />} />
+          </Route>
+
+          {/* Sub Level Panel Routes */}
+          <Route path="sublevel/:levelId" element={<SubLevelPanelLayout />}>
+            <Route index element={<SubLevelPanelDashboard />} />
+            <Route path="dashboard" element={<SubLevelPanelDashboard />} />
+            <Route path="team" element={<SubLevelPanelTeam />} />
+            <Route path="child-hierarchy" element={<SubLevelChildHierarchy />} />
+            <Route path="booths" element={<SubLevelBooths />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="assigned-events" element={<SubLevelAssignedEvents />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

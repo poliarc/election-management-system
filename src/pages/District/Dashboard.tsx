@@ -72,18 +72,35 @@ export default function DistrictDashboard() {
 
     // Get district name from localStorage and update when districtId changes
     useEffect(() => {
-        try {
-            const authState = localStorage.getItem('auth_state');
-            if (authState) {
-                const parsed = JSON.parse(authState);
-                const selectedAssignment = parsed.selectedAssignment;
-                if (selectedAssignment) {
-                    setDistrictName(selectedAssignment.levelName || 'District');
+        const updateDistrictInfo = () => {
+            try {
+                const authState = localStorage.getItem('auth_state');
+                if (authState) {
+                    const parsed = JSON.parse(authState);
+                    const selectedAssignment = parsed.selectedAssignment;
+                    if (selectedAssignment) {
+                        setDistrictName(selectedAssignment.levelName || 'District');
+                    }
                 }
+            } catch (err) {
+                console.error('Error reading district info:', err);
             }
-        } catch (err) {
-            console.error('Error reading district info:', err);
-        }
+        };
+
+        updateDistrictInfo();
+
+        // Listen for assignment changes
+        const handleAssignmentChange = () => {
+            updateDistrictInfo();
+        };
+
+        window.addEventListener('assignmentChanged', handleAssignmentChange);
+        window.addEventListener('districtChanged', handleAssignmentChange);
+
+        return () => {
+            window.removeEventListener('assignmentChanged', handleAssignmentChange);
+            window.removeEventListener('districtChanged', handleAssignmentChange);
+        };
     }, [districtId]); // Re-run when districtId changes
 
     // Fetch blocks and mandals count when assemblies change

@@ -32,7 +32,7 @@ export interface CreateAfterAssemblyDataPayload {
     displayName: string;
     partyLevelId: number;
     parentId: number | null;
-    parentAssemblyId: number;
+    parentAssemblyId: number | null;
 }
 
 export interface UpdateAfterAssemblyDataPayload {
@@ -257,6 +257,31 @@ export async function unassignUserFromAfterAssembly(
     return response.json();
 }
 
+// Fetch booth level data by level ID
+export async function fetchBoothsByLevel(
+    levelId: number
+): Promise<{ success: boolean; message: string; data: any[] }> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const url = `${API_CONFIG.BASE_URL}/api/booth-level-data/level/${levelId}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch booths");
+    }
+
+    return response.json();
+}
+
 // Fetch assigned users for after assembly data
 export async function fetchAssignedUsersForLevel(
     afterAssemblyDataId: number
@@ -305,4 +330,11 @@ export async function fetchChildLevelsByParent(
     }
 
     return response.json();
+}
+
+// Alias for fetchChildLevelsByParent for consistency
+export async function fetchAfterAssemblyChildrenByParent(
+    parentId: number
+): Promise<{ success: boolean; message: string; data: AfterAssemblyData[] }> {
+    return fetchChildLevelsByParent(parentId);
 }

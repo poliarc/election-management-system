@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 import {
     fetchAfterAssemblyDataByAssembly,
+    fetchChildLevelsByParent,
     assignUserToAfterAssembly,
     unassignUserFromAfterAssembly,
     fetchAssignedUsersForLevel,
@@ -20,7 +21,6 @@ export default function UserAssignment() {
 
     const [districts, setDistricts] = useState<HierarchyChild[]>([]);
     const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
-    const [levelData, setLevelData] = useState<AfterAssemblyData[]>([]);
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
 
@@ -54,8 +54,8 @@ export default function UserAssignment() {
 
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
 
-    // Handle selecting a level in the hierarchy
-    const handleLevelSelect = (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
+    // Handle selecting a level in the hierarchy - dynamically load children
+    const handleLevelSelect = async (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
         if (!selectedLevel) {
             // Clear from this level onwards
             setHierarchyPath(prev => prev.slice(0, levelIndex));
@@ -67,13 +67,30 @@ export default function UserAssignment() {
         const newPath = [...hierarchyPath.slice(0, levelIndex), selectedLevel];
         setHierarchyPath(newPath);
 
-        // Load children for the next level
-        const children = levelData.filter(l => l.parentId === selectedLevel.id);
-        if (children.length > 0) {
-            setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), children]);
-        } else {
-            // No more children, remove any levels after this
+        // Check if this is the panel's level - if so, don't load children
+        if (selectedLevel.levelName === currentPanel?.name) {
+            // This is the final level, don't show more options
             setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+            return;
+        }
+
+        // Load children for the next level using the parent API
+        try {
+            setDataLoading(true);
+            const response = await fetchChildLevelsByParent(selectedLevel.id);
+
+            if (response.success && response.data.length > 0) {
+                // Show all children (don't filter yet - let user navigate through hierarchy)
+                setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), response.data]);
+            } else {
+                // No children
+                setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+            }
+        } catch (error) {
+            console.error("Failed to load child levels:", error);
+            setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+        } finally {
+            setDataLoading(false);
         }
     };
 
@@ -134,13 +151,12 @@ export default function UserAssignment() {
         loadAssemblies();
     }, [selectedDistrict]);
 
-    // Load level data when assembly is selected - load all levels for the assembly
+    // Load initial level data when assembly is selected - direct children of assembly
     useEffect(() => {
-        const loadLevelData = async () => {
+        const loadInitialLevelData = async () => {
             if (!selectedAssembly) {
-                setLevelData([]);
-                setHierarchyPath([]);
                 setLevelOptions([]);
+                setHierarchyPath([]);
                 return;
             }
 
@@ -148,21 +164,22 @@ export default function UserAssignment() {
                 setDataLoading(true);
                 const response = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
 
-                if (response.success) {
-                    setLevelData(response.data);
-                    // Initialize with root level options
-                    const rootLevels = response.data.filter((l: AfterAssemblyData) => l.parentId === null);
-                    setLevelOptions([rootLevels]);
-                    setHierarchyPath([]);
+                if (response.success && response.data.length > 0) {
+                    // Show all direct children of assembly (not filtered by panel name yet)
+                    setLevelOptions([response.data]);
+                } else {
+                    setLevelOptions([]);
                 }
+                setHierarchyPath([]);
             } catch (error) {
                 toast.error("Failed to load level data");
+                setLevelOptions([]);
             } finally {
                 setDataLoading(false);
             }
         };
 
-        loadLevelData();
+        loadInitialLevelData();
     }, [selectedAssembly]);
 
     // Load assigned users when hierarchy path changes (when a level is selected)
@@ -385,7 +402,7 @@ export default function UserAssignment() {
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {levelOptions.map((options, index) => {
                             const selectedValue = hierarchyPath[index]?.id || "";
-                            const levelLabel = index === 0 ? "Root Level" : `Level ${index + 1}`;
+                            const levelLabel = options.length > 0 ? `${options[0].levelName}` : `Level ${index + 1}`;
 
                             return (
                                 <div key={index}>

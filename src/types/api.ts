@@ -90,6 +90,9 @@ export interface StateAssignment {
   parentLevelName: string | null;
   parentLevelType: string | null;
   displayName?: string; // Display name from API (e.g., "Badli Block")
+  partyLevelName?: string; // Party level name for dynamic levels
+  partyLevelDisplayName?: string; // Party level display name
+  partyLevelId?: number; // Party level ID
   // Additional fields for Block level
   parentAssemblyId?: number;
   assemblyName?: string;
@@ -112,6 +115,7 @@ export interface ApiPermissions {
   accessibleBlocks: StateAssignment[];
   accessibleMandals: StateAssignment[];
   accessiblePollingCenters: StateAssignment[];
+  accessibleBooths?: any[]; // Booth assignments with different structure
 }
 
 // Login Response Data

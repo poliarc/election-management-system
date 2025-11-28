@@ -134,12 +134,10 @@ export default function ForgotPasswordPage() {
             </div>
 
             <h1 className="text-5xl font-bold leading-tight animate-slide-up">
-              Welcome to
-              <br />
-              Poliarc Services
+              Password Recovery
             </h1>
             <p className="text-xl text-white/80 animate-slide-up delay-200">
-              Secure password reset for your account
+              Secure and quick password reset for your account
             </p>
 
             {/* Decorative Elements */}
@@ -416,7 +414,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Poliarc Services Pvt Ltd. All rights
+            © {new Date().getFullYear()}. All rights
             reserved.
           </p>
         </div>
