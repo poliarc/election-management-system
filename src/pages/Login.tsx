@@ -93,12 +93,10 @@ export default function LoginPage() {
             </div>
 
             <h1 className="text-5xl font-bold leading-tight animate-slide-up">
-              Welcome to
-              <br />
-              Poliarc Services
+              Welcome Back
             </h1>
             <p className="text-xl text-white/80 animate-slide-up delay-200">
-              Secure, fast, and reliable authentication for your organization
+              Secure, fast, and reliable authentication for your party
             </p>
 
             {/* Decorative Elements */}
@@ -310,7 +308,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()} Poliarc Services Pvt Ltd. All rights
+            © {new Date().getFullYear()}. All rights
             reserved.
           </p>
         </div>

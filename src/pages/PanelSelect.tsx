@@ -2,16 +2,17 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { setSelectedAssignment } from "../store/authSlice";
 import type { PanelAssignment } from "../types/auth";
+import type { StateAssignment } from "../types/api";
+import {
+  getPanelRoute,
+  getLevelIcon,
+} from "../utils/panelHelpers";
 
-// All possible level types
-const ALL_LEVELS = [
+// Fixed level types (State → District → Assembly)
+const FIXED_LEVELS = [
   { type: 'State', route: '/state', icon: '🏛️' },
   { type: 'District', route: '/district', icon: '🏙️' },
   { type: 'Assembly', route: '/assembly', icon: '🏢' },
-  { type: 'Block', route: '/block', icon: '🏘️' },
-  { type: 'Mandal', route: '/mandal', icon: '🏪' },
-  { type: 'PollingCenter', route: '/polling-center', icon: '🗳️' },
-  { type: 'Booth', route: '/booth', icon: '📍' },
 ];
 
 // Panel Card Component
@@ -105,6 +106,39 @@ function LevelCard({ levelType, icon, isEnabled, assignmentCount, onClick }: Lev
   );
 }
 
+// Dynamic Level Card Component (for after-assembly levels)
+interface DynamicLevelCardProps {
+  levelType: string;
+  assignmentCount: number;
+  onClick: () => void;
+}
+
+function DynamicLevelCard({ levelType, assignmentCount, onClick }: DynamicLevelCardProps) {
+  const icon = getLevelIcon(levelType);
+
+  return (
+    <button
+      onClick={onClick}
+      className="group rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-left shadow-sm transition bg-white dark:bg-gray-800 hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600 cursor-pointer"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{icon}</span>
+          <div className="font-semibold text-gray-900 dark:text-white">
+            {levelType}
+          </div>
+        </div>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-200">
+          {assignmentCount} Assigned
+        </span>
+      </div>
+      <div className="mt-3 text-purple-600 dark:text-purple-400 text-sm opacity-0 group-hover:opacity-100 transition">
+        Open →
+      </div>
+    </button>
+  );
+}
+
 export default function PanelSelect() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -153,18 +187,129 @@ export default function PanelSelect() {
     }
   };
 
+  const handleDynamicLevelClick = (_levelType: string, assignments: StateAssignment[]) => {
+    // If only one assignment, navigate directly
+    if (assignments.length === 1) {
+      dispatch(setSelectedAssignment(assignments[0]));
+      const route = getPanelRoute(assignments[0]);
+      navigate(route);
+    } else {
+      // Multiple assignments - select first one and navigate (user can switch in topbar)
+      dispatch(setSelectedAssignment(assignments[0]));
+      const route = getPanelRoute(assignments[0]);
+      navigate(route);
+    }
+  };
+
   const hasAnyAccess = isPartyAdmin || isLevelAdmin || hasStateAssignments;
 
-  // Group state assignments by level type and count them
+  // Collect all dynamic level assignments from permissions
+  const dynamicLevelAssignments: StateAssignment[] = [];
+
+  if (permissions) {
+    // Add Blocks
+    if (permissions.accessibleBlocks) {
+      dynamicLevelAssignments.push(...permissions.accessibleBlocks.map(block => {
+        // If parentId is null, it's a direct child of Assembly
+        const isDirectChildOfAssembly = block.parentId === null;
+        return {
+          assignment_id: block.assignment_id,
+          stateMasterData_id: block.afterAssemblyData_id || 0,
+          afterAssemblyData_id: block.afterAssemblyData_id,
+          levelName: block.displayName || block.levelName || 'Block',
+          levelType: block.levelName || 'Block',
+          displayName: block.displayName || block.levelName,
+          level_id: block.level_id,
+          parentId: block.parentId,
+          parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (block.parentLevelName || 'Unknown'),
+          parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (block.parentLevelType || 'Unknown'),
+          parentAssemblyId: block.parentAssemblyId,
+          assemblyName: block.assemblyName,
+        };
+      }));
+    }
+
+    // Add Mandals
+    if (permissions.accessibleMandals) {
+      dynamicLevelAssignments.push(...permissions.accessibleMandals.map(mandal => {
+        const isDirectChildOfAssembly = mandal.parentId === null;
+        return {
+          assignment_id: mandal.assignment_id,
+          stateMasterData_id: mandal.afterAssemblyData_id || 0,
+          afterAssemblyData_id: mandal.afterAssemblyData_id,
+          levelName: mandal.displayName || mandal.levelName || 'Mandal',
+          levelType: mandal.levelName || 'Mandal',
+          displayName: mandal.displayName || mandal.levelName,
+          level_id: mandal.level_id,
+          parentId: mandal.parentId,
+          parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (mandal.parentLevelName || 'Unknown'),
+          parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (mandal.parentLevelType || 'Unknown'),
+          parentAssemblyId: mandal.parentAssemblyId,
+          assemblyName: mandal.assemblyName,
+        };
+      }));
+    }
+
+    // Add Polling Centers
+    if (permissions.accessiblePollingCenters) {
+      dynamicLevelAssignments.push(...permissions.accessiblePollingCenters.map(pc => {
+        const isDirectChildOfAssembly = pc.parentId === null;
+        return {
+          assignment_id: pc.assignment_id,
+          stateMasterData_id: pc.afterAssemblyData_id || 0,
+          afterAssemblyData_id: pc.afterAssemblyData_id,
+          levelName: pc.displayName || pc.levelName || 'PollingCenter',
+          levelType: pc.levelName || 'PollingCenter',
+          displayName: pc.displayName || pc.levelName,
+          level_id: pc.level_id,
+          parentId: pc.parentId,
+          parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (pc.parentLevelName || 'Unknown'),
+          parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (pc.parentLevelType || 'Unknown'),
+          parentAssemblyId: pc.parentAssemblyId,
+          assemblyName: pc.assemblyName,
+        };
+      }));
+    }
+
+    // Add Booths
+    if (permissions.accessibleBooths && permissions.accessibleBooths.length > 0) {
+      dynamicLevelAssignments.push(...permissions.accessibleBooths.map(booth => {
+        const isDirectChildOfAssembly = booth.parentLevelId === null;
+        return {
+          assignment_id: booth.booth_assignment_id,
+          stateMasterData_id: booth.booth_assignment_id || 0,
+          afterAssemblyData_id: booth.booth_assignment_id,
+          levelName: booth.partyLevelName || 'Booth',
+          levelType: booth.partyLevelName || 'Booth',
+          displayName: `${booth.partyLevelDisplayName || 'Booth'} (${booth.boothFrom}-${booth.boothTo})`,
+          level_id: booth.booth_assignment_id,
+          parentId: booth.parentLevelId,
+          parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (booth.parentLevelName || 'PollingCenter'),
+          parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (booth.parentLevelType || 'PollingCenter'),
+          parentAssemblyId: undefined,
+          assemblyName: undefined,
+        };
+      }));
+    }
+  }
+
+  // Group fixed state assignments by level type and count them
   const levelAssignmentCounts = stateAssignments.reduce((acc, assignment) => {
     acc[assignment.levelType] = (acc[assignment.levelType] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  // Add Block assignments from permissions
-  if (permissions?.accessibleBlocks && permissions.accessibleBlocks.length > 0) {
-    levelAssignmentCounts['Block'] = permissions.accessibleBlocks.length;
-  }
+  const hasDynamicLevels = dynamicLevelAssignments.length > 0;
+
+  // Group dynamic assignments by level type
+  const groupedDynamicLevels = dynamicLevelAssignments.reduce((acc, assignment) => {
+    const type = assignment.levelType;
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push(assignment);
+    return acc;
+  }, {} as Record<string, StateAssignment[]>);
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] p-6 bg-gray-50 dark:bg-gray-900">
@@ -225,14 +370,14 @@ export default function PanelSelect() {
             </section>
           )}
 
-          {/* All Levels Section - Show all levels with enabled/disabled state */}
+          {/* Fixed Levels Section - State, District, Assembly */}
           {hasStateAssignments && (
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
                 Level Access
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {ALL_LEVELS.map((level) => {
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {FIXED_LEVELS.map((level) => {
                   const assignmentCount = levelAssignmentCounts[level.type] || 0;
                   const isEnabled = assignmentCount > 0;
 
@@ -248,6 +393,22 @@ export default function PanelSelect() {
                     />
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {/* Dynamic After-Assembly Levels Section */}
+          {hasDynamicLevels && (
+            <section>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(groupedDynamicLevels).map(([levelType, assignments]) => (
+                  <DynamicLevelCard
+                    key={levelType}
+                    levelType={levelType}
+                    assignmentCount={assignments.length}
+                    onClick={() => handleDynamicLevelClick(levelType, assignments)}
+                  />
+                ))}
               </div>
             </section>
           )}

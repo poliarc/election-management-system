@@ -85,10 +85,12 @@ export default function StateOverview() {
 
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("auth_state_changed", handleAuthStateChange);
+    window.addEventListener("assignmentChanged", handleAuthStateChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("auth_state_changed", handleAuthStateChange);
+      window.removeEventListener("assignmentChanged", handleAuthStateChange);
     };
   }, []);
 
@@ -285,9 +287,8 @@ export default function StateOverview() {
             <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-gray-700">
               {filteredCards.length === 0
                 ? "No results"
-                : `${filteredCards.length} result${
-                    filteredCards.length > 1 ? "s" : ""
-                  }`}
+                : `${filteredCards.length} result${filteredCards.length > 1 ? "s" : ""
+                }`}
             </span>
             <span className="text-gray-500">for "{searchTerm}"</span>
           </div>

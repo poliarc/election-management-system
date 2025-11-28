@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 import {
     fetchAfterAssemblyDataByAssembly,
+    fetchChildLevelsByParent,
     createAfterAssemblyData,
     updateAfterAssemblyData,
     deleteAfterAssemblyData,
@@ -114,13 +115,13 @@ export default function SubLevelManagement() {
         loadAssemblies();
     }, [selectedDistrict]);
 
-    // Load level data when assembly is selected - load all levels for the assembly
+    // Load initial level data when assembly is selected - direct children of assembly
     useEffect(() => {
-        const loadLevelData = async () => {
+        const loadInitialLevelData = async () => {
             if (!selectedAssembly) {
                 setLevelData([]);
-                setHierarchyPath([]);
                 setLevelOptions([]);
+                setHierarchyPath([]);
                 return;
             }
 
@@ -129,24 +130,34 @@ export default function SubLevelManagement() {
                 const response = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
 
                 if (response.success) {
+                    // Store all level data for reference
                     setLevelData(response.data);
-                    // Initialize with root level options
-                    const rootLevels = response.data.filter((l: AfterAssemblyData) => l.parentId === null);
-                    setLevelOptions([rootLevels]);
-                    setHierarchyPath([]);
+
+                    // Show all direct children of assembly (not filtered by panel name yet)
+                    if (response.data.length > 0) {
+                        setLevelOptions([response.data]);
+                    } else {
+                        setLevelOptions([]);
+                    }
+                } else {
+                    setLevelData([]);
+                    setLevelOptions([]);
                 }
+                setHierarchyPath([]);
             } catch (error) {
                 toast.error("Failed to load level data");
+                setLevelData([]);
+                setLevelOptions([]);
             } finally {
                 setDataLoading(false);
             }
         };
 
-        loadLevelData();
+        loadInitialLevelData();
     }, [selectedAssembly]);
 
-    // Handle selecting a level in the hierarchy
-    const handleLevelSelect = (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
+    // Handle selecting a level in the hierarchy - dynamically load children
+    const handleLevelSelect = async (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
         if (!selectedLevel) {
             // Clear from this level onwards
             setHierarchyPath(prev => prev.slice(0, levelIndex));
@@ -158,13 +169,37 @@ export default function SubLevelManagement() {
         const newPath = [...hierarchyPath.slice(0, levelIndex), selectedLevel];
         setHierarchyPath(newPath);
 
-        // Load children for the next level
-        const children = levelData.filter(l => l.parentId === selectedLevel.id);
-        if (children.length > 0) {
-            setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), children]);
-        } else {
-            // No more children, remove any levels after this
+        // Check if this is the panel's level - if so, don't load children
+        if (selectedLevel.levelName === currentPanel?.name) {
+            // This is the final level, don't show more options
             setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+            return;
+        }
+
+        // Load children for the next level using the parent API
+        try {
+            setDataLoading(true);
+            const response = await fetchChildLevelsByParent(selectedLevel.id);
+
+            if (response.success && response.data.length > 0) {
+                // Update levelData with new children
+                setLevelData(prev => {
+                    const existingIds = new Set(prev.map(l => l.id));
+                    const newLevels = response.data.filter((l: AfterAssemblyData) => !existingIds.has(l.id));
+                    return [...prev, ...newLevels];
+                });
+
+                // Show all children (don't filter yet - let user navigate through hierarchy)
+                setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), response.data]);
+            } else {
+                // No children
+                setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+            }
+        } catch (error) {
+            console.error("Failed to load child levels:", error);
+            setLevelOptions(prev => prev.slice(0, levelIndex + 1));
+        } finally {
+            setDataLoading(false);
         }
     };
 
@@ -179,36 +214,20 @@ export default function SubLevelManagement() {
             return;
         }
 
-        // If creating a child level (has parentId), get parentAssemblyId from parent
-        // If creating a root level (no parentId), need to select assembly
-        let parentAssemblyId: number;
-
-        if (formData.parentId) {
-            // Get parentAssemblyId from the selected parent level
-            const parentLevel = levelData.find(l => l.id === formData.parentId);
-            if (!parentLevel) {
-                toast.error("Parent level not found");
-                return;
-            }
-            parentAssemblyId = parentLevel.parentAssemblyId;
-        } else {
-            // Root level - need assembly selection
-            if (!selectedAssembly) {
-                toast.error("Please select an assembly");
-                return;
-            }
-            parentAssemblyId = selectedAssembly.location_id;
+        if (!selectedAssembly) {
+            toast.error("Please select an assembly");
+            return;
         }
 
         try {
             const levelNameWithoutSpaces = formData.levelName.replace(/\s+/g, '');
 
-            console.log("Creating level with:", {
+            console.log("Creating sub-level with:", {
                 levelName: levelNameWithoutSpaces,
                 displayName: formData.displayName,
                 partyLevelId: currentPanel.id,
                 parentId: formData.parentId,
-                parentAssemblyId: parentAssemblyId,
+                parentAssemblyId: null, // Always null for sub-levels
             });
 
             const response = await createAfterAssemblyData({
@@ -216,7 +235,7 @@ export default function SubLevelManagement() {
                 displayName: formData.displayName,
                 partyLevelId: currentPanel.id,
                 parentId: formData.parentId,
-                parentAssemblyId: parentAssemblyId,
+                parentAssemblyId: null, // Set to null for sub-levels
             });
 
             if (response.success) {
@@ -224,10 +243,14 @@ export default function SubLevelManagement() {
                 setShowCreateModal(false);
                 setFormData({ levelName: "", displayName: "", parentId: null });
 
-                // Reload data using the parentAssemblyId we just used
-                const updatedResponse = await fetchAfterAssemblyDataByAssembly(parentAssemblyId);
+                // Reload data using the selected assembly
+                const updatedResponse = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
                 if (updatedResponse.success) {
                     setLevelData(updatedResponse.data);
+                    // Rebuild hierarchy options
+                    const rootLevels = updatedResponse.data.filter((l: AfterAssemblyData) => l.parentId === null);
+                    setLevelOptions([rootLevels]);
+                    setHierarchyPath([]);
                 }
             }
         } catch (error) {
@@ -437,7 +460,7 @@ export default function SubLevelManagement() {
                     {!isParentAssembly && levelOptions.map((options, index) => (
                         <div key={index}>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                {index === 0 ? "Select Parent Level" : `Level ${index + 1}`}
+                                {options.length > 0 ? `${options[0].levelName}` : `Level ${index + 1}`}
                             </label>
                             <select
                                 value={hierarchyPath[index]?.id || ""}

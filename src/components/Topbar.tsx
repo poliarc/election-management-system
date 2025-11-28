@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ThemeToggle } from "./ThemeToggle";
@@ -12,6 +12,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   );
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [assignmentMenuOpen, setAssignmentMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -43,44 +44,146 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     };
   }, []);
 
+  // Determine if we're in AfterAssembly or SubLevel panel
+  const isAfterAssemblyPanel = location.pathname.startsWith('/afterassembly/');
+  const isSubLevelPanel = location.pathname.startsWith('/sublevel/');
+
+  // Determine if we're in an admin panel (hide profile link)
+  const isAdminPanel = location.pathname.startsWith('/admin');
+  const isLevelAdminPanel = location.pathname.startsWith('/leveladmin');
+  const isPartyAdminPanel = location.pathname.startsWith('/partyadmin');
+  const shouldHideProfile = isAdminPanel || isLevelAdminPanel || isPartyAdminPanel;
+
   // Get assignments of the same type as currently selected
   const currentLevelType = selectedAssignment?.levelType;
   let sameTypeAssignments: StateAssignment[] = [];
+  let panelType: 'afterassembly' | 'sublevel' | 'standard' = 'standard';
 
-  if (currentLevelType) {
-    if (currentLevelType === 'Block' && permissions?.accessibleBlocks) {
-      // For Block level, use permissions.accessibleBlocks
-      sameTypeAssignments = permissions.accessibleBlocks.map((block) => ({
-        ...block,
-        levelType: 'Block',
-        stateMasterData_id: block.afterAssemblyData_id || 0,
-        // displayName comes from API (e.g., "Badli Block")
-      }));
-    } else {
-      sameTypeAssignments = stateAssignments.filter((a) => a.levelType === currentLevelType);
+  if (isAfterAssemblyPanel || isSubLevelPanel) {
+    // For AfterAssembly and SubLevel panels, get all assignments at the same level
+    panelType = isAfterAssemblyPanel ? 'afterassembly' : 'sublevel';
+
+    // Get the current level type from selectedAssignment
+    const currentLevelName = selectedAssignment?.levelType;
+
+    if (isAfterAssemblyPanel) {
+      // For AfterAssembly panel, get all assignments with same levelName
+      const allAfterAssemblyAssignments = [
+        ...(permissions?.accessibleBlocks || []),
+        ...(permissions?.accessiblePollingCenters || []),
+        ...(permissions?.accessibleMandals || []),
+      ];
+
+      // Filter by the same levelName (e.g., all "PollingCenter" or all "Block")
+      if (currentLevelName) {
+        sameTypeAssignments = allAfterAssemblyAssignments
+          .filter((a: any) => a.levelName === currentLevelName)
+          .map((a: any) => ({
+            assignment_id: a.assignment_id,
+            stateMasterData_id: a.afterAssemblyData_id || 0,
+            afterAssemblyData_id: a.afterAssemblyData_id,
+            levelName: a.displayName || a.levelName,
+            levelType: a.levelName,
+            level_id: a.level_id,
+            parentId: a.parentId || a.parentAssemblyId,
+            parentLevelName: a.assemblyName || a.parentLevelName || 'Unknown',
+            parentLevelType: a.parentLevelType || 'Unknown',
+            displayName: a.displayName,
+            assemblyName: a.assemblyName,
+            partyLevelName: a.partyLevelName,
+            partyLevelDisplayName: a.partyLevelDisplayName,
+            partyLevelId: a.partyLevelId,
+          }));
+      }
+    } else if (isSubLevelPanel) {
+      // For SubLevel panel, get all assignments with same levelName
+      const allSubLevelAssignments = [
+        ...(permissions?.accessiblePollingCenters || []),
+        ...(permissions?.accessibleBooths || []),
+      ];
+
+      // Filter by the same levelName
+      if (currentLevelName) {
+        sameTypeAssignments = allSubLevelAssignments
+          .filter((a: any) => a.levelName === currentLevelName)
+          .map((a: any) => ({
+            assignment_id: a.assignment_id || a.booth_assignment_id,
+            stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+            afterAssemblyData_id: a.afterAssemblyData_id,
+            levelName: a.displayName || a.levelName,
+            levelType: a.levelName,
+            level_id: a.level_id,
+            parentId: a.parentId || a.parentLevelId,
+            parentLevelName: a.parentLevelName || 'Unknown',
+            parentLevelType: a.parentLevelType || 'Unknown',
+            displayName: a.displayName,
+            partyLevelName: a.partyLevelName,
+            partyLevelDisplayName: a.partyLevelDisplayName,
+            partyLevelId: a.partyLevelId,
+          }));
+      }
+    }
+  } else {
+    // Standard panel logic
+    if (currentLevelType) {
+      if (currentLevelType === 'Block' && permissions?.accessibleBlocks) {
+        // For Block level, use permissions.accessibleBlocks
+        sameTypeAssignments = permissions.accessibleBlocks.map((block: any) => ({
+          ...block,
+          levelType: 'Block',
+          stateMasterData_id: block.afterAssemblyData_id || 0,
+          displayName: block.displayName,
+          partyLevelName: block.partyLevelName,
+        }));
+      } else {
+        sameTypeAssignments = stateAssignments.filter((a) => a.levelType === currentLevelType);
+      }
     }
   }
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
+  // Debug logging for dynamic panels
+  if ((isAfterAssemblyPanel || isSubLevelPanel) && process.env.NODE_ENV === 'development') {
+    console.log('🔍 Assignment Selector Debug:', {
+      panelType,
+      currentLevelType,
+      selectedAssignment,
+      sameTypeAssignments,
+      hasMultipleAssignments,
+      pathname: location.pathname
+    });
+  }
+
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     setAssignmentMenuOpen(false);
 
-    // Navigate to the appropriate route based on level type
-    const levelTypeRoutes: Record<string, string> = {
-      State: "/state",
-      District: "/district",
-      Assembly: "/assembly",
-      Block: "/block",
-      Mandal: "/mandal",
-      PollingCenter: "/polling-center",
-      Booth: "/booth",
-    };
+    // Dispatch custom event to trigger data refresh in dashboards
+    window.dispatchEvent(new Event('districtChanged'));
+    window.dispatchEvent(new Event('assignmentChanged'));
 
-    const route = levelTypeRoutes[assignment.levelType];
-    if (route) {
-      navigate(route);
+    // Navigate to the appropriate route based on panel type
+    if (panelType === 'afterassembly') {
+      navigate(`/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+    } else if (panelType === 'sublevel') {
+      navigate(`/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+    } else {
+      // Standard navigation
+      const levelTypeRoutes: Record<string, string> = {
+        State: "/state",
+        District: "/district",
+        Assembly: "/assembly",
+        Block: "/block",
+        Mandal: "/mandal",
+        PollingCenter: "/polling-center",
+        Booth: "/booth",
+      };
+
+      const route = levelTypeRoutes[assignment.levelType];
+      if (route) {
+        navigate(route);
+      }
     }
   };
 
@@ -92,6 +195,18 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   // Get profile route based on current level type
   const getProfileRoute = () => {
     if (!currentLevelType) return "/profile";
+
+    // Check if it's a dynamic level (after assembly)
+    if (selectedAssignment?.afterAssemblyData_id) {
+      const levelId = selectedAssignment.afterAssemblyData_id;
+
+      // Determine if it's a direct child of Assembly or a deeper level
+      if (selectedAssignment.parentId === null || selectedAssignment.parentLevelType === 'Assembly') {
+        return `/afterassembly/${levelId}/profile`;
+      } else {
+        return `/sublevel/${levelId}/profile`;
+      }
+    }
 
     const profileRoutes: Record<string, string> = {
       State: "/state/profile",
@@ -178,7 +293,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               {assignmentMenuOpen && (
                 <div className="absolute left-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                    Switch {currentLevelType}
+                    Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || currentLevelType}
                   </div>
                   {sameTypeAssignments.map((assignment) => (
                     <button
@@ -275,40 +390,43 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   role="menu"
                   className="absolute right-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 z-50"
                 >
-                  <NavLink
-                    to={`${getProfileRoute()}`}
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      [
-                        "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
-                        isActive
-                          ? "bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
-                      ].join(" ")
-                    }
-                  >
-                    <svg
-                      className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
+                  {/* Only show profile link if not in admin panels */}
+                  {!shouldHideProfile && (
+                    <NavLink
+                      to={`${getProfileRoute()}`}
+                      onClick={() => setOpen(false)}
+                      className={({ isActive }) =>
+                        [
+                          "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
+                          isActive
+                            ? "bg-gray-50 text-gray-900 dark:bg-gray-700 dark:text-white"
+                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                        ].join(" ")
+                      }
                     >
-                      <path
-                        d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-7 9a7 7 0 0 1 14 0"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-xs sm:text-sm">My Profile</span>
-                  </NavLink>
+                      <svg
+                        className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path
+                          d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-7 9a7 7 0 0 1 14 0"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span className="text-xs sm:text-sm">My Profile</span>
+                    </NavLink>
+                  )}
 
                   {/* Assignment Switcher in Profile Menu - Mobile Only */}
                   {hasMultipleAssignments && selectedAssignment && (
                     <>
                       <div className="my-2 border-t border-gray-200 dark:border-gray-700 md:hidden" />
                       <div className="px-2 sm:px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide md:hidden">
-                        Switch {currentLevelType}
+                        Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || currentLevelType}
                       </div>
                       <div className="max-h-48 overflow-y-auto md:hidden">
                         {sameTypeAssignments.map((assignment) => (
