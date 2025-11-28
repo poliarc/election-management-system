@@ -35,6 +35,7 @@ export interface PartyUser {
     role_id: number;
     role: string;
     partyName: string;
+    stateName?: string;
     isActive: number;
     isSuperAdmin: number;
     created_on: string;

@@ -292,44 +292,60 @@ export const PartyMasterPage: React.FC = () => {
           <div className="p-5 overflow-y-auto flex-1">
             {loading ? (
               <div className="text-center py-8 text-gray-500">Loading users...</div>
-            ) : partyUsers.length === 0 ? (
+            ) : partyUsers.filter((user) => user.isSuperAdmin !== 1).length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No users found for this party
               </div>
             ) : (
               <div className="space-y-2">
-                {partyUsers.map((user) => (
-                  <div
-                    key={user.user_id}
-                    className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${selectedPartyForAdmin.adminId === user.user_id
-                      ? "bg-blue-100 border-blue-500"
-                      : "border-gray-200"
-                      }`}
-                    onClick={() => handleSelectAdmin(user.user_id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                          <UserCheck className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">
-                            {user.first_name} {user.last_name}
+                {partyUsers
+                  .filter((user) => user.isSuperAdmin !== 1)
+                  .map((user) => (
+                    <div
+                      key={user.user_id}
+                      className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${selectedPartyForAdmin.adminId === user.user_id
+                        ? "bg-blue-100 border-blue-500"
+                        : "border-gray-200"
+                        }`}
+                      onClick={() => handleSelectAdmin(user.user_id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <UserCheck className="w-5 h-5 text-purple-600" />
                           </div>
-                          <div className="text-sm text-gray-600">{user.email}</div>
-                          <div className="text-xs text-gray-500">
-                            {user.role} • {user.contact_no}
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-900">
+                              {user.first_name} {user.last_name}
+                            </div>
+                            <div className="text-sm text-gray-600">{user.email}</div>
+                            <div className="text-xs text-gray-500">
+                              {user.role} • {user.contact_no}
+                            </div>
+                            {(user.stateName || user.partyName) && (
+                              <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
+                                {user.stateName && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                                    📍 {user.stateName}
+                                  </span>
+                                )}
+                                {user.partyName && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                                    🏛️ {user.partyName}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
+                        {selectedPartyForAdmin.adminId === user.user_id && (
+                          <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full flex-shrink-0">
+                            Current Admin
+                          </div>
+                        )}
                       </div>
-                      {selectedPartyForAdmin.adminId === user.user_id && (
-                        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                          Current Admin
-                        </div>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
