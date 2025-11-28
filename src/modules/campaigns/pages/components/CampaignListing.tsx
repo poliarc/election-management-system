@@ -18,9 +18,9 @@ import { useNavigate } from "react-router-dom";
 interface CampaignListingProps {
   campaigns: Campaign[];
   onViewDetails: (campaign: Campaign) => void;
-  onEditCampaign: (campaign: Campaign) => void;
+  onEditCampaign: (campaign: Campaign) => void | Promise<void>;
   onCreateNew: () => void;
-  onDeleteCampaign: (campaignId: string, campaignTitle: string) => void;
+  onDeleteCampaign: (campaign: Campaign) => void;
 }
 
 // Full-screen image modal component
@@ -229,6 +229,16 @@ const extractCampaignImages = (campaign: Campaign): string[] => {
   return images;
 };
 
+const isCampaignActive = (campaign: Campaign): boolean => {
+  if (typeof campaign.isActive === "number") {
+    return campaign.isActive !== 0;
+  }
+  if (campaign.status === null || campaign.status === undefined) {
+    return true;
+  }
+  return campaign.status !== 0;
+};
+
 export const CampaignListing = ({
   campaigns,
   onViewDetails,
@@ -277,31 +287,26 @@ export const CampaignListing = ({
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && campaign.status === 1) ||
-      (statusFilter === "completed" && campaign.status === 0);
+      (statusFilter === "active" && isCampaignActive(campaign)) ||
+      (statusFilter === "completed" && !isCampaignActive(campaign));
 
     return matchesSearch && matchesStatus;
   });
 
   const stats = {
     total: campaigns.length,
-    active: campaigns.filter((c) => c.status === 1).length,
-    completed: campaigns.filter((c) => c.status === 0).length,
+    active: campaigns.filter((c) => isCampaignActive(c)).length,
+    completed: campaigns.filter((c) => !isCampaignActive(c)).length,
     totalParticipants: campaigns.reduce(
       (sum, c) => sum + (c.totalParticipants ?? 0),
       0
     ),
   };
 
-  const getStatusColor = (status: Campaign["status"]) => {
-    switch (status) {
-      case 1:
-        return "bg-green-100 text-green-800";
-      case 0:
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const getStatusColor = (campaign: Campaign) => {
+    return isCampaignActive(campaign)
+      ? "bg-green-100 text-green-800"
+      : "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -460,7 +465,7 @@ export const CampaignListing = ({
                         >
                           <Eye size={16} />
                         </button>
-                        {campaign.status === 1 && (
+                        {isCampaignActive(campaign) && (
                           <button
                             onClick={() => onEditCampaign(campaign)}
                             className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
@@ -470,9 +475,7 @@ export const CampaignListing = ({
                           </button>
                         )}
                         <button
-                          onClick={() =>
-                            onDeleteCampaign(campaign.id, campaign.name)
-                          }
+                          onClick={() => onDeleteCampaign(campaign)}
                           className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
                           title="Delete Campaign"
                         >
@@ -487,10 +490,12 @@ export const CampaignListing = ({
                           </h3>
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                              campaign.status
+                              campaign
                             )}`}
                           >
-                            {campaign.status === 1 ? "active" : "completed"}
+                            {isCampaignActive(campaign)
+                              ? "active"
+                              : "completed"}
                           </span>
                         </div>
                         <p className="text-gray-600 mb-3 truncate w-full min-w-0">

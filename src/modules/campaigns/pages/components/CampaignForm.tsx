@@ -2,6 +2,15 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Send, Plus, X } from "lucide-react";
 import React from "react";
+import campaignApi from "../../../../services/campaignApi";
+import type {
+  AfterAssemblyHierarchyNode,
+  CampaignHierarchyResponse,
+  CampaignHierarchySelection,
+  CampaignHierarchyScopeSelection,
+  StateHierarchyNode,
+} from "../../../../types/campaign";
+import { storage } from "../../../../utils/storage";
 import {
   campaignSchema,
   type CampaignFormData,
@@ -14,6 +23,108 @@ interface CampaignFormProps {
   initialData?: Partial<Campaign>;
 }
 
+type SelectorState = {
+  district_ids: string[];
+  assembly_ids: string[];
+  block_ids: string[];
+  mandal_ids: string[];
+  booth_ids: string[];
+  karyakarta_ids: string[];
+  autoInclude: boolean;
+  districtOpen: boolean;
+  assemblyOpen: boolean;
+  blockOpen: boolean;
+  mandalOpen: boolean;
+  boothOpen: boolean;
+  karyakartaOpen: boolean;
+};
+
+const createEmptySelector = (): SelectorState => ({
+  district_ids: [],
+  assembly_ids: [],
+  block_ids: [],
+  mandal_ids: [],
+  booth_ids: [],
+  karyakarta_ids: [],
+  autoInclude: false,
+  districtOpen: false,
+  assemblyOpen: false,
+  blockOpen: false,
+  mandalOpen: false,
+  boothOpen: false,
+  karyakartaOpen: false,
+});
+
+const convertHierarchySelectionsToSelectors = (
+  selections?: CampaignHierarchyScopeSelection[]
+): SelectorState[] => {
+  if (!selections || selections.length === 0) {
+    return [createEmptySelector()];
+  }
+
+  const selector = createEmptySelector();
+  const pushIfMissing = (bucket: string[], value: string) => {
+    if (!bucket.includes(value)) {
+      bucket.push(value);
+    }
+  };
+
+  selections.forEach((selection) => {
+    if (
+      selection?.hierarchy_id === undefined ||
+      selection.hierarchy_id === null
+    ) {
+      return;
+    }
+
+    const idString = String(selection.hierarchy_id);
+    const normalizedLevel = selection.hierarchy_level_type
+      ? selection.hierarchy_level_type.replace(/\s+/g, "_").toUpperCase()
+      : null;
+
+    switch (normalizedLevel) {
+      case "DISTRICT":
+        pushIfMissing(selector.district_ids, idString);
+        break;
+      case "ASSEMBLY":
+        pushIfMissing(selector.assembly_ids, idString);
+        break;
+      case "BLOCK":
+        pushIfMissing(selector.block_ids, idString);
+        break;
+      case "MANDAL":
+        pushIfMissing(selector.mandal_ids, idString);
+        break;
+      case "POLLING_CENTER":
+      case "POLLINGCENTER":
+      case "POLLING_CENTRE":
+      case "POLLINGCENTRE":
+      case "BOOTH":
+        pushIfMissing(selector.booth_ids, idString);
+        break;
+      case "KARYAKARTA":
+        pushIfMissing(selector.karyakarta_ids, idString);
+        break;
+      default:
+        if (selection.hierarchy_type === "stateMasterData") {
+          pushIfMissing(selector.district_ids, idString);
+        } else if (selection.hierarchy_type === "afterAssemblyData") {
+          pushIfMissing(selector.block_ids, idString);
+        }
+    }
+
+    const toggleValue =
+      typeof selection.toggle_on === "number"
+        ? selection.toggle_on === 1
+        : Boolean(selection.toggle_on);
+    if (toggleValue) {
+      selector.autoInclude = true;
+    }
+  });
+
+  return [selector];
+};
+
 export const CampaignForm = ({
   onSubmit,
   onCancel,
@@ -25,72 +136,133 @@ export const CampaignForm = ({
 
   // Cascading dropdown states - Multi-selector support
   const maxSelectors = 5;
-  const [districtSelectors, setDistrictSelectors] = React.useState([
-    {
-      district_ids: [] as string[],
-      assembly_ids: [] as string[],
-      block_ids: [] as string[],
-      mandal_ids: [] as string[],
-      booth_ids: [] as string[],
-      karyakarta_ids: [] as string[],
-      autoInclude: false,
-      // Dropdown open states
-      districtOpen: false,
-      assemblyOpen: false,
-      blockOpen: false,
-      mandalOpen: false,
-      boothOpen: false,
-      karyakartaOpen: false,
-    },
-  ]);
+  const [districtSelectors, setDistrictSelectors] = React.useState<
+    SelectorState[]
+  >([createEmptySelector()]);
 
-  // Static data for dropdowns
-  const staticData = {
-    districts: [
-      { id: "1", name: "Kamrup Metropolitan" },
-      { id: "2", name: "Kamrup" },
-      { id: "3", name: "Nagaon" },
-      { id: "4", name: "Sonitpur" },
-      { id: "5", name: "Dibrugarh" },
-    ],
-    assemblies: [
-      { id: "1", name: "Dispur", districtId: "1" },
-      { id: "2", name: "Gauhati East", districtId: "1" },
-      { id: "3", name: "Gauhati West", districtId: "1" },
-      { id: "4", name: "Rangia", districtId: "2" },
-      { id: "5", name: "Hojai", districtId: "3" },
-      { id: "6", name: "Tezpur", districtId: "4" },
-      { id: "7", name: "Dibrugarh East", districtId: "5" },
-    ],
-    blocks: [
-      { id: "1", name: "Block A", assemblyId: "1" },
-      { id: "2", name: "Block B", assemblyId: "1" },
-      { id: "3", name: "Block C", assemblyId: "2" },
-      { id: "4", name: "Block D", assemblyId: "3" },
-      { id: "5", name: "Block E", assemblyId: "4" },
-    ],
-    mandals: [
-      { id: "1", name: "Mandal 1", blockId: "1" },
-      { id: "2", name: "Mandal 2", blockId: "1" },
-      { id: "3", name: "Mandal 3", blockId: "2" },
-      { id: "4", name: "Mandal 4", blockId: "3" },
-      { id: "5", name: "Mandal 5", blockId: "4" },
-    ],
-    booths: [
-      { id: "1", name: "Booth 101", assemblyId: "1" },
-      { id: "2", name: "Booth 102", assemblyId: "1" },
-      { id: "3", name: "Booth 103", assemblyId: "2" },
-      { id: "4", name: "Booth 104", assemblyId: "3" },
-      { id: "5", name: "Booth 105", assemblyId: "4" },
-    ],
-    karyakartas: [
-      { id: "1", name: "Rajesh Kumar", assemblyId: "1" },
-      { id: "2", name: "Priya Sharma", assemblyId: "1" },
-      { id: "3", name: "Amit Singh", assemblyId: "2" },
-      { id: "4", name: "Sneha Patel", assemblyId: "3" },
-      { id: "5", name: "Rahul Verma", assemblyId: "4" },
-    ],
-  };
+  // Dynamic data from API for District and Assembly
+  const [stateId, setStateId] = React.useState<number | null>(null);
+  const [partyId, setPartyId] = React.useState<number | null>(null);
+  const [campaignLevel, setCampaignLevel] = React.useState<string>("State");
+  const [hierarchy, setHierarchy] = React.useState<
+    CampaignHierarchyResponse["data"] | null
+  >(null);
+  const [loadingHierarchy, setLoadingHierarchy] = React.useState(false);
+  const [hierarchyError, setHierarchyError] = React.useState<string | null>(
+    null
+  );
+
+  React.useEffect(() => {
+    // Read localStorage auth_state using storage helper
+    const auth = storage.getAuthState<{
+      selectedAssignment?: { stateMasterData_id?: number; levelType?: string };
+      user?: { partyId?: number };
+    }>();
+    const sId: number | null =
+      auth?.selectedAssignment?.stateMasterData_id ?? null;
+    const pId: number | null = auth?.user?.partyId ?? null;
+    setStateId(sId);
+    setPartyId(pId);
+    setCampaignLevel(auth?.selectedAssignment?.levelType ?? "State");
+  }, []);
+
+  React.useEffect(() => {
+    if (!stateId || !partyId) return;
+    setLoadingHierarchy(true);
+    setHierarchyError(null);
+    campaignApi
+      .fetchHierarchy(stateId, partyId)
+      .then((res) => setHierarchy(res.data))
+      .catch((e) => setHierarchyError(e?.message ?? "Failed to load hierarchy"))
+      .finally(() => setLoadingHierarchy(false));
+  }, [stateId, partyId]);
+
+  const stateHierarchy = React.useMemo(
+    () => hierarchy?.stateHierarchy ?? [],
+    [hierarchy]
+  );
+  const districtsData = React.useMemo(
+    () =>
+      stateHierarchy.filter(
+        (n) => n.levelType === "District" && n.ParentId === stateId
+      ),
+    [stateHierarchy, stateId]
+  );
+  const assembliesByDistrict = React.useCallback(
+    (districtId: string) =>
+      stateHierarchy.filter(
+        (n) => n.levelType === "Assembly" && n.ParentId === Number(districtId)
+      ),
+    [stateHierarchy]
+  );
+
+  // After-assembly chaining derived dynamically from API response
+  const afterAssemblyHierarchy = React.useMemo(
+    () => hierarchy?.afterAssemblyHierarchy ?? [],
+    [hierarchy]
+  );
+  const afterAssemblyNodes = React.useCallback(
+    (assemblyId: string, parentId: string | null) =>
+      afterAssemblyHierarchy.filter((node) => {
+        if (node.parentAssemblyId !== Number(assemblyId)) {
+          return false;
+        }
+        if (parentId === null) {
+          return node.parentId === null;
+        }
+        return node.parentId === Number(parentId);
+      }),
+    [afterAssemblyHierarchy]
+  );
+
+  const afterAssemblyLevelLabels = React.useMemo(() => {
+    if (!afterAssemblyHierarchy.length) {
+      return {
+        first: "Level 1",
+        second: "Level 2",
+        third: "Level 3",
+      };
+    }
+
+    const nodeMap = new Map<number, AfterAssemblyHierarchyNode>();
+    afterAssemblyHierarchy.forEach((node) => nodeMap.set(node.id, node));
+
+    const depthMap = new Map<number, number>();
+    const labelMap = new Map<number, string>();
+
+    const getDepth = (node: AfterAssemblyHierarchyNode): number => {
+      if (depthMap.has(node.id)) {
+        return depthMap.get(node.id)!;
+      }
+
+      if (node.parentId === null) {
+        depthMap.set(node.id, 0);
+        if (!labelMap.has(0) && node.display_level_name) {
+          labelMap.set(0, node.display_level_name);
+        }
+        return 0;
+      }
+
+      const parentNode = node.parentId ? nodeMap.get(node.parentId) : undefined;
+      const parentDepth = parentNode ? getDepth(parentNode) : 0;
+      const depth = parentDepth + 1;
+      depthMap.set(node.id, depth);
+      if (!labelMap.has(depth) && node.display_level_name) {
+        labelMap.set(depth, node.display_level_name);
+      }
+      return depth;
+    };
+
+    afterAssemblyHierarchy.forEach(getDepth);
+
+    const fallbackLabel = (depth: number) => `Level ${depth + 1}`;
+
+    return {
+      first: labelMap.get(0) ?? fallbackLabel(0),
+      second: labelMap.get(1) ?? fallbackLabel(1),
+      third: labelMap.get(2) ?? fallbackLabel(2),
+    };
+  }, [afterAssemblyHierarchy]);
 
   const handleSelectorChange = (
     idx: number,
@@ -174,29 +346,94 @@ export const CampaignForm = ({
       alert(`Maximum ${maxSelectors} selectors allowed`);
       return;
     }
-    setDistrictSelectors((prev) => [
-      ...prev,
-      {
-        district_ids: [],
-        assembly_ids: [],
-        block_ids: [],
-        mandal_ids: [],
-        booth_ids: [],
-        karyakarta_ids: [],
-        autoInclude: false,
-        districtOpen: false,
-        assemblyOpen: false,
-        blockOpen: false,
-        mandalOpen: false,
-        boothOpen: false,
-        karyakartaOpen: false,
-      },
-    ]);
+    setDistrictSelectors((prev) => [...prev, createEmptySelector()]);
   };
 
   const handleRemoveSelector = (idx: number) => {
     setDistrictSelectors((prev) => prev.filter((_, i) => i !== idx));
   };
+
+  const formatDateForInput = React.useCallback((dateString?: string | null) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    const userOffset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() - userOffset);
+    return localDate.toISOString().split("T")[0];
+  }, []);
+
+  const buildDefaultValues = React.useCallback(
+    (data?: Partial<Campaign>): CampaignFormData => ({
+      title: data?.name ?? "",
+      description: data?.description ?? "",
+      location: data?.location ?? "",
+      start_date: data?.start_date ? formatDateForInput(data.start_date) : "",
+      end_date: data?.end_date ? formatDateForInput(data.end_date) : "",
+      images: Array.isArray(data?.images)
+        ? data?.images
+        : data?.image
+        ? [data.image]
+        : [],
+      target_levels: [],
+    }),
+    [formatDateForInput]
+  );
+
+  const formDefaults = React.useMemo(
+    () => buildDefaultValues(initialData),
+    [buildDefaultValues, initialData]
+  );
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CampaignFormData>({
+    resolver: yupResolver(campaignSchema),
+    defaultValues: formDefaults,
+  });
+
+  React.useEffect(() => {
+    reset(buildDefaultValues(initialData));
+  }, [buildDefaultValues, initialData, reset]);
+
+  const isEditing = Boolean(initialData?.id);
+
+  React.useEffect(() => {
+    if (!initialData?.hierarchy_selections?.length) {
+      setDistrictSelectors([createEmptySelector()]);
+      return;
+    }
+    setDistrictSelectors(
+      convertHierarchySelectionsToSelectors(initialData.hierarchy_selections)
+    );
+  }, [initialData]);
+
+  React.useEffect(() => {
+    if (!initialData) {
+      setImagePreviews([]);
+      setSelectedImages([]);
+      return;
+    }
+
+    if (Array.isArray(initialData.images) && initialData.images.length > 0) {
+      setImagePreviews(initialData.images);
+      setSelectedImages([]);
+      return;
+    }
+
+    if (initialData.image) {
+      setImagePreviews([initialData.image]);
+      setSelectedImages([]);
+      return;
+    }
+
+    setImagePreviews([]);
+    setSelectedImages([]);
+  }, [initialData]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -228,45 +465,6 @@ export const CampaignForm = ({
     fileInputRef.current?.click();
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setValue,
-  } = useForm<CampaignFormData>({
-    resolver: yupResolver(campaignSchema),
-    defaultValues: {
-      title: initialData?.name || "",
-      description: initialData?.description || "",
-      location: initialData?.location || "",
-      start_date: initialData?.start_date || "",
-      end_date: initialData?.end_date || "",
-    },
-  });
-
-  const isEditing = Boolean(initialData?.id);
-
-  // Fix timezone issue for date inputs
-  const formatDateForInput = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const userOffset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - userOffset);
-    return localDate.toISOString().split("T")[0];
-  };
-
-  React.useEffect(() => {
-    if (isEditing && initialData) {
-      if (initialData.start_date) {
-        setValue("start_date", formatDateForInput(initialData.start_date));
-      }
-      if (initialData.end_date) {
-        setValue("end_date", formatDateForInput(initialData.end_date));
-      }
-    }
-  }, [isEditing, initialData, setValue]);
-
-  // Cleanup image previews on unmount
   React.useEffect(() => {
     return () => {
       imagePreviews.forEach((preview) => {
@@ -278,30 +476,75 @@ export const CampaignForm = ({
   }, [imagePreviews]);
 
   const handleFormSubmit = async (data: CampaignFormData) => {
-    // Transform districtSelectors into targetScopes
+    if (!stateId || !partyId) {
+      alert(
+        "Assignment context missing. Please reselect your state/party and try again."
+      );
+      return;
+    }
+
+    const hierarchySelections: CampaignHierarchySelection[] = [];
+
+    const pushSelections = (
+      ids: string[],
+      hierarchyType: CampaignHierarchySelection["hierarchy_type"],
+      toggle_on: boolean
+    ) => {
+      ids.forEach((id) => {
+        if (!id) return;
+        hierarchySelections.push({
+          hierarchy_type: hierarchyType,
+          hierarchy_id: Number(id),
+          toggle_on,
+        });
+      });
+    };
+
+    districtSelectors.forEach((selector) => {
+      pushSelections(
+        selector.district_ids,
+        "stateMasterData",
+        selector.autoInclude
+      );
+      pushSelections(
+        selector.assembly_ids,
+        "stateMasterData",
+        selector.autoInclude
+      );
+      pushSelections(
+        selector.mandal_ids,
+        "afterAssemblyData",
+        selector.autoInclude
+      );
+      pushSelections(
+        selector.block_ids,
+        "afterAssemblyData",
+        selector.autoInclude
+      );
+      pushSelections(
+        selector.booth_ids,
+        "afterAssemblyData",
+        selector.autoInclude
+      );
+    });
+
     const targetScopes: { levelType: string; level_id: string }[] = [];
     districtSelectors.forEach((selector) => {
-      // Add all selected districts
       selector.district_ids.forEach((id) => {
         targetScopes.push({ levelType: "DISTRICT", level_id: id });
       });
-      // Add all selected assemblies
       selector.assembly_ids.forEach((id) => {
         targetScopes.push({ levelType: "ASSEMBLY", level_id: id });
       });
-      // Add all selected blocks
       selector.block_ids.forEach((id) => {
         targetScopes.push({ levelType: "BLOCK", level_id: id });
       });
-      // Add all selected mandals
       selector.mandal_ids.forEach((id) => {
         targetScopes.push({ levelType: "MANDAL", level_id: id });
       });
-      // Add all selected booths
       selector.booth_ids.forEach((id) => {
-        targetScopes.push({ levelType: "BOOTH", level_id: id });
+        targetScopes.push({ levelType: "POLLING_CENTER", level_id: id });
       });
-      // Add all selected karyakartas
       selector.karyakarta_ids.forEach((id) => {
         targetScopes.push({ levelType: "KARYAKARTA", level_id: id });
       });
@@ -314,6 +557,10 @@ export const CampaignForm = ({
       imageFiles: selectedImages,
       targetScopes,
       autoInclude: hasAutoInclude,
+      hierarchySelections,
+      campaignLevel,
+      stateId,
+      partyId,
     });
   };
 
@@ -330,7 +577,6 @@ export const CampaignForm = ({
           ← Back
         </button>
       </div>
-
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* Title */}
@@ -501,21 +747,32 @@ export const CampaignForm = ({
                         onClick={(e) => e.stopPropagation()}
                         className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                       >
-                        {staticData.districts.map((district) => (
+                        {(loadingHierarchy || hierarchyError) && (
+                          <div className="px-3 py-2 text-sm text-gray-500">
+                            {loadingHierarchy ? "Loading…" : hierarchyError}
+                          </div>
+                        )}
+                        {districtsData.map((district) => (
                           <label
                             key={district.id}
                             className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
                           >
                             <input
                               type="checkbox"
-                              checked={sel.district_ids.includes(district.id)}
+                              checked={sel.district_ids.includes(
+                                String(district.id)
+                              )}
                               onChange={() =>
-                                toggleCheckbox(idx, "district_ids", district.id)
+                                toggleCheckbox(
+                                  idx,
+                                  "district_ids",
+                                  String(district.id)
+                                )
                               }
                               className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                             />
                             <span className="ml-2 text-sm">
-                              {district.name}
+                              {district.levelName}
                             </span>
                           </label>
                         ))}
@@ -548,29 +805,29 @@ export const CampaignForm = ({
                         onClick={(e) => e.stopPropagation()}
                         className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                       >
-                        {staticData.assemblies
-                          .filter((assembly) =>
-                            sel.district_ids.includes(assembly.districtId)
-                          )
-                          .map((assembly) => (
+                        {sel.district_ids
+                          .flatMap((dId) => assembliesByDistrict(dId))
+                          .map((assembly: StateHierarchyNode) => (
                             <label
                               key={assembly.id}
                               className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
                             >
                               <input
                                 type="checkbox"
-                                checked={sel.assembly_ids.includes(assembly.id)}
+                                checked={sel.assembly_ids.includes(
+                                  String(assembly.id)
+                                )}
                                 onChange={() =>
                                   toggleCheckbox(
                                     idx,
                                     "assembly_ids",
-                                    assembly.id
+                                    String(assembly.id)
                                   )
                                 }
                                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                               />
                               <span className="ml-2 text-sm">
-                                {assembly.name}
+                                {assembly.levelName}
                               </span>
                             </label>
                           ))}
@@ -578,59 +835,10 @@ export const CampaignForm = ({
                     )}
                   </div>
 
-                  {/* Block Dropdown with Checkboxes */}
+                  {/* First dynamic after-assembly dropdown (root level) */}
                   <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Block ({sel.block_ids.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDropdown(idx, "blockOpen");
-                      }}
-                      disabled={sel.assembly_ids.length === 0}
-                      className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                      {sel.block_ids.length > 0
-                        ? `${sel.block_ids.length} selected`
-                        : sel.assembly_ids.length === 0
-                        ? "Select Assembly first"
-                        : "Select Blocks"}
-                    </button>
-                    {sel.blockOpen && sel.assembly_ids.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                      >
-                        {staticData.blocks
-                          .filter((block) =>
-                            sel.assembly_ids.includes(block.assemblyId)
-                          )
-                          .map((block) => (
-                            <label
-                              key={block.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={sel.block_ids.includes(block.id)}
-                                onChange={() =>
-                                  toggleCheckbox(idx, "block_ids", block.id)
-                                }
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              <span className="ml-2 text-sm">{block.name}</span>
-                            </label>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mandal Dropdown with Checkboxes */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mandal ({sel.mandal_ids.length})
+                      {afterAssemblyLevelLabels.first} ({sel.mandal_ids.length})
                     </label>
                     <button
                       type="button"
@@ -638,24 +846,22 @@ export const CampaignForm = ({
                         e.stopPropagation();
                         toggleDropdown(idx, "mandalOpen");
                       }}
-                      disabled={sel.block_ids.length === 0}
+                      disabled={sel.assembly_ids.length === 0}
                       className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       {sel.mandal_ids.length > 0
                         ? `${sel.mandal_ids.length} selected`
-                        : sel.block_ids.length === 0
-                        ? "Select Block first"
-                        : "Select Mandals"}
+                        : sel.assembly_ids.length === 0
+                        ? "Select Assembly first"
+                        : `Select ${afterAssemblyLevelLabels.first}`}
                     </button>
-                    {sel.mandalOpen && sel.block_ids.length > 0 && (
+                    {sel.mandalOpen && sel.assembly_ids.length > 0 && (
                       <div
                         onClick={(e) => e.stopPropagation()}
                         className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                       >
-                        {staticData.mandals
-                          .filter((mandal) =>
-                            sel.block_ids.includes(mandal.blockId)
-                          )
+                        {sel.assembly_ids
+                          .flatMap((aId) => afterAssemblyNodes(aId, null))
                           .map((mandal) => (
                             <label
                               key={mandal.id}
@@ -663,14 +869,20 @@ export const CampaignForm = ({
                             >
                               <input
                                 type="checkbox"
-                                checked={sel.mandal_ids.includes(mandal.id)}
+                                checked={sel.mandal_ids.includes(
+                                  String(mandal.id)
+                                )}
                                 onChange={() =>
-                                  toggleCheckbox(idx, "mandal_ids", mandal.id)
+                                  toggleCheckbox(
+                                    idx,
+                                    "mandal_ids",
+                                    String(mandal.id)
+                                  )
                                 }
                                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                               />
                               <span className="ml-2 text-sm">
-                                {mandal.name}
+                                {mandal.displayName}
                               </span>
                             </label>
                           ))}
@@ -678,10 +890,74 @@ export const CampaignForm = ({
                     )}
                   </div>
 
-                  {/* Booth Dropdown with Checkboxes */}
+                  {/* Second dynamic after-assembly dropdown (children of first level) */}
                   <div className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Booth ({sel.booth_ids.length})
+                      {afterAssemblyLevelLabels.second} ({sel.block_ids.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown(idx, "blockOpen");
+                      }}
+                      disabled={
+                        sel.mandal_ids.length === 0 ||
+                        sel.assembly_ids.length === 0
+                      }
+                      className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      {sel.block_ids.length > 0
+                        ? `${sel.block_ids.length} selected`
+                        : sel.mandal_ids.length === 0
+                        ? `Select ${afterAssemblyLevelLabels.first} first`
+                        : `Select ${afterAssemblyLevelLabels.second}`}
+                    </button>
+                    {sel.blockOpen &&
+                      sel.mandal_ids.length > 0 &&
+                      sel.assembly_ids.length > 0 && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                        >
+                          {sel.assembly_ids
+                            .flatMap((aId) =>
+                              sel.mandal_ids.flatMap((mId) =>
+                                afterAssemblyNodes(aId, mId)
+                              )
+                            )
+                            .map((block) => (
+                              <label
+                                key={block.id}
+                                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={sel.block_ids.includes(
+                                    String(block.id)
+                                  )}
+                                  onChange={() =>
+                                    toggleCheckbox(
+                                      idx,
+                                      "block_ids",
+                                      String(block.id)
+                                    )
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm">
+                                  {block.displayName}
+                                </span>
+                              </label>
+                            ))}
+                        </div>
+                      )}
+                  </div>
+
+                  {/* Third dynamic after-assembly dropdown (children of second level) */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {afterAssemblyLevelLabels.third} ({sel.booth_ids.length})
                     </label>
                     <button
                       type="button"
@@ -689,99 +965,57 @@ export const CampaignForm = ({
                         e.stopPropagation();
                         toggleDropdown(idx, "boothOpen");
                       }}
-                      disabled={sel.assembly_ids.length === 0}
+                      disabled={
+                        sel.block_ids.length === 0 ||
+                        sel.assembly_ids.length === 0
+                      }
                       className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       {sel.booth_ids.length > 0
                         ? `${sel.booth_ids.length} selected`
-                        : sel.assembly_ids.length === 0
-                        ? "Select Assembly first"
-                        : "Select Booths"}
+                        : sel.block_ids.length === 0
+                        ? `Select ${afterAssemblyLevelLabels.second} first`
+                        : `Select ${afterAssemblyLevelLabels.third}`}
                     </button>
-                    {sel.boothOpen && sel.assembly_ids.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                      >
-                        {staticData.booths
-                          .filter((booth) =>
-                            sel.assembly_ids.includes(booth.assemblyId)
-                          )
-                          .map((booth) => (
-                            <label
-                              key={booth.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={sel.booth_ids.includes(booth.id)}
-                                onChange={() =>
-                                  toggleCheckbox(idx, "booth_ids", booth.id)
-                                }
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              <span className="ml-2 text-sm">{booth.name}</span>
-                            </label>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Karyakarta Dropdown with Checkboxes */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Karyakarta ({sel.karyakarta_ids.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleDropdown(idx, "karyakartaOpen");
-                      }}
-                      disabled={sel.assembly_ids.length === 0}
-                      className="w-full px-3 py-2 border rounded-lg text-left bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                      {sel.karyakarta_ids.length > 0
-                        ? `${sel.karyakarta_ids.length} selected`
-                        : sel.assembly_ids.length === 0
-                        ? "Select Assembly first"
-                        : "Select Karyakartas"}
-                    </button>
-                    {sel.karyakartaOpen && sel.assembly_ids.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                      >
-                        {staticData.karyakartas
-                          .filter((karyakarta) =>
-                            sel.assembly_ids.includes(karyakarta.assemblyId)
-                          )
-                          .map((karyakarta) => (
-                            <label
-                              key={karyakarta.id}
-                              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={sel.karyakarta_ids.includes(
-                                  karyakarta.id
-                                )}
-                                onChange={() =>
-                                  toggleCheckbox(
-                                    idx,
-                                    "karyakarta_ids",
-                                    karyakarta.id
-                                  )
-                                }
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              <span className="ml-2 text-sm">
-                                {karyakarta.name}
-                              </span>
-                            </label>
-                          ))}
-                      </div>
-                    )}
+                    {sel.boothOpen &&
+                      sel.block_ids.length > 0 &&
+                      sel.assembly_ids.length > 0 && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                        >
+                          {sel.assembly_ids
+                            .flatMap((aId) =>
+                              sel.block_ids.flatMap((bId) =>
+                                afterAssemblyNodes(aId, bId)
+                              )
+                            )
+                            .map((pc) => (
+                              <label
+                                key={pc.id}
+                                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={sel.booth_ids.includes(
+                                    String(pc.id)
+                                  )}
+                                  onChange={() =>
+                                    toggleCheckbox(
+                                      idx,
+                                      "booth_ids",
+                                      String(pc.id)
+                                    )
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm">
+                                  {pc.displayName}
+                                </span>
+                              </label>
+                            ))}
+                        </div>
+                      )}
                   </div>
 
                   {/* Remove Button */}
