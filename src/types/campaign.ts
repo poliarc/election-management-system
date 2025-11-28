@@ -265,3 +265,35 @@ export interface CampaignWithStats extends Campaign {
   isLoadingStats?: boolean;
   statsError?: boolean;
 }
+
+// My Campaigns API Response
+export interface MyCampaignItem {
+  campaign_id: number;
+  name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  images: string[];
+  campaign_level: string;
+  state_id: number;
+  party_id: number;
+  created_by: number;
+  isActive: number;
+  isDelete: number;
+  created_at: string;
+  updated_at: string;
+  location: string | null;
+  partyName: string;
+  state_name: string;
+  user_acceptance_status: "pending" | "accepted" | "declined";
+  accepted_on: string | null;
+  declined_on: string | null;
+  campaign_acceptance_id?: number | null;
+}
+
+export interface MyCampaignsResponse {
+  success: boolean;
+  message: string;
+  data: MyCampaignItem[];
+  total: number;
+}

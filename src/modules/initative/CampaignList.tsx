@@ -3,6 +3,8 @@ import { Calendar, Camera, Clock, Plus, X, Eye } from "lucide-react";
 import type { CampaignEvent } from "../../types/initative";
 import { CampaignImageSlider } from "./CampaignImageSlider";
 import { ViewReportsModal } from "./ViewReportsModal";
+import { useCreateCampaignReportMutation } from "../../store/api/myCampaignsApi";
+import { storage } from "../../utils/storage";
 export interface CampaignListProps {
   notifications: CampaignEvent[];
   onEventClick: (notification: CampaignEvent) => void;
@@ -20,9 +22,19 @@ export const CampaignList: React.FC<CampaignListProps> = ({
     null
   );
 
-  // For static implementation, use hardcoded user data
-  const personName = "User Name";
-  const userPhone = "1234567890";
+  // Get user data from localStorage
+  const authState = storage.getAuthState<{
+    user?: { firstName?: string; contactNo?: string };
+  }>();
+  const user =
+    authState?.user ||
+    storage.getUser<{ firstName?: string; contactNo?: string }>();
+  const personName = user?.firstName || "User Name";
+  const userPhone = user?.contactNo || "1234567890";
+
+  // Mutation for creating campaign reports
+  const [createReport, { isLoading: isSubmittingReport }] =
+    useCreateCampaignReportMutation();
 
   const [reportData, setReportData] = useState({
     images: [] as File[],
@@ -36,7 +48,6 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isSubmittingReport = false;
 
   // Revoke object URLs to avoid memory leaks
   useEffect(() => {
@@ -50,8 +61,9 @@ export const CampaignList: React.FC<CampaignListProps> = ({
       alert("Accept the campaign before submitting a report.");
       return;
     }
-    if (!campaign.acceptance_id) {
-      alert("Missing acceptance ID. Try reloading campaigns.");
+    // Use campaign_id if acceptance_id is not available
+    if (!campaign.acceptance_id && !campaign.campaign_id) {
+      alert("Missing campaign information. Try reloading campaigns.");
       return;
     }
     setActiveCampaign(campaign);
@@ -150,23 +162,63 @@ export const CampaignList: React.FC<CampaignListProps> = ({
       return;
     }
 
-    // For static implementation, just show success message
-    alert("Report submitted successfully.");
+    // Check if campaign is accepted
+    if (activeCampaign.acceptance_status !== "accepted") {
+      alert("Please accept the campaign before submitting a report.");
+      return;
+    }
 
-    setShowReportModal(false);
-    setActiveCampaign(null);
-    // Cleanup previews and reset form
-    imagePreviews.forEach((u) => URL.revokeObjectURL(u));
-    setReportData({
-      images: [],
-      location: "",
-      peopleCount: "",
-      attendingDate: "",
-      description: "",
-      personName: personName,
-      phone: userPhone,
-    });
-    setImagePreviews([]);
+    // Check if we have the acceptance_id
+    if (!activeCampaign.acceptance_id) {
+      alert(
+        "Campaign acceptance ID is missing. Please refresh the page and try again."
+      );
+      return;
+    }
+
+    if (!user) {
+      alert("User information not found. Please login again.");
+      return;
+    }
+
+    try {
+      const result = await createReport({
+        campaign_acceptance_id: activeCampaign.acceptance_id,
+        attendees: reportData.peopleCount
+          ? parseInt(reportData.peopleCount, 10)
+          : undefined,
+        personName: user.firstName || "",
+        personPhone: user.contactNo || "",
+        report_date:
+          reportData.attendingDate || new Date().toISOString().split("T")[0],
+        description: reportData.description || "",
+        images: reportData.images.length > 0 ? reportData.images : undefined,
+      }).unwrap();
+
+      alert(result.message || "Report submitted successfully.");
+
+      setShowReportModal(false);
+      setActiveCampaign(null);
+      // Cleanup previews and reset form
+      imagePreviews.forEach((u) => URL.revokeObjectURL(u));
+      setReportData({
+        images: [],
+        location: "",
+        peopleCount: "",
+        attendingDate: "",
+        description: "",
+        personName: personName,
+        phone: userPhone,
+      });
+      setImagePreviews([]);
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? (error.data as { error?: { message?: string } })?.error?.message
+          : "Failed to submit report. Please try again.";
+      alert(errorMessage || "Failed to submit report. Please try again.");
+    }
   };
 
   const formatDate = (dateString: string) => {

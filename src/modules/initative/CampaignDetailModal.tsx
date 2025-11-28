@@ -11,6 +11,7 @@ interface CampaignDetailModalProps {
   onDecline?: () => void;
   // Added prop so parent can pass a FormData handler
   onSendReport?: (fd: FormData) => void;
+  isUpdating?: boolean;
 }
 
 export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
@@ -18,6 +19,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
   onClose,
   onAccept,
   onDecline,
+  isUpdating = false,
   // onSendReport,
 }) => {
   const [showDeclineModal, setShowDeclineModal] = useState(false);
@@ -201,14 +203,25 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                 <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
                   <button
                     onClick={onAccept}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl text-lg"
+                    disabled={isUpdating}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Check className="w-6 h-6" />
-                    Accept Invitation
+                    {isUpdating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-6 h-6" />
+                        Accept Invitation
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowDeclineModal(true)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
+                    disabled={isUpdating}
+                    className="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-6 h-6" />
                     Decline
