@@ -82,6 +82,24 @@ const authSlice = createSlice({
         selectedAssignment: state.selectedAssignment,
       });
     },
+    clearSelectedAssignment: (state) => {
+      state.selectedAssignment = null;
+
+      // Persist updated state
+      storage.setAuthState({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isPartyAdmin: state.isPartyAdmin,
+        isLevelAdmin: state.isLevelAdmin,
+        hasStateAssignments: state.hasStateAssignments,
+        partyAdminPanels: state.partyAdminPanels,
+        levelAdminPanels: state.levelAdminPanels,
+        stateAssignments: state.stateAssignments,
+        permissions: state.permissions,
+        selectedAssignment: state.selectedAssignment,
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -145,5 +163,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setSelectedAssignment } = authSlice.actions;
+export const { logout, setSelectedAssignment, clearSelectedAssignment } = authSlice.actions;
 export default authSlice.reducer;

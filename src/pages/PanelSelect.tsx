@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { setSelectedAssignment } from "../store/authSlice";
@@ -16,6 +17,7 @@ const FIXED_LEVELS = [
 ];
 
 // Panel Card Component
+
 interface PanelCardProps {
   panel: PanelAssignment;
   onClick: () => void;
@@ -149,6 +151,7 @@ export default function PanelSelect() {
     partyAdminPanels,
     levelAdminPanels,
     stateAssignments,
+    selectedAssignment,
     permissions,
   } = useAppSelector((s) => s.auth);
 
@@ -311,6 +314,71 @@ export default function PanelSelect() {
     return acc;
   }, {} as Record<string, StateAssignment[]>);
 
+  // Auto-redirect to first available panel/assignment on initial mount/login
+  const didAutoRedirectRef = useRef(false);
+  useEffect(() => {
+    if (didAutoRedirectRef.current) return;
+
+    // Don't redirect if user already has a selected assignment
+    if (selectedAssignment) return;
+    // Priority: fixed level assignments (State → District → Assembly) -> dynamic after-assembly/sublevel -> PartyAdmin -> LevelAdmin
+    if (stateAssignments && stateAssignments.length > 0) {
+      // Find the highest-priority fixed level we support (order in FIXED_LEVELS)
+      for (const levelInfo of FIXED_LEVELS) {
+        const found = stateAssignments.find((a) => a.levelType === levelInfo.type);
+        if (found) {
+          didAutoRedirectRef.current = true;
+          dispatch(setSelectedAssignment(found));
+          navigate(levelInfo.route);
+          return;
+        }
+      }
+      // If no fixed-level match, just pick the first state assignment
+      const first = stateAssignments[0];
+      if (first) {
+        didAutoRedirectRef.current = true;
+        dispatch(setSelectedAssignment(first));
+        const fixed = FIXED_LEVELS.find((l) => l.type === first.levelType);
+        if (fixed) navigate(fixed.route);
+        else navigate(getPanelRoute(first));
+        return;
+      }
+    }
+
+    // If there are dynamic after-assembly/sublevel assignments, pick the first
+    if (dynamicLevelAssignments && dynamicLevelAssignments.length > 0) {
+      const first = dynamicLevelAssignments[0];
+      didAutoRedirectRef.current = true;
+      dispatch(setSelectedAssignment(first));
+      const route = getPanelRoute(first);
+      navigate(route);
+      return;
+    }
+
+    // Fallback to admin panels if no level assignments exist
+    if (isPartyAdmin && partyAdminPanels && partyAdminPanels.length > 0) {
+      didAutoRedirectRef.current = true;
+      navigate(partyAdminPanels[0].redirectUrl);
+      return;
+    }
+
+    if (isLevelAdmin && levelAdminPanels && levelAdminPanels.length > 0) {
+      didAutoRedirectRef.current = true;
+      navigate(levelAdminPanels[0].redirectUrl);
+      return;
+    }
+  }, [
+    selectedAssignment,
+    isPartyAdmin,
+    isLevelAdmin,
+    partyAdminPanels,
+    levelAdminPanels,
+    stateAssignments,
+    dynamicLevelAssignments,
+    dispatch,
+    navigate,
+  ]);
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto">
@@ -333,48 +401,15 @@ export default function PanelSelect() {
           </div>
         )}
 
+
+
         <div className="space-y-8">
-          {/* Party Admin Panels Section */}
-          {isPartyAdmin && partyAdminPanels.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-                Party Admin Panels
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {partyAdminPanels.map((panel) => (
-                  <PanelCard
-                    key={panel.id}
-                    panel={panel}
-                    onClick={() => handlePanelClick(panel.redirectUrl)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
 
-          {/* Level Admin Panels Section */}
-          {isLevelAdmin && levelAdminPanels.length > 0 && (
-            <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-                Level Admin Panels
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {levelAdminPanels.map((panel) => (
-                  <PanelCard
-                    key={panel.id}
-                    panel={panel}
-                    onClick={() => handlePanelClick(panel.redirectUrl)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Fixed Levels Section - State, District, Assembly */}
+             {/* Fixed Levels Section - State, District, Assembly */}
           {hasStateAssignments && (
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-                Level Access
+                Team Levels
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {FIXED_LEVELS.map((level) => {
@@ -412,6 +447,43 @@ export default function PanelSelect() {
               </div>
             </section>
           )}
+          {/* Party Admin Panels Section */}
+          {isPartyAdmin && partyAdminPanels.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                National Levels
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {partyAdminPanels.map((panel) => (
+                  <PanelCard
+                    key={panel.id}
+                    panel={panel}
+                    onClick={() => handlePanelClick(panel.redirectUrl)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Level Admin Panels Section */}
+          {isLevelAdmin && levelAdminPanels.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+               Role Assign
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {levelAdminPanels.map((panel) => (
+                  <PanelCard
+                    key={panel.id}
+                    panel={panel}
+                    onClick={() => handlePanelClick(panel.redirectUrl)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+       
         </div>
       </div>
     </div>

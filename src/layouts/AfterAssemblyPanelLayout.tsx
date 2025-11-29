@@ -1,11 +1,13 @@
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
+import { useAppSelector } from "../store/hooks";
 import { Topbar } from "../components/Topbar";
 import AfterAssemblyPanelSidebar from "../components/AfterAssemblyPanelSidebar";
 import GlobalChat from "../components/GlobalChat";
 
 export default function AfterAssemblyPanelLayout() {
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+    const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
 
     return (
         <div className="h-screen flex flex-col">
@@ -14,7 +16,7 @@ export default function AfterAssemblyPanelLayout() {
             <div className="flex flex-1 overflow-hidden">
                 {/* Desktop sidebar */}
                 <div className="hidden lg:block w-68 shrink-0 h-full overflow-y-auto">
-                    <AfterAssemblyPanelSidebar />
+                    <AfterAssemblyPanelSidebar key={selectedAssignment?.assignment_id} />
                 </div>
 
                 {/* Mobile Sidebar Drawer */}
@@ -37,7 +39,7 @@ export default function AfterAssemblyPanelLayout() {
                             ${sidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-4 opacity-0"}
                         `}
                     >
-                        <AfterAssemblyPanelSidebar onNavigate={() => setSidebarOpen(false)} />
+                        <AfterAssemblyPanelSidebar key={selectedAssignment?.assignment_id} onNavigate={() => setSidebarOpen(false)} />
                     </div>
                 </div>
 

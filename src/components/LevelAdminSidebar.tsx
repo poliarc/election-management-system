@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAppSelector } from "../store/hooks";
 import { useState, useEffect } from "react";
 
@@ -10,9 +10,11 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
     const [selectedPanel, setSelectedPanel] = useState<any>(null);
 
+    const location = useLocation();
+
     useEffect(() => {
-        // Get selected panel from URL or use first panel
-        const path = window.location.pathname;
+        // Update selected panel when panels list or URL changes
+        const path = location.pathname;
         const match = path.match(/\/leveladmin\/(\d+)/);
         if (match) {
             const panelId = parseInt(match[1]);
@@ -21,7 +23,7 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
         } else {
             setSelectedPanel(levelAdminPanels[0]);
         }
-    }, [levelAdminPanels]);
+    }, [levelAdminPanels, location.pathname]);
 
     if (!selectedPanel) return null;
 
