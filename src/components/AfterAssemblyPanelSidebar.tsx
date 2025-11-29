@@ -61,7 +61,16 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
 
     const base = `/afterassembly/${levelId}`;
     const firstName = user?.firstName || user?.username || "User";
-    const levelName = levelInfo?.partyLevelName || levelInfo?.levelType || "After Assembly";
+    
+    const formatLevelName = (name?: string | null): string => {
+        if (!name) return "After Assembly";
+        // PollingCenter → Polling Center
+        if (name === "PollingCenter" || name === "pollingCenter") return "Polling Center";
+        // Add more formatting as needed
+        return name;
+    };
+    
+    const levelName = formatLevelName(levelInfo?.partyLevelName || levelInfo?.levelType);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=6366f1&color=fff&bold=true`;
 
     const navItems: NavItem[] = [
@@ -89,7 +98,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                            { firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
-                            {levelName} lavel
+                            {levelName} level
                         </p>
                         
                     </div>
