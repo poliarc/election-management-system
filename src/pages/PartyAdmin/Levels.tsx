@@ -525,8 +525,11 @@ export const PartyAdminLevels: React.FC = () => {
                                                                 {user.email}
                                                             </div>
                                                             <div className="text-xs text-gray-500">
+                                                                {user.partyName || "No party"} •{" "}
+                                                                {user.stateName || "No state"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
                                                                 {user.role || "No role"} •{" "}
-                                                                {user.stateName || "No state"} •{" "}
                                                                 {user.districtName || "No district"}
                                                             </div>
                                                         </div>

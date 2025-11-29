@@ -244,6 +244,19 @@ export const partyUserApi = createApi({
             }),
             invalidatesTags: (_result, _error, id) => [{ type: "PartyUser", id }],
         }),
+
+        bulkUploadUsers: builder.mutation<ApiActionResponse, FormData>({
+            query: (formData) => ({
+                url: "/users/bulk-upload",
+                method: "POST",
+                body: formData,
+                prepareHeaders: (headers: Headers) => {
+                    headers.delete("Content-Type");
+                    return headers;
+                },
+            }),
+            invalidatesTags: [{ type: "PartyUser", id: "LIST" }],
+        }),
     }),
 });
 
@@ -256,4 +269,5 @@ export const {
     useUpdateUserMutation,
     useToggleUserStatusMutation,
     useDeleteUserMutation,
+    useBulkUploadUsersMutation,
 } = partyUserApi;

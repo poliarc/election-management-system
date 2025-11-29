@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Plus, Users, AlertTriangle } from "lucide-react";
+import { Plus, Users, AlertTriangle, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { UserForm } from "./UserForm";
 import { UserList } from "./UserList";
 import { UserSearchFilter } from "./UserSearchFilter";
+import { BulkUploadModal } from "../../../components/BulkUploadModal";
 import {
   useGetUsersQuery,
   useCreateUserMutation,
@@ -12,6 +13,7 @@ import {
   useToggleUserStatusMutation,
   useGetPartiesQuery,
   useGetRolesQuery,
+  useBulkUploadUsersMutation,
 } from "../../../store/api/userApi";
 import type {
   User,
@@ -38,6 +40,7 @@ export const UserPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [searchParams, setSearchParams] = useState<UserSearchParams>({
     page: 1,
     limit: 25,
@@ -60,6 +63,7 @@ export const UserPage: React.FC = () => {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [toggleUserStatus, { isLoading: isToggling }] =
     useToggleUserStatusMutation();
+  const [bulkUploadUsers, { isLoading: isUploading }] = useBulkUploadUsersMutation();
 
   const users = usersResponse?.data || [];
   const pagination = usersResponse?.pagination || { page: 1, limit: 25, total: 0, totalPages: 0 };
@@ -226,6 +230,25 @@ export const UserPage: React.FC = () => {
     setEditingUser(null);
   };
 
+  const handleBulkUpload = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      await bulkUploadUsers(formData).unwrap();
+      toast.success("Users uploaded successfully!");
+      setShowBulkUpload(false);
+      refetch();
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? (error as { data?: { message?: string } }).data?.message ||
+          "Failed to upload users"
+          : "Failed to upload users";
+      toast.error(errorMessage);
+    }
+  };
+
   //   const handleRefresh = () => {
   //     refetch();
   //     toast.success("User list refreshed!");
@@ -248,23 +271,13 @@ export const UserPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* <button
-                onClick={handleRefresh}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                title="Refresh user list"
+              <button
+                onClick={() => setShowBulkUpload(true)}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </button> */}
-
-              {/* Test Toast Button - Remove in production */}
-              {/* <button
-                onClick={() => toast.success("Test toast message!")}
-                className="flex items-center gap-2 px-3 py-2 border border-green-300 bg-green-50 rounded-md text-green-700 hover:bg-green-100 transition-colors text-sm"
-                title="Test toast notification"
-              >
-                🔔 Test
-              </button> */}
+                <Upload className="w-4 h-4" />
+                Upload Users
+              </button>
 
               <button
                 onClick={() => setShowForm(true)}
@@ -363,6 +376,14 @@ export const UserPage: React.FC = () => {
             </div>
           </div>
         )}
+        {/* Bulk Upload Modal */}
+        <BulkUploadModal
+          isOpen={showBulkUpload}
+          onClose={() => setShowBulkUpload(false)}
+          onUpload={handleBulkUpload}
+          isUploading={isUploading}
+        />
+
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && userToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

@@ -57,10 +57,25 @@ export default function DistrictAssembly() {
   };
 
   const handleAssignUsers = (assemblyId: string, assemblyName: string) => {
+    // Get stateId from localStorage
+    let stateId = null;
+    try {
+      const authState = localStorage.getItem("auth_state");
+      if (authState) {
+        const parsed = JSON.parse(authState);
+        const selectedAssignment = parsed.selectedAssignment;
+        if (selectedAssignment?.parentId) {
+          stateId = selectedAssignment.parentId;
+        }
+      }
+    } catch (err) {
+      console.error("Error reading state info:", err);
+    }
+
     navigate(
       `/district/assembly/assign?assemblyId=${assemblyId}&assemblyName=${encodeURIComponent(
         assemblyName
-      )}`
+      )}&stateId=${stateId}`
     );
   };
 

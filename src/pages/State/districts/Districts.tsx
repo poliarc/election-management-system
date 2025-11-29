@@ -45,7 +45,7 @@ export default function StateDistricts() {
     navigate(
       `/state/districts/assign?districtId=${districtId}&districtName=${encodeURIComponent(
         districtName
-      )}`
+      )}&stateId=${stateId}`
     );
   };
 

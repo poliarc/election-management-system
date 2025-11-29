@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Users, AlertTriangle } from "lucide-react";
+import { Users, AlertTriangle, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { LevelAdminUserForm } from "./components/LevelAdminUserForm";
 import { UserList } from "../Admin/users/UserList";
 import { UserSearchFilter } from "../Admin/users/UserSearchFilter";
+import { BulkUploadModal } from "../../components/BulkUploadModal";
 import {
     useCreateUserMutation,
     useUpdateUserMutation,
     useDeleteUserMutation,
     useToggleUserStatusMutation,
     useGetRolesQuery,
+    useBulkUploadUsersMutation,
 } from "../../store/api/partyUserApi";
 import { fetchUsersByPartyAndState, type User as LevelAdminUser } from "../../services/levelAdminApi";
 import { useAppSelector } from "../../store/hooks";
@@ -41,6 +43,7 @@ export const LevelAdminCreateUser: React.FC = () => {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [showBulkUpload, setShowBulkUpload] = useState(false);
     const [users, setUsers] = useState<LevelAdminUser[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
     const [searchParams, setSearchParams] = useState<UserSearchParams>({
@@ -63,6 +66,7 @@ export const LevelAdminCreateUser: React.FC = () => {
     const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
     const [toggleUserStatus, { isLoading: isToggling }] =
         useToggleUserStatusMutation();
+    const [bulkUploadUsers, { isLoading: isUploading }] = useBulkUploadUsersMutation();
 
     const roles = rolesResponse || [];
 
@@ -285,6 +289,25 @@ export const LevelAdminCreateUser: React.FC = () => {
         setEditingUser(null);
     };
 
+    const handleBulkUpload = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            await bulkUploadUsers(formData).unwrap();
+            toast.success("Users uploaded successfully!");
+            setShowBulkUpload(false);
+            loadUsers();
+        } catch (error: unknown) {
+            const errorMessage =
+                error && typeof error === "object" && "data" in error
+                    ? (error as { data?: { message?: string } }).data?.message ||
+                    "Failed to upload users"
+                    : "Failed to upload users";
+            toast.error(errorMessage);
+        }
+    };
+
     if (!currentPanel || !partyId || !stateId) {
         return (
             <div className="p-6">
@@ -312,6 +335,14 @@ export const LevelAdminCreateUser: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowBulkUpload(true)}
+                                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Upload Users
+                            </button>
+
                             <button
                                 onClick={() => setShowForm(true)}
                                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -364,6 +395,14 @@ export const LevelAdminCreateUser: React.FC = () => {
                         onToggleStatus={handleToggleUserStatus}
                     />
                 )}
+
+                {/* Bulk Upload Modal */}
+                <BulkUploadModal
+                    isOpen={showBulkUpload}
+                    onClose={() => setShowBulkUpload(false)}
+                    onUpload={handleBulkUpload}
+                    isUploading={isUploading}
+                />
 
                 {/* Loading Overlay - Only show when not in form mode */}
                 {!showForm && isLoadingUsers && (
