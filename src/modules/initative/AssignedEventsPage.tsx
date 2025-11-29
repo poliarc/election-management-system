@@ -70,15 +70,12 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
   // Map API campaigns to CampaignEvent format
   const mapApiCampaignToEvent = (campaign: MyCampaignItem): CampaignEvent => {
-    // Log if acceptance_id is missing for accepted campaigns (for debugging)
-    if (
-      campaign.user_acceptance_status === "accepted" &&
-      !campaign.campaign_acceptance_id
-    ) {
-      console.warn(
-        `Campaign ${campaign.campaign_id} is accepted but missing campaign_acceptance_id. Full campaign data:`,
-        campaign
-      );
+    // Log campaign mapping for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Mapping campaign ${campaign.campaign_id}:`, {
+        status: campaign.user_acceptance_status,
+        name: campaign.name,
+      });
     }
 
     return {
@@ -150,14 +147,14 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
       console.log("Acceptance API response:", result);
 
-      if (result.data?.campaign_acceptance_id) {
+      if (result.data?.campaignAcceptance_id) {
         console.log(
-          "Received campaign_acceptance_id:",
-          result.data.campaign_acceptance_id
+          "Received campaignAcceptance_id:",
+          result.data.campaignAcceptance_id
         );
       } else {
         console.warn(
-          "Acceptance API did not return campaign_acceptance_id. Full response:",
+          "Acceptance API did not return campaignAcceptance_id. Full response:",
           result
         );
       }
@@ -203,11 +200,9 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
       return;
     }
 
-    // Check if we have the acceptance_id
-    if (!selectedCampaign.acceptance_id) {
-      alert(
-        "Campaign acceptance ID is missing. Please refresh the page and try again."
-      );
+    // Check if we have the campaign_id
+    if (!selectedCampaign.campaign_id) {
+      alert("Campaign ID is missing. Please refresh the page and try again.");
       return;
     }
 
@@ -232,7 +227,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
     try {
       const result = await createReport({
-        campaign_acceptance_id: selectedCampaign.acceptance_id,
+        campaign_id: selectedCampaign.campaign_id,
         attendees: attendees ? parseInt(attendees, 10) : undefined,
         personName: user.firstName || "",
         personPhone: user.contactNo || "",

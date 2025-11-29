@@ -168,11 +168,9 @@ export const CampaignList: React.FC<CampaignListProps> = ({
       return;
     }
 
-    // Check if we have the acceptance_id
-    if (!activeCampaign.acceptance_id) {
-      alert(
-        "Campaign acceptance ID is missing. Please refresh the page and try again."
-      );
+    // Check if we have the campaign_id
+    if (!activeCampaign.campaign_id) {
+      alert("Campaign ID is missing. Please refresh the page and try again.");
       return;
     }
 
@@ -183,7 +181,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
     try {
       const result = await createReport({
-        campaign_acceptance_id: activeCampaign.acceptance_id,
+        campaign_id: activeCampaign.campaign_id,
         attendees: reportData.peopleCount
           ? parseInt(reportData.peopleCount, 10)
           : undefined,

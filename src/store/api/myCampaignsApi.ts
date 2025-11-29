@@ -5,14 +5,22 @@ interface CampaignAcceptanceResponse {
   success: boolean;
   message: string;
   data?: {
-    campaign_acceptance_id?: number;
-    campaign_id?: number;
-    status?: string;
+    campaignAcceptance_id: number;
+    campaign_id: number;
+    user_id: number;
+    status: string;
+    accepted_on: string | null;
+    declined_on: string | null;
+    isActive: number;
+    isDelete: number;
+    created_at: string;
+    updated_at: string;
+    campaign_name: string;
   };
 }
 
 interface CampaignReportPayload {
-  campaign_acceptance_id: number;
+  campaign_id: number;
   attendees?: number;
   personName: string;
   personPhone: string;
@@ -38,6 +46,22 @@ interface CampaignReportResponse {
   data?: {
     campaignReport_id: number;
     campaign_acceptance_id: number;
+    attendees: number;
+    personName: string;
+    personPhone: string;
+    images: string[];
+    report_date: string;
+    description: string;
+    isActive: number;
+    isDelete: number;
+    created_at: string;
+    updated_at: string;
+    campaign_id: number;
+    user_id: number;
+    campaign_name: string;
+    first_name: string;
+    last_name: string;
+    email: string;
   };
 }
 
@@ -119,7 +143,7 @@ export const myCampaignsApi = createApi({
           const { data } = await queryFulfilled;
 
           // Update the campaigns list cache with the new acceptance_id
-          if (data?.data?.campaign_acceptance_id) {
+          if (data?.data?.campaignAcceptance_id) {
             dispatch(
               myCampaignsApi.util.updateQueryData(
                 "getMyCampaigns",
@@ -131,7 +155,7 @@ export const myCampaignsApi = createApi({
                   if (campaign) {
                     campaign.user_acceptance_status = status;
                     campaign.campaign_acceptance_id =
-                      data.data?.campaign_acceptance_id || undefined;
+                      data.data?.campaignAcceptance_id || undefined;
                   }
                 }
               )
