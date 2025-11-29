@@ -76,7 +76,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
     const navItems: NavItem[] = [
         { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
         { to: "team", label: "Team", icon: Icons.team },
-        { to: "child-hierarchy", label: "Child Levels", icon: Icons.hierarchy },
+        { to: "child-hierarchy", label: "Below Levels", icon: Icons.hierarchy },
         { to: "booths", label: "Booths", icon: Icons.booths },
         { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
         // { to: "search-voter", label: "Search Voter", icon: Icons.search },
