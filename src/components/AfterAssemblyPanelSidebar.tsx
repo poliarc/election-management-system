@@ -85,12 +85,13 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
                     />
                     <div className="min-w-0">
-                        <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
-                            {levelName}
-                        </p>
                         <p className="truncate font-semibold text-black dark:text-white text-sm">
-                            {levelInfo?.displayName || levelInfo?.levelName || firstName}
+                           { firstName}
                         </p>
+                        <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
+                            {levelName} lavel
+                        </p>
+                        
                     </div>
                 </div>
             </div>

@@ -262,12 +262,13 @@ export default function StateSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              State Panel
-            </p>
             <p className="truncate font-semibold text-black text-sm">
               {firstName}
             </p>
+            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+              State Lavel
+            </p>
+            
           </div>
         </div>
       </div>

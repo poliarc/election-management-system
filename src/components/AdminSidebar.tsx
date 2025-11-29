@@ -139,12 +139,13 @@ export default function AdminSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              Admin Panel
-            </p>
             <p className="truncate font-semibold text-black text-sm">
               {firstName}
             </p>
+            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+             Super Admin
+            </p>
+            
           </div>
         </div>
       </div>

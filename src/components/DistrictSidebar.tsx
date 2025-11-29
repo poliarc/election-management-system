@@ -256,12 +256,13 @@ export default function DistrictSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
           />
           <div className="min-w-0">
-            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              District Panel
-            </p>
             <p className="truncate font-semibold text-black text-sm">
               {firstName}
             </p>
+            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+              District Level
+            </p>
+            
           </div>
         </div>
       </div>
