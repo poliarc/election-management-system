@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
-import { logout, setSelectedAssignment } from "../store/authSlice";
+import { logout, setSelectedAssignment, clearSelectedAssignment } from "../store/authSlice";
 import { ThemeToggle } from "./ThemeToggle";
 import type { StateAssignment } from "../types/api";
+import type { PanelAssignment } from "../types/auth";
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
-  const { stateAssignments, selectedAssignment, permissions } = useAppSelector(
+  const { stateAssignments, selectedAssignment, permissions, partyAdminPanels, levelAdminPanels } = useAppSelector(
     (s) => s.auth
   );
   const dispatch = useAppDispatch();
@@ -15,8 +16,21 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [assignmentMenuOpen, setAssignmentMenuOpen] = useState(false);
+  // split into three menus
+  const [partyPanelsOpen, setPartyPanelsOpen] = useState(false);
+  const [levelAdminPanelsOpen, setLevelAdminPanelsOpen] = useState(false);
+  const [levelAccessOpen, setLevelAccessOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const assignmentMenuRef = useRef<HTMLDivElement | null>(null);
+  const partyPanelsRef = useRef<HTMLDivElement | null>(null);
+  const levelAdminPanelsRef = useRef<HTMLDivElement | null>(null);
+  const levelAccessRef = useRef<HTMLDivElement | null>(null);
+
+  // Determine which admin panel is currently active based on URL
+  const currentAdminPanel = useMemo(() => {
+    const allPanels = [...(levelAdminPanels || []), ...(partyAdminPanels || [])];
+    return allPanels.find(p => p.redirectUrl && location.pathname.startsWith(p.redirectUrl));
+  }, [location.pathname, levelAdminPanels, partyAdminPanels]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -29,11 +43,23 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       ) {
         setAssignmentMenuOpen(false);
       }
+      if (partyPanelsRef.current && !partyPanelsRef.current.contains(e.target as Node)) {
+        setPartyPanelsOpen(false);
+      }
+      if (levelAdminPanelsRef.current && !levelAdminPanelsRef.current.contains(e.target as Node)) {
+        setLevelAdminPanelsOpen(false);
+      }
+      if (levelAccessRef.current && !levelAccessRef.current.contains(e.target as Node)) {
+        setLevelAccessOpen(false);
+      }
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
         setAssignmentMenuOpen(false);
+        setPartyPanelsOpen(false);
+        setLevelAdminPanelsOpen(false);
+        setLevelAccessOpen(false);
       }
     };
     document.addEventListener("mousedown", onClick);
@@ -143,6 +169,54 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
+  // Build a flattened list of all assignments (state + dynamic from permissions)
+  let allAssignments: StateAssignment[] = [];
+
+  // include state assignments
+  if (stateAssignments && stateAssignments.length > 0) {
+    allAssignments.push(...stateAssignments);
+  }
+
+  // include dynamic assignments from permissions (blocks, mandals, polling centers, booths)
+  if (permissions) {
+    const pushMaybe = (a: any) => {
+      const mapped: StateAssignment = {
+        assignment_id: a.assignment_id || a.booth_assignment_id,
+        stateMasterData_id: a.afterAssemblyData_id || a.stateMasterData_id || 0,
+        afterAssemblyData_id: a.afterAssemblyData_id,
+        levelName: a.displayName || a.levelName || a.partyLevelName,
+        levelType: a.levelName || a.partyLevelName || 'Unknown',
+        level_id: a.level_id || a.booth_assignment_id,
+        parentId: a.parentId || a.parentLevelId || a.parentAssemblyId,
+        parentLevelName: a.parentLevelName || a.assemblyName || null,
+        parentLevelType: a.parentLevelType || null,
+        displayName: a.displayName || a.partyLevelDisplayName,
+        assemblyName: a.assemblyName,
+        partyLevelName: a.partyLevelName,
+        partyLevelDisplayName: a.partyLevelDisplayName,
+        partyLevelId: a.partyLevelId,
+      };
+      allAssignments.push(mapped);
+    };
+
+    if (permissions.accessibleBlocks) permissions.accessibleBlocks.forEach(pushMaybe);
+    if (permissions.accessibleMandals) permissions.accessibleMandals.forEach(pushMaybe);
+    if (permissions.accessiblePollingCenters) permissions.accessiblePollingCenters.forEach(pushMaybe);
+    if (permissions.accessibleBooths) permissions.accessibleBooths.forEach(pushMaybe);
+  }
+
+  // remove duplicates by assignment_id
+  const seen = new Set<number>();
+  allAssignments = allAssignments.filter((a) => {
+    if (!a || a.assignment_id == null) return false;
+    if (seen.has(a.assignment_id)) return false;
+    seen.add(a.assignment_id);
+    return true;
+  });
+
+  const hasAnyAssignments = allAssignments.length > 0;
+  const hasAnyAdminPanels = (partyAdminPanels && partyAdminPanels.length > 0) || (levelAdminPanels && levelAdminPanels.length > 0);
+
   // Debug logging for dynamic panels
   if ((isAfterAssemblyPanel || isSubLevelPanel) && process.env.NODE_ENV === 'development') {
     console.log('🔍 Assignment Selector Debug:', {
@@ -158,33 +232,50 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     setAssignmentMenuOpen(false);
+    setPartyPanelsOpen(false);
+    setLevelAdminPanelsOpen(false);
+    setLevelAccessOpen(false);
 
     // Dispatch custom event to trigger data refresh in dashboards
     window.dispatchEvent(new Event('districtChanged'));
     window.dispatchEvent(new Event('assignmentChanged'));
 
-    // Navigate to the appropriate route based on panel type
-    if (panelType === 'afterassembly') {
-      navigate(`/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
-    } else if (panelType === 'sublevel') {
-      navigate(`/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
-    } else {
-      // Standard navigation
-      const levelTypeRoutes: Record<string, string> = {
-        State: "/state",
-        District: "/district",
-        Assembly: "/assembly",
-        Block: "/block",
-        Mandal: "/mandal",
-        PollingCenter: "/polling-center",
-        Booth: "/booth",
-      };
-
-      const route = levelTypeRoutes[assignment.levelType];
-      if (route) {
-        navigate(route);
+    // Determine route based on the target assignment (inspect assignment itself)
+    if (assignment.afterAssemblyData_id) {
+      // dynamic after-assembly / sublevel logic: decide whether to go to afterassembly or sublevel
+      if (assignment.parentId === null || assignment.parentLevelType === 'Assembly') {
+        navigate(`/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+      } else {
+        navigate(`/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
       }
+      return;
     }
+
+    // Standard navigation
+    const levelTypeRoutes: Record<string, string> = {
+      State: "/state",
+      District: "/district",
+      Assembly: "/assembly",
+      Block: "/block",
+      Mandal: "/mandal",
+      PollingCenter: "/polling-center",
+      Booth: "/booth",
+    };
+
+    const route = levelTypeRoutes[assignment.levelType];
+    if (route) {
+      navigate(route);
+    }
+  };
+
+  const handleAdminPanelNavigate = (panel: PanelAssignment) => {
+    setAssignmentMenuOpen(false);
+    setPartyPanelsOpen(false);
+    setLevelAdminPanelsOpen(false);
+    setLevelAccessOpen(false);
+    // Clear any Team Levels selection so other dropdowns don't show a stale selection
+    dispatch(clearSelectedAssignment());
+    navigate(panel.redirectUrl);
   };
 
   const firstName = user?.firstName || user?.username || "User";
@@ -221,6 +312,30 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     return profileRoutes[currentLevelType] || "/profile";
   };
 
+  // Helper: map a permissions item into a full StateAssignment
+  const mapPermissionToAssignment = (item: any, source?: string): StateAssignment => {
+    if (!item) return {} as StateAssignment;
+    // For fixed types (District, Assembly), do NOT set afterAssemblyData_id
+    const isFixed = source === 'District' || source === 'Assembly';
+    const isDirectChildOfAssembly = item.parentId == null || item.parentLevelId == null;
+    return {
+      assignment_id: item.assignment_id || item.booth_assignment_id,
+      stateMasterData_id: item.stateMasterData_id || 0,
+      afterAssemblyData_id: isFixed ? undefined : (item.afterAssemblyData_id || item.booth_assignment_id),
+      levelName: item.displayName || item.levelName || source,
+      levelType: source || item.levelName || item.partyLevelName || 'Unknown',
+      level_id: item.level_id || item.booth_assignment_id,
+      parentId: item.parentId || item.parentLevelId || null,
+      parentLevelName: item.parentLevelName || item.assemblyName || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
+      parentLevelType: item.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
+      displayName: item.partyLevelDisplayName || item.displayName || item.levelName || item.name,
+      assemblyName: item.assemblyName,
+      partyLevelName: item.partyLevelName,
+      partyLevelDisplayName: item.partyLevelDisplayName,
+      partyLevelId: item.partyLevelId,
+    } as StateAssignment;
+  };
+
   return (
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
       <div className="container-page flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">
@@ -229,7 +344,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <button
             type="button"
             onClick={() => onToggleSidebar?.()}
-            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition flex-shrink-0"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition shrink-0"
             aria-label="Open sidebar"
           >
             <svg
@@ -246,20 +361,51 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               />
             </svg>
           </button>
-          <div className="font-semibold text-sm sm:text-base truncate" aria-label="Current level">
+
+          {/* Home Icon Button - Navigate to /panels */}
+          <button
+            type="button"
+            onClick={() => navigate("/panels")}
+            className="group inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition shrink-0 relative"
+            aria-label="Go to assigned panels"
+            title="Assigned Panels"
+          >
+            <svg
+              className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700 dark:text-gray-300"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            {/* Tooltip */}
+           
+          </button>
+
+           {/* <div className="font-semibold text-sm sm:text-base truncate" aria-label="Current level">
             {user?.role || "Dashboard"}
-          </div>
+          </div>  */}
 
           {/* Assignment Switcher - Show when user has multiple assignments of same type */}
           {hasMultipleAssignments && selectedAssignment && (
             <div className="relative hidden md:block" ref={assignmentMenuRef}>
               <button
                 type="button"
-                onClick={() => setAssignmentMenuOpen((s) => !s)}
+                onClick={() => {
+                  // Open assignment menu and close other dropdowns to avoid accidental clicks
+                  setAssignmentMenuOpen((s) => !s);
+                  setPartyPanelsOpen(false);
+                  setLevelAdminPanelsOpen(false);
+                  setLevelAccessOpen(false);
+                }}
                 className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 max-w-[200px]"
               >
                 <svg
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 flex-shrink-0"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -275,7 +421,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
                 <svg
-                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform flex-shrink-0 ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -350,8 +496,280 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               )}
             </div>
           )}
+
+          {/* Three separate dropdowns: Level Access, Level Admin, Party Admin */}
+          {(hasAnyAssignments || hasAnyAdminPanels) && user && (
+            <div className="flex items-center gap-2 ml-2">
+              {/* Level Access dropdown (fixed + dynamic types) */}
+              {hasAnyAssignments && (
+                <div className="relative" ref={levelAccessRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Open Level Access and close other menus
+                      setLevelAccessOpen((s) => !s);
+                      setPartyPanelsOpen(false);
+                      setLevelAdminPanelsOpen(false);
+                      setAssignmentMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  >
+                    <svg className="h-4 w-4 text-gray-600 dark:text-gray-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-xs text-gray-700 dark:text-gray-200">Team Levels</span>
+                    <svg
+                      className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAccessOpen ? "rotate-180" : "rotate-0"}`}
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {levelAccessOpen && (
+                    <div className="absolute left-0 mt-2 w-72 sm:w-80 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Team Levels</div>
+
+                      {/* Fixed Level types (State/District/Assembly) */}
+                      {allAssignments.length > 0 && (() => {
+                        const FIXED = [
+                          { type: 'State', route: '/state' },
+                          { type: 'District', route: '/district' },
+                          { type: 'Assembly', route: '/assembly' },
+                        ];
+
+                        const available = FIXED.filter(f => {
+                          const inState = allAssignments.some(a => a.levelType === f.type);
+                          const inPermissions = (
+                            (f.type === 'District' && permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) ||
+                            (f.type === 'Assembly' && permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) ||
+                            (f.type === 'State' && allAssignments.some(a => a.levelType === 'State'))
+                          );
+                          return inState || inPermissions;
+                        });
+
+                        return (
+                          <div>
+                            {available.map(f => {
+                              let repr = allAssignments.find(a => a.levelType === f.type);
+                              if (!repr) {
+                                if (f.type === 'District' && permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) {
+                                  repr = mapPermissionToAssignment(permissions.accessibleDistricts[0], 'District');
+                                } else if (f.type === 'Assembly' && permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) {
+                                  repr = mapPermissionToAssignment(permissions.accessibleAssemblies[0], 'Assembly');
+                                }
+                              }
+
+                              return (
+                                <button
+                                  key={`fixed-${f.type}`}
+                                  onClick={() => {
+                                    if (repr) {
+                                      dispatch(setSelectedAssignment(repr));
+                                      navigate(f.route);
+                                      setLevelAccessOpen(false);
+                                    }
+                                  }}
+                                  className={[
+                                    "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
+                                    selectedAssignment?.levelType === f.type
+                                      ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
+                                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                                  ].join(' ')}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate text-xs sm:text-sm">{f.type}</div>
+                                  </div>
+                                  {selectedAssignment?.levelType === f.type && (
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+
+                      <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
+
+                      {/* Dynamic types (Block/Mandal/PollingCenter/Booth) */}
+                      {(() => {
+                        const collect = (source: any[] | undefined, type: string) => {
+                          if (!source || source.length === 0) return [] as StateAssignment[];
+                          return source.map((item: any) => {
+                            if (type === 'Booth') {
+                              return {
+                                assignment_id: item.booth_assignment_id || item.assignment_id,
+                                afterAssemblyData_id: item.booth_assignment_id || item.afterAssemblyData_id,
+                                levelName: item.partyLevelName || item.levelName || 'Booth',
+                                levelType: item.partyLevelName || item.levelName || 'Booth',
+                                displayName: item.partyLevelDisplayName || item.displayName || (`Booth ${item.boothFrom || ''}-${item.boothTo || ''}`),
+                                level_id: item.booth_assignment_id || item.level_id,
+                                parentId: item.parentLevelId || item.parentId,
+                                parentLevelName: item.parentLevelName || 'PollingCenter',
+                                parentLevelType: item.parentLevelType || 'PollingCenter',
+                              } as StateAssignment;
+                            }
+                            const isDirectChildOfAssembly = item.parentId == null;
+                            return {
+                              assignment_id: item.assignment_id,
+                              afterAssemblyData_id: item.afterAssemblyData_id,
+                              levelName: item.displayName || item.levelName,
+                              levelType: item.levelName || type,
+                              displayName: item.displayName || item.levelName,
+                              level_id: item.level_id,
+                              parentId: item.parentId,
+                              parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (item.parentLevelName || 'Unknown'),
+                              parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (item.parentLevelType || 'Unknown'),
+                              assemblyName: item.assemblyName,
+                            } as StateAssignment;
+                          });
+                        };
+
+                        const groups = [
+                          { type: 'Block', items: collect(permissions?.accessibleBlocks || [], 'Block') },
+                          { type: 'Mandal', items: collect(permissions?.accessibleMandals || [], 'Mandal') },
+                          { type: 'PollingCenter', items: collect(permissions?.accessiblePollingCenters || [], 'PollingCenter') },
+                          { type: 'Booth', items: collect(permissions?.accessibleBooths || [], 'Booth') },
+                        ];
+
+                        return (
+                          <div>
+                            {groups.map((g) =>
+                              g.items.length === 0 ? null : (
+                                <button
+                                  key={`dyn-${g.type}`}
+                                  onClick={() => handleAssignmentSwitch(g.items[0])}
+                                  className={[
+                                    "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
+                                    selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type
+                                      ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
+                                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                                  ].join(' ')}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate text-xs sm:text-sm">{g.type}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">{g.items.length} Assigned</div>
+                                  </div>
+                                  {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
+                              )
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Level Admin Panels dropdown */}
+              {levelAdminPanels && levelAdminPanels.length > 0 && (
+                <div className="relative" ref={levelAdminPanelsRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Open Level Admin and close other menus
+                      setLevelAdminPanelsOpen((s) => !s);
+                      setPartyPanelsOpen(false);
+                      setLevelAccessOpen(false);
+                      setAssignmentMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  >
+                    <svg className="h-4 w-4 text-gray-600 dark:text-gray-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-xs text-gray-700 dark:text-gray-200">Role Assign</span>
+                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAdminPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {levelAdminPanelsOpen && (
+                    <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Role Assign</div>
+                      {levelAdminPanels.map((panel: PanelAssignment) => (
+                        <button
+                          key={`levelpanel-${panel.id}`}
+                          onClick={() => { setLevelAdminPanelsOpen(false); handleAdminPanelNavigate(panel); }}
+                          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate text-xs sm:text-sm">{panel.displayName || panel.name}</div>
+                          </div>
+                          {currentAdminPanel?.id === panel.id && (
+                            <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Party Admin Panels dropdown */}
+              {partyAdminPanels && partyAdminPanels.length > 0 && (
+                <div className="relative" ref={partyPanelsRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Open Party Admin and close other menus
+                      setPartyPanelsOpen((s) => !s);
+                      setLevelAdminPanelsOpen(false);
+                      setLevelAccessOpen(false);
+                      setAssignmentMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                  >
+                    <svg className="h-4 w-4 text-gray-600 dark:text-gray-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-xs text-gray-700 dark:text-gray-200">National Levels</span>
+                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${partyPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
+                      <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {partyPanelsOpen && (
+                    <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">National Levels</div>
+                      {partyAdminPanels.map((panel: PanelAssignment) => (
+                        <button
+                          key={`party-${panel.id}`}
+                          onClick={() => { setPartyPanelsOpen(false); handleAdminPanelNavigate(panel); }}
+                          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate text-xs sm:text-sm">{panel.displayName || panel.name}</div>
+                            {panel.metadata?.partyCode && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">Code: {panel.metadata.partyCode}</div>
+                            )}
+                          </div>
+                          {currentAdminPanel?.id === panel.id && (
+                            <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0" ref={menuRef}>
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0" ref={menuRef}>
           <ThemeToggle />
           {user && (
             <div className="relative">
@@ -405,7 +823,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       }
                     >
                       <svg
-                        className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 flex-shrink-0"
+                        className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 shrink-0"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -443,7 +861,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                 : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
                             ].join(" ")}
                           >
-                            <svg className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <div className="flex-1 min-w-0">
@@ -455,7 +873,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                               )}
                             </div>
                             {selectedAssignment.assignment_id === assignment.assignment_id && (
-                              <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                              <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                             )}
@@ -474,7 +892,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     className="flex w-full items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                   >
                     <svg
-                      className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0"
+                      className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Edit,
-  Trash2,
+
   Users,
   Phone,
   Mail,
@@ -9,6 +9,7 @@ import {
   //   Calendar,
   ToggleRight,
   ToggleLeft,
+  MoreHorizontal,
 } from "lucide-react";
 import type { User } from "../../../types/user";
 
@@ -27,6 +28,7 @@ export const UserList: React.FC<UserListProps> = ({
   onDelete,
   onToggleStatus,
 }) => {
+  const [openUserId, setOpenUserId] = useState<number | null>(null);
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -160,6 +162,9 @@ export const UserList: React.FC<UserListProps> = ({
                 Party & Role
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                State & District
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
               {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -241,8 +246,9 @@ export const UserList: React.FC<UserListProps> = ({
                   <button
                     onClick={() => onToggleStatus(user.user_id, !user.isActive)}
                     className="flex items-center gap-2 hover:opacity-75 transition-opacity"
-                    title={`Click to ${user.isActive ? "deactivate" : "activate"
-                      }`}
+                    title={`Click to ${
+                      user.isActive ? "deactivate" : "activate"
+                    }`}
                   >
                     {user.isActive ? (
                       <>
@@ -271,7 +277,7 @@ export const UserList: React.FC<UserListProps> = ({
                 </td> */}
 
                 {/* Actions */}
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
                   <div className="flex items-center gap-2 justify-end">
                     {/* Edit Button */}
                     <button
@@ -282,14 +288,37 @@ export const UserList: React.FC<UserListProps> = ({
                       <Edit className="w-4 h-4" />
                     </button>
 
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => onDelete(user.user_id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      title="Delete user"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {/* 3 Dots Dropdown */}
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setOpenUserId(
+                            openUserId === user.user_id ? null : user.user_id
+                          )
+                        }
+                        className={`p-2 rounded-md transition-all 
+          ${
+            openUserId === user.user_id
+              ? "bg-gray-200 shadow-sm" // ACTIVE INDICATION
+              : "hover:bg-gray-100"
+          }
+        `}
+                      >
+                        <MoreHorizontal className="w-5 h-5 text-gray-700" />
+                      </button>
+
+                      {/* Dropdown */}
+                      {openUserId === user.user_id && (
+                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg border rounded-md z-10 animate-fadeIn">
+                          <button
+                            onClick={() => onDelete(user.user_id)}
+                            className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </td>
               </tr>

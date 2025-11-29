@@ -191,8 +191,9 @@ const Icons = {
 
 // Top-level items
 const districtItems: NavItem[] = [
-  { to: "district-team", label: "District Team", icon: Icons.team },
+  
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+  { to: "district-team", label: "District Team", icon: Icons.team },
   { to: "assembly", label: "Assembly List", icon: Icons.assembly },
 ];
 
