@@ -21,12 +21,65 @@ interface CampaignReportPayload {
   images?: File[];
 }
 
+interface UpdateCampaignReportPayload {
+  reportId: number;
+  attendees?: number;
+  personName: string;
+  personPhone: string;
+  report_date?: string;
+  description?: string;
+  images?: File[];
+  existingImages?: string[];
+}
+
 interface CampaignReportResponse {
   success: boolean;
   message: string;
   data?: {
     campaignReport_id: number;
     campaign_acceptance_id: number;
+  };
+}
+
+interface MyReportItem {
+  campaignReport_id: number;
+  campaign_acceptance_id: number;
+  attendees: number;
+  personName: string;
+  personPhone: string;
+  images: string[];
+  report_date: string;
+  description: string;
+  isActive: number;
+  isDelete: number;
+  created_at: string;
+  updated_at: string;
+  campaign_id: number;
+  acceptance_status: string;
+  campaign_name: string;
+  campaign_description: string;
+  campaign_start_date: string;
+  campaign_end_date: string;
+  campaign_active: number;
+}
+
+interface MyReportsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    campaign: {
+      campaign_id: number;
+      name: string;
+      start_date: string;
+      end_date: string;
+      isActive: number;
+    };
+    acceptance: {
+      campaignAcceptance_id: number;
+      status: string;
+    };
+    reports: MyReportItem[];
+    total_reports: number;
   };
 }
 
@@ -129,6 +182,61 @@ export const myCampaignsApi = createApi({
       },
       invalidatesTags: ["MyCampaigns"],
     }),
+    getMyReports: builder.query<MyReportsResponse, number>({
+      query: (campaignId) => `/campaign-reports/my-reports/${campaignId}`,
+      providesTags: (_, __, campaignId) => [
+        { type: "MyCampaigns", id: `reports-${campaignId}` },
+      ],
+    }),
+    updateCampaignReport: builder.mutation<
+      CampaignReportResponse,
+      UpdateCampaignReportPayload
+    >({
+      query: (payload) => {
+        const { reportId, images, existingImages, ...restPayload } = payload;
+
+        // If there are images, use FormData
+        if (images && images.length > 0) {
+          const formData = new FormData();
+
+          // Append all fields
+          Object.entries(restPayload).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              formData.append(key, String(value));
+            }
+          });
+
+          // Append existing images
+          if (existingImages) {
+            existingImages.forEach((imageUrl, index) => {
+              formData.append(`existingImages[${index}]`, imageUrl);
+            });
+          }
+
+          // Append new images
+          images.forEach((file) => {
+            formData.append("images[]", file);
+          });
+
+          return {
+            url: `/campaign-reports/${reportId}`,
+            method: "PUT",
+            body: formData,
+          };
+        }
+
+        // No images, use JSON
+        return {
+          url: `/campaign-reports/${reportId}`,
+          method: "PUT",
+          body: { ...restPayload, existingImages },
+        };
+      },
+      invalidatesTags: (_, __, { reportId }) => [
+        "MyCampaigns",
+        { type: "MyCampaigns", id: `reports-${reportId}` },
+      ],
+    }),
   }),
 });
 
@@ -136,4 +244,6 @@ export const {
   useGetMyCampaignsQuery,
   useUpdateCampaignAcceptanceMutation,
   useCreateCampaignReportMutation,
+  useGetMyReportsQuery,
+  useUpdateCampaignReportMutation,
 } = myCampaignsApi;

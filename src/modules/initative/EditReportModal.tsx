@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, Camera, Save } from "lucide-react";
 import type { CampaignEvent } from "../../types/initative";
+import { useUpdateCampaignReportMutation } from "../../store/api/myCampaignsApi";
 
 interface EditReportModalProps {
   report: {
@@ -16,14 +17,17 @@ interface EditReportModalProps {
   };
   campaign: CampaignEvent;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 export const EditReportModal: React.FC<EditReportModalProps> = ({
   report,
   campaign,
   onClose,
+  onSuccess,
 }) => {
-  const isUpdating = false;
+  const [updateReport, { isLoading: isUpdating }] =
+    useUpdateCampaignReportMutation();
 
   const [formData, setFormData] = useState({
     personName: report.personName,
@@ -101,35 +105,43 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const updatePayload = {
+      reportId: report.id,
+      personName: formData.personName,
+      personPhone: formData.personPhone,
+      attendees: parseInt(formData.attendees, 10),
+      report_date: formData.date,
+      description: formData.description,
+      images: formData.newImages.length > 0 ? formData.newImages : undefined,
+      existingImages: existingImages,
+    };
+
+    console.log("Updating report with payload:", {
+      ...updatePayload,
+      images: updatePayload.images
+        ? `${updatePayload.images.length} files`
+        : "none",
+      existingImages: updatePayload.existingImages?.length || 0,
+    });
+
     try {
-      const submitFormData = new FormData();
+      const result = await updateReport(updatePayload).unwrap();
 
-      submitFormData.append("personName", formData.personName);
-      submitFormData.append("personPhone", formData.personPhone);
-      submitFormData.append("attendees", formData.attendees);
-      submitFormData.append("date", formData.date);
-      submitFormData.append("description", formData.description);
-
-      // Add existing images that weren't removed
-      existingImages.forEach((imageUrl, index) => {
-        submitFormData.append(`existingImages[${index}]`, imageUrl);
-      });
-
-      // Add new images
-      formData.newImages.forEach((file) => {
-        submitFormData.append("images", file);
-      });
-
-      // For static implementation, just show success
-      alert("Report updated successfully");
+      alert(result.message || "Report updated successfully");
+      onSuccess?.(); // Call the success callback to refresh data
       onClose();
-    } catch {
-      alert("Failed to update report");
+    } catch (error) {
+      console.error("Failed to update report:", error);
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? (error.data as { error?: { message?: string } })?.error?.message
+          : "Failed to update report. Please try again.";
+      alert(errorMessage || "Failed to update report. Please try again.");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60] lg:left-[258px]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60 lg:left-[258px]">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gray-800 text-white p-6 border-b border-gray-200">

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Camera, Clock, Plus, X, Eye } from "lucide-react";
 import type { CampaignEvent } from "../../types/initative";
 import { CampaignImageSlider } from "./CampaignImageSlider";
-import { ViewReportsModal } from "./ViewReportsModal";
+
 import { useCreateCampaignReportMutation } from "../../store/api/myCampaignsApi";
 import { storage } from "../../utils/storage";
 export interface CampaignListProps {
@@ -17,7 +17,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   selectedNotification,
 }) => {
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showViewReportsModal, setShowViewReportsModal] = useState(false);
+
   const [activeCampaign, setActiveCampaign] = useState<CampaignEvent | null>(
     null
   );
@@ -75,14 +75,14 @@ export const CampaignList: React.FC<CampaignListProps> = ({
       alert("Accept the campaign first to view reports.");
       return;
     }
-    console.log("CampaignList - Opening MY reports for campaign:", {
-      id: campaign.id,
-      campaign_id: campaign.campaign_id,
-      title: campaign.title,
-      user_level: "DISTRICT",
+    // Trigger the custom event to show My Reports modal
+    const event = new CustomEvent("showMyReports", {
+      detail: {
+        campaignId: campaign.campaign_id,
+        campaignName: campaign.title,
+      },
     });
-    setActiveCampaign(campaign);
-    setShowViewReportsModal(true);
+    window.dispatchEvent(event);
   };
 
   const handleReportChange = (
@@ -585,17 +585,6 @@ export const CampaignList: React.FC<CampaignListProps> = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* View Reports Modal */}
-      {showViewReportsModal && activeCampaign && (
-        <ViewReportsModal
-          campaign={activeCampaign}
-          onClose={() => {
-            setShowViewReportsModal(false);
-            setActiveCampaign(null);
-          }}
-        />
       )}
     </div>
   );

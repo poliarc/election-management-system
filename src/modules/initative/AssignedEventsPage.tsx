@@ -1,10 +1,11 @@
 import type { CampaignEvent } from "../../types/initative";
 import type { MyCampaignItem } from "../../types/campaign";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Calendar, Bell, Plus, TrendingUp } from "lucide-react";
 import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
+import { MyReportsModal } from "./MyReportsModal";
 import {
   useGetMyCampaignsQuery,
   useUpdateCampaignAcceptanceMutation,
@@ -30,6 +31,11 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
   const [filter, setFilter] = useState<
     "all" | "pending" | "accepted" | "declined"
   >("all");
+  const [showMyReports, setShowMyReports] = useState(false);
+  const [myReportsData, setMyReportsData] = useState<{
+    campaignId: number;
+    campaignName: string;
+  } | null>(null);
 
   // Fetch campaigns from API
   const { data: apiResponse, isLoading, error } = useGetMyCampaignsQuery();
@@ -40,6 +46,27 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
   // Mutation for creating campaign reports
   const [createReport] = useCreateCampaignReportMutation();
+
+  // Listen for My Reports events
+  useEffect(() => {
+    const handleShowMyReports = (event: CustomEvent) => {
+      const { campaignId, campaignName } = event.detail;
+      setMyReportsData({ campaignId, campaignName });
+      setShowMyReports(true);
+    };
+
+    window.addEventListener(
+      "showMyReports",
+      handleShowMyReports as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "showMyReports",
+        handleShowMyReports as EventListener
+      );
+    };
+  }, []);
 
   // Map API campaigns to CampaignEvent format
   const mapApiCampaignToEvent = (campaign: MyCampaignItem): CampaignEvent => {
@@ -467,6 +494,18 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
           onDecline={handleDeclineInvitation}
           onSendReport={handleSendReport}
           isUpdating={isUpdating}
+        />
+      )}
+
+      {/* My Reports Modal */}
+      {showMyReports && myReportsData && (
+        <MyReportsModal
+          campaignId={myReportsData.campaignId}
+          campaignName={myReportsData.campaignName}
+          onClose={() => {
+            setShowMyReports(false);
+            setMyReportsData(null);
+          }}
         />
       )}
     </div>
