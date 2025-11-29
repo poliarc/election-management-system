@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Camera, Clock, Plus, X, Eye } from "lucide-react";
+import toast from "react-hot-toast";
 import type { CampaignEvent } from "../../types/initative";
 import { CampaignImageSlider } from "./CampaignImageSlider";
 
@@ -58,12 +59,12 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const handleReportClick = (campaign: CampaignEvent) => {
     if (campaign.acceptance_status !== "accepted") {
-      alert("Accept the campaign before submitting a report.");
+      toast.error("Accept the campaign before submitting a report.");
       return;
     }
     // Use campaign_id if acceptance_id is not available
     if (!campaign.acceptance_id && !campaign.campaign_id) {
-      alert("Missing campaign information. Try reloading campaigns.");
+      toast.error("Missing campaign information. Try reloading campaigns.");
       return;
     }
     setActiveCampaign(campaign);
@@ -72,7 +73,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const handleViewReportsClick = (campaign: CampaignEvent) => {
     if (campaign.acceptance_status !== "accepted") {
-      alert("Accept the campaign first to view reports.");
+      toast.error("Accept the campaign first to view reports.");
       return;
     }
     // Trigger the custom event to show My Reports modal
@@ -102,7 +103,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
       // Limit to 10 images maximum
       if (combinedFiles.length > 10) {
-        alert("Maximum 10 images allowed. Some images were not added.");
+        toast.error("Maximum 10 images allowed. Some images were not added.");
         const limitedFiles = combinedFiles.slice(0, 10);
 
         setReportData((prev) => ({
@@ -158,26 +159,30 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeCampaign) {
-      alert("No campaign selected.");
+      toast.error("No campaign selected.");
       return;
     }
 
     // Check if campaign is accepted
     if (activeCampaign.acceptance_status !== "accepted") {
-      alert("Please accept the campaign before submitting a report.");
+      toast.error("Please accept the campaign before submitting a report.");
       return;
     }
 
     // Check if we have the campaign_id
     if (!activeCampaign.campaign_id) {
-      alert("Campaign ID is missing. Please refresh the page and try again.");
+      toast.error(
+        "Campaign ID is missing. Please refresh the page and try again."
+      );
       return;
     }
 
     if (!user) {
-      alert("User information not found. Please login again.");
+      toast.error("User information not found. Please login again.");
       return;
     }
+
+    const loadingToast = toast.loading("Submitting report...");
 
     try {
       const result = await createReport({
@@ -193,7 +198,8 @@ export const CampaignList: React.FC<CampaignListProps> = ({
         images: reportData.images.length > 0 ? reportData.images : undefined,
       }).unwrap();
 
-      alert(result.message || "Report submitted successfully.");
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Report submitted successfully!");
 
       setShowReportModal(false);
       setActiveCampaign(null);
@@ -211,11 +217,12 @@ export const CampaignList: React.FC<CampaignListProps> = ({
       setImagePreviews([]);
     } catch (error) {
       console.error("Failed to submit report:", error);
+      toast.dismiss(loadingToast);
       const errorMessage =
         error && typeof error === "object" && "data" in error
           ? (error.data as { error?: { message?: string } })?.error?.message
           : "Failed to submit report. Please try again.";
-      alert(errorMessage || "Failed to submit report. Please try again.");
+      toast.error(errorMessage || "Failed to submit report. Please try again.");
     }
   };
 

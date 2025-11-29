@@ -2,6 +2,7 @@ import type { CampaignEvent } from "../../types/initative";
 import type { MyCampaignItem } from "../../types/campaign";
 import React, { useState, useMemo, useEffect } from "react";
 import { Calendar, Bell, Plus, TrendingUp } from "lucide-react";
+import toast from "react-hot-toast";
 import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
@@ -135,9 +136,11 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
   const handleAcceptInvitation = async () => {
     const campaignId = selectedNotificationForDetail?.campaign_id;
     if (!campaignId) {
-      alert("Invalid campaign.");
+      toast.error("Invalid campaign.");
       return;
     }
+
+    const loadingToast = toast.loading("Accepting campaign...");
 
     try {
       const result = await updateAcceptance({
@@ -159,20 +162,24 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
         );
       }
 
-      alert(result.message || "You have accepted this campaign.");
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Campaign accepted successfully!");
       setSelectedNotificationForDetail(null);
     } catch (error) {
       console.error("Failed to accept campaign:", error);
-      alert("Failed to accept campaign. Please try again.");
+      toast.dismiss(loadingToast);
+      toast.error("Failed to accept campaign. Please try again.");
     }
   };
 
   const handleDeclineInvitation = async () => {
     const campaignId = selectedNotificationForDetail?.campaign_id;
     if (!campaignId) {
-      alert("Invalid campaign.");
+      toast.error("Invalid campaign.");
       return;
     }
+
+    const loadingToast = toast.loading("Declining campaign...");
 
     try {
       const result = await updateAcceptance({
@@ -180,29 +187,33 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
         status: "declined",
       }).unwrap();
 
-      alert(result.message || "You have declined this campaign.");
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Campaign declined successfully.");
       setSelectedNotificationForDetail(null);
     } catch (error) {
       console.error("Failed to decline campaign:", error);
-      alert("Failed to decline campaign. Please try again.");
+      toast.dismiss(loadingToast);
+      toast.error("Failed to decline campaign. Please try again.");
     }
   };
 
   const handleSendReport = async (formData: FormData) => {
     if (!selectedCampaign) {
-      alert("No campaign selected");
+      toast.error("No campaign selected");
       return;
     }
 
     // Check if campaign is accepted
     if (selectedCampaign.acceptance_status !== "accepted") {
-      alert("Please accept the campaign before submitting a report.");
+      toast.error("Please accept the campaign before submitting a report.");
       return;
     }
 
     // Check if we have the campaign_id
     if (!selectedCampaign.campaign_id) {
-      alert("Campaign ID is missing. Please refresh the page and try again.");
+      toast.error(
+        "Campaign ID is missing. Please refresh the page and try again."
+      );
       return;
     }
 
@@ -215,7 +226,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
       storage.getUser<{ firstName?: string; contactNo?: string }>();
 
     if (!user) {
-      alert("User information not found. Please login again.");
+      toast.error("User information not found. Please login again.");
       return;
     }
 
@@ -224,6 +235,8 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
     const attendees = formData.get("attendees") as string;
     const reportDate = formData.get("report_date") as string;
     const imageFiles = formData.getAll("images") as File[];
+
+    const loadingToast = toast.loading("Submitting report...");
 
     try {
       const result = await createReport({
@@ -236,15 +249,17 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
         images: imageFiles.length > 0 ? imageFiles : undefined,
       }).unwrap();
 
-      alert(result.message || "Report submitted successfully");
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Report submitted successfully!");
       setSelectedCampaign(null);
     } catch (error) {
       console.error("Failed to submit report:", error);
+      toast.dismiss(loadingToast);
       const errorMessage =
         error && typeof error === "object" && "data" in error
           ? (error.data as { error?: { message?: string } })?.error?.message
           : "Failed to submit report. Please try again.";
-      alert(errorMessage || "Failed to submit report. Please try again.");
+      toast.error(errorMessage || "Failed to submit report. Please try again.");
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Upload, Camera, Save } from "lucide-react";
+import toast from "react-hot-toast";
 import type { CampaignEvent } from "../../types/initative";
 import { useUpdateCampaignReportMutation } from "../../store/api/myCampaignsApi";
 
@@ -71,7 +72,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
       const totalImages =
         existingImages.length + formData.newImages.length + files.length;
       if (totalImages > 10) {
-        alert("Maximum 10 images allowed");
+        toast.error("Maximum 10 images allowed");
         return;
       }
 
@@ -124,19 +125,23 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
       existingImages: updatePayload.existingImages?.length || 0,
     });
 
+    const loadingToast = toast.loading("Updating report...");
+
     try {
       const result = await updateReport(updatePayload).unwrap();
 
-      alert(result.message || "Report updated successfully");
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Report updated successfully!");
       onSuccess?.(); // Call the success callback to refresh data
       onClose();
     } catch (error) {
       console.error("Failed to update report:", error);
+      toast.dismiss(loadingToast);
       const errorMessage =
         error && typeof error === "object" && "data" in error
           ? (error.data as { error?: { message?: string } })?.error?.message
           : "Failed to update report. Please try again.";
-      alert(errorMessage || "Failed to update report. Please try again.");
+      toast.error(errorMessage || "Failed to update report. Please try again.");
     }
   };
 
