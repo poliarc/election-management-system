@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import toast from "react-hot-toast";
 import type {
   Campaign,
   CampaignDetail,
@@ -422,10 +423,15 @@ export const CampaignsStatePage = () => {
           }
         }
 
+        toast.success(
+          editingCampaign
+            ? "Campaign updated successfully."
+            : "Campaign created successfully."
+        );
         handleCancel();
       } catch (error) {
         console.error("Failed to submit campaign form", error);
-        alert(
+        toast.error(
           error instanceof Error
             ? error.message
             : "Failed to submit campaign. Please try again."
@@ -544,9 +550,10 @@ export const CampaignsStatePage = () => {
         await campaignApi.completeCampaign(campaignNumericId);
         await loadCampaigns();
       }
+      toast.success("Campaign marked as completed.");
     } catch (error) {
       console.error("Failed to end campaign", error);
-      alert(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Failed to end campaign. Please try again."
