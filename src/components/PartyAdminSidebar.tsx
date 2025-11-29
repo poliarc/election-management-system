@@ -78,11 +78,9 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
     onNavigate,
 }) => {
     const user = useAppSelector((s) => s.auth.user);
-    const { partyAdminPanels } = useAppSelector((s) => s.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    const currentParty = partyAdminPanels?.find((panel) => panel.id === partyId);
     const base = `/partyadmin/${partyId}`;
     const firstName = user?.firstName || user?.username || "Admin";
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
