@@ -7,10 +7,68 @@ import type { VoterList, VoterListCandidate } from "../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
 
+const translations = {
+    en: {
+        title: "Voter List Management",
+        subtitle: "Manage and update voter information",
+        totalVoters: "total voters",
+        searchVoters: "Search Voters",
+        searchPlaceholder: "Search by name, mobile, EPIC, Aadhar, religion, caste, profession...",
+        fatherHusbandName: "Father/Husband Name",
+        fatherHusbandPlaceholder: "Enter relative name...",
+        address: "Address",
+        addressPlaceholder: "Enter address...",
+        partFrom: "Part From",
+        partFromPlaceholder: "From part no...",
+        partTo: "Part To",
+        partToPlaceholder: "To part no...",
+        showFilters: "Show Filters",
+        hideFilters: "Hide Filters",
+        clearAll: "Clear All",
+        noAssembly: "No assembly selected. Please select an assembly first.",
+        loadingVoters: "Loading voters...",
+        failedToLoad: "Failed to load voters. Please try again.",
+        showing: "Showing page",
+        of: "of",
+        previous: "Previous",
+        next: "Next",
+        voterUpdated: "Voter updated successfully",
+        updateFailed: "Failed to update voter"
+    },
+    hi: {
+        title: "मतदाता सूची प्रबंधन",
+        subtitle: "मतदाता जानकारी प्रबंधित और अपडेट करें",
+        totalVoters: "कुल मतदाता",
+        searchVoters: "मतदाता खोजें",
+        searchPlaceholder: "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें...",
+        fatherHusbandName: "पिता/पति का नाम",
+        fatherHusbandPlaceholder: "संबंधी का नाम दर्ज करें...",
+        address: "पता",
+        addressPlaceholder: "पता दर्ज करें...",
+        partFrom: "भाग से",
+        partFromPlaceholder: "भाग संख्या से...",
+        partTo: "भाग तक",
+        partToPlaceholder: "भाग संख्या तक...",
+        showFilters: "फ़िल्टर दिखाएं",
+        hideFilters: "फ़िल्टर छुपाएं",
+        clearAll: "सभी साफ़ करें",
+        noAssembly: "कोई विधानसभा चयनित नहीं। कृपया पहले एक विधानसभा चुनें।",
+        loadingVoters: "मतदाता लोड हो रहे हैं...",
+        failedToLoad: "मतदाता लोड करने में विफल। कृपया पुनः प्रयास करें।",
+        showing: "पृष्ठ दिखा रहा है",
+        of: "का",
+        previous: "पिछला",
+        next: "अगला",
+        voterUpdated: "मतदाता सफलतापूर्वक अपडेट किया गया",
+        updateFailed: "मतदाता अपडेट करने में विफल"
+    }
+};
+
 export default function VoterListPage() {
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(50);
+    const [language, setLanguage] = useState<"en" | "hi">("en");
 
     // Search/Filter states
     const [search, setSearch] = useState("");
@@ -19,7 +77,8 @@ export default function VoterListPage() {
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
-    const [language, setLanguage] = useState<"en" | "hi">("en");
+
+    const t = translations[language];
 
     // Get assembly_id from Redux state
     const selectedAssignment = useSelector(
@@ -59,11 +118,11 @@ export default function VoterListPage() {
         try {
             if (selectedVoter?.id) {
                 await updateVoter({ id: selectedVoter.id, ...updatedVoter }).unwrap();
-                toast.success("Voter updated successfully");
+                toast.success(t.voterUpdated);
                 setSelectedVoter(null);
             }
         } catch (err) {
-            toast.error("Failed to update voter");
+            toast.error(t.updateFailed);
         }
     };
 
@@ -75,7 +134,7 @@ export default function VoterListPage() {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    No assembly selected. Please select an assembly first.
+                    {t.noAssembly}
                 </div>
             </div>
         );
@@ -84,7 +143,7 @@ export default function VoterListPage() {
     if (isLoading) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]">
-                <div className="text-gray-600">Loading voters...</div>
+                <div className="text-gray-600">{t.loadingVoters}</div>
             </div>
         );
     }
@@ -93,7 +152,7 @@ export default function VoterListPage() {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    Failed to load voters. Please try again.
+                    {t.failedToLoad}
                 </div>
             </div>
         );
@@ -104,28 +163,28 @@ export default function VoterListPage() {
 
     return (
         <div className="p-6">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Voter List Management</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
                     <p className="text-gray-600 mt-1">
-                        Manage and update voter information • {totalVoters.toLocaleString()} total voters
+                        {t.subtitle} • {totalVoters.toLocaleString()} {t.totalVoters}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="relative inline-flex items-center bg-gray-200 rounded-full p-1">
                     <button
                         onClick={() => setLanguage("en")}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
-                            ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
                         English
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
-                            ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
                         हिंदी
@@ -142,25 +201,25 @@ export default function VoterListPage() {
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Search Voters
+                                    {t.searchVoters}
                                 </label>
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                    placeholder="Search by name, mobile, EPIC, Aadhar, religion, caste, profession..."
+                                    placeholder={t.searchPlaceholder}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Father/Husband Name
+                                    {t.fatherHusbandName}
                                 </label>
                                 <input
                                     type="text"
                                     value={fatherName}
                                     onChange={(e) => { setFatherName(e.target.value); setPage(1); }}
-                                    placeholder="Enter relative name..."
+                                    placeholder={t.fatherHusbandPlaceholder}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
@@ -168,14 +227,14 @@ export default function VoterListPage() {
                                 onClick={() => setShowFilters(!showFilters)}
                                 className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
                             >
-                                {showFilters ? "Hide Filters" : "Show Filters"}
+                                {showFilters ? t.hideFilters : t.showFilters}
                             </button>
                             {(search || fatherName || address || partFrom || partTo) && (
                                 <button
                                     onClick={handleClearFilters}
                                     className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
                                 >
-                                    Clear All
+                                    {t.clearAll}
                                 </button>
                             )}
                         </div>
@@ -184,37 +243,37 @@ export default function VoterListPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Address
+                                        {t.address}
                                     </label>
                                     <input
                                         type="text"
                                         value={address}
                                         onChange={(e) => { setAddress(e.target.value); setPage(1); }}
-                                        placeholder="Enter address..."
+                                        placeholder={t.addressPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Part From
+                                        {t.partFrom}
                                     </label>
                                     <input
                                         type="number"
                                         value={partFrom || ""}
                                         onChange={(e) => { setPartFrom(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
-                                        placeholder="From part no..."
+                                        placeholder={t.partFromPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Part To
+                                        {t.partTo}
                                     </label>
                                     <input
                                         type="number"
                                         value={partTo || ""}
                                         onChange={(e) => { setPartTo(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
-                                        placeholder="To part no..."
+                                        placeholder={t.partToPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
@@ -232,7 +291,7 @@ export default function VoterListPage() {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                             <div className="text-sm text-gray-600">
-                                Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
+                                {t.showing} {page} {t.of} {totalPages} • {totalVoters.toLocaleString()} {t.totalVoters}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -240,14 +299,14 @@ export default function VoterListPage() {
                                     disabled={page === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Previous
+                                    {t.previous}
                                 </button>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Next
+                                    {t.next}
                                 </button>
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useGetUsersByPartyQuery } from "../../../store/api/assemblyApi";
+import { useGetUsersByPartyAndStateQuery } from "../../../store/api/assemblyApi";
 import { useCreateUserHierarchyAssignmentMutation } from "../../../store/api/stateMasterApi";
 import { API_CONFIG } from "../../../config/api";
 
@@ -10,12 +10,16 @@ export default function AssignDistrict() {
   const [params] = useSearchParams();
   const districtId = params.get("districtId");
   const districtName = params.get("districtName");
+  const stateIdParam = params.get("stateId");
 
   const [partyId, setPartyId] = useState<number | null>(null);
+  const stateId = stateIdParam ? Number(stateIdParam) : null;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [assignedUserIds, setAssignedUserIds] = useState<number[]>([]);
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
 
   useEffect(() => {
     const authUser = localStorage.getItem("auth_user");
@@ -36,10 +40,25 @@ export default function AssignDistrict() {
     }
   }, []);
 
-  const { data: users = [], isLoading: loadingUsers } = useGetUsersByPartyQuery(
-    partyId!,
-    { skip: !partyId }
+  const { data, isLoading: loadingUsers } = useGetUsersByPartyAndStateQuery(
+    { partyId: partyId!, stateId: stateId!, page, limit: 20 },
+    { skip: !partyId || !stateId }
   );
+
+  const users = data?.users || [];
+  const pagination = data?.pagination;
+
+  // Accumulate users as we load more pages
+  useEffect(() => {
+    if (users.length > 0) {
+      setAllUsers((prev) => {
+        // Avoid duplicates
+        const existingIds = new Set(prev.map(u => u.user_id));
+        const newUsers = users.filter(u => !existingIds.has(u.user_id));
+        return [...prev, ...newUsers];
+      });
+    }
+  }, [users]);
   const [createAssignment, { isLoading: isAssigning }] =
     useCreateUserHierarchyAssignmentMutation();
 
@@ -67,8 +86,8 @@ export default function AssignDistrict() {
         const json = await resp.json();
         const ids: number[] = Array.isArray(json?.data?.users)
           ? json.data.users
-              .map((u: any) => Number(u.user_id))
-              .filter((n: number) => !Number.isNaN(n))
+            .map((u: any) => Number(u.user_id))
+            .filter((n: number) => !Number.isNaN(n))
           : [];
         setAssignedUserIds(ids);
         // Initialize selection with already assigned users the first time
@@ -82,20 +101,21 @@ export default function AssignDistrict() {
     fetchAssigned();
   }, [districtId]);
 
-  const filteredUsers = users
-    .filter((u) => (partyId ? u.party_id === partyId : true))
-    .filter((u) => {
-      const roleName = (u.role || "").toLowerCase().replace(/\s+/g, "");
-      const isSuperAdmin = roleName === "superadmin";
-      return !isSuperAdmin;
-    })
-    .filter(
-      (u) =>
-        u.isActive === 1 &&
-        (u.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          u.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          u.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+  const filteredUsers = allUsers.filter(
+    (u) =>
+      u.isActive === 1 &&
+      (u.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const hasMore = pagination && pagination.page < pagination.totalPages;
+
+  const handleLoadMore = () => {
+    if (hasMore && !loadingUsers) {
+      setPage((prev) => prev + 1);
+    }
+  };
 
   const assignedSet = useMemo(
     () => new Set(assignedUserIds),
@@ -237,6 +257,21 @@ export default function AssignDistrict() {
                   </div>
                 )}
               </div>
+
+              {hasMore && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingUsers}
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loadingUsers ? "Loading..." : "Load More Users"}
+                  </button>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Showing {allUsers.length} of {pagination?.total || 0} users
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-4 mt-6">
                 <button

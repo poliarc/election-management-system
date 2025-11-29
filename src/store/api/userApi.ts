@@ -204,6 +204,19 @@ export const userApi = createApi({
         { type: "User", id: "LIST" },
       ],
     }),
+    bulkUploadUsers: builder.mutation<ApiActionResponse, FormData>({
+      query: (formData) => ({
+        url: "/users/bulk-upload",
+        method: "POST",
+        body: formData,
+        prepareHeaders: (headers: Headers) => {
+          // Remove Content-Type header to let browser set it with boundary
+          headers.delete("Content-Type");
+          return headers;
+        },
+      }),
+      invalidatesTags: [{ type: "User", id: "LIST" }],
+    }),
   }),
 });
 
@@ -216,4 +229,5 @@ export const {
   useUpdateUserMutation,
   useToggleUserStatusMutation,
   useDeleteUserMutation,
+  useBulkUploadUsersMutation,
 } = userApi;

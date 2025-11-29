@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, Users, AlertTriangle } from "lucide-react";
+import { Plus, Users, AlertTriangle, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { PartyUserForm } from "./components/PartyUserForm";
 import { UserList } from "../Admin/users/UserList";
 import { UserSearchFilter } from "../Admin/users/UserSearchFilter";
+import { BulkUploadModal } from "../../components/BulkUploadModal";
 import {
     useGetUsersByPartyQuery,
     useCreateUserMutation,
@@ -13,6 +14,7 @@ import {
     useToggleUserStatusMutation,
     useGetPartiesQuery,
     useGetRolesQuery,
+    useBulkUploadUsersMutation,
 } from "../../store/api/partyUserApi";
 import type {
     User,
@@ -40,6 +42,7 @@ export const PartyAdminUsers: React.FC = () => {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [showBulkUpload, setShowBulkUpload] = useState(false);
     const [searchParams, setSearchParams] = useState<UserSearchParams>({
         page: 1,
         limit: 25,
@@ -64,6 +67,7 @@ export const PartyAdminUsers: React.FC = () => {
     const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
     const [toggleUserStatus, { isLoading: isToggling }] =
         useToggleUserStatusMutation();
+    const [bulkUploadUsers, { isLoading: isUploading }] = useBulkUploadUsersMutation();
 
     const users = usersResponse?.data || [];
     const pagination = usersResponse?.pagination || {
@@ -222,6 +226,25 @@ export const PartyAdminUsers: React.FC = () => {
         setEditingUser(null);
     };
 
+    const handleBulkUpload = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            await bulkUploadUsers(formData).unwrap();
+            toast.success("Users uploaded successfully!");
+            setShowBulkUpload(false);
+            refetch();
+        } catch (error: unknown) {
+            const errorMessage =
+                error && typeof error === "object" && "data" in error
+                    ? (error as { data?: { message?: string } }).data?.message ||
+                    "Failed to upload users"
+                    : "Failed to upload users";
+            toast.error(errorMessage);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4">
             <div className="max-w-7xl mx-auto">
@@ -239,6 +262,14 @@ export const PartyAdminUsers: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowBulkUpload(true)}
+                                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Upload Users
+                            </button>
+
                             <button
                                 onClick={() => setShowForm(true)}
                                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -325,6 +356,14 @@ export const PartyAdminUsers: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Bulk Upload Modal */}
+                <BulkUploadModal
+                    isOpen={showBulkUpload}
+                    onClose={() => setShowBulkUpload(false)}
+                    onUpload={handleBulkUpload}
+                    isUploading={isUploading}
+                />
 
                 {/* Loading Overlay - Only show when not in form mode */}
                 {!showForm && isLoadingUsers && searchParams.page === 1 && (
