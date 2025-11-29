@@ -116,7 +116,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                             {firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-                            { "National Lavel"}
+                            { "National Level"}
                         </p>
                         
                     </div>
