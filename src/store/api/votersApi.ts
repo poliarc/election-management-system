@@ -25,11 +25,9 @@ interface GetVotersByAssemblyParams {
     page: number;
     search?: string;
     fatherName?: string;
-    mobile?: string;
     address?: string;
     partFrom?: number;
     partTo?: number;
-    epicNumber?: string;
 }
 
 interface UpdateVoterRequest extends Partial<VoterListCandidate> {
@@ -75,7 +73,7 @@ export const votersApi = createApi({
             invalidatesTags: ["Voters"],
         }),
         getVotersByAssemblyPaginated: builder.query<VoterApiResponse, GetVotersByAssemblyParams>({
-            query: ({ assembly_id, limit, page, search, fatherName, mobile, address, partFrom, partTo, epicNumber }) => {
+            query: ({ assembly_id, limit, page, search, fatherName, address, partFrom, partTo }) => {
                 const params = new URLSearchParams({
                     limit: limit.toString(),
                     page: page.toString(),
@@ -83,11 +81,9 @@ export const votersApi = createApi({
 
                 if (search) params.append("search", search);
                 if (fatherName) params.append("fatherName", fatherName);
-                if (mobile) params.append("mobile", mobile);
                 if (address) params.append("address", address);
                 if (partFrom !== undefined) params.append("partFrom", partFrom.toString());
                 if (partTo !== undefined) params.append("partTo", partTo.toString());
-                if (epicNumber) params.append("epicNumber", epicNumber);
 
                 return {
                     url: `/voters/assembly/${assembly_id}/paginated?${params.toString()}`,
