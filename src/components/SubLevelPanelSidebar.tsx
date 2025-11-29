@@ -61,7 +61,16 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
 
     const base = `/sublevel/${levelId}`;
     const firstName = user?.firstName || user?.username || "User";
-    const levelName = levelInfo?.partyLevelName || levelInfo?.levelType || "Sub Level";
+    
+    const formatLevelName = (name?: string | null): string => {
+        if (!name) return "Sub Level";
+        // PollingCenter → Polling Center
+        if (name === "PollingCenter" || name === "pollingCenter") return "Polling Center";
+        // Add more formatting as needed
+        return name;
+    };
+    
+    const levelName = formatLevelName(levelInfo?.partyLevelName || levelInfo?.levelType);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=14b8a6&color=fff&bold=true`;
 
     // Check if current level is Booth type to hide child hierarchy
@@ -93,7 +102,7 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
                             {firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-teal-600 dark:text-teal-400 uppercase">
-                            {levelName} lavel
+                            {levelName} level
                         </p>
                         
                     </div>

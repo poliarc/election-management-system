@@ -78,11 +78,9 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
     onNavigate,
 }) => {
     const user = useAppSelector((s) => s.auth.user);
-    const { partyAdminPanels } = useAppSelector((s) => s.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    const currentParty = partyAdminPanels?.find((panel) => panel.id === partyId);
     const base = `/partyadmin/${partyId}`;
     const firstName = user?.firstName || user?.username || "Admin";
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -112,12 +110,13 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                         className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-                            {currentParty?.displayName || "Party Admin"}
-                        </p>
                         <p className="truncate font-semibold text-black text-sm">
-                            {currentParty?.metadata?.partyCode || firstName}
+                            {firstName}
                         </p>
+                        <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+                            { "National Level"}
+                        </p>
+                        
                     </div>
                 </div>
             </div>
