@@ -10,10 +10,10 @@ import {
   ChevronRight,
   X,
   ZoomIn,
-  FileText,
+  // FileText,
 } from "lucide-react";
 import type { Campaign } from "../../../../types/campaign";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 interface CampaignListingProps {
   campaigns: Campaign[];
@@ -246,7 +246,7 @@ export const CampaignListing = ({
   onCreateNew,
   onDeleteCampaign,
 }: CampaignListingProps) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "completed"
@@ -320,13 +320,13 @@ export const CampaignListing = ({
           </p>
         </div>
         <div className="flex gap-2">
-          <button
+          {/* <button
             onClick={() => navigate("/state/campaigns/reports")}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
           >
             <FileText size={20} />
             View Reports
-          </button>
+          </button> */}
           <button
             onClick={onCreateNew}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"

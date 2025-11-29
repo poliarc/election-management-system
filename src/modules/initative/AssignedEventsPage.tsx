@@ -1,25 +1,30 @@
 import type { CampaignEvent } from "../../types/initative";
-import React, { useState, useMemo } from "react";
+import type { MyCampaignItem } from "../../types/campaign";
+import React, { useState, useMemo, useEffect } from "react";
 import { Calendar, Bell, Plus, TrendingUp } from "lucide-react";
+import toast from "react-hot-toast";
 import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
+import { MyReportsModal } from "./MyReportsModal";
 import {
-  getCampaignsByLevel,
-  updateCampaignAcceptanceStatus,
-  addCampaignReport,
-  mapCampaignToEvent,
-} from "./data/staticInitiativeData";
+  useGetMyCampaignsQuery,
+  useUpdateCampaignAcceptanceMutation,
+  useCreateCampaignReportMutation,
+} from "../../store/api/myCampaignsApi";
+import { storage } from "../../utils/storage";
 
 interface AssignedEventsPageProps {
-  userLevelType: "DISTRICT" | "ASSEMBLY" | "BLOCK" | "AFTER_ASSEMBLY" | "SUB_LEVEL";
+  userLevelType:
+    | "DISTRICT"
+    | "ASSEMBLY"
+    | "BLOCK"
+    | "AFTER_ASSEMBLY"
+    | "SUB_LEVEL";
   userLevelId: number;
 }
 
-export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
-  userLevelType,
-  userLevelId,
-}) => {
+export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
   const [selectedCampaign, setSelectedCampaign] =
     useState<CampaignEvent | null>(null);
   const [selectedNotificationForDetail, setSelectedNotificationForDetail] =
@@ -27,14 +32,87 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
   const [filter, setFilter] = useState<
     "all" | "pending" | "accepted" | "declined"
   >("all");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [showMyReports, setShowMyReports] = useState(false);
+  const [myReportsData, setMyReportsData] = useState<{
+    campaignId: number;
+    campaignName: string;
+  } | null>(null);
 
-  // Get campaigns for this level from static data
+  // Fetch campaigns from API
+  const { data: apiResponse, isLoading, error } = useGetMyCampaignsQuery();
+
+  // Mutation for accepting/declining campaigns
+  const [updateAcceptance, { isLoading: isUpdating }] =
+    useUpdateCampaignAcceptanceMutation();
+
+  // Mutation for creating campaign reports
+  const [createReport] = useCreateCampaignReportMutation();
+
+  // Listen for My Reports events
+  useEffect(() => {
+    const handleShowMyReports = (event: CustomEvent) => {
+      const { campaignId, campaignName } = event.detail;
+      setMyReportsData({ campaignId, campaignName });
+      setShowMyReports(true);
+    };
+
+    window.addEventListener(
+      "showMyReports",
+      handleShowMyReports as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "showMyReports",
+        handleShowMyReports as EventListener
+      );
+    };
+  }, []);
+
+  // Map API campaigns to CampaignEvent format
+  const mapApiCampaignToEvent = (campaign: MyCampaignItem): CampaignEvent => {
+    // Log campaign mapping for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Mapping campaign ${campaign.campaign_id}:`, {
+        status: campaign.user_acceptance_status,
+        name: campaign.name,
+      });
+    }
+
+    return {
+      id: String(campaign.campaign_id),
+      title: campaign.name,
+      description: campaign.description,
+      date: campaign.start_date,
+      startDate: campaign.start_date,
+      endDate: campaign.end_date,
+      time: "",
+      location: campaign.location || "",
+      category: "meeting" as const,
+      priority: "medium" as const,
+      attendeeCount: 0,
+      maxAttendees: 0,
+      acceptance_status: campaign.user_acceptance_status,
+      image: campaign.images || [],
+      organizer: "",
+      requirements: [],
+      createdAt: campaign.created_at,
+      updatedAt: campaign.updated_at,
+      campaign_id: campaign.campaign_id,
+      scope_id: 0,
+      acceptance_id: campaign.campaign_acceptance_id || undefined,
+      levelType: campaign.campaign_level,
+      level_id: campaign.state_id,
+      scope_level_type: campaign.campaign_level,
+      scope_level_id: campaign.state_id,
+    };
+  };
+
+  // Get campaigns from API response
   const campaigns = useMemo(() => {
-    const levelCampaigns = getCampaignsByLevel(userLevelType, userLevelId);
-    return levelCampaigns.map(mapCampaignToEvent);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLevelType, userLevelId, refreshKey]);
+    if (!apiResponse?.data) return [];
+    return apiResponse.data.map(mapApiCampaignToEvent);
+  }, [apiResponse]);
 
   // Calculate counts
   const pendingCount = campaigns.filter(
@@ -55,78 +133,166 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
     setSelectedNotificationForDetail(null);
   };
 
-  const handleAcceptInvitation = () => {
-    const scopeId = selectedNotificationForDetail?.scope_id;
-    if (!scopeId) {
-      alert("Invalid campaign scope.");
+  const handleAcceptInvitation = async () => {
+    const campaignId = selectedNotificationForDetail?.campaign_id;
+    if (!campaignId) {
+      toast.error("Invalid campaign.");
       return;
     }
 
-    const updated = updateCampaignAcceptanceStatus(scopeId, "accepted");
-    if (updated) {
-      alert("You have accepted this campaign.");
-      setRefreshKey((prev) => prev + 1);
+    const loadingToast = toast.loading("Accepting campaign...");
+
+    try {
+      const result = await updateAcceptance({
+        campaignId,
+        status: "accepted",
+      }).unwrap();
+
+      console.log("Acceptance API response:", result);
+
+      if (result.data?.campaignAcceptance_id) {
+        console.log(
+          "Received campaignAcceptance_id:",
+          result.data.campaignAcceptance_id
+        );
+      } else {
+        console.warn(
+          "Acceptance API did not return campaignAcceptance_id. Full response:",
+          result
+        );
+      }
+
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Campaign accepted successfully!");
       setSelectedNotificationForDetail(null);
+    } catch (error) {
+      console.error("Failed to accept campaign:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to accept campaign. Please try again.");
     }
   };
 
-  const handleDeclineInvitation = () => {
-    const scopeId = selectedNotificationForDetail?.scope_id;
-    if (!scopeId) {
-      alert("Invalid campaign scope.");
+  const handleDeclineInvitation = async () => {
+    const campaignId = selectedNotificationForDetail?.campaign_id;
+    if (!campaignId) {
+      toast.error("Invalid campaign.");
       return;
     }
 
-    const updated = updateCampaignAcceptanceStatus(scopeId, "declined");
-    if (updated) {
-      alert("You declined this campaign.");
-      setRefreshKey((prev) => prev + 1);
+    const loadingToast = toast.loading("Declining campaign...");
+
+    try {
+      const result = await updateAcceptance({
+        campaignId,
+        status: "declined",
+      }).unwrap();
+
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Campaign declined successfully.");
       setSelectedNotificationForDetail(null);
+    } catch (error) {
+      console.error("Failed to decline campaign:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to decline campaign. Please try again.");
     }
   };
 
   const handleSendReport = async (formData: FormData) => {
     if (!selectedCampaign) {
-      alert("No campaign selected");
+      toast.error("No campaign selected");
       return;
     }
 
-    const reportText = formData.get("report_text") as string;
-    const imageUrls: string[] = [];
-
-    // Convert uploaded image files to data URLs
-    const imageFiles = formData.getAll("images") as File[];
-    for (const file of imageFiles) {
-      if (file instanceof File) {
-        const reader = new FileReader();
-        const dataUrl = await new Promise<string>((resolve) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-        imageUrls.push(dataUrl);
-      }
+    // Check if campaign is accepted
+    if (selectedCampaign.acceptance_status !== "accepted") {
+      toast.error("Please accept the campaign before submitting a report.");
+      return;
     }
 
-    const report = addCampaignReport({
-      campaign_acceptance_id: selectedCampaign.acceptance_id || 0,
-      campaign_id: selectedCampaign.campaign_id,
-      campaign_name: selectedCampaign.title,
-      report_text: reportText || "Report submitted",
-      images: imageUrls,
-      userLevelType,
-      userLevelId,
-    });
+    // Check if we have the campaign_id
+    if (!selectedCampaign.campaign_id) {
+      toast.error(
+        "Campaign ID is missing. Please refresh the page and try again."
+      );
+      return;
+    }
 
-    if (report) {
-      alert("Report submitted successfully");
-      setRefreshKey((prev) => prev + 1);
+    // Get user data from localStorage
+    const authState = storage.getAuthState<{
+      user?: { firstName?: string; contactNo?: string };
+    }>();
+    const user =
+      authState?.user ||
+      storage.getUser<{ firstName?: string; contactNo?: string }>();
+
+    if (!user) {
+      toast.error("User information not found. Please login again.");
+      return;
+    }
+
+    // Get form data
+    const description = formData.get("description") as string;
+    const attendees = formData.get("attendees") as string;
+    const reportDate = formData.get("report_date") as string;
+    const imageFiles = formData.getAll("images") as File[];
+
+    const loadingToast = toast.loading("Submitting report...");
+
+    try {
+      const result = await createReport({
+        campaign_id: selectedCampaign.campaign_id,
+        attendees: attendees ? parseInt(attendees, 10) : undefined,
+        personName: user.firstName || "",
+        personPhone: user.contactNo || "",
+        report_date: reportDate || new Date().toISOString().split("T")[0],
+        description: description || "",
+        images: imageFiles.length > 0 ? imageFiles : undefined,
+      }).unwrap();
+
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Report submitted successfully!");
       setSelectedCampaign(null);
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      toast.dismiss(loadingToast);
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? (error.data as { error?: { message?: string } })?.error?.message
+          : "Failed to submit report. Please try again.";
+      toast.error(errorMessage || "Failed to submit report. Please try again.");
     }
   };
 
   const filteredNotifications = campaigns.filter(
     (n) => filter === "all" || n.acceptance_status === filter
   );
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 rounded-2xl shadow-md p-2 sm:p-4 md:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading campaigns...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 rounded-2xl shadow-md p-2 sm:p-4 md:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Calendar className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Failed to Load Campaigns
+          </h3>
+          <p className="text-gray-600">Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 rounded-2xl shadow-md p-2 sm:p-4 md:p-6">
@@ -142,8 +308,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
                 <span>Assigned Events</span>
               </h1>
               <p className="text-gray-600 mt-2 text-sm sm:text-base">
-                View your assigned events and invitations for{" "}
-                {userLevelType.toLowerCase()} level
+                View your assigned events and invitations
               </p>
             </div>
 
@@ -268,18 +433,20 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key)}
-                  className={`flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base ${filter === tab.key
+                  className={`flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base ${
+                    filter === tab.key
                       ? "bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg"
                       : "text-gray-600 hover:bg-gray-50"
-                    }`}
+                  }`}
                 >
                   <span className="truncate">{tab.label}</span>
                   {tab.count > 0 && (
                     <span
-                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${filter === tab.key
+                      className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
+                        filter === tab.key
                           ? "bg-white bg-opacity-25 text-white"
                           : "bg-gray-200 text-gray-600"
-                        }`}
+                      }`}
                     >
                       {tab.count}
                     </span>
@@ -336,6 +503,19 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = ({
           onAccept={handleAcceptInvitation}
           onDecline={handleDeclineInvitation}
           onSendReport={handleSendReport}
+          isUpdating={isUpdating}
+        />
+      )}
+
+      {/* My Reports Modal */}
+      {showMyReports && myReportsData && (
+        <MyReportsModal
+          campaignId={myReportsData.campaignId}
+          campaignName={myReportsData.campaignName}
+          onClose={() => {
+            setShowMyReports(false);
+            setMyReportsData(null);
+          }}
         />
       )}
     </div>

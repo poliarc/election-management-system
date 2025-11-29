@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Calendar, Clock, MapPin, Check } from "lucide-react";
+import { X, Calendar, Clock, MapPin, Check, FileText } from "lucide-react";
 import type { CampaignEvent } from "../../types/initative";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { CampaignImageSlider } from "./CampaignImageSlider";
@@ -11,6 +11,7 @@ interface CampaignDetailModalProps {
   onDecline?: () => void;
   // Added prop so parent can pass a FormData handler
   onSendReport?: (fd: FormData) => void;
+  isUpdating?: boolean;
 }
 
 export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
@@ -18,7 +19,8 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
   onClose,
   onAccept,
   onDecline,
-  // onSendReport,
+  isUpdating = false,
+  onSendReport,
 }) => {
   const [showDeclineModal, setShowDeclineModal] = useState(false);
 
@@ -201,14 +203,25 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                 <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
                   <button
                     onClick={onAccept}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl text-lg"
+                    disabled={isUpdating}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-8 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Check className="w-6 h-6" />
-                    Accept Invitation
+                    {isUpdating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-6 h-6" />
+                        Accept Invitation
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowDeclineModal(true)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-3 text-lg"
+                    disabled={isUpdating}
+                    className="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-6 h-6" />
                     Decline
@@ -230,22 +243,109 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
             )}
 
           {notification.acceptance_status === "accepted" && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center max-w-lg mx-auto">
-              <div className="flex items-center justify-center gap-3 text-green-700 mb-2">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6 max-w-2xl mx-auto">
+              <div className="flex items-center justify-center gap-3 text-green-700 mb-4">
                 <Check className="w-6 h-6" />
                 <span className="font-semibold text-lg">
                   You have accepted this campaign
                 </span>
               </div>
-              {/* Example quick report button (optional) */}
-              {/* {onSendReport && (
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button
-                  onClick={handleQuickReport}
-                  className="mt-3 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                  onClick={() => {
+                    // This will be handled by parent component
+                    const event = new CustomEvent("showMyReports", {
+                      detail: {
+                        campaignId: notification.campaign_id,
+                        campaignName: notification.title,
+                      },
+                    });
+                    window.dispatchEvent(event);
+                  }}
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  Submit Quick Report
+                  <FileText className="w-5 h-5" />
+                  My Reports
                 </button>
-              )} */}
+              </div>
+
+              {onSendReport && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-gray-900 mb-4 text-center">
+                    Submit New Report
+                  </h4>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      onSendReport(formData);
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Attendees
+                      </label>
+                      <input
+                        type="number"
+                        name="attendees"
+                        min="0"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter number of attendees"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Report Date
+                      </label>
+                      <input
+                        type="date"
+                        name="report_date"
+                        defaultValue={new Date().toISOString().split("T")[0]}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        name="description"
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Describe the campaign event, activities, and outcomes..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Images (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        name="images"
+                        multiple
+                        accept="image/*"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        You can select multiple images
+                      </p>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-linear-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      Submit Report
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           )}
 

@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Camera, Clock, Plus, X, Eye } from "lucide-react";
+import toast from "react-hot-toast";
 import type { CampaignEvent } from "../../types/initative";
 import { CampaignImageSlider } from "./CampaignImageSlider";
-import { ViewReportsModal } from "./ViewReportsModal";
+
+import { useCreateCampaignReportMutation } from "../../store/api/myCampaignsApi";
+import { storage } from "../../utils/storage";
 export interface CampaignListProps {
   notifications: CampaignEvent[];
   onEventClick: (notification: CampaignEvent) => void;
@@ -15,14 +18,24 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   selectedNotification,
 }) => {
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showViewReportsModal, setShowViewReportsModal] = useState(false);
+
   const [activeCampaign, setActiveCampaign] = useState<CampaignEvent | null>(
     null
   );
 
-  // For static implementation, use hardcoded user data
-  const personName = "User Name";
-  const userPhone = "1234567890";
+  // Get user data from localStorage
+  const authState = storage.getAuthState<{
+    user?: { firstName?: string; contactNo?: string };
+  }>();
+  const user =
+    authState?.user ||
+    storage.getUser<{ firstName?: string; contactNo?: string }>();
+  const personName = user?.firstName || "User Name";
+  const userPhone = user?.contactNo || "1234567890";
+
+  // Mutation for creating campaign reports
+  const [createReport, { isLoading: isSubmittingReport }] =
+    useCreateCampaignReportMutation();
 
   const [reportData, setReportData] = useState({
     images: [] as File[],
@@ -36,7 +49,6 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isSubmittingReport = false;
 
   // Revoke object URLs to avoid memory leaks
   useEffect(() => {
@@ -47,11 +59,12 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const handleReportClick = (campaign: CampaignEvent) => {
     if (campaign.acceptance_status !== "accepted") {
-      alert("Accept the campaign before submitting a report.");
+      toast.error("Accept the campaign before submitting a report.");
       return;
     }
-    if (!campaign.acceptance_id) {
-      alert("Missing acceptance ID. Try reloading campaigns.");
+    // Use campaign_id if acceptance_id is not available
+    if (!campaign.acceptance_id && !campaign.campaign_id) {
+      toast.error("Missing campaign information. Try reloading campaigns.");
       return;
     }
     setActiveCampaign(campaign);
@@ -60,17 +73,17 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   const handleViewReportsClick = (campaign: CampaignEvent) => {
     if (campaign.acceptance_status !== "accepted") {
-      alert("Accept the campaign first to view reports.");
+      toast.error("Accept the campaign first to view reports.");
       return;
     }
-    console.log("CampaignList - Opening MY reports for campaign:", {
-      id: campaign.id,
-      campaign_id: campaign.campaign_id,
-      title: campaign.title,
-      user_level: "DISTRICT",
+    // Trigger the custom event to show My Reports modal
+    const event = new CustomEvent("showMyReports", {
+      detail: {
+        campaignId: campaign.campaign_id,
+        campaignName: campaign.title,
+      },
     });
-    setActiveCampaign(campaign);
-    setShowViewReportsModal(true);
+    window.dispatchEvent(event);
   };
 
   const handleReportChange = (
@@ -90,7 +103,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
       // Limit to 10 images maximum
       if (combinedFiles.length > 10) {
-        alert("Maximum 10 images allowed. Some images were not added.");
+        toast.error("Maximum 10 images allowed. Some images were not added.");
         const limitedFiles = combinedFiles.slice(0, 10);
 
         setReportData((prev) => ({
@@ -146,27 +159,71 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeCampaign) {
-      alert("No campaign selected.");
+      toast.error("No campaign selected.");
       return;
     }
 
-    // For static implementation, just show success message
-    alert("Report submitted successfully.");
+    // Check if campaign is accepted
+    if (activeCampaign.acceptance_status !== "accepted") {
+      toast.error("Please accept the campaign before submitting a report.");
+      return;
+    }
 
-    setShowReportModal(false);
-    setActiveCampaign(null);
-    // Cleanup previews and reset form
-    imagePreviews.forEach((u) => URL.revokeObjectURL(u));
-    setReportData({
-      images: [],
-      location: "",
-      peopleCount: "",
-      attendingDate: "",
-      description: "",
-      personName: personName,
-      phone: userPhone,
-    });
-    setImagePreviews([]);
+    // Check if we have the campaign_id
+    if (!activeCampaign.campaign_id) {
+      toast.error(
+        "Campaign ID is missing. Please refresh the page and try again."
+      );
+      return;
+    }
+
+    if (!user) {
+      toast.error("User information not found. Please login again.");
+      return;
+    }
+
+    const loadingToast = toast.loading("Submitting report...");
+
+    try {
+      const result = await createReport({
+        campaign_id: activeCampaign.campaign_id,
+        attendees: reportData.peopleCount
+          ? parseInt(reportData.peopleCount, 10)
+          : undefined,
+        personName: user.firstName || "",
+        personPhone: user.contactNo || "",
+        report_date:
+          reportData.attendingDate || new Date().toISOString().split("T")[0],
+        description: reportData.description || "",
+        images: reportData.images.length > 0 ? reportData.images : undefined,
+      }).unwrap();
+
+      toast.dismiss(loadingToast);
+      toast.success(result.message || "Report submitted successfully!");
+
+      setShowReportModal(false);
+      setActiveCampaign(null);
+      // Cleanup previews and reset form
+      imagePreviews.forEach((u) => URL.revokeObjectURL(u));
+      setReportData({
+        images: [],
+        location: "",
+        peopleCount: "",
+        attendingDate: "",
+        description: "",
+        personName: personName,
+        phone: userPhone,
+      });
+      setImagePreviews([]);
+    } catch (error) {
+      console.error("Failed to submit report:", error);
+      toast.dismiss(loadingToast);
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? (error.data as { error?: { message?: string } })?.error?.message
+          : "Failed to submit report. Please try again.";
+      toast.error(errorMessage || "Failed to submit report. Please try again.");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -533,17 +590,6 @@ export const CampaignList: React.FC<CampaignListProps> = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* View Reports Modal */}
-      {showViewReportsModal && activeCampaign && (
-        <ViewReportsModal
-          campaign={activeCampaign}
-          onClose={() => {
-            setShowViewReportsModal(false);
-            setActiveCampaign(null);
-          }}
-        />
       )}
     </div>
   );
