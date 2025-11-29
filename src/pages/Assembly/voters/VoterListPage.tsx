@@ -15,11 +15,9 @@ export default function VoterListPage() {
     // Search/Filter states
     const [search, setSearch] = useState("");
     const [fatherName, setFatherName] = useState("");
-    const [mobile, setMobile] = useState("");
     const [address, setAddress] = useState("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [epicNumber, setEpicNumber] = useState("");
     const [showFilters, setShowFilters] = useState(false);
     const [language, setLanguage] = useState<"en" | "hi">("en");
 
@@ -36,11 +34,9 @@ export default function VoterListPage() {
             limit,
             search: search || undefined,
             fatherName: fatherName || undefined,
-            mobile: mobile || undefined,
             address: address || undefined,
             partFrom,
-            partTo,
-            epicNumber: epicNumber || undefined
+            partTo
         },
         { skip: !assembly_id } // Skip query if no assembly_id
     );
@@ -49,11 +45,9 @@ export default function VoterListPage() {
     const handleClearFilters = () => {
         setSearch("");
         setFatherName("");
-        setMobile("");
         setAddress("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setEpicNumber("");
         setPage(1);
     };
 
@@ -148,13 +142,25 @@ export default function VoterListPage() {
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Search by Name
+                                    Search Voters
                                 </label>
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                    placeholder="Enter voter name..."
+                                    placeholder="Search by name, mobile, EPIC, Aadhar, religion, caste, profession..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Father/Husband Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={fatherName}
+                                    onChange={(e) => { setFatherName(e.target.value); setPage(1); }}
+                                    placeholder="Enter relative name..."
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
@@ -164,7 +170,7 @@ export default function VoterListPage() {
                             >
                                 {showFilters ? "Hide Filters" : "Show Filters"}
                             </button>
-                            {(search || fatherName || mobile || address || partFrom || partTo || epicNumber) && (
+                            {(search || fatherName || address || partFrom || partTo) && (
                                 <button
                                     onClick={handleClearFilters}
                                     className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
@@ -176,42 +182,6 @@ export default function VoterListPage() {
 
                         {showFilters && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        EPIC Number (Voter ID)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={epicNumber}
-                                        onChange={(e) => { setEpicNumber(e.target.value); setPage(1); }}
-                                        placeholder="Enter EPIC number..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Father/Husband Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={fatherName}
-                                        onChange={(e) => { setFatherName(e.target.value); setPage(1); }}
-                                        placeholder="Enter relative name..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Mobile Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={mobile}
-                                        onChange={(e) => { setMobile(e.target.value); setPage(1); }}
-                                        placeholder="Enter mobile number..."
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Address
