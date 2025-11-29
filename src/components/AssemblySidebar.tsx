@@ -191,8 +191,9 @@ const Icons = {
 
 // Top-level items
 const primaryItems: NavItem[] = [
+   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "team", label: "Assembly Team", icon: Icons.team },
-  { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+ 
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
@@ -380,12 +381,13 @@ export default function AssemblySidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
           />
           <div className="min-w-0">
-            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              Assembly Panel
-            </p>
             <p className="truncate font-semibold text-black text-sm">
               {firstName}
             </p>
+            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+              Assembly Level
+            </p>
+            
           </div>
         </div>
       </div>
