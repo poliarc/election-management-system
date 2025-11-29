@@ -73,7 +73,8 @@ const createEmptySelector = (): SelectorState => ({
 });
 
 const convertHierarchySelectionsToSelectors = (
-  selections?: CampaignHierarchyScopeSelection[]
+  selections?: CampaignHierarchyScopeSelection[],
+  afterAssemblyHierarchy?: AfterAssemblyHierarchyNode[]
 ): SelectorState[] => {
   if (!selections || selections.length === 0) {
     return [createEmptySelector()];
@@ -84,6 +85,21 @@ const convertHierarchySelectionsToSelectors = (
     if (!bucket.includes(value)) {
       bucket.push(value);
     }
+  };
+
+  // Helper to determine depth of a node in afterAssemblyHierarchy
+  const getNodeDepth = (nodeId: number): number => {
+    if (!afterAssemblyHierarchy) return -1;
+
+    const node = afterAssemblyHierarchy.find((n) => n.id === nodeId);
+    if (!node) return -1;
+
+    // If parentId is null, it's depth 0 (first level after assembly)
+    if (node.parentId === null) return 0;
+
+    // Otherwise, find parent and add 1
+    const parentDepth = getNodeDepth(node.parentId);
+    return parentDepth >= 0 ? parentDepth + 1 : -1;
   };
 
   selections.forEach((selection) => {
@@ -99,33 +115,55 @@ const convertHierarchySelectionsToSelectors = (
       ? selection.hierarchy_level_type.replace(/\s+/g, "_").toUpperCase()
       : null;
 
-    switch (normalizedLevel) {
-      case "DISTRICT":
-        pushIfMissing(selector.district_ids, idString);
-        break;
-      case "ASSEMBLY":
-        pushIfMissing(selector.assembly_ids, idString);
-        break;
-      case "BLOCK":
-        pushIfMissing(selector.block_ids, idString);
-        break;
-      case "MANDAL":
-        pushIfMissing(selector.mandal_ids, idString);
-        break;
-      case "POLLING_CENTER":
-      case "POLLINGCENTER":
-      case "POLLING_CENTRE":
-      case "POLLINGCENTRE":
-      case "BOOTH":
-        pushIfMissing(selector.booth_ids, idString);
-        break;
-
-      default:
-        if (selection.hierarchy_type === "stateMasterData") {
+    // Handle stateMasterData (District, Assembly)
+    if (selection.hierarchy_type === "stateMasterData") {
+      switch (normalizedLevel) {
+        case "DISTRICT":
           pushIfMissing(selector.district_ids, idString);
-        } else if (selection.hierarchy_type === "afterAssemblyData") {
+          break;
+        case "ASSEMBLY":
+          pushIfMissing(selector.assembly_ids, idString);
+          break;
+        default:
+          // Fallback: if no level type, assume district
+          pushIfMissing(selector.district_ids, idString);
+      }
+    }
+    // Handle afterAssemblyData (Mandal, Block, PollingCenter, etc.)
+    else if (selection.hierarchy_type === "afterAssemblyData") {
+      // Determine depth to populate correct dynamic field
+      const depth = getNodeDepth(selection.hierarchy_id);
+
+      if (depth === 0) {
+        // First level after assembly
+        pushIfMissing(selector.assembly_child_ids, idString);
+      } else if (depth === 1) {
+        // Second level
+        pushIfMissing(selector.level2_ids, idString);
+      } else if (depth === 2) {
+        // Third level
+        pushIfMissing(selector.level3_ids, idString);
+      } else if (depth === 3) {
+        // Fourth level
+        pushIfMissing(selector.level4_ids, idString);
+      }
+
+      // Also populate legacy fields for backward compatibility
+      switch (normalizedLevel) {
+        case "BLOCK":
           pushIfMissing(selector.block_ids, idString);
-        }
+          break;
+        case "MANDAL":
+          pushIfMissing(selector.mandal_ids, idString);
+          break;
+        case "POLLING_CENTER":
+        case "POLLINGCENTER":
+        case "POLLING_CENTRE":
+        case "POLLINGCENTRE":
+        case "BOOTH":
+          pushIfMissing(selector.booth_ids, idString);
+          break;
+      }
     }
 
     const toggleValue =
@@ -572,9 +610,12 @@ export const CampaignForm = ({
       return;
     }
     setDistrictSelectors(
-      convertHierarchySelectionsToSelectors(initialData.hierarchy_selections)
+      convertHierarchySelectionsToSelectors(
+        initialData.hierarchy_selections,
+        afterAssemblyHierarchy
+      )
     );
-  }, [initialData]);
+  }, [initialData, afterAssemblyHierarchy]);
 
   React.useEffect(() => {
     if (!initialData) {
