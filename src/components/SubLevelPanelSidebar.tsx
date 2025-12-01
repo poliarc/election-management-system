@@ -61,7 +61,7 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
 
     const base = `/sublevel/${levelId}`;
     const firstName = user?.firstName || user?.username || "User";
-    
+
     const formatLevelName = (name?: string | null): string => {
         if (!name) return "Sub Level";
         // PollingCenter → Polling Center
@@ -69,7 +69,7 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
         // Add more formatting as needed
         return name;
     };
-    
+
     const levelName = formatLevelName(levelInfo?.partyLevelName || levelInfo?.levelType);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=14b8a6&color=fff&bold=true`;
 
@@ -83,7 +83,7 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
         ...(!isBooth ? [{ to: "child-hierarchy", label: "Below Levels", icon: Icons.hierarchy }] : []),
         { to: "booths", label: "Booths", icon: Icons.booths },
         { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
-        // { to: "search-voter", label: "Search Voter", icon: Icons.search },
+        { to: "search-voter", label: "Search Voter", icon: Icons.search },
         // { to: "chat", label: "Chat", icon: Icons.chat },
     ];
 
@@ -104,7 +104,7 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
                         <p className="text-xs font-medium tracking-wide text-teal-600 dark:text-teal-400 uppercase">
                             {levelName} level
                         </p>
-                        
+
                     </div>
                 </div>
             </div>
