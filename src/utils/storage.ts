@@ -40,9 +40,11 @@ export const storage = {
   },
   clearAuthState: () => localStorage.removeItem(AUTH_STATE_KEY),
 
-  setTheme: (theme: "light" | "dark") => localStorage.setItem(THEME_KEY, theme),
-  getTheme: (): "light" | "dark" =>
-    (localStorage.getItem(THEME_KEY) as "light" | "dark") || "light",
+  setTheme: (_theme?: "light" | "dark") => {
+    // Force light mode only - ignore theme parameter
+    localStorage.setItem(THEME_KEY, "light");
+  },
+  getTheme: (): "light" | "dark" => "light", // Always return light mode
 
   // Party Types persistence (used by Party Type and Party Master pages)
   setPartyTypes: (items: PartyType[]) =>

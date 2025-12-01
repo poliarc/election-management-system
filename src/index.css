@@ -16,35 +16,81 @@
 
 /* Custom Animations */
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  0% { opacity: 0; transform: translateY(30px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes bounceSlow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  33% { transform: translateY(-20px) rotate(5deg); }
-  66% { transform: translateY(-10px) rotate(-5deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+
+  66% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px);
+  }
+
+  75% {
+    transform: translateX(10px);
+  }
 }
 
 /* Animation Classes */
@@ -93,15 +139,21 @@
   animation-delay: 1000ms;
 }
 
-/* App global styles */
+/* App global styles - Light mode only */
 :root {
   --bg: 255 255 255;
   --fg: 17 24 39;
+  color-scheme: light only;
 }
 
-.dark {
-  --bg: 17 24 39;
-  --fg: 243 244 246;
+/* Force light mode - override any dark class */
+html,
+html.dark,
+html.light {
+  --bg: 255 255 255 !important;
+  --fg: 17 24 39 !important;
+  color-scheme: light only !important;
+  background-color: white !important;
 }
 
 html,
@@ -111,8 +163,18 @@ body,
 }
 
 body {
-  background-color: rgb(var(--bg));
-  color: rgb(var(--fg));
+  background-color: rgb(var(--bg)) !important;
+  color: rgb(var(--fg)) !important;
+}
+
+/* Override any dark mode styles that might be applied */
+@media (prefers-color-scheme: dark) {
+
+  html,
+  body {
+    background-color: white !important;
+    color: rgb(17, 24, 39) !important;
+  }
 }
 
 a {

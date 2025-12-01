@@ -6,7 +6,7 @@ interface UIState {
 }
 
 const initialState: UIState = {
-  theme: storage.getTheme(),
+  theme: "light", // Force light mode only
 };
 
 const uiSlice = createSlice({
@@ -14,12 +14,14 @@ const uiSlice = createSlice({
   initialState,
   reducers: {
     toggleTheme: (state) => {
-      state.theme = state.theme === "light" ? "dark" : "light";
-      storage.setTheme(state.theme);
+      // Force light mode - do nothing on toggle
+      state.theme = "light";
+      storage.setTheme("light");
     },
-    setTheme: (state, action: { payload: "light" | "dark" }) => {
-      state.theme = action.payload;
-      storage.setTheme(state.theme);
+    setTheme: (state, _action: { payload: "light" | "dark" }) => {
+      // Force light mode - ignore payload
+      state.theme = "light";
+      storage.setTheme("light");
     },
   },
 });

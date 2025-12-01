@@ -1,13 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Election</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="en" class="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <title>Election</title>
+  <script>
+    // Force light mode immediately - prevent any dark mode flashing
+    (function () {
+      // Remove dark class if present
+      document.documentElement.classList.remove('dark');
+      // Add light class
+      document.documentElement.classList.add('light');
+      // Set color scheme to light only
+      document.documentElement.style.colorScheme = 'light';
+      // Force light theme in localStorage
+      try {
+        localStorage.setItem('theme', 'light');
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
