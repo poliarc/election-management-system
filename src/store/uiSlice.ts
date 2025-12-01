@@ -18,7 +18,7 @@ const uiSlice = createSlice({
       state.theme = "light";
       storage.setTheme("light");
     },
-    setTheme: (state, action: { payload: "light" | "dark" }) => {
+    setTheme: (state, _action: { payload: "light" | "dark" }) => {
       // Force light mode - ignore payload
       state.theme = "light";
       storage.setTheme("light");
