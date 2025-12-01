@@ -222,21 +222,20 @@ export default function SubLevelManagement() {
         try {
             const levelNameWithoutSpaces = formData.levelName.replace(/\s+/g, '');
 
-            console.log("Creating sub-level with:", {
+            // Determine parentAssemblyId and parentId based on context:
+            // - If formData.parentId is null: creating direct child of Assembly → use parentAssemblyId
+            // - If formData.parentId is set: creating child of another level → use parentId
+            const payload = {
                 levelName: levelNameWithoutSpaces,
                 displayName: formData.displayName,
                 partyLevelId: currentPanel.id,
                 parentId: formData.parentId,
-                parentAssemblyId: null, // Always null for sub-levels
-            });
+                parentAssemblyId: formData.parentId === null ? selectedAssembly.location_id : null,
+            };
 
-            const response = await createAfterAssemblyData({
-                levelName: levelNameWithoutSpaces,
-                displayName: formData.displayName,
-                partyLevelId: currentPanel.id,
-                parentId: formData.parentId,
-                parentAssemblyId: null, // Set to null for sub-levels
-            });
+            console.log("Creating level with:", payload);
+
+            const response = await createAfterAssemblyData(payload);
 
             if (response.success) {
                 toast.success("Level created successfully");
