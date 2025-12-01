@@ -61,7 +61,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
 
     const base = `/afterassembly/${levelId}`;
     const firstName = user?.firstName || user?.username || "User";
-    
+
     const formatLevelName = (name?: string | null): string => {
         if (!name) return "After Assembly";
         // PollingCenter → Polling Center
@@ -69,7 +69,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
         // Add more formatting as needed
         return name;
     };
-    
+
     const levelName = formatLevelName(levelInfo?.partyLevelName || levelInfo?.levelType);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=6366f1&color=fff&bold=true`;
 
@@ -79,7 +79,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
         { to: "child-hierarchy", label: "Below Levels", icon: Icons.hierarchy },
         { to: "booths", label: "Booths", icon: Icons.booths },
         { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
-        // { to: "search-voter", label: "Search Voter", icon: Icons.search },
+        { to: "search-voter", label: "Search Voter", icon: Icons.search },
         // { to: "chat", label: "Chat", icon: Icons.chat },
     ];
 
@@ -95,12 +95,12 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                     />
                     <div className="min-w-0">
                         <p className="truncate font-semibold text-black dark:text-white text-sm">
-                           { firstName}
+                            {firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
                             {levelName} level
                         </p>
-                        
+
                     </div>
                 </div>
             </div>

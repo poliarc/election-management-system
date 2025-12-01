@@ -5,6 +5,7 @@ import { useGetBlockAssignmentsQuery } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
+import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
 
 export default function MandalList() {
     const navigate = useNavigate();
@@ -14,6 +15,9 @@ export default function MandalList() {
     const [selectedMandalName, setSelectedMandalName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+    const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
+    const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -23,6 +27,9 @@ export default function MandalList() {
         blockName: "",
         assemblyName: "",
         blockId: 0,
+        assemblyId: 0,
+        stateId: 0,
+        districtId: 0,
     });
 
     useEffect(() => {
@@ -31,6 +38,9 @@ export default function MandalList() {
                 blockName: selectedAssignment.displayName || selectedAssignment.levelName,
                 assemblyName: selectedAssignment.assemblyName || "",
                 blockId: selectedAssignment.level_id || 0,
+                assemblyId: (selectedAssignment as any).assembly_id || (selectedAssignment as any).stateMasterData_id || 0,
+                stateId: (selectedAssignment as any).state_id || 0,
+                districtId: (selectedAssignment as any).district_id || 0,
             });
         }
     }, [selectedAssignment]);
@@ -240,104 +250,165 @@ export default function MandalList() {
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                S.No
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Level Type
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Display Name
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Users
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Created Date
-                                            </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {paginatedMandals.map((mandal, index) => (
-                                            <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {(currentPage - 1) * itemsPerPage + index + 1}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        {mandal.levelName || "Mandal"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="bg-blue-100 p-2 rounded-lg">
-                                                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
-                                                            </svg>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-gray-900">{mandal.displayName}</p>
-                                                            <p className="text-xs text-gray-500">{mandal.partyLevelDisplayName}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        {mandal.user_count || 0} users
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${mandal.isActive === 1
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
-                                                        }`}>
-                                                        {mandal.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                            View
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`
-                                                                )
-                                                            }
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                            </svg>
-                                                            Assign
-                                                        </button>
-                                                    </div>
-                                                </td>
+                            <div className="overflow-x-auto">
+                                <div className="max-h-[600px] overflow-y-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    S.No
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Level Type
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Display Name
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Users
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Status
+                                                </th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Created Date
+                                                </th>
+                                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Actions
+                                                </th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {paginatedMandals.map((mandal, index) => (
+                                                <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {(currentPage - 1) * itemsPerPage + index + 1}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                            {mandal.levelName || "Mandal"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-blue-100 p-2 rounded-lg">
+                                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
+                                                                </svg>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-gray-900">{mandal.displayName}</p>
+                                                                <p className="text-xs text-gray-500">{mandal.partyLevelDisplayName}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                            {mandal.user_count || 0} users
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${mandal.isActive === 1
+                                                            ? "bg-green-100 text-green-800"
+                                                            : "bg-red-100 text-red-800"
+                                                            }`}>
+                                                            {mandal.isActive === 1 ? "Active" : "Inactive"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center relative">
+                                                        <div className="relative inline-block">
+                                                            <button
+                                                                onClick={() => setOpenDropdownId(openDropdownId === mandal.id ? null : mandal.id)}
+                                                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                                                title="Actions"
+                                                            >
+                                                                <span className="text-sm font-medium">Actions</span>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                </svg>
+                                                            </button>
+
+                                                            {openDropdownId === mandal.id && (
+                                                                <>
+                                                                    <div
+                                                                        className="fixed inset-0 z-40"
+                                                                        onClick={() => setOpenDropdownId(null)}
+                                                                    />
+                                                                    <div
+                                                                        className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+                                                                        style={{
+                                                                            animation: 'slideDown 0.2s ease-out'
+                                                                        }}
+                                                                    >
+                                                                        <div className="py-1">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    handleViewUsers(mandal.id, mandal.displayName);
+                                                                                    setOpenDropdownId(null);
+                                                                                }}
+                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                            >
+                                                                                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                                                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                                    </svg>
+                                                                                </div>
+                                                                                <div className="flex-1">
+                                                                                    <div className="font-medium text-gray-900">View Users</div>
+                                                                                    <div className="text-xs text-gray-500">See assigned users</div>
+                                                                                </div>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    navigate(`/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`);
+                                                                                    setOpenDropdownId(null);
+                                                                                }}
+                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                            >
+                                                                                <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                                                                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                                                                    </svg>
+                                                                                </div>
+                                                                                <div className="flex-1">
+                                                                                    <div className="font-medium text-gray-900">Assign Users</div>
+                                                                                    <div className="text-xs text-gray-500">Add new users</div>
+                                                                                </div>
+                                                                            </button>
+                                                                            <div className="border-t border-gray-100"></div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setSelectedMandalForVoters({ id: mandal.id, name: mandal.displayName });
+                                                                                    setShowAssignVotersModal(true);
+                                                                                    setOpenDropdownId(null);
+                                                                                }}
+                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                            >
+                                                                                <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                                                                                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                                    </svg>
+                                                                                </div>
+                                                                                <div className="flex-1">
+                                                                                    <div className="font-medium text-gray-900">Assign Booth Voters</div>
+                                                                                    <div className="text-xs text-gray-500">Manage booth assignments</div>
+                                                                                </div>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             {/* Pagination */}
@@ -586,6 +657,23 @@ export default function MandalList() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Assign Booth Voters Modal */}
+                {showAssignVotersModal && selectedMandalForVoters && (
+                    <AssignBoothVotersModal
+                        isOpen={showAssignVotersModal}
+                        onClose={() => {
+                            setShowAssignVotersModal(false);
+                            setSelectedMandalForVoters(null);
+                        }}
+                        levelId={selectedMandalForVoters.id}
+                        levelName={selectedMandalForVoters.name}
+                        levelType="afterAssembly"
+                        assemblyId={blockInfo.assemblyId}
+                        stateId={blockInfo.stateId}
+                        districtId={blockInfo.districtId}
+                    />
                 )}
             </div>
 
