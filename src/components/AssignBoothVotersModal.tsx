@@ -49,7 +49,7 @@ export default function AssignBoothVotersModal({
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"}/api/state-master-data/${assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,

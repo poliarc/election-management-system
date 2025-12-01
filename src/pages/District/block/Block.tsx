@@ -58,7 +58,7 @@ export default function DistrictBlock() {
             for (const block of blocks) {
                 try {
                     const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"}/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
+                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
                         {
                             headers: {
                                 Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,

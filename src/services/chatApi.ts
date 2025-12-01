@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const BASE_URL = "https://backend.peopleconnect.in/api/chat";
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/chat`;
 
 export interface User {
     user_id: number;
@@ -98,7 +98,7 @@ export const chatApi = createApi({
                 params.append("page", page.toString());
                 params.append("limit", limit.toString());
                 return {
-                    url: `https://backend.peopleconnect.in/api/users/filter?${params.toString()}`,
+                    url: `${import.meta.env.VITE_API_BASE_URL}/api/users/filter?${params.toString()}`,
                     method: "GET",
                 };
             },

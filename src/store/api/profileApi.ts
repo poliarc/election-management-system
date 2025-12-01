@@ -159,7 +159,7 @@ export interface UpdateProfilePayload {
 export const profileApi = createApi({
   reducerPath: 'profileApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://backend.peopleconnect.in/api',
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('auth_access_token');
       if (token) {
@@ -179,7 +179,7 @@ export const profileApi = createApi({
       query: ({ id, data }) => {
         // Check if data is FormData (for image uploads)
         const isFormData = data instanceof FormData;
-        
+
         return {
           url: `/users/update/${id}`,
           method: 'PUT',

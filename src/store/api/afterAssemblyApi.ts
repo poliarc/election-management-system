@@ -27,8 +27,7 @@ export interface DeleteAssignedLevelsResponse {
 export const afterAssemblyApi = createApi({
     reducerPath: "afterAssemblyApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
-            }/api`,
+        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("auth_access_token");
             if (token) headers.set("Authorization", `Bearer ${token}`);

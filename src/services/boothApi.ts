@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://backend.peopleconnect.in/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 export interface BoothLevelData {
     id: number;
