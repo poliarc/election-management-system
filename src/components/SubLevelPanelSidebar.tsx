@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
-import { logout } from "../store/authSlice";
+import { logout, setSelectedAssignment } from "../store/authSlice";
+import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -48,10 +49,11 @@ const Icons = {
 
 export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () => void }) {
     const { levelId } = useParams<{ levelId: string }>();
-    const { user, selectedAssignment } = useAppSelector((s) => s.auth);
+    const { user, selectedAssignment, permissions } = useAppSelector((s) => s.auth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [levelInfo, setLevelInfo] = useState<any>(null);
+    const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
 
     useEffect(() => {
         if (selectedAssignment) {
@@ -75,6 +77,49 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
 
     // Check if current level is Booth type to hide child hierarchy
     const isBooth = levelInfo?.levelType === "Booth" || levelInfo?.partyLevelName === "Booth";
+
+    // Get assignments of the same type as currently selected
+    const currentLevelName = selectedAssignment?.levelType;
+    let sameTypeAssignments: StateAssignment[] = [];
+
+    if (currentLevelName) {
+        const allSubLevelAssignments = [
+            ...(permissions?.accessiblePollingCenters || []),
+            ...(permissions?.accessibleMandals || []),
+            ...(permissions?.accessibleBooths || []),
+        ];
+
+        sameTypeAssignments = allSubLevelAssignments
+            .filter((a: any) => a.levelName === currentLevelName)
+            .map((a: any) => ({
+                assignment_id: a.assignment_id || a.booth_assignment_id,
+                stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+                afterAssemblyData_id: a.afterAssemblyData_id,
+                levelName: a.displayName || a.levelName,
+                levelType: a.levelName,
+                level_id: a.level_id,
+                parentId: a.parentId || a.parentLevelId,
+                parentLevelName: a.parentLevelName || 'Unknown',
+                parentLevelType: a.parentLevelType || 'Unknown',
+                displayName: a.displayName,
+                partyLevelName: a.partyLevelName,
+                partyLevelDisplayName: a.partyLevelDisplayName,
+                partyLevelId: a.partyLevelId,
+            }));
+    }
+
+    const hasMultipleAssignments = sameTypeAssignments.length > 1;
+
+    const handleAssignmentSwitch = (assignment: StateAssignment) => {
+        dispatch(setSelectedAssignment(assignment));
+        setSwitchDropdownOpen(false);
+        
+        // Dispatch custom event to trigger data refresh
+        window.dispatchEvent(new Event('assignmentChanged'));
+        
+        // Navigate to the new assignment
+        navigate(`/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+    };
 
     const navItems: NavItem[] = [
         { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
@@ -104,9 +149,74 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
                         <p className="text-xs font-medium tracking-wide text-teal-600 dark:text-teal-400 uppercase">
                             {levelName} level
                         </p>
-                        
                     </div>
                 </div>
+
+                {/* Switch Dropdown - Show when user has multiple assignments of same type */}
+                {hasMultipleAssignments && selectedAssignment && (
+                    <div className="mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
+                            className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                        >
+                            <div className="flex items-center gap-2 min-w-0">
+                                <svg className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                <span className="font-medium text-gray-700 dark:text-gray-200 truncate">
+                                    {selectedAssignment.displayName || selectedAssignment.levelName}
+                                </span>
+                            </div>
+                            <svg
+                                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                                viewBox="0 0 20 20"
+                                fill="none"
+                            >
+                                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+
+                        {switchDropdownOpen && (
+                            <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800 max-h-64 overflow-y-auto">
+                                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                    Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || levelName}
+                                </div>
+                                {sameTypeAssignments.map((assignment) => (
+                                    <button
+                                        key={assignment.assignment_id}
+                                        onClick={() => handleAssignmentSwitch(assignment)}
+                                        className={[
+                                            "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
+                                            selectedAssignment.assignment_id === assignment.assignment_id
+                                                ? "bg-teal-50 text-teal-900 dark:bg-teal-900/30 dark:text-teal-200"
+                                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                                        ].join(" ")}
+                                    >
+                                        <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium truncate text-xs">
+                                                {assignment.displayName || assignment.levelName}
+                                            </div>
+                                            {assignment.parentLevelName && (
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                    {assignment.parentLevelName}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {selectedAssignment.assignment_id === assignment.assignment_id && (
+                                            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Nav */}

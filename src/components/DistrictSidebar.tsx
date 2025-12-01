@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { logout } from "../store/authSlice";
+import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
+import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -222,7 +223,7 @@ export default function DistrictSidebar({
 }: {
   onNavigate?: () => void;
 }) {
-  const user = useAppSelector((s) => s.auth.user);
+  const { user, stateAssignments, selectedAssignment, permissions } = useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -245,6 +246,53 @@ export default function DistrictSidebar({
     [location.pathname, base]
   );
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
+  const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
+
+  // Get all District assignments
+  let sameTypeAssignments: StateAssignment[] = [];
+  
+  // Get districts from stateAssignments
+  const districtAssignments = stateAssignments.filter((a) => a.levelType === 'District');
+  
+  // Get districts from permissions
+  if (permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) {
+    const permissionDistricts = permissions.accessibleDistricts.map((district: any) => ({
+      assignment_id: district.assignment_id,
+      stateMasterData_id: district.stateMasterData_id || 0,
+      levelName: district.displayName || district.levelName,
+      levelType: 'District',
+      level_id: district.level_id,
+      parentId: district.parentId,
+      parentLevelName: district.parentLevelName || 'State',
+      parentLevelType: 'State',
+      displayName: district.displayName,
+    }));
+    sameTypeAssignments = [...districtAssignments, ...permissionDistricts];
+  } else {
+    sameTypeAssignments = districtAssignments;
+  }
+
+  // Remove duplicates by assignment_id
+  const seen = new Set<number>();
+  sameTypeAssignments = sameTypeAssignments.filter((a) => {
+    if (seen.has(a.assignment_id)) return false;
+    seen.add(a.assignment_id);
+    return true;
+  });
+
+  const hasMultipleAssignments = sameTypeAssignments.length > 1;
+
+  const handleAssignmentSwitch = (assignment: StateAssignment) => {
+    dispatch(setSelectedAssignment(assignment));
+    setSwitchDropdownOpen(false);
+    
+    // Dispatch custom event to trigger data refresh
+    window.dispatchEvent(new Event('districtChanged'));
+    window.dispatchEvent(new Event('assignmentChanged'));
+    
+    // Navigate to district dashboard
+    navigate('/district/dashboard');
+  };
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col">
@@ -263,9 +311,74 @@ export default function DistrictSidebar({
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
               District Level
             </p>
-            
           </div>
         </div>
+
+        {/* Switch Dropdown - Show when user has multiple District assignments */}
+        {hasMultipleAssignments && selectedAssignment && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
+              className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="font-medium text-gray-700 dark:text-gray-200 truncate">
+                  {selectedAssignment.displayName || selectedAssignment.levelName}
+                </span>
+              </div>
+              <svg
+                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                viewBox="0 0 20 20"
+                fill="none"
+              >
+                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {switchDropdownOpen && (
+              <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800 max-h-64 overflow-y-auto">
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Switch District
+                </div>
+                {sameTypeAssignments.map((assignment) => (
+                  <button
+                    key={assignment.assignment_id}
+                    onClick={() => handleAssignmentSwitch(assignment)}
+                    className={[
+                      "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
+                      selectedAssignment.assignment_id === assignment.assignment_id
+                        ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                    ].join(" ")}
+                  >
+                    <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate text-xs">
+                        {assignment.displayName || assignment.levelName}
+                      </div>
+                      {assignment.parentLevelName && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {assignment.parentLevelName}
+                        </div>
+                      )}
+                    </div>
+                    {selectedAssignment.assignment_id === assignment.assignment_id && (
+                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Nav */}

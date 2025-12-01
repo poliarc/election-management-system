@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment, clearSelectedAssignment } from "../store/authSlice";
-import { ThemeToggle } from "./ThemeToggle";
+// import { ThemeToggle } from "./ThemeToggle"; // REMOVED - Dark mode functionality removed
 import type { StateAssignment } from "../types/api";
 import type { PanelAssignment } from "../types/auth";
 
@@ -15,13 +15,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [assignmentMenuOpen, setAssignmentMenuOpen] = useState(false);
+  // const [assignmentMenuOpen, setAssignmentMenuOpen] = useState(false); // COMMENTED OUT - Switch dropdown moved to sidebar
   // split into three menus
   const [partyPanelsOpen, setPartyPanelsOpen] = useState(false);
   const [levelAdminPanelsOpen, setLevelAdminPanelsOpen] = useState(false);
   const [levelAccessOpen, setLevelAccessOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const assignmentMenuRef = useRef<HTMLDivElement | null>(null);
+  // const assignmentMenuRef = useRef<HTMLDivElement | null>(null); // COMMENTED OUT - Switch dropdown moved to sidebar
   const partyPanelsRef = useRef<HTMLDivElement | null>(null);
   const levelAdminPanelsRef = useRef<HTMLDivElement | null>(null);
   const levelAccessRef = useRef<HTMLDivElement | null>(null);
@@ -37,12 +37,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
-      if (
-        assignmentMenuRef.current &&
-        !assignmentMenuRef.current.contains(e.target as Node)
-      ) {
-        setAssignmentMenuOpen(false);
-      }
+      // COMMENTED OUT - Switch dropdown moved to sidebar
+      // if (
+      //   assignmentMenuRef.current &&
+      //   !assignmentMenuRef.current.contains(e.target as Node)
+      // ) {
+      //   setAssignmentMenuOpen(false);
+      // }
       if (partyPanelsRef.current && !partyPanelsRef.current.contains(e.target as Node)) {
         setPartyPanelsOpen(false);
       }
@@ -56,7 +57,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
-        setAssignmentMenuOpen(false);
+        // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
         setPartyPanelsOpen(false);
         setLevelAdminPanelsOpen(false);
         setLevelAccessOpen(false);
@@ -231,7 +232,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
-    setAssignmentMenuOpen(false);
+    // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
     setPartyPanelsOpen(false);
     setLevelAdminPanelsOpen(false);
     setLevelAccessOpen(false);
@@ -269,7 +270,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   };
 
   const handleAdminPanelNavigate = (panel: PanelAssignment) => {
-    setAssignmentMenuOpen(false);
+    // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
     setPartyPanelsOpen(false);
     setLevelAdminPanelsOpen(false);
     setLevelAccessOpen(false);
@@ -391,7 +392,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           </div>  */}
 
           {/* Assignment Switcher - Show when user has multiple assignments of same type */}
-          {hasMultipleAssignments && selectedAssignment && (
+          {/* COMMENTED OUT - Now using sidebar Switch dropdown instead */}
+          {/* {hasMultipleAssignments && selectedAssignment && (
             <div className="relative hidden md:block" ref={assignmentMenuRef}>
               <button
                 type="button"
@@ -437,7 +439,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               </button>
 
               {assignmentMenuOpen && (
-                <div className="absolute left-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || currentLevelType}
                   </div>
@@ -495,7 +497,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 </div>
               )}
             </div>
-          )}
+          )} */}
 
           {/* Three separate dropdowns: Level Access, Level Admin, Party Admin */}
           {(hasAnyAssignments || hasAnyAdminPanels) && user && (
@@ -510,7 +512,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAccessOpen((s) => !s);
                       setPartyPanelsOpen(false);
                       setLevelAdminPanelsOpen(false);
-                      setAssignmentMenuOpen(false);
+                      // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                   >
@@ -528,7 +530,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   </button>
 
                   {levelAccessOpen && (
-                    <div className="absolute left-0 mt-2 w-72 sm:w-80 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-80 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Team Levels</div>
 
                       {/* Fixed Level types (State/District/Assembly) */}
@@ -680,7 +682,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAdminPanelsOpen((s) => !s);
                       setPartyPanelsOpen(false);
                       setLevelAccessOpen(false);
-                      setAssignmentMenuOpen(false);
+                      // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                   >
@@ -694,7 +696,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   </button>
 
                   {levelAdminPanelsOpen && (
-                    <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Role Assign</div>
                       {levelAdminPanels.map((panel: PanelAssignment) => (
                         <button
@@ -727,7 +729,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setPartyPanelsOpen((s) => !s);
                       setLevelAdminPanelsOpen(false);
                       setLevelAccessOpen(false);
-                      setAssignmentMenuOpen(false);
+                      // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                   >
@@ -741,7 +743,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   </button>
 
                   {partyPanelsOpen && (
-                    <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl dark:border-gray-700 dark:bg-gray-800 max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">National Levels</div>
                       {partyAdminPanels.map((panel: PanelAssignment) => (
                         <button
@@ -770,7 +772,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0" ref={menuRef}>
-          <ThemeToggle />
+          {/* <ThemeToggle /> */} {/* REMOVED - Dark mode functionality removed */}
           {user && (
             <div className="relative">
               <button
@@ -840,7 +842,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   )}
 
                   {/* Assignment Switcher in Profile Menu - Mobile Only */}
-                  {hasMultipleAssignments && selectedAssignment && (
+                  {/* COMMENTED OUT - Now using sidebar Switch dropdown instead */}
+                  {/* {hasMultipleAssignments && selectedAssignment && (
                     <>
                       <div className="my-2 border-t border-gray-200 dark:border-gray-700 md:hidden" />
                       <div className="px-2 sm:px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide md:hidden">
@@ -882,7 +885,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       </div>
                       <div className="my-2 border-t border-gray-200 dark:border-gray-700 md:hidden" />
                     </>
-                  )}
+                  )} */}
 
                   <button
                     onClick={() => {
