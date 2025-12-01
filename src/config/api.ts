@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://backend.peopleconnect.in',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL,
   ENDPOINTS: {
     LOGIN: '/api/users/login',
     REFRESH: '/api/users/refresh',

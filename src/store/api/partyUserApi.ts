@@ -75,8 +75,7 @@ function transformUser(backendUser: BackendUser): User {
 export const partyUserApi = createApi({
     reducerPath: "partyUserApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"
-            }/api`,
+        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("auth_access_token");
             if (token) {

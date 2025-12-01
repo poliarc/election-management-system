@@ -24,7 +24,7 @@ interface PartyTypeOperationResponse {
 export const partyTypeApi = createApi({
   reducerPath: "partyTypeApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://backend.peopleconnect.in/api/party-types",
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api/party-types`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) headers.set("Authorization", `Bearer ${token}`);

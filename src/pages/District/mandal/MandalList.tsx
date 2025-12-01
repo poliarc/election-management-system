@@ -48,7 +48,7 @@ export default function DistrictMandalList() {
             try {
                 console.log("Fetching assemblies for district stateMasterData ID:", districtInfo.stateMasterDataId);
                 const response = await fetch(
-                    `https://backend.peopleconnect.in/api/user-state-hierarchies/hierarchy/children/${districtInfo.stateMasterDataId}?page=1&limit=100`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.stateMasterDataId}?page=1&limit=100`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -85,7 +85,7 @@ export default function DistrictMandalList() {
             try {
                 console.log("Fetching blocks for assembly ID:", selectedAssemblyId);
                 const response = await fetch(
-                    `https://backend.peopleconnect.in/api/after-assembly-data/assembly/${selectedAssemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${selectedAssemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,

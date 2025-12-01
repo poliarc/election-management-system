@@ -110,7 +110,7 @@ interface MyReportsResponse {
 export const myCampaignsApi = createApi({
   reducerPath: "myCampaignsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://backend.peopleconnect.in/api",
+    baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("auth_access_token");
       if (token) {
