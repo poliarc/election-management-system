@@ -4,6 +4,7 @@ import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
+import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
 
 export default function MandalList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +14,9 @@ export default function MandalList() {
     const [itemsPerPage] = useState(10);
     const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
     const [selectedMandalName, setSelectedMandalName] = useState<string>("");
+    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+    const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
+    const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -22,6 +26,8 @@ export default function MandalList() {
         assemblyName: "",
         districtName: "",
         assemblyId: 0,
+        stateId: 0,
+        districtId: 0,
     });
 
     useEffect(() => {
@@ -30,6 +36,8 @@ export default function MandalList() {
                 assemblyName: selectedAssignment.levelName || "",
                 districtName: selectedAssignment.parentLevelName || "",
                 assemblyId: selectedAssignment.stateMasterData_id || 0,
+                stateId: (selectedAssignment as any).state_id || 0,
+                districtId: (selectedAssignment as any).district_id || (selectedAssignment as any).parentStateMasterData_id || 0,
             });
         }
     }, [selectedAssignment]);
@@ -39,6 +47,37 @@ export default function MandalList() {
         assemblyInfo.assemblyId,
         { skip: !assemblyInfo.assemblyId }
     );
+
+    // Fetch assembly hierarchy details to get state_id and district_id
+    useEffect(() => {
+        const fetchAssemblyDetails = async () => {
+            if (!assemblyInfo.assemblyId || assemblyInfo.stateId !== 0) return;
+
+            try {
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL || "https://backend.peopleconnect.in"}/api/state-master-data/${assemblyInfo.assemblyId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    setAssemblyInfo(prev => ({
+                        ...prev,
+                        stateId: data.data.state_id || 0,
+                        districtId: data.data.district_id || data.data.parent_id || 0,
+                    }));
+                }
+            } catch (error) {
+                console.error("Error fetching assembly details:", error);
+            }
+        };
+
+        fetchAssemblyDetails();
+    }, [assemblyInfo.assemblyId]);
 
     // Fetch mandals for selected block
     const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(
@@ -259,7 +298,7 @@ export default function MandalList() {
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
+                            <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                         <tr>
@@ -335,17 +374,67 @@ export default function MandalList() {
                                                     {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center gap-2">
+                                                    <div className="relative inline-block">
                                                         <button
-                                                            onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
-                                                            className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
+                                                            onClick={() => setOpenDropdownId(openDropdownId === mandal.id ? null : mandal.id)}
+                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                         >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                             </svg>
-                                                            View
                                                         </button>
+
+                                                        {openDropdownId === mandal.id && (
+                                                            <>
+                                                                <div
+                                                                    className="fixed inset-0 z-10"
+                                                                    onClick={() => setOpenDropdownId(null)}
+                                                                />
+                                                                <div
+                                                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${index >= paginatedMandals.length - 2 && paginatedMandals.length >= 5
+                                                                        ? 'bottom-full mb-2'
+                                                                        : 'top-full mt-2'
+                                                                        }`}
+                                                                    style={{
+                                                                        scrollbarWidth: 'thin',
+                                                                        scrollbarColor: '#9ca3af #f3f4f6'
+                                                                    }}
+                                                                >
+                                                                    <div className="py-1">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                handleViewUsers(mandal.id, mandal.displayName);
+                                                                                setOpenDropdownId(null);
+                                                                            }}
+                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-colors group"
+                                                                        >
+                                                                            <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                                                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <span className="font-medium">View Users</span>
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedMandalForVoters({ id: mandal.id, name: mandal.displayName });
+                                                                                setShowAssignVotersModal(true);
+                                                                                setOpenDropdownId(null);
+                                                                            }}
+                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
+                                                                        >
+                                                                            <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                                                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <span className="font-medium">Assign Booth Voters</span>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -356,7 +445,7 @@ export default function MandalList() {
 
                             {/* Pagination */}
                             {filteredMandals.length > 0 && (
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 mt-4">
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                         <div className="text-sm text-gray-700">
                                             <span>
@@ -621,6 +710,23 @@ export default function MandalList() {
                     background: #3b82f6;
                 }
             `}</style>
+
+            {/* Assign Booth Voters Modal */}
+            {showAssignVotersModal && selectedMandalForVoters && (
+                <AssignBoothVotersModal
+                    isOpen={showAssignVotersModal}
+                    onClose={() => {
+                        setShowAssignVotersModal(false);
+                        setSelectedMandalForVoters(null);
+                    }}
+                    levelId={selectedMandalForVoters.id}
+                    levelName={selectedMandalForVoters.name}
+                    levelType="afterAssembly"
+                    assemblyId={assemblyInfo.assemblyId}
+                    stateId={assemblyInfo.stateId}
+                    districtId={assemblyInfo.districtId}
+                />
+            )}
         </div>
     );
 }

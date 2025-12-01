@@ -3,7 +3,11 @@ import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
-import { fetchAfterAssemblyDataByAssembly, type AfterAssemblyData } from "../../../services/afterAssemblyApi";
+import {
+    fetchAfterAssemblyDataByAssembly,
+    fetchChildLevelsByParent,
+    type AfterAssemblyData
+} from "../../../services/afterAssemblyApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 import {
     createBoothLevelData,
@@ -170,7 +174,7 @@ export default function BoothManagement() {
         loadBoothData();
     }, [hierarchyPath]);
 
-    const handleLevelSelect = (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
+    const handleLevelSelect = async (levelIndex: number, selectedLevel: AfterAssemblyData | null) => {
         if (!selectedLevel) {
             setHierarchyPath(prev => prev.slice(0, levelIndex));
             setLevelOptions(prev => prev.slice(0, levelIndex + 1));
@@ -180,7 +184,32 @@ export default function BoothManagement() {
         const newPath = [...hierarchyPath.slice(0, levelIndex), selectedLevel];
         setHierarchyPath(newPath);
 
-        const children = levelData.filter(l => l.parentId === selectedLevel.id);
+        // First check if children are already in levelData
+        let children = levelData.filter(l => l.parentId === selectedLevel.id);
+
+        // If no children found in levelData, fetch them from API
+        if (children.length === 0) {
+            try {
+                setDataLoading(true);
+                const response = await fetchChildLevelsByParent(selectedLevel.id);
+
+                if (response.success && response.data.length > 0) {
+                    children = response.data;
+
+                    // Add newly fetched children to levelData
+                    setLevelData(prev => {
+                        const existingIds = new Set(prev.map(l => l.id));
+                        const newLevels = children.filter(l => !existingIds.has(l.id));
+                        return [...prev, ...newLevels];
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load child levels:", error);
+            } finally {
+                setDataLoading(false);
+            }
+        }
+
         if (children.length > 0) {
             setLevelOptions(prev => [...prev.slice(0, levelIndex + 1), children]);
         } else {
@@ -407,12 +436,13 @@ export default function BoothManagement() {
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {levelOptions.map((options, index) => {
                             const selectedValue = hierarchyPath[index]?.id || "";
-                            const levelLabel = index === 0 ? "Root Level" : `Level ${index + 1}`;
+                            // Use the actual level name from the first option, or fallback to generic label
+                            const levelLabel = options.length > 0 ? options[0].levelName : `Level ${index + 1}`;
 
                             return (
                                 <div key={index}>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        {levelLabel}
+                                        Select {levelLabel}
                                     </label>
                                     <select
                                         value={selectedValue}
@@ -425,7 +455,7 @@ export default function BoothManagement() {
                                         <option value="">-- Select {levelLabel} --</option>
                                         {options.map((level) => (
                                             <option key={level.id} value={level.id}>
-                                                {level.displayName} ({level.levelName})
+                                                {level.displayName}
                                             </option>
                                         ))}
                                     </select>
