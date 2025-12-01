@@ -36,6 +36,7 @@ export default function AssignBoothVotersModal({
     const [loading, setLoading] = useState(false);
     const [assignments, setAssignments] = useState<PartNoAssignment[]>([]);
     const [loadingAssignments, setLoadingAssignments] = useState(false);
+    const [searchPartNo, setSearchPartNo] = useState("");
     const [hierarchyIds, setHierarchyIds] = useState({
         stateId: stateId || 0,
         districtId: districtId || 0,
@@ -259,6 +260,11 @@ export default function AssignBoothVotersModal({
         }
     };
 
+    // Filter available part numbers based on search
+    const filteredPartNos = availablePartNos.filter((partNo) =>
+        partNo.toLowerCase().includes(searchPartNo.toLowerCase())
+    );
+
     if (!isOpen) return null;
 
     return (
@@ -347,6 +353,42 @@ export default function AssignBoothVotersModal({
                             </div>
                         </div>
 
+                        {/* Search Input */}
+                        <div className="mb-4">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={searchPartNo}
+                                    onChange={(e) => setSearchPartNo(e.target.value)}
+                                    placeholder="Search part number..."
+                                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                                <svg
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                {searchPartNo && (
+                                    <button
+                                        onClick={() => setSearchPartNo("")}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
+                            {searchPartNo && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                    Showing {filteredPartNos.length} of {availablePartNos.length} part numbers
+                                </p>
+                            )}
+                        </div>
+
                         {loading ? (
                             <div className="text-center py-8">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -356,9 +398,13 @@ export default function AssignBoothVotersModal({
                             <div className="text-center py-8 bg-gray-50 rounded-lg">
                                 <p className="text-gray-500">No available part numbers found</p>
                             </div>
+                        ) : filteredPartNos.length === 0 ? (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                <p className="text-gray-500">No part numbers match your search</p>
+                            </div>
                         ) : (
                             <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 max-h-60 overflow-y-auto p-4 bg-gray-50 rounded-lg">
-                                {availablePartNos.map((partNo) => (
+                                {filteredPartNos.map((partNo) => (
                                     <button
                                         key={partNo}
                                         onClick={() => handlePartNoToggle(partNo)}
