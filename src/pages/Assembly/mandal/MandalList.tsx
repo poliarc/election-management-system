@@ -168,21 +168,19 @@ export default function MandalList() {
     }, [blocks, selectedBlockId]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-3">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="bg-white/20 p-2 rounded-lg">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
-                                    </svg>
-                                </div>
-                                <h1 className="text-3xl font-bold">Mandal Management</h1>
-                            </div>
-                            <p className="text-blue-100 ml-14">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-5 mb-6 text-white">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-lg shrink-0">
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
+                            </svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Mandal List</h1>
+                            <p className="text-blue-100 text-xs sm:text-sm mt-1">
                                 Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
                             </p>
                         </div>

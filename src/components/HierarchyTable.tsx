@@ -181,188 +181,179 @@ export default function HierarchyTable({
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="bg-linear-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-6 text-white">
-        <h1 className="text-3xl font-bold">{title}</h1>
+      <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        {(stateName ||
-          districtName ||
-          (districts.length > 0 && onDistrictChange) ||
-          (assemblies.length > 0 && onAssemblyChange) ||
-          (blocks.length > 0 && onBlockChange)) && (
-            <div
-              className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
-                ? "md:grid-cols-4"
-                : assemblies.length > 0 && onAssemblyChange
-                  ? "md:grid-cols-3"
-                  : districts.length > 0 && onDistrictChange
-                    ? "md:grid-cols-2"
-                    : "md:grid-cols-2"
-                } gap-4 mb-4`}
-            >
-              {/* State Field (Disabled) */}
-              {stateName && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    value={stateName || parentName || "N/A"}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-              )}
-
-              {/* District Dropdown - Only show if districts array is provided */}
-              {districts.length > 0 && onDistrictChange && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {isAssemblyView ? "District" : "District"}
-                  </label>
-                  <select
-                    value={selectedDistrict}
-                    onChange={(e) => onDistrictChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">
-                      {isAssemblyView ? "Select District" : "Select District"}
-                    </option>
-                    {districts.map((district) => (
-                      <option
-                        key={district.location_id}
-                        value={district.location_id}
-                      >
-                        {district.location_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* District Field (Disabled) - Only show when districtName is provided */}
-              {districtName && !(districts.length > 0 && onDistrictChange) && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {isAssemblyView ? "State" : "District"}
-                  </label>
-                  <input
-                    type="text"
-                    value={districtName || parentName || "N/A"}
-                    disabled
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-              )}
-
-              {/* Assembly Dropdown - Only show if assemblies are provided */}
-              {assemblies.length > 0 && onAssemblyChange && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {isAssemblyView ? "District" : "Assembly"}
-                  </label>
-                  <select
-                    value={selectedAssembly}
-                    onChange={(e) => onAssemblyChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">
-                      {isAssemblyView ? "Select District" : "Select Assembly"}
-                    </option>
-                    {assemblies.map((assembly) => (
-                      <option
-                        key={assembly.location_id}
-                        value={assembly.location_id}
-                      >
-                        {assembly.location_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Block Dropdown - Only show if blocks are provided */}
-              {blocks.length > 0 && onBlockChange && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Block
-                  </label>
-                  <select
-                    value={selectedBlock}
-                    onChange={(e) => onBlockChange(e.target.value)}
-                    disabled={!selectedAssembly}
-                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
-                      ? "bg-gray-100 text-gray-600 cursor-not-allowed"
-                      : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      }`}
-                  >
-                    <option value="">Select Block</option>
-                    {blocks.map((block) => (
-                      <option key={block.location_id} value={block.location_id}>
-                        {block.location_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+        <div
+          className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
+            ? "sm:grid-cols-2 lg:grid-cols-5"
+            : assemblies.length > 0 && onAssemblyChange
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : districts.length > 0 && onDistrictChange
+                ? "sm:grid-cols-2 lg:grid-cols-3"
+                : "sm:grid-cols-2"
+            } gap-3`}
+        >
+          {/* State Field (Disabled) */}
+          {stateName && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                State
+              </label>
+              <input
+                type="text"
+                value={stateName || parentName || "N/A"}
+                disabled
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
             </div>
           )}
 
-        {/* Search Bar */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={searchInput}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          />
-          {searchInput && (
-            <button
-              onClick={() => onSearchChange("")}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {/* District Dropdown - Only show if districts array is provided */}
+          {districts.length > 0 && onDistrictChange && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {isAssemblyView ? "District" : "District"}
+              </label>
+              <select
+                value={selectedDistrict}
+                onChange={(e) => onDistrictChange(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                <option value="">
+                  {isAssemblyView ? "Select District" : "Select District"}
+                </option>
+                {districts.map((district) => (
+                  <option
+                    key={district.location_id}
+                    value={district.location_id}
+                  >
+                    {district.location_name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
-        </div>
 
-        <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-          {searchInput && (
-            <span className="text-blue-600">
-              Searching for: "{searchInput}"
-            </span>
+          {/* District Field (Disabled) - Only show when districtName is provided */}
+          {districtName && !(districts.length > 0 && onDistrictChange) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {isAssemblyView ? "State" : "District"}
+              </label>
+              <input
+                type="text"
+                value={districtName || parentName || "N/A"}
+                disabled
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+            </div>
           )}
+
+          {/* Assembly Dropdown - Only show if assemblies are provided */}
+          {assemblies.length > 0 && onAssemblyChange && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {isAssemblyView ? "District" : "Assembly"}
+              </label>
+              <select
+                value={selectedAssembly}
+                onChange={(e) => onAssemblyChange(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">
+                  {isAssemblyView ? "Select District" : "Select Assembly"}
+                </option>
+                {assemblies.map((assembly) => (
+                  <option
+                    key={assembly.location_id}
+                    value={assembly.location_id}
+                  >
+                    {assembly.location_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Block Dropdown - Only show if blocks are provided */}
+          {blocks.length > 0 && onBlockChange && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Block
+              </label>
+              <select
+                value={selectedBlock}
+                onChange={(e) => onBlockChange(e.target.value)}
+                disabled={!selectedAssembly}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
+                  ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+                  : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  }`}
+              >
+                <option value="">Select Block</option>
+                {blocks.map((block) => (
+                  <option key={block.location_id} value={block.location_id}>
+                    {block.location_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Search Bar - Always in the same row */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchInput}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              {searchInput && (
+                <button
+                  onClick={() => onSearchChange("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
