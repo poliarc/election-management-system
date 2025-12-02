@@ -228,7 +228,7 @@ export default function StateMandalList() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
                                 </div>
-                                <h1 className="text-3xl font-bold">Mandal Management</h1>
+                                <h1 className="text-3xl font-bold">Mandal List</h1>
                             </div>
                             <p className="text-blue-100 ml-14">
                                 State: {stateInfo.stateName}

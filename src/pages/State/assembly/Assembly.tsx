@@ -142,7 +142,7 @@ export default function StateAssembly() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-gray-50 min-h-screen">
       <HierarchyTable
         data={data}
         loading={selectedDistrictId ? loading : false}

@@ -138,83 +138,80 @@ export default function AssemblyTeam() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-2 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-6">
-                <h1 className="text-3xl font-bold">{assemblyData.location.location_name} Assembly Team</h1>
-                <p className="text-blue-100 mt-2">Manage and view assembly team members</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm font-medium">Total Users</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">{assemblyData.total_users}</p>
-                        </div>
-                        <div className="bg-blue-100 rounded-full p-3">
-                            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="shrink-0">
+                        <h1 className="text-xl sm:text-2xl font-bold">Assembly Team</h1>
+                        <p className="text-blue-100 mt-1 text-xs sm:text-sm">{assemblyData.location.location_name}</p>
                     </div>
-                </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm font-medium">Active Users</p>
-                            <p className="text-3xl font-bold text-green-600 mt-2">{assemblyData.active_users}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                                <p className="text-2xl sm:text-3xl font-semibold mt-1">{assemblyData.total_users}</p>
+                            </div>
+                            <div className="bg-blue-50 rounded-full p-2">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
                         </div>
-                        <div className="bg-green-100 rounded-full p-3">
-                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm font-medium">Inactive Users</p>
-                            <p className="text-3xl font-bold text-red-600 mt-2">{assemblyData.inactive_users}</p>
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Users</p>
+                                <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">{assemblyData.active_users}</p>
+                            </div>
+                            <div className="bg-green-50 rounded-full p-2">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
                         </div>
-                        <div className="bg-red-100 rounded-full p-3">
-                            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive Users</p>
+                                <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">{assemblyData.inactive_users}</p>
+                            </div>
+                            <div className="bg-red-50 rounded-full p-2">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div className="flex gap-4 mb-4">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            placeholder="Search by name, email, or phone..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <input
+                        type="text"
+                        placeholder="Search by name, email, or phone..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value as any)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     >
                         <option value="all">All Status</option>
                         <option value="active">Active Only</option>
                         <option value="inactive">Inactive Only</option>
                     </select>
+
+                    <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap sm:ml-auto">
+                        Showing {filteredUsers.length} of {assemblyData.users.length} users
+                    </p>
                 </div>
-                <p className="text-sm text-gray-600">
-                    Showing {filteredUsers.length} of {assemblyData.users.length} users
-                </p>
             </div>
 
             {/* Users Table */}
@@ -223,13 +220,13 @@ export default function AssemblyTeam() {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Email</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Mobile</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Party</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Assigned Date</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell">Email</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Mobile</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden lg:table-cell">Party</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden xl:table-cell">Assigned Date</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -245,14 +242,15 @@ export default function AssemblyTeam() {
                             ) : (
                                 filteredUsers.map((user, index) => (
                                     <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                            {user.first_name} {user.last_name}
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900">{index + 1}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
+                                            <div>{user.first_name} {user.last_name}</div>
+                                            <div className="md:hidden text-xs text-gray-500 mt-1">{user.email}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.mobile_number}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.party_name || 'N/A'}</td>
-                                        <td className="px-6 py-4 text-sm">
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">{user.email}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600">{user.mobile_number}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden lg:table-cell">{user.party_name || 'N/A'}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">
                                             <span
                                                 className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active
                                                     ? 'bg-green-100 text-green-800'
@@ -262,7 +260,7 @@ export default function AssemblyTeam() {
                                                 {user.is_active ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden xl:table-cell">
                                             {new Date(user.assigned_at).toLocaleDateString()}
                                         </td>
                                     </tr>
