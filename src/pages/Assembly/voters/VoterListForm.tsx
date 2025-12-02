@@ -11,6 +11,8 @@ interface LabeledInputProps {
     register: UseFormRegister<VoterListCandidate>;
     type?: string;
     disabled?: boolean;
+    maxLength?: number;
+    pattern?: string;
 }
 
 const LabeledInput: React.FC<LabeledInputProps> = ({
@@ -19,6 +21,8 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
     register,
     type = "text",
     disabled,
+    maxLength,
+    pattern,
 }) => (
     <div className="flex flex-col">
         <label className="text-sm font-medium mb-1.5 text-gray-700">
@@ -29,6 +33,8 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
             {...register(field)}
             placeholder={`Enter ${label}`}
             disabled={disabled}
+            maxLength={maxLength}
+            pattern={pattern}
             className={`
         bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm
         focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
@@ -54,50 +60,44 @@ const DisplayField: React.FC<DisplayFieldProps> = ({ label, value }) => (
     </div>
 );
 
-const ActionButtons = ({
-    isEditing,
-    onEdit,
+const EditButton = ({
+    onEdit
+}: {
+    onEdit: () => void;
+}) => (
+    <button
+        type="button"
+        onClick={onEdit}
+        className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition"
+    >
+        Edit
+    </button>
+);
+
+const SaveCancelButtons = ({
     onSave,
     onCancel
 }: {
-    isEditing: boolean;
-    onEdit: () => void;
     onSave: () => void;
     onCancel: () => void;
-}) => {
-    if (isEditing) {
-        return (
-            <div className="flex justify-end gap-3 mt-6">
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
-                >
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    onClick={onSave}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
-                >
-                    Save Changes
-                </button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="flex justify-end mt-6">
-            <button
-                type="button"
-                onClick={onEdit}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition"
-            >
-                Edit
-            </button>
-        </div>
-    );
-};
+}) => (
+    <div className="flex justify-end gap-3 mt-6">
+        <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+        >
+            Cancel
+        </button>
+        <button
+            type="button"
+            onClick={onSave}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+        >
+            Save Changes
+        </button>
+    </div>
+);
 
 type Props = {
     initialValues?: VoterListCandidate;
@@ -163,67 +163,82 @@ export const VoterEditForm: React.FC<Props> = ({
                         <DisplayField label="Relation" value={initialValues?.relation} />
                         <DisplayField label="Part No" value={initialValues?.part_no} />
                         <DisplayField label="Serial No" value={initialValues?.sl_no_in_part} />
-                        <div className="col-span-full">
-                            <DisplayField label="PS Location" value={initialValues?.ps_loc_hin} />
-                        </div>
+                        <DisplayField label="PS Location" value={initialValues?.ps_loc_hin} />
                         <DisplayField label="AC No" value={initialValues?.ac_no} />
                         <DisplayField label="AC Name" value={initialValues?.ac_name_en} />
-                        <DisplayField label="Section No" value={initialValues?.section_no} />
-                        <DisplayField label="Town/Village" value={initialValues?.town_village_name_eng} />
-                        <DisplayField label="Police Station" value={initialValues?.police_station_en} />
-                        <DisplayField label="Pincode" value={initialValues?.pincode} />
-                        <DisplayField label="Ward No" value={initialValues?.ward_no} />
-                        <DisplayField label="Tehsil" value={initialValues?.tehsil_eng} />
-                        <DisplayField label="State" value={initialValues?.state_name_eng} />
-                        <DisplayField label="District" value={initialValues?.distt_name_en} />
-                        <DisplayField label="PC Name" value={initialValues?.pc_name_en} />
                     </div>
                 </div>
 
                 {/* Contact Details - Editable */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Contact Details</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <LabeledInput label="Contact Number 1" field="contact_number1" register={register} disabled={editingSection !== 'contact'} />
-                        <LabeledInput label="Contact Number 2" field="contact_number2" register={register} disabled={editingSection !== 'contact'} />
-                        <LabeledInput label="House No" field="house_no_eng" register={register} disabled={editingSection !== 'contact'} />
-                        <LabeledInput label="Aadhar" field="aadhar" register={register} disabled={editingSection !== 'contact'} />
-                        <LabeledInput label="Family ID" field="family_id" register={register} disabled={editingSection !== 'contact'} />
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">Contact Details</h2>
+                        {editingSection !== 'contact' && (
+                            <EditButton onEdit={() => handleEdit('contact')} />
+                        )}
                     </div>
-                    <ActionButtons
-                        isEditing={editingSection === 'contact'}
-                        onEdit={() => handleEdit('contact')}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <LabeledInput label="Contact Number 1" field="contact_number1" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput label="Contact Number 2" field="contact_number2" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput label="Contact Number 3" field="contact_number3" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput label="Contact Number 4" field="contact_number4" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                    </div>
+                    {editingSection === 'contact' && (
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                    )}
                 </div>
 
                 {/* Voter Information - Editable */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Voter Information</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">Voter Information</h2>
+                        {editingSection !== 'voter_info' && (
+                            <EditButton onEdit={() => handleEdit('voter_info')} />
+                        )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <LabeledInput label="Date of Birth" field="voter_dob" register={register} type="date" disabled={editingSection !== 'voter_info'} />
+                        <LabeledInput label="House No" field="house_no_eng" register={register} disabled={editingSection !== 'voter_info'} />
+                        <LabeledInput label="Aadhar" field="aadhar" register={register} disabled={editingSection !== 'voter_info'} />
+                        <LabeledInput label="Family ID" field="family_id" register={register} disabled={editingSection !== 'voter_info'} />
                     </div>
-                    <ActionButtons
-                        isEditing={editingSection === 'voter_info'}
-                        onEdit={() => handleEdit('voter_info')}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                    />
+                    {editingSection === 'voter_info' && (
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                    )}
                 </div>
 
                 {/* Political Profiling - Editable */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Political Profiling</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">Voter Profiling</h2>
+                        {editingSection !== 'political' && (
+                            <EditButton onEdit={() => handleEdit('political')} />
+                        )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <LabeledInput label="Voter Preference Rank" field="voter_preference_rank" register={register} type="number" disabled={editingSection !== 'political'} />
-                        <LabeledInput label="Political Party" field="politcal_party" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Religion" field="religion" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Caste" field="caste" register={register} disabled={editingSection !== 'political'} />
-                        <LabeledInput label="Influential Type" field="influecial_type" register={register} disabled={editingSection !== 'political'} />
-                        <LabeledInput label="Influential Category" field="influencial_catg" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Profession Type" field="profession_type" register={register} disabled={editingSection !== 'political'} />
                         <LabeledInput label="Profession Sub Category" field="profession_sub_catg" register={register} disabled={editingSection !== 'political'} />
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium mb-1.5 text-gray-700">Physical Verified</label>
+                            <select
+                                {...register("physical_verified")}
+                                disabled={editingSection !== 'political'}
+                                className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                            >
+                                <option value="">Select...</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <LabeledInput label="Voter Preference Rank" field="voter_preference_rank" register={register} type="number" disabled={editingSection !== 'political'} />
+                        <LabeledInput label="Political Party" field="politcal_party" register={register} disabled={editingSection !== 'political'} />
+
+                        <LabeledInput label="Influential Type" field="influecial_type" register={register} disabled={editingSection !== 'political'} />
+                        <LabeledInput label="Influential Category" field="influencial_catg" register={register} disabled={editingSection !== 'political'} />
+
                         <LabeledInput label="Education" field="education" register={register} disabled={editingSection !== 'political'} />
                         <div className="flex flex-col">
                             <label className="text-sm font-medium mb-1.5 text-gray-700">Expired/Alive</label>
@@ -257,17 +272,19 @@ export const VoterEditForm: React.FC<Props> = ({
                             </select>
                         </div>
                     </div>
-                    <ActionButtons
-                        isEditing={editingSection === 'political'}
-                        onEdit={() => handleEdit('political')}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                    />
+                    {editingSection === 'political' && (
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                    )}
                 </div>
 
                 {/* Voter Location - Editable */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Voter Location</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">Voter Location</h2>
+                        {editingSection !== 'location' && (
+                            <EditButton onEdit={() => handleEdit('location')} />
+                        )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="flex items-center gap-2">
                             <input type="checkbox" {...register("shifted")} id="shifted" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
@@ -294,12 +311,9 @@ export const VoterEditForm: React.FC<Props> = ({
                         <LabeledInput label="Staying State" field="staying_state" register={register} disabled={editingSection !== 'location'} />
                         <LabeledInput label="Staying City" field="staying_city" register={register} disabled={editingSection !== 'location'} />
                     </div>
-                    <ActionButtons
-                        isEditing={editingSection === 'location'}
-                        onEdit={() => handleEdit('location')}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
-                    />
+                    {editingSection === 'location' && (
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                    )}
                 </div>
             </form>
         </div>
