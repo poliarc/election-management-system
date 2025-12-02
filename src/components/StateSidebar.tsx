@@ -347,27 +347,6 @@ export default function StateSidebar({
                 />
               </svg>
             </button>
-            {/** Campaigns placed directly beneath the List button (not nested inside the collapsed list) */}
-            <div className="mt-2">
-              <NavLink
-                to={`${base}/campaigns`}
-                onClick={() => onNavigate?.()}
-                className={({ isActive }) =>
-                  [
-                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                    isActive
-                      ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                      : "border border-transparent hover:border-gray-200",
-                  ].join(" ")
-                }
-              >
-                <span className="text-indigo-600 shrink-0">{Icons.campaigns}</span>
-                <span className="truncate">Campaigns</span>
-                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              </NavLink>
-            </div>
-
             {listOpen && (
               <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
                 {listItems.map((li) => (
@@ -391,6 +370,28 @@ export default function StateSidebar({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Campaigns - Outside List dropdown but appears below it */}
+          <div className="mt-2">
+            <NavLink
+              to={`${base}/campaigns`}
+              onClick={() => onNavigate?.()}
+              className={({ isActive }) =>
+                [
+                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  isActive
+                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                    : "border border-transparent hover:border-gray-200",
+                ].join(" ")
+              }
+            >
+              <span className="text-indigo-600 shrink-0">{Icons.campaigns}</span>
+              <span className="truncate">Campaigns</span>
+              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+            </NavLink>
           </div>
         </nav>
       </div>
