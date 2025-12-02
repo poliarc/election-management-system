@@ -42,6 +42,8 @@ export interface VoterListCandidate {
     relation?: string;
     contact_number1?: string;
     contact_number2?: string;
+    contact_number3?: string;
+    contact_number4?: string;
     family_id?: string;
     aadhar?: string;
     religion?: string;
@@ -50,6 +52,7 @@ export interface VoterListCandidate {
     influencial_catg?: string;
     profession_type?: string;
     profession_sub_catg?: string;
+    physical_verified?: string;
     married?: string;
     voter_preference_rank?: number;
     politcal_party?: string;
