@@ -374,8 +374,8 @@ export default function SubLevelManagement() {
     );
 
     return (
-        <div className="p-6 bg-gradient-to-br from-gray-50 to-teal-50 min-h-screen">
-            <div className="mb-6">
+        <div className="p-1 bg-gradient-to-br from-gray-50 to-teal-50 min-h-screen">
+            <div className="mb-1">
                 <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-teal-500">
                     <h1 className="text-3xl font-bold text-gray-800">Sub-Level Management</h1>
                     <p className="text-gray-600 mt-2">
@@ -384,7 +384,7 @@ export default function SubLevelManagement() {
                 </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-1">
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

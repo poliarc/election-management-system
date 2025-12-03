@@ -250,7 +250,7 @@ export default function DistrictUserManagement() {
 
     if (!currentPanel) {
         return (
-            <div className="p-6">
+            <div className="p-1">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
                     <p className="text-red-700">Level admin panel not found</p>
                 </div>
@@ -259,8 +259,8 @@ export default function DistrictUserManagement() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white mb-6">
+        <div className="p-1 bg-gray-50 min-h-screen">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 text-white mb-1">
                 <h1 className="text-3xl font-bold">District User Management</h1>
                 <p className="text-purple-100 mt-2">
                     Manage users for districts in {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
@@ -268,7 +268,7 @@ export default function DistrictUserManagement() {
             </div>
 
             {/* Search */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-3 mb-1">
                 <input
                     type="text"
                     placeholder="Search districts or users..."

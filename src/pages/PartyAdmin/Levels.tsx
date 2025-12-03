@@ -263,9 +263,9 @@ export const PartyAdminLevels: React.FC = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-1">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">
@@ -292,7 +292,7 @@ export const PartyAdminLevels: React.FC = () => {
 
             {/* State Filter */}
             {!showForm && (
-                <div className="mb-6 bg-white rounded-lg shadow-md p-4">
+                <div className="mb-1 bg-white rounded-lg shadow-md p-4">
                     <div className="flex items-center gap-4">
                         <label className="text-sm font-medium text-gray-700">
                             Filter by State:

@@ -341,7 +341,7 @@ export default function UserAssignment() {
 
     if (!currentPanel) {
         return (
-            <div className="p-6">
+            <div className="p-1">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
                     <p className="text-red-700">Level admin panel not found</p>
                 </div>
@@ -350,9 +350,9 @@ export default function UserAssignment() {
     }
 
     return (
-        <div className="p-6 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
+        <div className="p-1 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-1">
                 <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
                     <h1 className="text-3xl font-bold text-gray-800">User Assignment</h1>
                     <p className="text-gray-600 mt-2">
@@ -362,7 +362,7 @@ export default function UserAssignment() {
             </div>
 
             {/* Selection Dropdowns */}
-            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+            <div className="mb-1 bg-white rounded-xl shadow-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {/* District Select */}
                     <div>
@@ -464,7 +464,7 @@ export default function UserAssignment() {
             {selectedLevel && (
                 <>
                     {/* Search */}
-                    <div className="mb-6">
+                    <div className="mb-1">
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

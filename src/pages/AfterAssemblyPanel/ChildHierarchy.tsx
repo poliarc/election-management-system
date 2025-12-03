@@ -193,9 +193,9 @@ export default function AfterAssemblyChildHierarchy() {
     const totalPages = Math.ceil(filteredChildren.length / itemsPerPage);
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-3 mb-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

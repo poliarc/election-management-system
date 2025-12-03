@@ -161,9 +161,9 @@ export const RolePage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl shadow-md w-full">
+    <div className="p-1 sm:p-1 bg-gray-50 rounded-2xl shadow-md w-full">
       {/* Header */}
-      <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl p-4 sm:p-6 mb-6 text-white">
+      <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl p-4 sm:p-3 mb-1 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-white bg-opacity-20 p-3 rounded-lg">

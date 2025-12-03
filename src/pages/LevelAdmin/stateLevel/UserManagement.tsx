@@ -301,9 +301,9 @@ export default function UserManagement() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white mb-6">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white mb-1">
                 <h1 className="text-3xl font-bold">User Management</h1>
                 <p className="text-purple-100 mt-2">
                     Assign users to {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
@@ -311,7 +311,7 @@ export default function UserManagement() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-1">
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
@@ -346,7 +346,7 @@ export default function UserManagement() {
             </div>
 
             {/* Search */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-4 mb-1">
                 <input
                     type="text"
                     placeholder="Search users by name, email, or phone..."
@@ -357,7 +357,7 @@ export default function UserManagement() {
             </div>
 
             {/* Tabs */}
-            <div className="bg-white rounded-lg shadow-md mb-6">
+            <div className="bg-white rounded-lg shadow-md mb-1">
                 <div className="border-b border-gray-200">
                     <nav className="flex">
                         <button

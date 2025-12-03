@@ -179,7 +179,7 @@ export default function HierarchyTable({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-1">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
@@ -189,12 +189,12 @@ export default function HierarchyTable({
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
         <div
           className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
-            ? "sm:grid-cols-2 lg:grid-cols-5"
+            ? "sm:grid-cols-3 lg:grid-cols-5"
             : assemblies.length > 0 && onAssemblyChange
               ? "sm:grid-cols-2 lg:grid-cols-4"
               : districts.length > 0 && onDistrictChange
                 ? "sm:grid-cols-2 lg:grid-cols-3"
-                : "sm:grid-cols-2"
+                : "sm:grid-cols-3"
             } gap-3`}
         >
           {/* State Field (Disabled) */}
@@ -242,7 +242,7 @@ export default function HierarchyTable({
           {districtName && !(districts.length > 0 && onDistrictChange) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {isAssemblyView ? "State" : "District"}
+                District
               </label>
               <input
                 type="text"

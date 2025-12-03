@@ -58,8 +58,8 @@ export default function DistrictLevelDashboard() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-6">
+        <div className="p-1 bg-gray-50 min-h-screen">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-1">
                 <h1 className="text-3xl font-bold">{currentPanel.displayName} Dashboard</h1>
                 <p className="text-blue-100 mt-2">
                     {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
@@ -117,7 +117,7 @@ export default function DistrictLevelDashboard() {
                 </div>
             </div>
 
-            <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <div className="mt-1 bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Panel Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

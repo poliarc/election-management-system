@@ -37,8 +37,8 @@ export default function AfterAssemblyPanelTeam() {
     );
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="p-1 bg-gray-50 min-h-screen">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-1">
                 <h1 className="text-2xl font-bold text-gray-800 mb-4">Team Management</h1>
 
                 <div className="relative">

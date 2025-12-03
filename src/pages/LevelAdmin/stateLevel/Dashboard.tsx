@@ -60,9 +60,9 @@ export default function LevelAdminDashboard() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 text-white mb-1">
                 <h1 className="text-3xl font-bold">{currentPanel.displayName} Dashboard</h1>
                 <p className="text-blue-100 mt-2">
                     {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}

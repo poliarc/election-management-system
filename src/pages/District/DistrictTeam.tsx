@@ -154,7 +154,7 @@ export default function DistrictTeam() {
   return (
     <div className="p-2 bg-gray-50 min-h-screen">
       {/* Header with Stats Cards */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-3">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl font-bold">District Team</h1>
@@ -202,7 +202,7 @@ export default function DistrictTeam() {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
