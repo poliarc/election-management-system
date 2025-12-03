@@ -61,7 +61,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
   const activeRoles = roles.filter((role) => role.isActive === 1);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+    <div className="bg-white p-4 rounded-lg shadow-md mb-1">
       {/* Search Bar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative flex-1">
@@ -114,7 +114,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
 
       {/* Advanced Filters */}
       {showFilters && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-1 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Status Filter */}
             <div>

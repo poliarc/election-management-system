@@ -10,7 +10,7 @@ export default function PanelAdminLayout() {
       <Topbar />
       <div className="flex flex-1">
         <AdminSidebar />
-        <main className="flex-1 overflow-auto p-4">
+        <main className="flex-1 overflow-auto p-1">
           <div className="mb-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">
               Admin Panel: {panelRole}

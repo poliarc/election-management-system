@@ -61,7 +61,7 @@ export default function AfterAssemblyPanelDashboard() {
     return (
         <div className="p-2 bg-gray-50 min-h-screen">
             {/* Header with Stats Cards */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
                         <h1 className="text-xl sm:text-2xl font-bold">

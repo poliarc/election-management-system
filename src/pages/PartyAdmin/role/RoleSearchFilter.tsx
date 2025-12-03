@@ -49,7 +49,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
   const hasActiveFilters = localSearch || searchParams.isActive !== undefined;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+    <div className="bg-white p-4 rounded-lg shadow-md mb-1">
       {/* Search Bar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative flex-1">

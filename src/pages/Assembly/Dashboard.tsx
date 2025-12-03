@@ -208,9 +208,9 @@ export default function AssemblyDashboard() {
     };
 
     return (
-        <div className="w-full py-8 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
+        <div className="w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
             {/* Header & Search */}
-            <header className="mb-8 space-y-6">
+            <header className="mb-3 space-y-3">
                 <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:justify-between">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
@@ -285,7 +285,7 @@ export default function AssemblyDashboard() {
             </header>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-3">
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
                     <div className="flex items-center justify-between">
                         <div>

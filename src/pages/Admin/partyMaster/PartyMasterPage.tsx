@@ -192,7 +192,7 @@ export const PartyMasterPage: React.FC = () => {
     };
 
     return (
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-1 rounded-lg shadow-md">
         <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -492,7 +492,7 @@ export const PartyMasterPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 rounded-2xl shadow-md w-full">
+    <div className="p-1 sm:p-1 bg-gray-50 rounded-2xl shadow-md w-full">
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center justify-between">
           <span>{error}</span>
@@ -503,7 +503,7 @@ export const PartyMasterPage: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-6 mb-6 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-3 mb-1 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -524,7 +524,7 @@ export const PartyMasterPage: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
               <Tag className="w-6 h-6 text-purple-700 bg-white rounded-full p-1 shadow" />
@@ -557,7 +557,7 @@ export const PartyMasterPage: React.FC = () => {
       </div>
 
       {showForm && (
-        <div ref={formRef} className="mb-6">
+        <div ref={formRef} className="mb-1">
           <div className="mb-3">
             <h2 className="text-xl font-semibold text-gray-800">
               {editing ? "Edit Party" : "Create New Party"}
@@ -569,7 +569,7 @@ export const PartyMasterPage: React.FC = () => {
       )}
 
       {/* Search & Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+      <div className="bg-white p-4 rounded-lg shadow-md mb-1">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />

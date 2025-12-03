@@ -184,10 +184,10 @@ export default function BlockList() {
     );
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-5 mb-6 text-white">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-5 mb-3 text-white">
                     <div className="flex items-center gap-3">
                         <div className="bg-white/20 p-2 rounded-lg shrink-0">
                             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +204,7 @@ export default function BlockList() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div className="bg-white rounded-xl shadow-md p-3 mb-3">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">

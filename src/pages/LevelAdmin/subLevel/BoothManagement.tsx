@@ -354,7 +354,7 @@ export default function BoothManagement() {
 
     if (!currentPanel) {
         return (
-            <div className="p-6">
+            <div className="p-1">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
                     <p className="text-red-700">Level admin panel not found</p>
                 </div>
@@ -365,9 +365,9 @@ export default function BoothManagement() {
     const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
 
     return (
-        <div className="p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+        <div className="p-1 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-1">
                 <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
                     <h1 className="text-3xl font-bold text-gray-800">Manage Booths</h1>
                     <p className="text-gray-600 mt-2">

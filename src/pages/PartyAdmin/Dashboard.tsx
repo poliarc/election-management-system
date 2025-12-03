@@ -54,9 +54,9 @@ export const PartyAdminDashboard: React.FC = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="mb-8">
+            <div className="mb-1">
                 <h1 className="text-3xl font-bold text-gray-900">
                     {currentParty?.displayName || "Party Admin"} Dashboard
                 </h1>
@@ -66,7 +66,7 @@ export const PartyAdminDashboard: React.FC = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-1">
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>

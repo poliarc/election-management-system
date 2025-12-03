@@ -288,8 +288,8 @@ export default function AssemblyUserManagement() {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white mb-6">
+        <div className="p-1 bg-gray-50 min-h-screen">
+            <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white mb-1">
                 <h1 className="text-3xl font-bold">Assembly User Management</h1>
                 <p className="text-indigo-100 mt-2">
                     Manage users for assemblies in {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
@@ -297,7 +297,7 @@ export default function AssemblyUserManagement() {
             </div>
 
             {/* Search */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-4 mb-1">
                 <input
                     type="text"
                     placeholder="Search districts, assemblies, or users..."
