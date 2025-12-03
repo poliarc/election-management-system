@@ -97,20 +97,33 @@ export const partyUserApi = createApi({
                     totalPages: number;
                 };
             },
-            { partyId: number; params: UserSearchParams }
+            { partyId: number; params: Partial<UserSearchParams> }
         >({
-            query: ({ partyId, params }) => ({
-                url: `/users/by-party/${partyId}`,
-                params: {
-                    page: params.page,
-                    limit: params.limit,
-                    search: params.search,
-                    isActive: params.isActive,
-                    role_id: params.role_id,
-                    state_id: params.state_id,
-                    district_id: params.district_id,
-                },
-            }),
+            query: ({ partyId, params }) => {
+                const queryParams: Record<string, any> = {};
+
+                // Only add page if provided, default to 1
+                if (params.page) {
+                    queryParams.page = params.page;
+                }
+
+                // Only add limit if it's explicitly provided
+                if (params.limit !== undefined) {
+                    queryParams.limit = params.limit;
+                }
+
+                // Add other optional params
+                if (params.search) queryParams.search = params.search;
+                if (params.isActive !== undefined) queryParams.isActive = params.isActive;
+                if (params.role_id) queryParams.role_id = params.role_id;
+                if (params.state_id) queryParams.state_id = params.state_id;
+                if (params.district_id) queryParams.district_id = params.district_id;
+
+                return {
+                    url: `/users/by-party/${partyId}`,
+                    params: queryParams,
+                };
+            },
             transformResponse: (response: ApiListResponse<BackendUser[]>) => {
                 const allUsers = response.data || [];
                 const filteredUsers = allUsers.filter((user) => user.isSuperAdmin !== 1);

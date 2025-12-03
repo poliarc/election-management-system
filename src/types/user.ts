@@ -30,8 +30,8 @@ export type UserForm = {
 };
 
 export type UserSearchParams = {
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
   search?: string;
   isActive?: boolean;
   party_id?: number;
