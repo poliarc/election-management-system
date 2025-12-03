@@ -61,6 +61,7 @@ type InputFieldProps = {
     error?: string;
     disabled?: boolean;
     placeholder?: string;
+    maxLength?: number;
 };
 
 const InputField = ({
@@ -71,6 +72,7 @@ const InputField = ({
     error,
     disabled,
     placeholder,
+    maxLength,
 }: InputFieldProps) => (
     <div className="min-w-0 mb-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -80,6 +82,7 @@ const InputField = ({
             type={type}
             disabled={disabled}
             placeholder={placeholder}
+            maxLength={maxLength}
             style={{
                 width: "100%",
                 minWidth: 0,
@@ -624,6 +627,12 @@ export const Profile = () => {
                                 <Controller
                                     name="phoneNo"
                                     control={control}
+                                    rules={{
+                                        pattern: {
+                                            value: /^[0-9]{10}$/,
+                                            message: "Contact number must be 10 digits",
+                                        },
+                                    }}
                                     render={({ field }) => (
                                         <InputField
                                             label="Phone No."
@@ -632,6 +641,7 @@ export const Profile = () => {
                                             onChange={field.onChange}
                                             error={errors.phoneNo?.message}
                                             disabled={!isEditing}
+                                            maxLength={10}
                                         />
                                     )}
                                 />
