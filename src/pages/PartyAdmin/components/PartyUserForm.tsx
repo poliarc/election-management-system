@@ -233,6 +233,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                             </label>
                             <input
                                 type="tel"
+                                maxLength={10}
                                 {...register("contact_no", {
                                     pattern: {
                                         value: /^[0-9]{10}$/,

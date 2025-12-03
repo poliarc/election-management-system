@@ -29,6 +29,8 @@ export const PartyAdminLevels: React.FC = () => {
     const [showRemoveAdminModal, setShowRemoveAdminModal] = useState(false);
     const [adminToRemove, setAdminToRemove] = useState<{ id: number; name: string } | null>(null);
     const [filterStateId, setFilterStateId] = useState<number>(urlStateId ? Number(urlStateId) : 0);
+    const [adminSearchTerm, setAdminSearchTerm] = useState("");
+    const [viewAdminsSearchTerm, setViewAdminsSearchTerm] = useState("");
     const formRef = useRef<HTMLDivElement>(null);
 
     const { data: levels = [], isLoading, refetch } = useGetPartyWiseLevelsByPartyQuery(
@@ -166,6 +168,7 @@ export const PartyAdminLevels: React.FC = () => {
 
     const handleAssignAdmin = (level: PartyWiseLevel) => {
         setSelectedLevel(level);
+        setAdminSearchTerm("");
         setShowAdminModal(true);
     };
 
@@ -239,6 +242,7 @@ export const PartyAdminLevels: React.FC = () => {
 
     const handleViewAdmins = (level: PartyWiseLevel) => {
         setViewingLevel(level);
+        setViewAdminsSearchTerm("");
         setShowViewAdminsModal(true);
     };
 
@@ -478,73 +482,103 @@ export const PartyAdminLevels: React.FC = () => {
                                 onClick={() => {
                                     setShowAdminModal(false);
                                     setSelectedLevel(null);
+                                    setAdminSearchTerm("");
                                 }}
                                 className="text-gray-500 hover:text-gray-700"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
+                        <div className="px-5 py-3 border-b">
+                            <input
+                                type="text"
+                                placeholder="Search users by name or email..."
+                                value={adminSearchTerm}
+                                onChange={(e) => setAdminSearchTerm(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            />
+                        </div>
                         <div className="p-5 overflow-y-auto flex-1">
                             {users.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
                                     No users found for this party
                                 </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {users.map((user) => {
-                                        // Check if this user is already an admin for this level
-                                        const key = `${selectedLevel.level_name}-${selectedLevel.party_id}-${selectedLevel.state_id}-${selectedLevel.parent_level || 'null'}`;
-                                        const levelAdmins = groupedLevels.get(key) || [];
-                                        const isAlreadyAdmin = levelAdmins.some(
-                                            (admin) => admin.party_level_admin_id === user.user_id
-                                        );
+                            ) : (() => {
+                                const filteredUsers = users.filter((user) => {
+                                    const searchLower = adminSearchTerm.toLowerCase().trim();
+                                    if (!searchLower) return true;
+                                    return (
+                                        user.first_name.toLowerCase().includes(searchLower) ||
+                                        user.last_name.toLowerCase().includes(searchLower) ||
+                                        user.email.toLowerCase().includes(searchLower)
+                                    );
+                                });
 
-                                        return (
-                                            <button
-                                                key={user.user_id}
-                                                onClick={() => handleSelectAdmin(user.user_id)}
-                                                disabled={isAlreadyAdmin}
-                                                className={`w-full p-4 border rounded-lg text-left transition-colors ${isAlreadyAdmin
-                                                    ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
-                                                    : "border-gray-200 hover:bg-blue-50"
-                                                    }`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                                            <span className="text-purple-600 font-semibold">
-                                                                {user.first_name[0]}
-                                                                {user.last_name[0]}
-                                                            </span>
+                                if (filteredUsers.length === 0) {
+                                    return (
+                                        <div className="text-center py-8 text-gray-500">
+                                            No users found matching your search
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="space-y-2">
+                                        {filteredUsers.map((user) => {
+                                            // Check if this user is already an admin for this level
+                                            const key = `${selectedLevel.level_name}-${selectedLevel.party_id}-${selectedLevel.state_id}-${selectedLevel.parent_level || 'null'}`;
+                                            const levelAdmins = groupedLevels.get(key) || [];
+                                            const isAlreadyAdmin = levelAdmins.some(
+                                                (admin) => admin.party_level_admin_id === user.user_id
+                                            );
+
+                                            return (
+                                                <button
+                                                    key={user.user_id}
+                                                    onClick={() => handleSelectAdmin(user.user_id)}
+                                                    disabled={isAlreadyAdmin}
+                                                    className={`w-full p-4 border rounded-lg text-left transition-colors ${isAlreadyAdmin
+                                                        ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                                                        : "border-gray-200 hover:bg-blue-50"
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                                <span className="text-purple-600 font-semibold">
+                                                                    {user.first_name[0]}
+                                                                    {user.last_name[0]}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-semibold text-gray-900">
+                                                                    {user.first_name} {user.last_name}
+                                                                </div>
+                                                                <div className="text-sm text-gray-600">
+                                                                    {user.email}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {user.partyName || "No party"} •{" "}
+                                                                    {user.stateName || "No state"}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {user.role || "No role"} •{" "}
+                                                                    {user.districtName || "No district"}
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <div className="font-semibold text-gray-900">
-                                                                {user.first_name} {user.last_name}
+                                                        {isAlreadyAdmin && (
+                                                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                                                Already Admin
                                                             </div>
-                                                            <div className="text-sm text-gray-600">
-                                                                {user.email}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {user.partyName || "No party"} •{" "}
-                                                                {user.stateName || "No state"}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {user.role || "No role"} •{" "}
-                                                                {user.districtName || "No district"}
-                                                            </div>
-                                                        </div>
+                                                        )}
                                                     </div>
-                                                    {isAlreadyAdmin && (
-                                                        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                            Already Admin
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -563,11 +597,21 @@ export const PartyAdminLevels: React.FC = () => {
                                 onClick={() => {
                                     setShowViewAdminsModal(false);
                                     setViewingLevel(null);
+                                    setViewAdminsSearchTerm("");
                                 }}
                                 className="text-gray-500 hover:text-gray-700"
                             >
                                 <X className="w-5 h-5" />
                             </button>
+                        </div>
+                        <div className="px-5 py-3 border-b">
+                            <input
+                                type="text"
+                                placeholder="Search admins by name or email..."
+                                value={viewAdminsSearchTerm}
+                                onChange={(e) => setViewAdminsSearchTerm(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            />
                         </div>
                         <div className="p-5 overflow-y-auto flex-1">
                             {(() => {
@@ -575,17 +619,26 @@ export const PartyAdminLevels: React.FC = () => {
                                 const admins = groupedLevels.get(key) || [];
                                 const adminsWithNames = admins.filter(a => a.party_level_admin_id && a.admin_name);
 
-                                if (adminsWithNames.length === 0) {
+                                const filteredAdmins = adminsWithNames.filter((admin) => {
+                                    const searchLower = viewAdminsSearchTerm.toLowerCase().trim();
+                                    if (!searchLower) return true;
+                                    return (
+                                        admin.admin_name.toLowerCase().includes(searchLower) ||
+                                        (admin.admin_email && admin.admin_email.toLowerCase().includes(searchLower))
+                                    );
+                                });
+
+                                if (filteredAdmins.length === 0) {
                                     return (
                                         <div className="text-center py-8 text-gray-500">
-                                            No admins assigned to this level
+                                            {viewAdminsSearchTerm ? "No admins found matching your search" : "No admins assigned to this level"}
                                         </div>
                                     );
                                 }
 
                                 return (
                                     <div className="space-y-3">
-                                        {adminsWithNames.map((admin) => (
+                                        {filteredAdmins.map((admin) => (
                                             <div
                                                 key={admin.party_wise_id}
                                                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"

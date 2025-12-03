@@ -32,28 +32,28 @@ const InlineConfirmationModal: React.FC<{
   confirmText = "Confirm",
   loading,
 }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{message}</p>
-        <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
-          >
-            {loading ? "Please wait..." : confirmText}
-          </button>
+    if (!isOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+          <h3 className="text-lg font-semibold mb-2">{title}</h3>
+          <p className="text-sm text-gray-600 mb-4">{message}</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
+            >
+              {loading ? "Please wait..." : confirmText}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 // Reusable Input Field
 type InputFieldProps = {
@@ -64,6 +64,7 @@ type InputFieldProps = {
   error?: string;
   disabled?: boolean;
   placeholder?: string;
+  maxLength?: number;
 };
 
 const InputField = ({
@@ -74,6 +75,7 @@ const InputField = ({
   error,
   disabled,
   placeholder,
+  maxLength,
 }: InputFieldProps) => (
   <div className="min-w-0 mb-2">
     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -83,6 +85,7 @@ const InputField = ({
       type={type}
       disabled={disabled}
       placeholder={placeholder}
+      maxLength={maxLength}
       style={{
         width: "100%",
         minWidth: 0,
@@ -658,6 +661,12 @@ export const StateProfile = () => {
                 <Controller
                   name="phoneNo"
                   control={control}
+                  rules={{
+                    pattern: {
+                      value: /^[0-9]{10}$/,
+                      message: "Contact number must be 10 digits",
+                    },
+                  }}
                   render={({ field }) => (
                     <InputField
                       label="Phone No."
@@ -666,6 +675,7 @@ export const StateProfile = () => {
                       onChange={field.onChange}
                       error={errors.phoneNo?.message}
                       disabled={!isEditing}
+                      maxLength={10}
                     />
                   )}
                 />
@@ -892,16 +902,15 @@ export const StateProfile = () => {
                             year: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(educationValues, [
-                            "std",
-                            "institute",
-                            "boardUniversity",
-                            "year",
-                          ])
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
+                        className={`flex items-center gap-1 ${!areAllRowsFilled(educationValues, [
+                          "std",
+                          "institute",
+                          "boardUniversity",
+                          "year",
+                        ])
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-blue-600 hover:text-blue-800"
+                          }`}
                       >
                         <Plus size={18} /> Add Education
                       </button>
@@ -1003,17 +1012,16 @@ export const StateProfile = () => {
                             durationTo: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(experienceValues, [
-                            "designation",
-                            "organization",
-                            "years",
-                            "durationFrom",
-                            "durationTo",
-                          ])
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
+                        className={`flex items-center gap-1 ${!areAllRowsFilled(experienceValues, [
+                          "designation",
+                          "organization",
+                          "years",
+                          "durationFrom",
+                          "durationTo",
+                        ])
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-blue-600 hover:text-blue-800"
+                          }`}
                       >
                         <Plus size={18} /> Add Experience
                       </button>
@@ -1125,16 +1133,15 @@ export const StateProfile = () => {
                             age: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(childrenValues, [
-                            "name",
-                            "dob",
-                            "gender",
-                            "age",
-                          ])
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
+                        className={`flex items-center gap-1 ${!areAllRowsFilled(childrenValues, [
+                          "name",
+                          "dob",
+                          "gender",
+                          "age",
+                        ])
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-blue-600 hover:text-blue-800"
+                          }`}
                       >
                         <Plus size={18} /> Add Child
                       </button>
@@ -1250,18 +1257,17 @@ export const StateProfile = () => {
                             durationTo: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(positionValues, [
-                            "title",
-                            "designation",
-                            "state",
-                            "district",
-                            "durationFrom",
-                            "durationTo",
-                          ])
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
+                        className={`flex items-center gap-1 ${!areAllRowsFilled(positionValues, [
+                          "title",
+                          "designation",
+                          "state",
+                          "district",
+                          "durationFrom",
+                          "durationTo",
+                        ])
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-blue-600 hover:text-blue-800"
+                          }`}
                       >
                         <Plus size={18} /> Add Position
                       </button>
@@ -1523,11 +1529,10 @@ export const StateProfile = () => {
                           !areAllRowsFilled(vehicleValues, ["type", "count"])
                         }
                         onClick={() => appendVehicle({ type: "", count: "" })}
-                        className={`flex items-center gap-1 ${
-                          !areAllRowsFilled(vehicleValues, ["type", "count"])
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
+                        className={`flex items-center gap-1 ${!areAllRowsFilled(vehicleValues, ["type", "count"])
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-blue-600 hover:text-blue-800"
+                          }`}
                       >
                         <Plus size={18} /> Add Vehicle
                       </button>
