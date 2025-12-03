@@ -31,6 +31,8 @@ export const PartyAdminLevels: React.FC = () => {
     const [filterStateId, setFilterStateId] = useState<number>(urlStateId ? Number(urlStateId) : 0);
     const [adminSearchTerm, setAdminSearchTerm] = useState("");
     const [viewAdminsSearchTerm, setViewAdminsSearchTerm] = useState("");
+    const [userPage, setUserPage] = useState(1);
+    const [usersPerPage] = useState(25);
     const formRef = useRef<HTMLDivElement>(null);
 
     const { data: levels = [], isLoading, refetch } = useGetPartyWiseLevelsByPartyQuery(
@@ -39,13 +41,20 @@ export const PartyAdminLevels: React.FC = () => {
     );
 
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
-    const { data: usersResponse } = useGetUsersByPartyQuery(
+
+    // Fetch users with pagination
+    const { data: usersResponse, isLoading: usersLoading } = useGetUsersByPartyQuery(
         {
             partyId: Number(partyId),
-            params: { page: 1, limit: 100 },
+            params: {
+                page: userPage,
+                limit: usersPerPage,
+                search: adminSearchTerm || undefined,
+            },
         },
         { skip: !partyId }
     );
+
     const [createLevel, { isLoading: isCreating }] = useCreatePartyWiseLevelMutation();
     const [updateLevel, { isLoading: isUpdating }] = useUpdatePartyWiseLevelMutation();
     const [deleteLevel] = useDeletePartyWiseLevelMutation();
@@ -54,6 +63,12 @@ export const PartyAdminLevels: React.FC = () => {
     const [removeAdminFromLevel] = useRemoveAdminFromLevelMutation();
 
     const users = usersResponse?.data || [];
+    const pagination = usersResponse?.pagination;
+
+    // Reset to page 1 when search changes
+    React.useEffect(() => {
+        setUserPage(1);
+    }, [adminSearchTerm]);
 
     // Filter levels by state if selected
     const filteredLevels = React.useMemo(() => {
@@ -169,6 +184,7 @@ export const PartyAdminLevels: React.FC = () => {
     const handleAssignAdmin = (level: PartyWiseLevel) => {
         setSelectedLevel(level);
         setAdminSearchTerm("");
+        setUserPage(1);
         setShowAdminModal(true);
     };
 
@@ -483,6 +499,7 @@ export const PartyAdminLevels: React.FC = () => {
                                     setShowAdminModal(false);
                                     setSelectedLevel(null);
                                     setAdminSearchTerm("");
+                                    setUserPage(1);
                                 }}
                                 className="text-gray-500 hover:text-gray-700"
                             >
@@ -499,290 +516,339 @@ export const PartyAdminLevels: React.FC = () => {
                             />
                         </div>
                         <div className="p-5 overflow-y-auto flex-1">
-                            {users.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    No users found for this party
+                            {usersLoading ? (
+                                <div className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                                    <p className="mt-2 text-gray-600">Loading users...</p>
                                 </div>
-                            ) : (() => {
-                                const filteredUsers = users.filter((user) => {
-                                    const searchLower = adminSearchTerm.toLowerCase().trim();
-                                    if (!searchLower) return true;
-                                    return (
-                                        user.first_name.toLowerCase().includes(searchLower) ||
-                                        user.last_name.toLowerCase().includes(searchLower) ||
-                                        user.email.toLowerCase().includes(searchLower)
-                                    );
-                                });
+                            ) : users.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    No users found
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {users.map((user) => {
+                                        const key = `${selectedLevel.level_name}-${selectedLevel.party_id}-${selectedLevel.state_id}-${selectedLevel.parent_level || 'null'}`;
+                                        const levelAdmins = groupedLevels.get(key) || [];
+                                        const isAlreadyAdmin = levelAdmins.some(
+                                            (admin) => admin.party_level_admin_id === user.user_id
+                                        );
 
-                                if (filteredUsers.length === 0) {
-                                    return (
-                                        <div className="text-center py-8 text-gray-500">
-                                            No users found matching your search
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div className="space-y-2">
-                                        {filteredUsers.map((user) => {
-                                            // Check if this user is already an admin for this level
-                                            const key = `${selectedLevel.level_name}-${selectedLevel.party_id}-${selectedLevel.state_id}-${selectedLevel.parent_level || 'null'}`;
-                                            const levelAdmins = groupedLevels.get(key) || [];
-                                            const isAlreadyAdmin = levelAdmins.some(
-                                                (admin) => admin.party_level_admin_id === user.user_id
-                                            );
-
-                                            return (
-                                                <button
-                                                    key={user.user_id}
-                                                    onClick={() => handleSelectAdmin(user.user_id)}
-                                                    disabled={isAlreadyAdmin}
-                                                    className={`w-full p-4 border rounded-lg text-left transition-colors ${isAlreadyAdmin
-                                                        ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
-                                                        : "border-gray-200 hover:bg-blue-50"
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                                                <span className="text-purple-600 font-semibold">
-                                                                    {user.first_name[0]}
-                                                                    {user.last_name[0]}
-                                                                </span>
+                                        return (
+                                            <button
+                                                key={user.user_id}
+                                                onClick={() => handleSelectAdmin(user.user_id)}
+                                                disabled={isAlreadyAdmin}
+                                                className={`w-full p-4 border rounded-lg text-left transition-colors ${isAlreadyAdmin
+                                                    ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
+                                                    : "border-gray-200 hover:bg-blue-50"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                            <span className="text-purple-600 font-semibold">
+                                                                {user.first_name[0]}
+                                                                {user.last_name[0]}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-semibold text-gray-900">
+                                                                {user.first_name} {user.last_name}
                                                             </div>
-                                                            <div>
-                                                                <div className="font-semibold text-gray-900">
-                                                                    {user.first_name} {user.last_name}
-                                                                </div>
-                                                                <div className="text-sm text-gray-600">
-                                                                    {user.email}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500">
-                                                                    {user.partyName || "No party"} •{" "}
-                                                                    {user.stateName || "No state"}
-                                                                </div>
-                                                                <div className="text-xs text-gray-500">
-                                                                    {user.role || "No role"} •{" "}
-                                                                    {user.districtName || "No district"}
-                                                                </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                {user.email}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {user.partyName || "No party"} • {user.stateName || "No state"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {user.role || "No role"} • {user.districtName || "No district"}
                                                             </div>
                                                         </div>
-                                                        {isAlreadyAdmin && (
-                                                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                                Already Admin
-                                                            </div>
-                                                        )}
                                                     </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                );
-                            })()}
+                                                    {isAlreadyAdmin && (
+                                                        <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                                            Already Admin
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
+
+                        {/* Pagination Controls */}
+                        {pagination && pagination.totalPages > 1 && (
+                            <div className="px-5 py-4 border-t border-gray-200 bg-gray-50">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-700">
+                                        Page <span className="font-medium">{pagination.page}</span> of{' '}
+                                        <span className="font-medium">{pagination.totalPages}</span>
+                                        {' '}({pagination.total} total users)
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setUserPage(prev => Math.max(1, prev - 1))}
+                                            disabled={pagination.page === 1 || usersLoading}
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Previous
+                                        </button>
+
+                                        {/* Page Numbers */}
+                                        <div className="flex items-center gap-1">
+                                            {(() => {
+                                                const pages = [];
+                                                const maxVisible = 5;
+                                                let startPage = Math.max(1, pagination.page - Math.floor(maxVisible / 2));
+                                                let endPage = Math.min(pagination.totalPages, startPage + maxVisible - 1);
+
+                                                if (endPage - startPage < maxVisible - 1) {
+                                                    startPage = Math.max(1, endPage - maxVisible + 1);
+                                                }
+
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pages.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setUserPage(i)}
+                                                            disabled={usersLoading}
+                                                            className={`px-3 py-1 text-sm border rounded-md ${pagination.page === i
+                                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                                    : 'border-gray-300 hover:bg-gray-100'
+                                                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+                                                return pages;
+                                            })()}
+                                        </div>
+
+                                        <button
+                                            onClick={() => setUserPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                                            disabled={pagination.page === pagination.totalPages || usersLoading}
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* View Admins Modal */}
-            {showViewAdminsModal && viewingLevel && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between px-5 py-4 border-b">
-                            <div className="flex items-center gap-2 text-indigo-700 font-semibold">
-                                <Eye className="w-5 h-5" />
-                                Assigned Admins - {viewingLevel.display_level_name}
+            {
+                showViewAdminsModal && viewingLevel && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                            <div className="flex items-center justify-between px-5 py-4 border-b">
+                                <div className="flex items-center gap-2 text-indigo-700 font-semibold">
+                                    <Eye className="w-5 h-5" />
+                                    Assigned Admins - {viewingLevel.display_level_name}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowViewAdminsModal(false);
+                                        setViewingLevel(null);
+                                        setViewAdminsSearchTerm("");
+                                    }}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => {
-                                    setShowViewAdminsModal(false);
-                                    setViewingLevel(null);
-                                    setViewAdminsSearchTerm("");
-                                }}
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="px-5 py-3 border-b">
-                            <input
-                                type="text"
-                                placeholder="Search admins by name or email..."
-                                value={viewAdminsSearchTerm}
-                                onChange={(e) => setViewAdminsSearchTerm(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            />
-                        </div>
-                        <div className="p-5 overflow-y-auto flex-1">
-                            {(() => {
-                                const key = `${viewingLevel.level_name}-${viewingLevel.party_id}-${viewingLevel.state_id}-${viewingLevel.parent_level || 'null'}`;
-                                const admins = groupedLevels.get(key) || [];
-                                const adminsWithNames = admins.filter(a => a.party_level_admin_id && a.admin_name);
+                            <div className="px-5 py-3 border-b">
+                                <input
+                                    type="text"
+                                    placeholder="Search admins by name or email..."
+                                    value={viewAdminsSearchTerm}
+                                    onChange={(e) => setViewAdminsSearchTerm(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div className="p-5 overflow-y-auto flex-1">
+                                {(() => {
+                                    const key = `${viewingLevel.level_name}-${viewingLevel.party_id}-${viewingLevel.state_id}-${viewingLevel.parent_level || 'null'}`;
+                                    const admins = groupedLevels.get(key) || [];
+                                    const adminsWithNames = admins.filter(a => a.party_level_admin_id && a.admin_name);
 
-                                const filteredAdmins = adminsWithNames.filter((admin) => {
-                                    const searchLower = viewAdminsSearchTerm.toLowerCase().trim();
-                                    if (!searchLower) return true;
-                                    return (
-                                        admin.admin_name.toLowerCase().includes(searchLower) ||
-                                        (admin.admin_email && admin.admin_email.toLowerCase().includes(searchLower))
-                                    );
-                                });
+                                    const filteredAdmins = adminsWithNames.filter((admin) => {
+                                        const searchLower = viewAdminsSearchTerm.toLowerCase().trim();
+                                        if (!searchLower) return true;
+                                        return (
+                                            admin.admin_name.toLowerCase().includes(searchLower) ||
+                                            (admin.admin_email && admin.admin_email.toLowerCase().includes(searchLower))
+                                        );
+                                    });
 
-                                if (filteredAdmins.length === 0) {
+                                    if (filteredAdmins.length === 0) {
+                                        return (
+                                            <div className="text-center py-8 text-gray-500">
+                                                {viewAdminsSearchTerm ? "No admins found matching your search" : "No admins assigned to this level"}
+                                            </div>
+                                        );
+                                    }
+
                                     return (
-                                        <div className="text-center py-8 text-gray-500">
-                                            {viewAdminsSearchTerm ? "No admins found matching your search" : "No admins assigned to this level"}
+                                        <div className="space-y-3">
+                                            {filteredAdmins.map((admin) => (
+                                                <div
+                                                    key={admin.party_wise_id}
+                                                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                            <span className="text-blue-600 font-semibold">
+                                                                {admin.admin_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-semibold text-gray-900">
+                                                                {admin.admin_name}
+                                                            </div>
+                                                            {admin.admin_email && (
+                                                                <div className="text-sm text-gray-600">
+                                                                    {admin.admin_email}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => openRemoveAdminModal(admin.party_wise_id, admin.admin_name)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                        title="Remove admin"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
                                     );
-                                }
-
-                                return (
-                                    <div className="space-y-3">
-                                        {filteredAdmins.map((admin) => (
-                                            <div
-                                                key={admin.party_wise_id}
-                                                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                                        <span className="text-blue-600 font-semibold">
-                                                            {admin.admin_name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-semibold text-gray-900">
-                                                            {admin.admin_name}
-                                                        </div>
-                                                        {admin.admin_email && (
-                                                            <div className="text-sm text-gray-600">
-                                                                {admin.admin_email}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => openRemoveAdminModal(admin.party_wise_id, admin.admin_name)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                    title="Remove admin"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                );
-                            })()}
-                        </div>
-                        <div className="px-5 py-4 border-t bg-gray-50">
-                            <button
-                                onClick={() => {
-                                    setShowViewAdminsModal(false);
-                                    setSelectedLevel(viewingLevel);
-                                    setShowAdminModal(true);
-                                }}
-                                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                <UserPlus className="w-4 h-4" />
-                                Add Another Admin
-                            </button>
+                                })()}
+                            </div>
+                            <div className="px-5 py-4 border-t bg-gray-50">
+                                <button
+                                    onClick={() => {
+                                        setShowViewAdminsModal(false);
+                                        setSelectedLevel(viewingLevel);
+                                        setShowAdminModal(true);
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                                >
+                                    <UserPlus className="w-4 h-4" />
+                                    Add Another Admin
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Remove Admin Confirmation Modal */}
-            {showRemoveAdminModal && adminToRemove && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-                        <div className="p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <Trash2 className="w-6 h-6 text-red-600" />
+            {
+                showRemoveAdminModal && adminToRemove && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                            <div className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                        <Trash2 className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            Remove Admin
+                                        </h3>
+                                        <p className="text-sm text-gray-600">
+                                            Admin will be unassigned from this level
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
+                                <div className="mb-6">
+                                    <p className="text-gray-700 mb-3">
+                                        Are you sure you want to remove <span className="font-semibold">{adminToRemove.name}</span> from this level?
+                                    </p>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <p className="text-sm text-blue-800">
+                                            <span className="font-medium">Note:</span> The level will remain active and you can assign a new admin later.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowRemoveAdminModal(false);
+                                            setAdminToRemove(null);
+                                        }}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleRemoveAdmin}
+                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                    >
                                         Remove Admin
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        Admin will be unassigned from this level
-                                    </p>
+                                    </button>
                                 </div>
-                            </div>
-                            <div className="mb-6">
-                                <p className="text-gray-700 mb-3">
-                                    Are you sure you want to remove <span className="font-semibold">{adminToRemove.name}</span> from this level?
-                                </p>
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                    <p className="text-sm text-blue-800">
-                                        <span className="font-medium">Note:</span> The level will remain active and you can assign a new admin later.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowRemoveAdminModal(false);
-                                        setAdminToRemove(null);
-                                    }}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleRemoveAdmin}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                                >
-                                    Remove Admin
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Delete Level Confirmation Modal */}
-            {showDeleteModal && levelToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-                        <div className="p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <Trash2 className="w-6 h-6 text-red-600" />
+            {
+                showDeleteModal && levelToDelete && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                            <div className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                        <Trash2 className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">
+                                            Delete Level
+                                        </h3>
+                                        <p className="text-sm text-gray-600">
+                                            This action cannot be undone
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        Delete Level
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        This action cannot be undone
-                                    </p>
+                                <p className="text-gray-700 mb-6">
+                                    Are you sure you want to delete this level? All associated data will be removed.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setLevelToDelete(null);
+                                        }}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
-                            </div>
-                            <p className="text-gray-700 mb-6">
-                                Are you sure you want to delete this level? All associated data will be removed.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        setShowDeleteModal(false);
-                                        setLevelToDelete(null);
-                                    }}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                                >
-                                    Delete
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
