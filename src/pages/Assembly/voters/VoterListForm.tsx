@@ -271,6 +271,18 @@ export const VoterEditForm: React.FC<Props> = ({
                                 <option value="Separated">Separated</option>
                             </select>
                         </div>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium mb-1.5 text-gray-700">EU/SSR Form Submitted</label>
+                            <select
+                                {...register("eu_ssr_form_submitted")}
+                                disabled={editingSection !== 'political'}
+                                className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                            >
+                                <option value="">Select...</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
                     </div>
                     {editingSection === 'political' && (
                         <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
