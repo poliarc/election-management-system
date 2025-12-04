@@ -25,7 +25,8 @@ export default function UserAssignment() {
   const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [assignedUsers, setAssignedUsers] = useState<unknown[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
 
   const [selectedDistrict, setSelectedDistrict] =
     useState<HierarchyChild | null>(null);
