@@ -157,7 +157,7 @@ export default function StateTeamListing() {
 
   if (!stateData) {
     return (
-      <div className="p-6">
+      <div className="p-1">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <p className="text-gray-600">No state data available</p>
         </div>
@@ -166,9 +166,9 @@ export default function StateTeamListing() {
   }
 
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-gray-50 min-h-screen">
       {/* Header with Stats Cards */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl font-bold">State Team</h1>
@@ -216,7 +216,7 @@ export default function StateTeamListing() {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-3 mb-1">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"

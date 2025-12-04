@@ -334,7 +334,7 @@ export default function UserAssignment() {
         <div className="p-1 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
             {/* Header */}
             <div className="mb-1">
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                <div className="bg-white rounded-xl shadow-lg p-3 border-l-4 border-purple-500">
                     <h1 className="text-3xl font-bold text-gray-800">User Assignment</h1>
                     <p className="text-gray-600 mt-2">
                         Assign users to sub-levels in {currentPanel.metadata?.stateName}

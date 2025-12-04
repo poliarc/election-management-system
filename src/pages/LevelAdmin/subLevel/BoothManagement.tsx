@@ -368,7 +368,7 @@ export default function BoothManagement() {
         <div className="p-1 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
             {/* Header */}
             <div className="mb-1">
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                <div className="bg-white rounded-xl shadow-lg p-3 border-l-4 border-blue-500">
                     <h1 className="text-3xl font-bold text-gray-800">Manage Booths</h1>
                     <p className="text-gray-600 mt-2">
                         Create and manage booth data for {currentPanel.metadata?.stateName}
