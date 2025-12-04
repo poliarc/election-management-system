@@ -56,6 +56,17 @@ export default function SubLevelPanelDashboard() {
         };
 
         loadDashboardData();
+
+        // Listen for assignment changes
+        const handleAssignmentChange = () => {
+            loadDashboardData();
+        };
+
+        window.addEventListener('assignmentChanged', handleAssignmentChange);
+
+        return () => {
+            window.removeEventListener('assignmentChanged', handleAssignmentChange);
+        };
     }, [levelId]);
 
     return (

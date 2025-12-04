@@ -386,37 +386,40 @@ export default function SubLevelManagement() {
     return (
         <div className="p-1 bg-gradient-to-br from-gray-50 to-teal-50 min-h-screen">
             <div className="mb-1">
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-teal-500">
-                    <h1 className="text-3xl font-bold text-gray-800">Sub-Level Management</h1>
-                    <p className="text-gray-600 mt-2">
-                        Create hierarchical sub-levels for assemblies in {currentPanel.metadata?.stateName}
-                    </p>
-                </div>
-            </div>
-
-            <div className="mb-1">
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                <div className="bg-white rounded-xl shadow-lg p-3 sm:p-3 border-l-4 border-teal-500">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex-1">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Sub-Level Management</h1>
+                            <p className="text-gray-600 mt-2 text-sm sm:text-base">
+                                Create hierarchical sub-levels for assemblies in {currentPanel.metadata?.stateName}
+                            </p>
+                        </div>
+                        <div className="w-full lg:w-96">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
-                    />
                 </div>
             </div>
 
             {/* Dynamic Select Dropdowns */}
-            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+            <div className="mb-1 bg-white rounded-xl shadow-lg p-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* District Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
                             Select District
                         </label>
                         <select
@@ -442,7 +445,7 @@ export default function SubLevelManagement() {
 
                     {/* Assembly Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
                             Select Assembly
                         </label>
                         <select

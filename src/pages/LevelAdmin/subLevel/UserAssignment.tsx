@@ -407,6 +407,7 @@ export default function UserAssignment() {
 
   if (!currentPanel) {
     return (
+        
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
           <p className="text-red-700">Level admin panel not found</p>
@@ -519,6 +520,7 @@ export default function UserAssignment() {
                       </option>
                     ))}
                   </select>
+
                 </div>
               );
             })}

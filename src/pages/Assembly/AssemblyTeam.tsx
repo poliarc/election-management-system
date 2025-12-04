@@ -140,7 +140,7 @@ export default function AssemblyTeam() {
     return (
         <div className="p-2 bg-gray-50 min-h-screen">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
                         <h1 className="text-xl sm:text-2xl font-bold">Assembly Team</h1>
@@ -188,7 +188,7 @@ export default function AssemblyTeam() {
             </div>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4">
+            <div className="bg-white rounded-lg shadow-md p-3 sm:p-3 mb-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <input
                         type="text"

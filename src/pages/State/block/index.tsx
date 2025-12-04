@@ -171,7 +171,7 @@ export default function StateBlock() {
     <div className="p-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-3 text-white">
+        <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
           <h1 className="text-3xl font-bold">Block List</h1>
           <p className="text-blue-100 mt-2">
             State: {stateInfo.stateName}
@@ -179,7 +179,7 @@ export default function StateBlock() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-3">
+        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

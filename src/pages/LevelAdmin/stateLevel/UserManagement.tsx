@@ -308,83 +308,92 @@ export default function UserManagement() {
 
   return (
     <div className="p-1 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white mb-1">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-purple-100 mt-2">
-          Assign users to {currentPanel.metadata?.stateName} -{" "}
-          {currentPanel.metadata?.partyName}
-        </p>
-      </div>
+      {/* Header with Stats Cards and Search */}
+      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
+        <div className="flex flex-col gap-10">
+          {/* Title, Search and Cards Row */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              <div className="shrink-0">
+                <h1 className="text-xl sm:text-2xl font-bold">User Management</h1>
+                <p className="text-purple-100 mt-1 text-xs sm:text-sm">
+                  Assign users to {currentPanel.metadata?.stateName} -{" "}
+                  {currentPanel.metadata?.partyName}
+                </p>
+              </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-1">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">
-                Assigned Users
-              </p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {assignedLoading ? "..." : assignedTotalCount}
-              </p>
-            </div>
-            <div className="bg-green-100 rounded-full p-3">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              {/* Search Bar - Compact */}
+              <div className="relative w-full sm:w-64">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-white text-gray-900 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition-all shadow-sm text-sm"
                 />
-              </svg>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
+              <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Assigned Users
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
+                    {assignedLoading ? "..." : assignedTotalCount}
+                  </p>
+                </div>
+                <div className="bg-green-50 rounded-full p-2">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                    Available Users
+                  </p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-blue-600 mt-1">
+                    {loading ? "..." : unassignedUsers.length}
+                  </p>
+                </div>
+                <div className="bg-blue-50 rounded-full p-2">
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">
-                Available Users
-              </p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
-                {loading ? "..." : unassignedUsers.length}
-              </p>
-            </div>
-            <div className="bg-blue-100 rounded-full p-3">
-              <svg
-                className="w-8 h-8 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-1">
-        <input
-          type="text"
-          placeholder="Search users by name, email, or phone..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        />
       </div>
 
       {/* Tabs */}
