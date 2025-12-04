@@ -41,7 +41,7 @@ export const fetchBoothLevelDataByLevel = async (levelId: number) => {
 };
 
 export const updateBoothLevelData = async (id: number, data: UpdateBoothRequest) => {
-    const response = await axios.patch(`${API_BASE_URL}/booth-level-data/update/${id}`, data);
+    const response = await axios.put(`${API_BASE_URL}/booth-level-data/update/${id}`, data);
     return response.data;
 };
 
