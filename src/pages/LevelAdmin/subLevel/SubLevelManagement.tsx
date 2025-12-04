@@ -20,6 +20,8 @@ export default function SubLevelManagement() {
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
+    const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
+
     const [districts, setDistricts] = useState<HierarchyChild[]>([]);
     const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
     const [levelData, setLevelData] = useState<AfterAssemblyData[]>([]);
@@ -41,7 +43,7 @@ export default function SubLevelManagement() {
     const [editingData, setEditingData] = useState<AfterAssemblyData | null>(null);
 
     const [formData, setFormData] = useState({
-        levelName: "",
+        levelName: currentPanel?.name || "",
         displayName: "",
         parentId: null as number | null,
     });
@@ -56,10 +58,18 @@ export default function SubLevelManagement() {
         name: "",
     });
 
-    const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
-
     // Check if parent level is Assembly
     const isParentAssembly = currentPanel?.metadata?.parentLevelName?.toLowerCase() === "assembly";
+
+    // Update levelName when panel changes
+    useEffect(() => {
+        if (currentPanel?.name) {
+            setFormData(prev => ({
+                ...prev,
+                levelName: currentPanel.name
+            }));
+        }
+    }, [currentPanel]);
 
     // Load districts
     useEffect(() => {
@@ -240,7 +250,7 @@ export default function SubLevelManagement() {
             if (response.success) {
                 toast.success("Level created successfully");
                 setShowCreateModal(false);
-                setFormData({ levelName: "", displayName: "", parentId: null });
+                setFormData({ levelName: currentPanel?.name || "", displayName: "", parentId: null });
 
                 // Reload data using the selected assembly
                 const updatedResponse = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
@@ -516,7 +526,7 @@ export default function SubLevelManagement() {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        setFormData({ levelName: "", displayName: "", parentId: currentParent?.id || null });
+                                        setFormData({ levelName: currentPanel?.name || "", displayName: "", parentId: currentParent?.id || null });
                                         setShowCreateModal(true);
                                     }}
                                     className="flex items-center px-5 py-2.5 bg-white text-teal-600 rounded-lg hover:bg-teal-50 transition-all font-semibold shadow-md"
@@ -605,18 +615,18 @@ export default function SubLevelManagement() {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Create Sub-Level</h3>
                         {formData?.parentId && (() => {
                             const parent = levelData.find(l => l.id === formData.parentId);
                             return parent ? (
                                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <p className="text-sm text-blue-800">
-                                        <span className="font-semibold">Parent:</span> {parent?.displayName}
-                                    </p>
                                     <p className="text-sm text-blue-600 mt-1">
                                         <span className="font-semibold">Assembly:</span> {parent?.assemblyName || selectedAssembly?.location_name || "Inherited"}
+                                    </p>
+                                    <p className="text-sm text-blue-800">
+                                        <span className="font-semibold">Parent:</span> {parent?.displayName}
                                     </p>
                                 </div>
                             ) : null;
@@ -634,8 +644,9 @@ export default function SubLevelManagement() {
                                 <input
                                     type="text"
                                     value={formData.levelName}
-                                    onChange={(e) => setFormData({ ...formData, levelName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                    readOnly
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                                     placeholder="e.g., Mandal, Booth"
                                 />
                             </div>
@@ -653,8 +664,8 @@ export default function SubLevelManagement() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
                                 <select
                                     value={formData.parentId || ""}
-                                    onChange={(e) => setFormData({ ...formData, parentId: e.target.value ? Number(e.target.value) : null })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed appearance-none"
                                 >
                                     <option value="">-- Root Level (No Parent) --</option>
                                     {levelData.map((level) => (
@@ -669,7 +680,7 @@ export default function SubLevelManagement() {
                             <button
                                 onClick={() => {
                                     setShowCreateModal(false);
-                                    setFormData({ levelName: "", displayName: "", parentId: null });
+                                    setFormData({ levelName: currentPanel?.name || "", displayName: "", parentId: null });
                                 }}
                                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                             >
@@ -688,7 +699,7 @@ export default function SubLevelManagement() {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Sub-Level</h3>
                         <div className="space-y-4">
@@ -697,8 +708,9 @@ export default function SubLevelManagement() {
                                 <input
                                     type="text"
                                     value={formData.levelName}
-                                    onChange={(e) => setFormData({ ...formData, levelName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                    readOnly
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                                 />
                             </div>
                             <div>
@@ -714,8 +726,8 @@ export default function SubLevelManagement() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
                                 <select
                                     value={formData.parentId || ""}
-                                    onChange={(e) => setFormData({ ...formData, parentId: e.target.value ? Number(e.target.value) : null })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed appearance-none"
                                 >
                                     <option value="">-- Root Level (No Parent) --</option>
                                     {levelData.filter(l => l.id !== editingData?.id).map((level) => (
