@@ -99,6 +99,9 @@ export interface StateAssignment {
   assemblyType?: string;
   assignment_active?: number;
   assigned_at?: string;
+  // Booth range fields
+  boothFrom?: number;
+  boothTo?: number;
 }
 
 // Permissions

@@ -75,6 +75,9 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
     const levelName = formatLevelName(levelInfo?.partyLevelName || levelInfo?.levelType);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=6366f1&color=fff&bold=true`;
 
+    // Check if current level is Booth type
+    const isBooth = levelInfo?.levelType === "Booth" || levelInfo?.partyLevelName === "Booth";
+
     // Get assignments of the same type as currently selected
     const currentLevelName = selectedAssignment?.levelType;
     let sameTypeAssignments: StateAssignment[] = [];
@@ -104,18 +107,26 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                 partyLevelName: a.partyLevelName,
                 partyLevelDisplayName: a.partyLevelDisplayName,
                 partyLevelId: a.partyLevelId,
+                boothFrom: a.boothFrom,
+                boothTo: a.boothTo,
             }));
     }
+
+    // Get booth range for current assignment if it's a booth
+    const currentBoothRange = isBooth && selectedAssignment ?
+        (selectedAssignment as any).boothFrom && (selectedAssignment as any).boothTo ?
+            `${(selectedAssignment as any).boothFrom} - ${(selectedAssignment as any).boothTo}` : null
+        : null;
 
     const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
     const handleAssignmentSwitch = (assignment: StateAssignment) => {
         dispatch(setSelectedAssignment(assignment));
         setSwitchDropdownOpen(false);
-        
+
         // Dispatch custom event to trigger data refresh
         window.dispatchEvent(new Event('assignmentChanged'));
-        
+
         // Navigate to the new assignment
         navigate(`/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
     };
@@ -147,7 +158,11 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
                             {levelName} level
                         </p>
-
+                        {currentBoothRange && (
+                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-0.5">
+                                Booth: {currentBoothRange}
+                            </p>
+                        )}
                     </div>
                 </div>
 
