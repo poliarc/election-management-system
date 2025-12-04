@@ -89,7 +89,9 @@ async function apiRequest<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `HTTP ${response.status}`);
+      // Extract error message from nested error object or fallback to top-level message
+      const errorMessage = data.error?.message || data.message || `HTTP ${response.status}`;
+      throw new Error(errorMessage);
     }
 
     return data;

@@ -174,9 +174,7 @@ export default function ForgotPasswordPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Reset your password
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Follow the steps to reset your password
-            </p>
+            
           </div>
 
           {/* Card */}
@@ -185,13 +183,12 @@ export default function ForgotPasswordPage() {
             {step === "entry" && (
               <div className="space-y-4">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Enter your email or phone number and we'll send a one-time
-                  code (OTP).
+                  Enter your email id or phone number to get OTP for password reset.
                 </p>
                 <input
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="you@example.com or +15551234567"
+                  placeholder="you@example.com or +917551234567"
                   className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                 />
                 {error && (

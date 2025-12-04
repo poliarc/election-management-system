@@ -220,11 +220,12 @@ export const UserList: React.FC<UserListProps> = ({
                     <div className="flex items-center gap-1 mb-1">
                       <Shield className="w-3 h-3 text-purple-500" />
                       <span className="text-gray-900 font-medium">
-                        {user.role || "No role"}
+                        
+                        {user.partyName || "No party"}
                       </span>
                     </div>
                     <div className="text-blue-600 font-medium">
-                      {user.partyName || "No party"}
+                      {user.role || "..."}
                     </div>
                   </div>
                 </td>

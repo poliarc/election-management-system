@@ -162,7 +162,7 @@ export default function LoginPage() {
                     type="text"
                     {...register("identifier")}
                     autoComplete="username"
-                    placeholder="you@example.com or +15551234567"
+                    placeholder="you@example.com or +917367934567"
                     className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-12 pr-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
