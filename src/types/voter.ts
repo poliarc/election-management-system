@@ -77,6 +77,7 @@ export interface VoterListCandidate {
     approch_count?: number;
     approach_reason?: string;
     assembly_id?: number;
+    eu_ssr_form_submitted?: string; // 'yes' or 'no'
 }
 
 export interface VoterList extends VoterListCandidate {
