@@ -1008,6 +1008,38 @@ export const CampaignForm = ({
                                 {loadingHierarchy ? "Loading…" : hierarchyError}
                               </div>
                             )}
+                            {!loadingHierarchy &&
+                              !hierarchyError &&
+                              districtsData.length > 0 && (
+                                <label className="flex items-center px-3 py-2 bg-blue-50 border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      sel.district_ids.length ===
+                                      districtsData.length
+                                    }
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        handleSelectorChange(
+                                          idx,
+                                          "district_ids",
+                                          districtsData.map((d) => String(d.id))
+                                        );
+                                      } else {
+                                        handleSelectorChange(
+                                          idx,
+                                          "district_ids",
+                                          []
+                                        );
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                  />
+                                  <span className="ml-2 text-sm font-semibold text-blue-700">
+                                    Select All
+                                  </span>
+                                </label>
+                              )}
                             {districtsData.map((district) => (
                               <label
                                 key={district.id}
@@ -1070,35 +1102,76 @@ export const CampaignForm = ({
                             onClick={(e) => e.stopPropagation()}
                             className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                           >
-                            {(userLevelType === "District"
-                              ? assembliesByDistrict(String(stateId))
-                              : sel.district_ids.flatMap((dId) =>
-                                  assembliesByDistrict(dId)
-                                )
-                            ).map((assembly: StateHierarchyNode) => (
-                              <label
-                                key={assembly.id}
-                                className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={sel.assembly_ids.includes(
-                                    String(assembly.id)
+                            {(() => {
+                              const assemblies =
+                                userLevelType === "District"
+                                  ? assembliesByDistrict(String(stateId))
+                                  : sel.district_ids.flatMap((dId) =>
+                                      assembliesByDistrict(dId)
+                                    );
+                              return (
+                                <>
+                                  {assemblies.length > 0 && (
+                                    <label className="flex items-center px-3 py-2 bg-blue-50 border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
+                                      <input
+                                        type="checkbox"
+                                        checked={
+                                          sel.assembly_ids.length ===
+                                          assemblies.length
+                                        }
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            handleSelectorChange(
+                                              idx,
+                                              "assembly_ids",
+                                              assemblies.map((a) =>
+                                                String(a.id)
+                                              )
+                                            );
+                                          } else {
+                                            handleSelectorChange(
+                                              idx,
+                                              "assembly_ids",
+                                              []
+                                            );
+                                          }
+                                        }}
+                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                      />
+                                      <span className="ml-2 text-sm font-semibold text-blue-700">
+                                        Select All
+                                      </span>
+                                    </label>
                                   )}
-                                  onChange={() =>
-                                    toggleCheckbox(
-                                      idx,
-                                      "assembly_ids",
-                                      String(assembly.id)
+                                  {assemblies.map(
+                                    (assembly: StateHierarchyNode) => (
+                                      <label
+                                        key={assembly.id}
+                                        className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={sel.assembly_ids.includes(
+                                            String(assembly.id)
+                                          )}
+                                          onChange={() =>
+                                            toggleCheckbox(
+                                              idx,
+                                              "assembly_ids",
+                                              String(assembly.id)
+                                            )
+                                          }
+                                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="ml-2 text-sm">
+                                          {assembly.levelName}
+                                        </span>
+                                      </label>
                                     )
-                                  }
-                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                />
-                                <span className="ml-2 text-sm">
-                                  {assembly.levelName}
-                                </span>
-                              </label>
-                            ))}
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                         )}
                     </div>
@@ -1240,6 +1313,33 @@ export const CampaignForm = ({
                             onClick={(e) => e.stopPropagation()}
                             className="absolute z-20 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                           >
+                            {availableOptions.length > 0 && (
+                              <label className="flex items-center px-3 py-2 bg-blue-50 border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    selectedCount === availableOptions.length
+                                  }
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      handleSelectorChange(
+                                        idx,
+                                        fieldName,
+                                        availableOptions.map((n) =>
+                                          String(n.id)
+                                        )
+                                      );
+                                    } else {
+                                      handleSelectorChange(idx, fieldName, []);
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className="ml-2 text-sm font-semibold text-blue-700">
+                                  Select All
+                                </span>
+                              </label>
+                            )}
                             {availableOptions.map((node) => (
                               <label
                                 key={node.id}
