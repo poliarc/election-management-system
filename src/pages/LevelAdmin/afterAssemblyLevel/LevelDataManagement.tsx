@@ -30,12 +30,14 @@ export default function LevelDataManagement() {
     const [dataLoading, setDataLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
+    const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
+
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingData, setEditingData] = useState<AfterAssemblyData | null>(null);
 
     const [formData, setFormData] = useState({
-        levelName: "",
+        levelName: currentPanel?.name || "",
         displayName: "",
     });
 
@@ -49,7 +51,15 @@ export default function LevelDataManagement() {
         name: "",
     });
 
-    const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
+    // Update levelName when panel changes
+    useEffect(() => {
+        if (currentPanel?.name) {
+            setFormData(prev => ({
+                ...prev,
+                levelName: currentPanel.name
+            }));
+        }
+    }, [currentPanel]);
 
     // Load districts
     useEffect(() => {
@@ -153,7 +163,7 @@ export default function LevelDataManagement() {
             if (response.success) {
                 toast.success("Level data created successfully");
                 setShowCreateModal(false);
-                setFormData({ levelName: "", displayName: "" });
+                setFormData({ levelName: currentPanel?.name || "", displayName: "" });
 
                 // Reload data
                 const updatedResponse = await fetchAfterAssemblyDataByAssembly(selectedAssembly.location_id);
@@ -503,7 +513,7 @@ export default function LevelDataManagement() {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Create Level Data</h3>
                         <div className="space-y-4">
@@ -512,11 +522,26 @@ export default function LevelDataManagement() {
                                 <input
                                     type="text"
                                     value={formData.levelName}
-                                    onChange={(e) => setFormData({ ...formData, levelName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    readOnly
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                                     placeholder="e.g., Block, Mandal"
                                 />
                             </div>
+                            {/* Only show parent level select for non-assembly child panels */}
+                            {currentPanel?.metadata?.parentLevelName &&
+                                currentPanel.metadata.parentLevelName.toLowerCase() !== "assembly" && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
+                                        <input
+                                            type="text"
+                                            value={currentPanel.metadata.parentLevelName}
+                                            readOnly
+                                            disabled
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                        />
+                                    </div>
+                                )}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
                                 <input
@@ -532,7 +557,7 @@ export default function LevelDataManagement() {
                             <button
                                 onClick={() => {
                                     setShowCreateModal(false);
-                                    setFormData({ levelName: "", displayName: "" });
+                                    setFormData({ levelName: currentPanel?.name || "", displayName: "" });
                                 }}
                                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                             >
@@ -551,7 +576,7 @@ export default function LevelDataManagement() {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Level Data</h3>
                         <div className="space-y-4">
@@ -560,8 +585,9 @@ export default function LevelDataManagement() {
                                 <input
                                     type="text"
                                     value={formData.levelName}
-                                    onChange={(e) => setFormData({ ...formData, levelName: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    readOnly
+                                    disabled
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                                 />
                             </div>
                             <div>
