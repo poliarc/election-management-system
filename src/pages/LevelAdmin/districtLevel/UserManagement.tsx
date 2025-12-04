@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
@@ -27,7 +27,10 @@ export default function DistrictUserManagement() {
     useState<HierarchyChild | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [processingUserId, setProcessingUserId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [assignedPage, setAssignedPage] = useState(1);
+  const [availablePage, setAvailablePage] = useState(1);
+  const [availableTotalPages, setAvailableTotalPages] = useState(1);
+  const [availableTotalUsers, setAvailableTotalUsers] = useState(0);
   const usersPerPage = 10;
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -69,37 +72,45 @@ export default function DistrictUserManagement() {
     loadDistricts();
   }, [currentPanel]);
 
-  // Load all available users
-  useEffect(() => {
-    const loadUsers = async () => {
-      const metadata = currentPanel?.metadata;
-      if (!metadata?.partyId || !metadata?.stateId) return;
+  const loadAvailableUsers = useCallback(async () => {
+    const metadata = currentPanel?.metadata;
+    if (!metadata?.partyId || !metadata?.stateId) return;
 
-      try {
-        setUsersLoading(true);
-        const response = await fetchUsersByPartyAndState(
-          metadata.partyId,
-          metadata.stateId,
-          1,
-          100
+    try {
+      setUsersLoading(true);
+      const response = await fetchUsersByPartyAndState(
+        metadata.partyId,
+        metadata.stateId,
+        availablePage,
+        usersPerPage,
+        userSearchTerm.trim()
+      );
+
+      if (response.success) {
+        const filteredUsers = response.data.filter(
+          (user: User) => !user.isSuperAdmin
         );
-
-        if (response.success) {
-          // Filter out super admin users
-          const filteredUsers = response.data.filter(
-            (user: User) => !user.isSuperAdmin
+        setAllUsers(filteredUsers);
+        if (response.pagination) {
+          setAvailableTotalPages(response.pagination.totalPages || 1);
+          setAvailableTotalUsers(
+            response.pagination.total || filteredUsers.length
           );
-          setAllUsers(filteredUsers);
+        } else {
+          setAvailableTotalPages(1);
+          setAvailableTotalUsers(filteredUsers.length);
         }
-      } catch {
-        toast.error("Failed to load users");
-      } finally {
-        setUsersLoading(false);
       }
-    };
+    } catch {
+      toast.error("Failed to load users");
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [currentPanel, availablePage, userSearchTerm, usersPerPage]);
 
-    loadUsers();
-  }, [currentPanel]);
+  useEffect(() => {
+    loadAvailableUsers();
+  }, [loadAvailableUsers]);
 
   // Get assigned user IDs for selected district
   const assignedUserIds = useMemo(() => {
@@ -140,7 +151,7 @@ export default function DistrictUserManagement() {
   // Paginated district users
   const { paginatedDistrictUsers, totalPagesAssigned, totalUsersAssigned } =
     useMemo(() => {
-      const startIndex = (currentPage - 1) * usersPerPage;
+      const startIndex = (assignedPage - 1) * usersPerPage;
       const endIndex = startIndex + usersPerPage;
       const users = filteredDistrictUsers.slice(startIndex, endIndex);
       const total = filteredDistrictUsers.length;
@@ -149,7 +160,7 @@ export default function DistrictUserManagement() {
         totalPagesAssigned: Math.ceil(total / usersPerPage),
         totalUsersAssigned: total,
       };
-    }, [filteredDistrictUsers, currentPage]);
+    }, [filteredDistrictUsers, assignedPage, usersPerPage]);
 
   // Filter unassigned users
   const filteredUnassignedUsers = useMemo(() => {
@@ -165,26 +176,14 @@ export default function DistrictUserManagement() {
     );
   }, [unassignedUsers, userSearchTerm]);
 
-  // Paginated unassigned users
-  const {
-    paginatedUnassignedUsers,
-    totalPagesUnassigned,
-    totalUsersUnassigned,
-  } = useMemo(() => {
-    const startIndex = (currentPage - 1) * usersPerPage;
-    const endIndex = startIndex + usersPerPage;
-    const users = filteredUnassignedUsers.slice(startIndex, endIndex);
-    const total = filteredUnassignedUsers.length;
-    return {
-      paginatedUnassignedUsers: users,
-      totalPagesUnassigned: Math.ceil(total / usersPerPage),
-      totalUsersUnassigned: total,
-    };
-  }, [filteredUnassignedUsers, currentPage]);
+  const paginatedUnassignedUsers = filteredUnassignedUsers;
+  const totalPagesUnassigned = availableTotalPages;
+  const totalUsersUnassigned = availableTotalUsers;
 
   // Reset page when search changes or district changes
   useEffect(() => {
-    setCurrentPage(1);
+    setAssignedPage(1);
+    setAvailablePage(1);
   }, [userSearchTerm, selectedDistrict, showAssignModal]);
 
   // Assign user to district
@@ -218,6 +217,8 @@ export default function DistrictUserManagement() {
             setSelectedDistrict(updatedDistrict);
           }
         }
+
+        await loadAvailableUsers();
       }
     } catch (error) {
       toast.error(
@@ -284,6 +285,8 @@ export default function DistrictUserManagement() {
             }
           }
         }
+
+        await loadAvailableUsers();
       }
     } catch (error) {
       toast.error(
@@ -307,7 +310,7 @@ export default function DistrictUserManagement() {
 
   return (
     <div className="p-1 bg-gray-50 min-h-screen">
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 text-white mb-1">
+      <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 text-white mb-1">
         <h1 className="text-3xl font-bold">District User Management</h1>
         <p className="text-purple-100 mt-2">
           Manage users for districts in {currentPanel.metadata?.stateName} -{" "}
@@ -464,7 +467,7 @@ export default function DistrictUserManagement() {
                             className="hover:bg-gray-50"
                           >
                             <td className="px-6 py-4 text-sm text-gray-900">
-                              {(currentPage - 1) * usersPerPage + index + 1}
+                              {(assignedPage - 1) * usersPerPage + index + 1}
                             </td>
                             <td className="px-6 py-4 text-sm font-medium text-gray-900">
                               {user.first_name} {user.last_name}
@@ -514,24 +517,24 @@ export default function DistrictUserManagement() {
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                       <button
                         onClick={() =>
-                          setCurrentPage((p) => Math.max(1, p - 1))
+                          setAssignedPage((p) => Math.max(1, p - 1))
                         }
-                        disabled={currentPage === 1}
+                        disabled={assignedPage === 1}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Previous
                       </button>
                       <span className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPagesAssigned} (
+                        Page {assignedPage} of {totalPagesAssigned} (
                         {totalUsersAssigned} users)
                       </span>
                       <button
                         onClick={() =>
-                          setCurrentPage((p) =>
+                          setAssignedPage((p) =>
                             Math.min(totalPagesAssigned, p + 1)
                           )
                         }
-                        disabled={currentPage === totalPagesAssigned}
+                        disabled={assignedPage === totalPagesAssigned}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Next
@@ -584,7 +587,7 @@ export default function DistrictUserManagement() {
                         paginatedUnassignedUsers.map((user, index) => (
                           <tr key={user.user_id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 text-sm text-gray-900">
-                              {(currentPage - 1) * usersPerPage + index + 1}
+                              {(availablePage - 1) * usersPerPage + index + 1}
                             </td>
                             <td className="px-6 py-4 text-sm font-medium text-gray-900">
                               {user.first_name} {user.last_name}
@@ -628,24 +631,24 @@ export default function DistrictUserManagement() {
                     <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                       <button
                         onClick={() =>
-                          setCurrentPage((p) => Math.max(1, p - 1))
+                          setAvailablePage((p) => Math.max(1, p - 1))
                         }
-                        disabled={currentPage === 1}
+                        disabled={availablePage === 1}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Previous
                       </button>
                       <span className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPagesUnassigned} (
+                        Page {availablePage} of {totalPagesUnassigned} (
                         {totalUsersUnassigned} users)
                       </span>
                       <button
                         onClick={() =>
-                          setCurrentPage((p) =>
+                          setAvailablePage((p) =>
                             Math.min(totalPagesUnassigned, p + 1)
                           )
                         }
-                        disabled={currentPage === totalPagesUnassigned}
+                        disabled={availablePage === totalPagesUnassigned}
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Next
