@@ -52,6 +52,7 @@ export default function StateOverview() {
   const [totalMandals, setTotalMandals] = useState(0);
   const [totalPollingCenters, setTotalPollingCenters] = useState(0);
   const [totalBooths, setTotalBooths] = useState(0);
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function StateOverview() {
   // Fetch assemblies, blocks, mandals, polling centers, and booths
   useEffect(() => {
     const fetchHierarchyCounts = async () => {
-      if (!districts || districts.length === 0) {
+      if (!districts || districts.length === 0 || !stateId) {
         setTotalAssemblies(0);
         setTotalBlocks(0);
         setTotalMandals(0);
@@ -132,10 +133,18 @@ export default function StateOverview() {
         return;
       }
 
+      // Prevent multiple simultaneous fetches
+      if (isLoadingCounts) return;
+
+      setIsLoadingCounts(true);
+
       try {
         const authState = localStorage.getItem('auth_state');
         const token = authState ? JSON.parse(authState).accessToken : null;
-        if (!token) return;
+        if (!token) {
+          setIsLoadingCounts(false);
+          return;
+        }
 
         let assembliesCount = 0;
         let blocksCount = 0;
@@ -245,11 +254,14 @@ export default function StateOverview() {
         setTotalBooths(boothsCount);
       } catch (error) {
         console.error('Error fetching hierarchy counts:', error);
+      } finally {
+        setIsLoadingCounts(false);
       }
     };
 
     fetchHierarchyCounts();
-  }, [districts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stateId, totalDistricts]); // Only re-run when stateId or totalDistricts changes
 
   // Static cards; adjust paths if needed
   const navCards: NavCard[] = useMemo(
@@ -428,7 +440,7 @@ export default function StateOverview() {
       </header>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-3">
         <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-5 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -513,19 +525,6 @@ export default function StateOverview() {
           </div>
         </div>
 
-        <div className="bg-linear-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-5 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-xs font-medium">Active Users</p>
-              <p className="text-2xl font-bold mt-1">{activeUsers || 0}</p>
-            </div>
-            <div className="bg-white/20 rounded-full p-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Cards */}

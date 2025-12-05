@@ -333,7 +333,7 @@ export default function AssemblyDashboard() {
             </header>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-5 text-white">
                     <div className="flex items-center justify-between">
                         <div>
@@ -390,19 +390,6 @@ export default function AssemblyDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-5 text-white">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-green-100 text-xs font-medium">Active Users</p>
-                            <p className="text-2xl font-bold mt-1">{activeUsers || 0}</p>
-                        </div>
-                        <div className="bg-white/20 rounded-full p-2">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Cards */}
