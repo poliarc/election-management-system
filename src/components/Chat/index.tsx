@@ -35,6 +35,8 @@ function MessageBubble({
   isOwn,
   showSender = false,
 }: MessageBubbleProps) {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString("en-US", {
@@ -45,52 +47,87 @@ function MessageBubble({
 
   const isRead = message.read_at !== null;
 
+  // Parse files if it's a string
+  let files = [];
+  if (message.files) {
+    if (typeof message.files === 'string') {
+      try {
+        files = JSON.parse(message.files);
+      } catch (e) {
+        console.error('Error parsing files:', e);
+        files = [];
+      }
+    } else if (Array.isArray(message.files)) {
+      files = message.files;
+    }
+  }
+
+  const isImage = (file: any) => {
+    return file.type?.startsWith('image/') || file.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  };
+
   return (
-    <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[70%]`}>
-        {showSender && !isOwn && (
-          <div className="text-xs text-gray-600 mb-1 ml-2 font-medium">
-            {message.sender_name || "Unknown"}
-          </div>
-        )}
-        <div
-          className={`px-3 py-2 rounded-lg ${
-            isOwn
-              ? "bg-gray-600 text-white rounded-br-none"
-              : "bg-white text-gray-900 rounded-bl-none"
-          }`}
-        >
-          <div className="text-sm break-words">{message.message}</div>
-          {message.files && message.files.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {message.files.map((file: any, idx: number) => (
-                <a
-                  key={idx}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-2 p-2 rounded text-xs ${
-                    isOwn ? "bg-gray-700" : "bg-gray-100"
-                  }`}
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                    />
-                  </svg>
-                  <span className="truncate">{file.name}</span>
-                </a>
-              ))}
+    <>
+      <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+        <div className={`max-w-[70%]`}>
+          {showSender && !isOwn && (
+            <div className="text-xs text-gray-600 mb-1 ml-2 font-medium">
+              {message.sender_name || "Unknown"}
             </div>
           )}
+          <div
+            className={`px-3 py-2 rounded-lg ${
+              isOwn
+                ? "bg-gray-600 text-white rounded-br-none"
+                : "bg-white text-gray-900 rounded-bl-none"
+            }`}
+          >
+            {files.length > 0 && (
+              <div className={`${message.message ? 'mb-2' : ''} space-y-2`}>
+                {files.map((file: any, idx: number) => (
+                  <div key={idx}>
+                    {isImage(file) ? (
+                      <div
+                        onClick={() => setSelectedImage(file.url)}
+                        className="cursor-pointer"
+                      >
+                        <img
+                          src={file.url}
+                          alt="Image"
+                          className="max-w-full rounded-lg hover:opacity-90 transition-opacity"
+                          style={{ maxHeight: '200px' }}
+                        />
+                      </div>
+                    ) : (
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-2 p-2 rounded text-xs ${
+                          isOwn ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                        } transition-colors`}
+                      >
+                        <svg
+                          className="w-4 h-4 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                          />
+                        </svg>
+                        <span className="truncate">{file.name}</span>
+                      </a>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
+            {message.message && <div className="text-sm break-words mt-2">{message.message}</div>}
           <div
             className={`text-xs mt-1 flex items-center gap-1 ${
               isOwn ? "text-gray-200" : "text-gray-500"
@@ -113,6 +150,30 @@ function MessageBubble({
         </div>
       </div>
     </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[9999] backdrop-blur-md bg-white/30 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all shadow-lg"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full size"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1372,35 +1433,86 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
             </div>
             <div className="p-3 border-t border-gray-200 bg-white">
               {selectedFiles.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {selectedFiles.map((file, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs"
-                    >
-                      <span className="truncate max-w-[100px]">
-                        {file.name}
-                      </span>
-                      <button
-                        onClick={() => removeFile(idx)}
-                        className="text-gray-500 hover:text-red-500"
+                <div className="mb-2 flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                  {selectedFiles.map((file, idx) => {
+                    const isImage = file.type.startsWith('image/');
+                    const previewUrl = isImage ? URL.createObjectURL(file) : null;
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className="relative group"
                       >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+                        {isImage && previewUrl ? (
+                          <div className="relative">
+                            <img
+                              src={previewUrl}
+                              alt={file.name}
+                              className="w-20 h-20 object-cover rounded border border-gray-300"
+                            />
+                            <button
+                              onClick={() => removeFile(idx)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                            <div className="text-xs text-gray-600 mt-1 truncate max-w-[80px]">
+                              {file.name}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs">
+                            <svg
+                              className="w-4 h-4 text-gray-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                              />
+                            </svg>
+                            <span className="truncate max-w-[100px]">
+                              {file.name}
+                            </span>
+                            <button
+                              onClick={() => removeFile(idx)}
+                              className="text-gray-500 hover:text-red-500"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="flex items-center gap-2">

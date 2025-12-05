@@ -31,6 +31,8 @@ export default function DistrictTeam() {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "active" | "inactive"
   >("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
 
   useEffect(() => {
     const fetchDistrictTeam = async () => {
@@ -99,6 +101,17 @@ export default function DistrictTeam() {
 
       return matchesSearch && matchesStatus;
     }) || [];
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   if (loading) {
     return (
@@ -223,7 +236,7 @@ export default function DistrictTeam() {
           </select>
 
           <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap sm:ml-auto">
-            Showing {filteredUsers.length} of {districtData.users.length} users
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
           </p>
         </div>
       </div>
@@ -254,9 +267,9 @@ export default function DistrictTeam() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user, index) => (
+                paginatedUsers.map((user, index) => (
                   <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900">{index + 1}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900">{startIndex + index + 1}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
                       <div>{user.first_name} {user.last_name}</div>
                       <div className="md:hidden text-xs text-gray-500 mt-1">{user.email}</div>
@@ -278,6 +291,29 @@ export default function DistrictTeam() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
