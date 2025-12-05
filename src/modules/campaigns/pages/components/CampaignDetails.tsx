@@ -298,9 +298,21 @@ export const CampaignDetails = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Participants</span>
-                <span className="font-medium">
-                  {campaign.totalParticipants || 0}
+                <span className="text-gray-600">Participants (Accepted)</span>
+                <span className="font-medium text-green-600">
+                  {campaign.accepted_count || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Pending</span>
+                <span className="font-medium text-yellow-600">
+                  {campaign.pending_count || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Declined</span>
+                <span className="font-medium text-red-600">
+                  {campaign.declined_count || 0}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -49,6 +49,10 @@ export interface Campaign {
   media?: CampaignMedia;
   participants?: CampaignParticipant[];
   totalParticipants?: number;
+  // Acceptance counts from created-by-me API
+  accepted_count?: number;
+  declined_count?: number;
+  pending_count?: number;
   // add fields as needed
 }
 
