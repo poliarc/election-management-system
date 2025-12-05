@@ -882,6 +882,7 @@ export const CampaignForm = ({
               <input
                 type="date"
                 {...register("start_date")}
+                min={new Date().toISOString().split("T")[0]}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.start_date ? "border-red-300" : "border-gray-300"
                 }`}
@@ -899,6 +900,7 @@ export const CampaignForm = ({
               <input
                 type="date"
                 {...register("end_date")}
+                min={new Date().toISOString().split("T")[0]}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.end_date ? "border-red-300" : "border-gray-300"
                 }`}
