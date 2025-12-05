@@ -280,6 +280,7 @@ export const campaignApi = {
       throw new Error("Access token required");
     }
 
+    // Step 1: Create campaign without images (using JSON to avoid validation errors)
     const endpoint = "/api/campaigns/create";
     const url = getApiUrl(endpoint);
 
@@ -288,42 +289,13 @@ export const campaignApi = {
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
-
-    let body: BodyInit;
-
-    if (imageFiles.length > 0) {
-      const formData = new FormData();
-      const appendValue = (key: string, value?: string | number) => {
-        if (value === undefined || value === null || value === "") return;
-        formData.append(key, String(value));
-      };
-
-      appendValue("name", payload.name);
-      appendValue("description", payload.description);
-      appendValue("start_date", payload.start_date);
-      appendValue("end_date", payload.end_date);
-      appendValue("campaign_level", payload.campaign_level);
-      appendValue("state_id", payload.state_id);
-      appendValue("party_id", payload.party_id);
-      appendValue("location", payload.location);
-      formData.append(
-        "hierarchy_selections",
-        JSON.stringify(payload.hierarchy_selections ?? [])
-      );
-      imageFiles.forEach((file) => {
-        formData.append("images[]", file);
-      });
-      body = formData;
-    } else {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(payload);
-    }
 
     const response = await fetch(url, {
       method: "POST",
       headers,
-      body,
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
 
@@ -340,7 +312,62 @@ export const campaignApi = {
       throw new Error(errorMessage);
     }
 
-    return (await response.json()) as CampaignCreateResponse;
+    const result = (await response.json()) as CampaignCreateResponse;
+
+    // Step 2: If images exist, upload them separately
+    if (imageFiles.length > 0 && result.data?.campaign_id) {
+      try {
+        await this.uploadCampaignImages(
+          Number(result.data.campaign_id),
+          imageFiles,
+          token
+        );
+      } catch (error) {
+        console.error("Failed to upload images:", error);
+        // Campaign is created, but images failed - don't throw error
+      }
+    }
+
+    return result;
+  },
+
+  async uploadCampaignImages(
+    campaignId: number,
+    imageFiles: File[],
+    token: string
+  ): Promise<void> {
+    const endpoint = `/api/campaigns/${campaignId}`;
+    const url = getApiUrl(endpoint);
+
+    const formData = new FormData();
+    imageFiles.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `HTTP ${response.status}` }));
+      throw new Error(
+        errorData.error?.message ||
+          errorData.message ||
+          "Failed to upload images"
+      );
+    }
   },
 
   async updateCampaign(
@@ -358,6 +385,45 @@ export const campaignApi = {
       throw new Error("Access token required");
     }
 
+    // If images exist, upload them using multipart
+    if (imageFiles.length > 0) {
+      const endpoint = `/api/campaigns/${numericId}`;
+      const url = getApiUrl(endpoint);
+
+      const formData = new FormData();
+      imageFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: `HTTP ${response.status}` }));
+        const errorMessage =
+          errorData.error?.message ||
+          errorData.message ||
+          `HTTP ${response.status}`;
+        throw new Error(errorMessage);
+      }
+
+      return (await response.json()) as CampaignCreateResponse;
+    }
+
+    // No images - update with JSON
     const endpoint = `/api/campaigns/${numericId}`;
     const url = getApiUrl(endpoint);
 
@@ -366,42 +432,13 @@ export const campaignApi = {
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
-
-    let body: BodyInit;
-
-    if (imageFiles.length > 0) {
-      const formData = new FormData();
-      const appendValue = (key: string, value?: string | number) => {
-        if (value === undefined || value === null || value === "") return;
-        formData.append(key, String(value));
-      };
-
-      appendValue("name", payload.name);
-      appendValue("description", payload.description);
-      appendValue("start_date", payload.start_date);
-      appendValue("end_date", payload.end_date);
-      appendValue("campaign_level", payload.campaign_level);
-      appendValue("state_id", payload.state_id);
-      appendValue("party_id", payload.party_id);
-      appendValue("location", payload.location);
-      formData.append(
-        "hierarchy_selections",
-        JSON.stringify(payload.hierarchy_selections ?? [])
-      );
-      imageFiles.forEach((file) => {
-        formData.append("images[]", file);
-      });
-      body = formData;
-    } else {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(payload);
-    }
 
     const response = await fetch(url, {
       method: "PUT",
       headers,
-      body,
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
 

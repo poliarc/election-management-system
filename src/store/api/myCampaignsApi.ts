@@ -171,38 +171,42 @@ export const myCampaignsApi = createApi({
       CampaignReportResponse,
       CampaignReportPayload
     >({
-      query: (payload) => {
+      queryFn: async (payload, _api, _extraOptions, baseQuery) => {
         const { images, ...restPayload } = payload;
 
-        // If there are images, use FormData
-        if (images && images.length > 0) {
-          const formData = new FormData();
-
-          // Append all fields
-          Object.entries(restPayload).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-              formData.append(key, String(value));
-            }
-          });
-
-          // Append images
-          images.forEach((file) => {
-            formData.append("images[]", file);
-          });
-
-          return {
-            url: "/campaign-reports/create",
-            method: "POST",
-            body: formData,
-          };
-        }
-
-        // No images, use JSON
-        return {
+        // Step 1: Create report without images (using JSON to avoid validation errors)
+        const createResult = await baseQuery({
           url: "/campaign-reports/create",
           method: "POST",
           body: restPayload,
-        };
+        });
+
+        if (createResult.error) {
+          return { error: createResult.error };
+        }
+
+        const reportData = createResult.data as CampaignReportResponse;
+
+        // Step 2: If images exist, upload them separately
+        if (images && images.length > 0 && reportData.data?.campaignReport_id) {
+          const formData = new FormData();
+          images.forEach((file) => {
+            formData.append("images", file);
+          });
+
+          const updateResult = await baseQuery({
+            url: `/campaign-reports/${reportData.data.campaignReport_id}`,
+            method: "PUT",
+            body: formData,
+          });
+
+          if (updateResult.error) {
+            console.error("Failed to upload images:", updateResult.error);
+            // Report is created, but images failed - return the report anyway
+          }
+        }
+
+        return { data: reportData };
       },
       invalidatesTags: ["MyCampaigns"],
     }),
@@ -219,16 +223,9 @@ export const myCampaignsApi = createApi({
       query: (payload) => {
         const { reportId, images, existingImages, ...restPayload } = payload;
 
-        // If there are images, use FormData
+        // If there are new images to upload, use FormData
         if (images && images.length > 0) {
           const formData = new FormData();
-
-          // Append all fields
-          Object.entries(restPayload).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-              formData.append(key, String(value));
-            }
-          });
 
           // Append existing images
           if (existingImages) {
@@ -237,9 +234,9 @@ export const myCampaignsApi = createApi({
             });
           }
 
-          // Append new images
+          // Append new images - backend expects "images" not "images[]"
           images.forEach((file) => {
-            formData.append("images[]", file);
+            formData.append("images", file);
           });
 
           return {
@@ -249,7 +246,7 @@ export const myCampaignsApi = createApi({
           };
         }
 
-        // No images, use JSON
+        // No new images, use JSON
         return {
           url: `/campaign-reports/${reportId}`,
           method: "PUT",

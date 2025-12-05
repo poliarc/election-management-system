@@ -1,4 +1,16 @@
 import { useState } from "react";
+import {
+  Eye,
+  X,
+  User,
+  Phone,
+  Calendar,
+  MapPin,
+  Users,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import type { Campaign, CampaignReport } from "../../../../types/campaign";
 
 interface CampaignDetailsProps {
@@ -25,6 +37,51 @@ export const CampaignDetails = ({
   onEndCampaign,
 }: CampaignDetailsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedReport, setSelectedReport] = useState<CampaignReport | null>(
+    null
+  );
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const handleViewReport = (report: CampaignReport) => {
+    setSelectedReport(report);
+    setShowReportModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowReportModal(false);
+    setSelectedReport(null);
+  };
+
+  const handleImageClick = (image: string, index: number) => {
+    setSelectedImage(image);
+    setSelectedImageIndex(index);
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImage(null);
+  };
+
+  const handleNextImage = () => {
+    if (selectedReport?.images && Array.isArray(selectedReport.images)) {
+      const nextIndex = (selectedImageIndex + 1) % selectedReport.images.length;
+      setSelectedImageIndex(nextIndex);
+      setSelectedImage(selectedReport.images[nextIndex]);
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (selectedReport?.images && Array.isArray(selectedReport.images)) {
+      const prevIndex =
+        selectedImageIndex === 0
+          ? selectedReport.images.length - 1
+          : selectedImageIndex - 1;
+      setSelectedImageIndex(prevIndex);
+      setSelectedImage(selectedReport.images[prevIndex]);
+    }
+  };
+
   const isCampaignActive = (campaignData: Campaign) => {
     if (typeof campaignData.isActive === "number") {
       return campaignData.isActive !== 0;
@@ -154,9 +211,9 @@ export const CampaignDetails = ({
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Person Details
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                      {/* <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Reporter Level
-                      </th>
+                      </th> */}
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Attendees
                       </th>
@@ -164,7 +221,10 @@ export const CampaignDetails = ({
                         Date
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        Location
+                        Images
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -181,11 +241,11 @@ export const CampaignDetails = ({
                             </p>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        {/* <td className="px-4 py-3 text-sm text-gray-900">
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                             {report.reporter_level || "N/A"}
                           </span>
-                        </td>
+                        </td> */}
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {report.attendees ?? 0}
                         </td>
@@ -195,7 +255,18 @@ export const CampaignDetails = ({
                             : "N/A"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {report.location || "N/A"}
+                          {Array.isArray(report.images)
+                            ? report.images.length
+                            : 0}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleViewReport(report)}
+                            className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={18} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -276,6 +347,259 @@ export const CampaignDetails = ({
           </div>
         </div>
       </div>
+
+      {/* Report Details Modal */}
+      {showReportModal && selectedReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                Campaign Report Details
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Reporter Information */}
+              <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <User size={20} className="text-blue-600" />
+                  Reporter Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Name</p>
+                    <p className="font-semibold text-gray-900">
+                      {selectedReport.karyakarta_firstName ||
+                        selectedReport.personName ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Contact</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Phone size={16} className="text-gray-500" />
+                      {selectedReport.karyakarta_phone ||
+                        selectedReport.personPhone ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  {selectedReport.reporter_level && (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Level</p>
+                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {selectedReport.reporter_level}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Event Details */}
+              <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-lg p-5 border border-green-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <FileText size={20} className="text-green-600" />
+                  Event Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Person Name</p>
+                    <p className="font-semibold text-gray-900">
+                      {selectedReport.personName || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Person Phone</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Phone size={16} className="text-gray-500" />
+                      {selectedReport.personPhone || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Attendees</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Users size={16} className="text-gray-500" />
+                      {selectedReport.attendees ?? 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Date</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      {selectedReport.date
+                        ? new Date(selectedReport.date).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                  {selectedReport.location && (
+                    <div className="md:col-span-2">
+                      <p className="text-sm text-gray-600 mb-1">Location</p>
+                      <p className="font-semibold text-gray-900 flex items-center gap-2">
+                        <MapPin size={16} className="text-gray-500" />
+                        {selectedReport.location}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedReport.description && (
+                <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Description
+                  </h3>
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {selectedReport.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Images */}
+              {selectedReport.images &&
+                Array.isArray(selectedReport.images) &&
+                selectedReport.images.length > 0 && (
+                  <div className="bg-white rounded-lg p-5 border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Event Images ({selectedReport.images.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {selectedReport.images.map(
+                        (image: string, index: number) => (
+                          <div
+                            key={index}
+                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                            onClick={() => handleImageClick(image, index)}
+                          >
+                            <img
+                              src={image}
+                              alt={`Event image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 right-2 bg-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                              <Eye size={20} className="text-blue-600" />
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Metadata */}
+              <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Report Metadata
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Report ID: </span>
+                    <span className="font-medium text-gray-900">
+                      #{selectedReport.id}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Created: </span>
+                    <span className="font-medium text-gray-900">
+                      {selectedReport.created_at
+                        ? new Date(selectedReport.created_at).toLocaleString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                  {selectedReport.updated_at && (
+                    <div>
+                      <span className="text-gray-600">Updated: </span>
+                      <span className="font-medium text-gray-900">
+                        {new Date(selectedReport.updated_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
+              <button
+                onClick={handleCloseModal}
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-60"
+          onClick={handleCloseImageModal}
+        >
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <button
+              onClick={handleCloseImageModal}
+              className="absolute top-4 right-4 p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+            >
+              <X size={24} className="text-white" />
+            </button>
+
+            {selectedReport?.images &&
+              Array.isArray(selectedReport.images) &&
+              selectedReport.images.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  className="absolute left-4 p-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+                >
+                  <ChevronLeft size={32} className="text-white" />
+                </button>
+              )}
+
+            <div
+              className="relative max-w-7xl max-h-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={selectedImage}
+                alt="Full size"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+              {selectedReport?.images &&
+                Array.isArray(selectedReport.images) &&
+                selectedReport.images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-2 rounded-full text-sm">
+                    {selectedImageIndex + 1} / {selectedReport.images.length}
+                  </div>
+                )}
+            </div>
+
+            {selectedReport?.images &&
+              Array.isArray(selectedReport.images) &&
+              selectedReport.images.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-4 p-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+                >
+                  <ChevronRight size={32} className="text-white" />
+                </button>
+              )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
