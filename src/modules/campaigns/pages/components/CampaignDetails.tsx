@@ -8,6 +8,8 @@ import {
   MapPin,
   Users,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { Campaign, CampaignReport } from "../../../../types/campaign";
 
@@ -39,6 +41,8 @@ export const CampaignDetails = ({
     null
   );
   const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleViewReport = (report: CampaignReport) => {
     setSelectedReport(report);
@@ -48,6 +52,34 @@ export const CampaignDetails = ({
   const handleCloseModal = () => {
     setShowReportModal(false);
     setSelectedReport(null);
+  };
+
+  const handleImageClick = (image: string, index: number) => {
+    setSelectedImage(image);
+    setSelectedImageIndex(index);
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImage(null);
+  };
+
+  const handleNextImage = () => {
+    if (selectedReport?.images && Array.isArray(selectedReport.images)) {
+      const nextIndex = (selectedImageIndex + 1) % selectedReport.images.length;
+      setSelectedImageIndex(nextIndex);
+      setSelectedImage(selectedReport.images[nextIndex]);
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (selectedReport?.images && Array.isArray(selectedReport.images)) {
+      const prevIndex =
+        selectedImageIndex === 0
+          ? selectedReport.images.length - 1
+          : selectedImageIndex - 1;
+      setSelectedImageIndex(prevIndex);
+      setSelectedImage(selectedReport.images[prevIndex]);
+    }
   };
 
   const isCampaignActive = (campaignData: Campaign) => {
@@ -441,23 +473,17 @@ export const CampaignDetails = ({
                         (image: string, index: number) => (
                           <div
                             key={index}
-                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all"
+                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                            onClick={() => handleImageClick(image, index)}
                           >
                             <img
                               src={image}
                               alt={`Event image ${index + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
-                            <a
-                              href={image}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="absolute top-2 right-2 bg-white p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Open in new tab"
-                            >
-                              <Eye size={14} className="text-gray-700" />
-                            </a>
+                            <div className="absolute top-2 right-2 bg-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                              <Eye size={20} className="text-blue-600" />
+                            </div>
                           </div>
                         )
                       )}
@@ -506,6 +532,69 @@ export const CampaignDetails = ({
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-60"
+          onClick={handleCloseImageModal}
+        >
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <button
+              onClick={handleCloseImageModal}
+              className="absolute top-4 right-4 p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+            >
+              <X size={24} className="text-white" />
+            </button>
+
+            {selectedReport?.images &&
+              Array.isArray(selectedReport.images) &&
+              selectedReport.images.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  className="absolute left-4 p-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+                >
+                  <ChevronLeft size={32} className="text-white" />
+                </button>
+              )}
+
+            <div
+              className="relative max-w-7xl max-h-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={selectedImage}
+                alt="Full size"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+              {selectedReport?.images &&
+                Array.isArray(selectedReport.images) &&
+                selectedReport.images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-2 rounded-full text-sm">
+                    {selectedImageIndex + 1} / {selectedReport.images.length}
+                  </div>
+                )}
+            </div>
+
+            {selectedReport?.images &&
+              Array.isArray(selectedReport.images) &&
+              selectedReport.images.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-4 p-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all z-10"
+                >
+                  <ChevronRight size={32} className="text-white" />
+                </button>
+              )}
           </div>
         </div>
       )}
