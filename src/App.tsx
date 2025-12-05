@@ -106,6 +106,7 @@ import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 import AfterAssemblySearchVoter from "./pages/AfterAssemblyPanel/SearchVoter";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
+import SubLevelBoothVoters from "./pages/SubLevelPanel/BoothVoters";
 
 export default function App() {
   return (
@@ -272,6 +273,7 @@ export default function App() {
             <Route path="team" element={<SubLevelPanelTeam />} />
             <Route path="child-hierarchy" element={<SubLevelChildHierarchy />} />
             <Route path="booths" element={<SubLevelBooths />} />
+            <Route path="booth-voters" element={<SubLevelBoothVoters />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<SubLevelSearchVoter />} />

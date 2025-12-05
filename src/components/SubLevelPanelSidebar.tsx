@@ -30,6 +30,11 @@ const Icons = {
             <path d="M4 7h16v12H4V7Zm4 0V5h8v2" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     ),
+    voters: (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm4 10v-2a4 4 0 0 0-3-3.87" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    ),
     chat: (
         <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
@@ -127,8 +132,11 @@ export default function SubLevelPanelSidebar({ onNavigate }: { onNavigate?: () =
         // Only show Child Levels if not a Booth
         ...(!isBooth ? [{ to: "child-hierarchy", label: "Below Levels", icon: Icons.hierarchy }] : []),
         { to: "booths", label: "Booths", icon: Icons.booths },
+        
         { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
         { to: "search-voter", label: "Search Voter", icon: Icons.search },
+        // Only show Booth Voters if it's a Booth level
+        ...(isBooth ? [{ to: "booth-voters", label: "Another Booth Voters", icon: Icons.voters }] : []),
         // { to: "chat", label: "Chat", icon: Icons.chat },
     ];
 
