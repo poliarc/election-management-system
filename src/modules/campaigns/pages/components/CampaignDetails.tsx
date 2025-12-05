@@ -1,4 +1,14 @@
 import { useState } from "react";
+import {
+  Eye,
+  X,
+  User,
+  Phone,
+  Calendar,
+  MapPin,
+  Users,
+  FileText,
+} from "lucide-react";
 import type { Campaign, CampaignReport } from "../../../../types/campaign";
 
 interface CampaignDetailsProps {
@@ -25,6 +35,21 @@ export const CampaignDetails = ({
   onEndCampaign,
 }: CampaignDetailsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedReport, setSelectedReport] = useState<CampaignReport | null>(
+    null
+  );
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  const handleViewReport = (report: CampaignReport) => {
+    setSelectedReport(report);
+    setShowReportModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowReportModal(false);
+    setSelectedReport(null);
+  };
+
   const isCampaignActive = (campaignData: Campaign) => {
     if (typeof campaignData.isActive === "number") {
       return campaignData.isActive !== 0;
@@ -166,6 +191,9 @@ export const CampaignDetails = ({
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Location
                       </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -196,6 +224,15 @@ export const CampaignDetails = ({
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {report.location || "N/A"}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleViewReport(report)}
+                            className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={18} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -276,6 +313,202 @@ export const CampaignDetails = ({
           </div>
         </div>
       </div>
+
+      {/* Report Details Modal */}
+      {showReportModal && selectedReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                Campaign Report Details
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Reporter Information */}
+              <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <User size={20} className="text-blue-600" />
+                  Reporter Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Name</p>
+                    <p className="font-semibold text-gray-900">
+                      {selectedReport.karyakarta_firstName ||
+                        selectedReport.personName ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Contact</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Phone size={16} className="text-gray-500" />
+                      {selectedReport.karyakarta_phone ||
+                        selectedReport.personPhone ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  {selectedReport.reporter_level && (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Level</p>
+                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {selectedReport.reporter_level}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Event Details */}
+              <div className="bg-linear-to-r from-green-50 to-emerald-50 rounded-lg p-5 border border-green-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <FileText size={20} className="text-green-600" />
+                  Event Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Person Name</p>
+                    <p className="font-semibold text-gray-900">
+                      {selectedReport.personName || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Person Phone</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Phone size={16} className="text-gray-500" />
+                      {selectedReport.personPhone || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Attendees</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Users size={16} className="text-gray-500" />
+                      {selectedReport.attendees ?? 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Date</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      {selectedReport.date
+                        ? new Date(selectedReport.date).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                  {selectedReport.location && (
+                    <div className="md:col-span-2">
+                      <p className="text-sm text-gray-600 mb-1">Location</p>
+                      <p className="font-semibold text-gray-900 flex items-center gap-2">
+                        <MapPin size={16} className="text-gray-500" />
+                        {selectedReport.location}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedReport.description && (
+                <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Description
+                  </h3>
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {selectedReport.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Images */}
+              {selectedReport.images &&
+                Array.isArray(selectedReport.images) &&
+                selectedReport.images.length > 0 && (
+                  <div className="bg-white rounded-lg p-5 border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Event Images ({selectedReport.images.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {selectedReport.images.map(
+                        (image: string, index: number) => (
+                          <div
+                            key={index}
+                            className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-all"
+                          >
+                            <img
+                              src={image}
+                              alt={`Event image ${index + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
+                            <a
+                              href={image}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute top-2 right-2 bg-white p-1.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Open in new tab"
+                            >
+                              <Eye size={14} className="text-gray-700" />
+                            </a>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Metadata */}
+              <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Report Metadata
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Report ID: </span>
+                    <span className="font-medium text-gray-900">
+                      #{selectedReport.id}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Created: </span>
+                    <span className="font-medium text-gray-900">
+                      {selectedReport.created_at
+                        ? new Date(selectedReport.created_at).toLocaleString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                  {selectedReport.updated_at && (
+                    <div>
+                      <span className="text-gray-600">Updated: </span>
+                      <span className="font-medium text-gray-900">
+                        {new Date(selectedReport.updated_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end">
+              <button
+                onClick={handleCloseModal}
+                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
