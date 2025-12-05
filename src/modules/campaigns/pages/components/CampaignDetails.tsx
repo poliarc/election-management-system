@@ -211,9 +211,9 @@ export const CampaignDetails = ({
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Person Details
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                      {/* <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Reporter Level
-                      </th>
+                      </th> */}
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
                         Attendees
                       </th>
@@ -221,7 +221,7 @@ export const CampaignDetails = ({
                         Date
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
-                        Location
+                        Images
                       </th>
                       <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
                         Actions
@@ -241,11 +241,11 @@ export const CampaignDetails = ({
                             </p>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        {/* <td className="px-4 py-3 text-sm text-gray-900">
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                             {report.reporter_level || "N/A"}
                           </span>
-                        </td>
+                        </td> */}
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {report.attendees ?? 0}
                         </td>
@@ -255,7 +255,9 @@ export const CampaignDetails = ({
                             : "N/A"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {report.location || "N/A"}
+                          {Array.isArray(report.images)
+                            ? report.images.length
+                            : 0}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
