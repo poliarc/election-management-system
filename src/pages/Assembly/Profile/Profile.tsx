@@ -106,6 +106,7 @@ type FormValues = {
   firstName: string;
   lastName: string;
   phoneNo: string;
+  email: string;
   father: string;
   mother: string;
   citizenship: string;
@@ -222,6 +223,7 @@ export const Profile = () => {
       firstName: "",
       lastName: "",
       phoneNo: "",
+      email: "",
       father: "",
       mother: "",
       citizenship: "",
@@ -327,6 +329,7 @@ export const Profile = () => {
         firstName: profileData.first_name ?? "",
         lastName: profileData.last_name ?? "",
         phoneNo: profileData.contact_no ?? "",
+        email: profileData.email ?? "",
         father: profileData.father ?? "",
         mother: profileData.mother ?? "",
         citizenship: profileData.citizenship ?? "",
@@ -457,6 +460,7 @@ export const Profile = () => {
         first_name: data.firstName,
         last_name: data.lastName,
         contact_no: data.phoneNo,
+        email: data.email,
         father: data.father,
         mother: data.mother,
         citizenship: data.citizenship,
@@ -646,41 +650,23 @@ export const Profile = () => {
                   )}
                 />
                 <Controller
-                  name="father"
+                  name="email"
                   control={control}
+                  rules={{
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Please enter a valid email address",
+                    },
+                  }}
                   render={({ field }) => (
                     <InputField
-                      label="Father Name"
+                      label="Email"
+                      type="email"
                       value={field.value ?? ""}
                       onChange={field.onChange}
-                      error={errors.father?.message}
+                      error={errors.email?.message}
                       disabled={!isEditing}
-                    />
-                  )}
-                />
-                <Controller
-                  name="mother"
-                  control={control}
-                  render={({ field }) => (
-                    <InputField
-                      label="Mother Name"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      error={errors.mother?.message}
-                      disabled={!isEditing}
-                    />
-                  )}
-                />
-                <Controller
-                  name="citizenship"
-                  control={control}
-                  render={({ field }) => (
-                    <InputField
-                      label="Citizenship"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      error={errors.citizenship?.message}
-                      disabled={!isEditing}
+                      placeholder="example@email.com"
                     />
                   )}
                 />
@@ -730,6 +716,45 @@ export const Profile = () => {
                       value={field.value ?? ""}
                       onChange={field.onChange}
                       error={errors.dob?.message}
+                      disabled={!isEditing}
+                    />
+                  )}
+                />
+                <Controller
+                  name="father"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      label="Father Name"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      error={errors.father?.message}
+                      disabled={!isEditing}
+                    />
+                  )}
+                />
+                <Controller
+                  name="mother"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      label="Mother Name"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      error={errors.mother?.message}
+                      disabled={!isEditing}
+                    />
+                  )}
+                />
+                <Controller
+                  name="citizenship"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      label="Citizenship"
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      error={errors.citizenship?.message}
                       disabled={!isEditing}
                     />
                   )}
