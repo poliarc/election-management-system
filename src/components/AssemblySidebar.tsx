@@ -192,9 +192,9 @@ const Icons = {
 
 // Top-level items
 const primaryItems: NavItem[] = [
-   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+  { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "team", label: "Assembly Team", icon: Icons.team },
- 
+
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
@@ -323,6 +323,7 @@ const voterReportsItems: NavItem[] = [
   },
   { to: "voter-report/labharthi", label: "Labharthi List", icon: Icons.report },
   { to: "voter-report/approach", label: "Approach List", icon: Icons.report },
+  { to: "voter-report/ssr-form", label: "SSR Form Report", icon: Icons.report },
   // { to: "voter-report/survey", label: "Voter Survey List", icon: Icons.report },
 ];
 
@@ -374,10 +375,10 @@ export default function AssemblySidebar({
 
   // Get all Assembly assignments
   let sameTypeAssignments: StateAssignment[] = [];
-  
+
   // Get assemblies from stateAssignments
   const assemblyAssignments = stateAssignments.filter((a) => a.levelType === 'Assembly');
-  
+
   // Get assemblies from permissions
   if (permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) {
     const permissionAssemblies = permissions.accessibleAssemblies.map((assembly: any) => ({
@@ -409,10 +410,10 @@ export default function AssemblySidebar({
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     setSwitchDropdownOpen(false);
-    
+
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event('assignmentChanged'));
-    
+
     // Navigate to assembly dashboard
     navigate('/assembly/dashboard');
   };

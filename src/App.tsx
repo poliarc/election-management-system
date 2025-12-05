@@ -19,8 +19,7 @@ import AssignAssembly from "./pages/District/assembly/AssignAssembly";
 import DistrictBlock from "./pages/District/block/Block";
 import ViewDistrictBlockUsers from "./pages/District/block/ViewDistrictBlockUsers";
 import DistrictMandal from "./pages/District/mandal/Mandal";
-import DistrictBooth from "./pages/District/booth/Booth";
-import DistrictPollingCenters from "./pages/District/pollingCenter/PollingCenters";
+
 import DistrictKaryakarta from "./pages/District/karyakarta/Karyakarta";
 import DistrictInitiatives from "./pages/District/initiatives/Initiatives";
 import { DistrictProfile } from "./pages/District/profile/Profile";
@@ -57,6 +56,7 @@ import OutsideLocationListPage from "./pages/Assembly/voterReport/OutsideLocatio
 import ProfessionWiseListPage from "./pages/Assembly/voterReport/ProfessionWise/ProfessionWiseListPage";
 import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachListPage";
 import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
+import SSRFormReportPage from "./pages/Assembly/voterReport/SSRForm";
 import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
 import BlockDashboard from "./pages/Block/Dashboard";
 import BlockTeam from "./pages/Block/BlockTeam";
@@ -78,7 +78,10 @@ import StateDistrictsListing from "./pages/State/districts";
 import CreateDistrict from "./pages/State/districts/CreateDistrict";
 import AssignDistrict from "./pages/State/districts/AssignDistrict";
 import StateMandalListing from "./pages/State/mandal";
-import StateBoothListing from "./pages/State/booth";
+import StateBoothList from "./pages/State/booth/BoothList";
+import StatePollingCenterList from "./pages/State/pollingCenter/PollingCenterList";
+import DistrictBoothList from "./pages/District/booth/BoothList";
+import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCenterList";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
@@ -154,11 +157,20 @@ export default function App() {
             <Route index element={<StateOverview />} />
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
             <Route path="team" element={<StateTeamListing />} />
             <Route path="districts" element={<StateDistrictsListing />} />
             <Route path="districts/create" element={<CreateDistrict />} />
             <Route path="districts/assign" element={<AssignDistrict />} />
             <Route path="assembly" element={<StateAssemblyListing />} />
+            <Route path="block" element={<StateBlockListing />} />
+            <Route path="mandal" element={<StateMandalListing />} />
+            <Route path="polling-center" element={<StatePollingCenterList />} />
+            <Route path="booth" element={<StateBoothList />} />
+            <Route path="karyakarta" element={<StateKaryakartaListing />} />
+            <Route path="campaigns" element={<CampaignsStatePage />} />
+            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
+            <Route path="profile" element={<StateProfile />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
@@ -172,32 +184,13 @@ export default function App() {
             <Route path="block" element={<DistrictBlock />} />
             <Route path="block/users" element={<ViewDistrictBlockUsers />} />
             <Route path="mandal" element={<DistrictMandal />} />
-            <Route path="booth" element={<DistrictBooth />} />
-            <Route
-              path="polling-centers"
-              element={<DistrictPollingCenters />}
-            />
+            <Route path="polling-center" element={<DistrictPollingCenterList />} />
+            <Route path="booth" element={<DistrictBoothList />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="initiatives" element={<DistrictInitiatives />} />
             <Route path="profile" element={<DistrictProfile />} />
-          </Route>
-
-          <Route path="state" element={<StateLayout />}>
-            <Route index element={<StateOverview />} />
-            <Route path="dashboard" element={<StateOverview />} />
-            <Route path="search-voter" element={<VoterListPage />} />
-            <Route path="team" element={<StateTeamListing />} />
-            <Route path="districts" element={<StateDistrictsListing />} />
-            <Route path="assembly" element={<StateAssemblyListing />} />
-            <Route path="block" element={<StateBlockListing />} />
-            <Route path="mandal" element={<StateMandalListing />} />
-            <Route path="booth" element={<StateBoothListing />} />
-            <Route path="karyakarta" element={<StateKaryakartaListing />} />
-            <Route path="campaigns" element={<CampaignsStatePage />} />
-            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
-            <Route path="profile" element={<StateProfile />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
@@ -223,6 +216,7 @@ export default function App() {
             <Route path="voter-report/profession-wise" element={<ProfessionWiseListPage />} />
             <Route path="voter-report/approach" element={<ApproachListPage />} />
             <Route path="voter-report/labharthi" element={<LabharthiListPage />} />
+            <Route path="voter-report/ssr-form" element={<SSRFormReportPage />} />
             <Route path="voter-report/family-labels" element={<FamilyLabelsPage />} />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<BlockList />} />

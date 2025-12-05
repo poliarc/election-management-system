@@ -216,9 +216,9 @@ const stateItems: NavItem[] = [
 const listItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
-  // { to: "polling-centers", label: "Polling Centers", icon: Icons.polling },
+  { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booths },
-  { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
+  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
 export default function StateSidebar({
@@ -267,7 +267,7 @@ export default function StateSidebar({
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
               State Level
             </p>
-            
+
           </div>
         </div>
       </div>

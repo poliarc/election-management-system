@@ -70,6 +70,13 @@ export default function StateMandalList() {
         fetchDistricts();
     }, [stateInfo.stateId]);
 
+    // Auto-select first district when districts load
+    useEffect(() => {
+        if (districts.length > 0 && selectedDistrictId === 0) {
+            setSelectedDistrictId(districts[0].location_id || districts[0].id);
+        }
+    }, [districts, selectedDistrictId]);
+
     // Fetch assemblies when district is selected using user-state-hierarchies API
     useEffect(() => {
         const fetchAssemblies = async () => {
@@ -106,6 +113,13 @@ export default function StateMandalList() {
         fetchAssemblies();
     }, [selectedDistrictId]);
 
+    // Auto-select first assembly when assemblies load
+    useEffect(() => {
+        if (assemblies.length > 0 && selectedDistrictId > 0 && selectedAssemblyId === 0) {
+            setSelectedAssemblyId(assemblies[0].location_id || assemblies[0].id);
+        }
+    }, [assemblies, selectedDistrictId, selectedAssemblyId]);
+
     // Fetch blocks when assembly is selected
     useEffect(() => {
         const fetchBlocks = async () => {
@@ -132,6 +146,13 @@ export default function StateMandalList() {
         };
         fetchBlocks();
     }, [selectedAssemblyId]);
+
+    // Auto-select first block when blocks load
+    useEffect(() => {
+        if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
+            setSelectedBlockId(blocks[0].id);
+        }
+    }, [blocks, selectedAssemblyId, selectedBlockId]);
 
     // Fetch mandals for selected block
     const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(

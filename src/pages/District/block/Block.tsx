@@ -35,6 +35,13 @@ export default function DistrictBlock() {
     const assembliesData = useHierarchyData(districtInfo.districtId, 100);
     const assemblies = assembliesData.data || [];
 
+    // Auto-select first assembly when assemblies load
+    useEffect(() => {
+        if (assemblies.length > 0 && !selectedAssemblyId) {
+            setSelectedAssemblyId(assemblies[0].location_id);
+        }
+    }, [assemblies, selectedAssemblyId]);
+
     // Get blocks for selected assembly
     const { data: blocks = [], isLoading, error } = useGetBlocksByAssemblyQuery(
         selectedAssemblyId!,

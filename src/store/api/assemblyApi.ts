@@ -85,10 +85,15 @@ export const assemblyApi = createApi({
 
         getUsersByPartyAndState: builder.query<
             { users: UserByParty[]; pagination: { page: number; limit: number; total: number; totalPages: number } },
-            { partyId: number; stateId: number; page?: number; limit?: number }
+            { partyId: number; stateId: number; page?: number; limit?: number; search?: string }
         >({
-            query: ({ partyId, stateId, page = 1, limit = 20 }) =>
-                `/users/filter?party_id=${partyId}&state_id=${stateId}&page=${page}&limit=${limit}`,
+            query: ({ partyId, stateId, page = 1, limit = 20, search = "" }) => {
+                let url = `/users/filter?party_id=${partyId}&state_id=${stateId}&page=${page}&limit=${limit}`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                return url;
+            },
             transformResponse: (response: ApiResponse<UserByParty[]> & { pagination?: any }) => {
                 const users = response.data || [];
                 // Filter out super admin users by both isSuperAdmin flag and role name

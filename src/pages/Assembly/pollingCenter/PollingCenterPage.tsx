@@ -114,7 +114,7 @@
 //     if (editingIndex === null) return;
 //     const target = filteredCenters.slice(0, showCount)[editingIndex];
 //     if (!target) return;
-    
+
 //     setPollingCenters((prev) =>
 //       prev.map((pc) => (pc.id === target.id ? { ...data, id: target.id } : pc))
 //     );
@@ -150,14 +150,14 @@
 
 //   const handleBulkUpload = async (file: File) => {
 //     setIsBulkUploading(true);
-    
+
 //     try {
 //       // Simulate file processing
 //       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
 //       // In real implementation, you would parse the file and add records
 //       console.log("Bulk upload file:", file.name);
-      
+
 //       setUploadResults({
 //         success: true,
 //         message: `File "${file.name}" uploaded successfully (demo mode - no actual processing)`,
@@ -365,13 +365,8 @@
 // export default PollingCenterPage;
 
 
+import PollingCenterList from "./PollingCenterList";
+
 export default function AssemblyPollingCenterPage() {
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Polling Center page</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-                <p className="text-gray-600">Assembly Polling Center members will be displayed here</p>
-            </div>
-        </div>
-    );
+    return <PollingCenterList />;
 }

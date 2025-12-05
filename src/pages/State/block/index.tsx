@@ -41,9 +41,23 @@ export default function StateBlock() {
   const districtsData = useHierarchyData(stateInfo.stateId, 100);
   const districts = districtsData.data || [];
 
+  // Auto-select first district when districts load
+  useEffect(() => {
+    if (districts.length > 0 && !selectedDistrictId) {
+      setSelectedDistrictId(districts[0].location_id);
+    }
+  }, [districts, selectedDistrictId]);
+
   // Get assemblies for the selected district
   const assembliesData = useHierarchyData(selectedDistrictId, 100);
   const assemblies = assembliesData.data || [];
+
+  // Auto-select first assembly when assemblies load
+  useEffect(() => {
+    if (assemblies.length > 0 && selectedDistrictId && !selectedAssemblyId) {
+      setSelectedAssemblyId(assemblies[0].location_id);
+    }
+  }, [assemblies, selectedDistrictId, selectedAssemblyId]);
 
   // Reset assembly when district changes
   useEffect(() => {

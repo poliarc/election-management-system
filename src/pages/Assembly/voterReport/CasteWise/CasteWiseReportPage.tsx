@@ -21,7 +21,7 @@ const CasteWiseReportPage: React.FC = () => {
         {
             assembly_id: assembly_id!,
             page,
-            limit: 1000,
+            limit: itemsPerPage,
             partFrom,
             partTo,
         },

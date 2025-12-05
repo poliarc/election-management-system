@@ -276,16 +276,14 @@ export default function HierarchyTable({
           {assemblies.length > 0 && onAssemblyChange && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {isAssemblyView ? "District" : "Assembly"}
+                Assembly
               </label>
               <select
                 value={selectedAssembly}
                 onChange={(e) => onAssemblyChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">
-                  {isAssemblyView ? "Select District" : "Select Assembly"}
-                </option>
+                <option value="">Select Assembly</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -512,11 +510,10 @@ export default function HierarchyTable({
                           }
                         }}
                         disabled={!item.users || item.users.length === 0}
-                        className={`flex items-center ${
-                          item.users && item.users.length > 0
-                            ? "cursor-pointer hover:text-blue-600"
-                            : "cursor-default"
-                        }`}
+                        className={`flex items-center ${item.users && item.users.length > 0
+                          ? "cursor-pointer hover:text-blue-600"
+                          : "cursor-default"
+                          }`}
                         title={
                           item.users && item.users.length > 0
                             ? "Click to view users"
@@ -559,11 +556,11 @@ export default function HierarchyTable({
                       <div className="relative inline-block text-left" ref={openMenuId === item.location_id ? menuRef : null}>
                         <button
                           onClick={() => setOpenMenuId(openMenuId === item.location_id ? null : item.location_id)}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                          className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
                           title="Actions"
                         >
                           <svg
-                            className="w-5 h-5 text-gray-600"
+                            className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -572,8 +569,8 @@ export default function HierarchyTable({
                         </button>
 
                         {openMenuId === item.location_id && (
-                          <div className="absolute right-0 z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                            <div className="py-1" role="menu">
+                          <div className="absolute right-0 z-10 mt-2 w-56 rounded-xl shadow-2xl bg-white border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="py-2" role="menu">
                               <button
                                 onClick={() => {
                                   setSelectedUsers({
@@ -585,45 +582,15 @@ export default function HierarchyTable({
                                   setOpenMenuId(null);
                                 }}
                                 disabled={!item.users || item.users.length === 0}
-                                className={`w-full text-left px-4 py-2 text-sm flex items-center ${
-                                  item.users && item.users.length > 0
-                                    ? "text-gray-700 hover:bg-gray-100"
-                                    : "text-gray-400 cursor-not-allowed"
-                                }`}
+                                className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-all ${item.users && item.users.length > 0
+                                  ? "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700"
+                                  : "text-gray-300 cursor-not-allowed bg-gray-50"
+                                  }`}
                                 role="menuitem"
                               >
-                                <svg
-                                  className="w-4 h-4 mr-2"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                  />
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                </svg>
-                                View Users
-                              </button>
-                              {showAssignButton && onAssignUsers && (
-                                <button
-                                  onClick={() => {
-                                    onAssignUsers(String(item.location_id), item.location_name);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                                  role="menuitem"
-                                >
+                                <div className={`p-2 rounded-lg ${item.users && item.users.length > 0 ? "bg-blue-100" : "bg-gray-200"}`}>
                                   <svg
-                                    className="w-4 h-4 mr-2"
+                                    className={`w-4 h-4 ${item.users && item.users.length > 0 ? "text-blue-600" : "text-gray-400"}`}
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -632,10 +599,51 @@ export default function HierarchyTable({
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={2}
-                                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                     />
                                   </svg>
-                                  Assign Users
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-medium">View Users</div>
+                                  {item.users && item.users.length > 0 && (
+                                    <div className="text-xs text-gray-500">{item.users.length} assigned</div>
+                                  )}
+                                </div>
+                              </button>
+                              {showAssignButton && onAssignUsers && (
+                                <button
+                                  onClick={() => {
+                                    onAssignUsers(String(item.location_id), item.location_name);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:text-green-700 flex items-center gap-3 transition-all"
+                                  role="menuitem"
+                                >
+                                  <div className="p-2 rounded-lg bg-green-100">
+                                    <svg
+                                      className="w-4 h-4 text-green-600"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-medium">Assign Users</div>
+                                    <div className="text-xs text-gray-500">Add team members</div>
+                                  </div>
                                 </button>
                               )}
                               {showUploadVotersButton && onUploadVoters && (
@@ -644,23 +652,28 @@ export default function HierarchyTable({
                                     onUploadVoters(item.location_id, item.location_name);
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:text-purple-700 flex items-center gap-3 transition-all"
                                   role="menuitem"
                                 >
-                                  <svg
-                                    className="w-4 h-4 mr-2"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                    />
-                                  </svg>
-                                  Upload Voters
+                                  <div className="p-2 rounded-lg bg-purple-100">
+                                    <svg
+                                      className="w-4 h-4 text-purple-600"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-medium">Upload Voters</div>
+                                    <div className="text-xs text-gray-500">Import voter data</div>
+                                  </div>
                                 </button>
                               )}
                             </div>
