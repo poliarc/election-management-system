@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 // Profile data structure from backend
 export interface ProfileData {
+  email: string;
   user_id: number;
   first_name: string;
   last_name: string;

@@ -18,6 +18,7 @@ function getAuthToken(): string | null {
 export default function GlobalChat() {
     const [openChats, setOpenChats] = useState<any[]>([]);
     const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [isChatButtonHidden, setIsChatButtonHidden] = useState(false);
 
     useEffect(() => {
         const token = getAuthToken();
@@ -109,25 +110,73 @@ export default function GlobalChat() {
                 </div>
             )}
 
-            {/* Floating Chat Button - Bottom Right on Mobile */}
-            <button
-                onClick={() => setChatModalOpen(true)}
-                className="fixed bottom-6 right-6 z-30 lg:hidden inline-flex items-center justify-center w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all hover:shadow-xl"
-                aria-label="Open chats"
-            >
-                <svg
-                    className="h-6 w-6"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-            </button>
+            {/* Desktop Modal View */}
+            {chatModalOpen && (
+                <div className="hidden lg:block fixed inset-0 z-40 bg-black/30" onClick={() => setChatModalOpen(false)}>
+                    <div 
+                        className="absolute bottom-0 right-0 w-96 bg-white shadow-2xl flex flex-col rounded-tl-lg"
+                        style={{ maxHeight: '600px' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white rounded-tl-lg">
+                            <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+                            <button
+                                onClick={() => setChatModalOpen(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <ChatUsersList onSelectUser={handleSelectUser} openChats={openChats} isMobileModal={true} />
+                    </div>
+                </div>
+            )}
 
-            {/* Desktop Fixed View */}
-            <div className="hidden lg:block">
-                <ChatUsersList onSelectUser={handleSelectUser} openChats={openChats} />
-            </div>
+            {/* Floating Chat Buttons - Bottom Right (All Screens) */}
+            <>
+                {/* Hide/Unhide Toggle Button - Fixed at right edge */}
+                <button
+                    onClick={() => setIsChatButtonHidden(!isChatButtonHidden)}
+                    className="fixed bottom-6 right-1 z-30 inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-110"
+                    aria-label={isChatButtonHidden ? "Show chat button" : "Hide chat button"}
+                    title={isChatButtonHidden ? "Show chat" : "Hide chat"}
+                >
+                    <svg
+                        className={`h-5 w-5 transition-transform duration-300 ${isChatButtonHidden ? 'rotate-180' : ''}`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                {/* Main Chat Button - Slides in/out to the left of toggle button */}
+                <div
+                    className={`fixed bottom-6 right-14 z-30 transition-all duration-300 ease-in-out ${
+                        isChatButtonHidden 
+                            ? 'translate-x-24 opacity-0' 
+                            : 'translate-x-0 opacity-100'
+                    }`}
+                >
+                    <button
+                        onClick={() => setChatModalOpen(true)}
+                        className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-110"
+                        aria-label="Open chats"
+                    >
+                        <svg
+                            className="h-6 w-6"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </>
         </>
     );
 }

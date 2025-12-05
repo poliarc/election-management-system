@@ -303,9 +303,6 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                           {initial}
                         </div>
                       )}
-                      {isActive && (
-                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
-                      )}
                       {isCreator && (
                         <div
                           className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center"
@@ -413,14 +410,53 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
 // ============================================================================
 
 interface CreateGroupModalProps {
-  users: any[];
   onClose: () => void;
 }
 
-function CreateGroupModal({ users, onClose }: CreateGroupModalProps) {
+function CreateGroupModal({ onClose }: CreateGroupModalProps) {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [createGroup, { isLoading }] = useCreateGroupMutation();
+
+  const { user } = useAppSelector((state) => state.auth);
+  const partyId = user?.partyId;
+  const currentUserId = user?.id;
+
+  const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
+    { party_id: partyId, state_id: undefined, page, limit: 50, search: searchQuery || undefined },
+    { skip: !partyId }
+  );
+
+  // Accumulate users as pages load
+  useEffect(() => {
+    if (partyUsers.length > 0) {
+      setAllUsers((prev) => {
+        if (page === 1) {
+          return partyUsers;
+        }
+        const existingIds = new Set(prev.map((u) => u.user_id));
+        const newUsers = partyUsers.filter((u) => !existingIds.has(u.user_id));
+        return [...prev, ...newUsers];
+      });
+    }
+  }, [partyUsers, page]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  // Filter users (only filter out superadmin and current user, search is done by API)
+  const filteredUsers = allUsers.filter((u) => {
+    if ((u as any).isSuperAdmin === 1) return false;
+    if (u.user_id === currentUserId) return false;
+    return true;
+  });
+
+  const hasMore = partyUsers.length === 50;
 
   const toggleUser = (userId: number) => {
     setSelectedUsers((prev) =>
@@ -469,12 +505,24 @@ function CreateGroupModal({ users, onClose }: CreateGroupModalProps) {
           placeholder="Group Name"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
         />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search users..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+        />
         <div className="mb-4">
           <div className="text-sm font-medium text-gray-700 mb-2">
             Select Members ({selectedUsers.length})
           </div>
           <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
-            {users.map((user) => {
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                {searchQuery ? "No users found" : "No users available"}
+              </div>
+            ) : (
+              filteredUsers.map((user) => {
               const fullName =
                 user.full_name ||
                 `${user.first_name || ""} ${user.last_name || ""}`.trim();
@@ -508,8 +556,18 @@ function CreateGroupModal({ users, onClose }: CreateGroupModalProps) {
                   </div>
                 </label>
               );
-            })}
+            })
+            )}
           </div>
+          {hasMore && !searchQuery && (
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={isFetching}
+              className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetching ? "Loading..." : "Show More"}
+            </button>
+          )}
         </div>
         <div className="flex gap-3">
           <button
@@ -548,25 +606,48 @@ function AddMembersModal({
 }: AddMembersModalProps) {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [addGroupMembers, { isLoading }] = useAddGroupMembersMutation();
 
   const { user } = useAppSelector((state) => state.auth);
   const partyId = user?.partyId;
 
-  const { data: partyUsers = [] } = useGetPartyUsersQuery(
-    { party_id: partyId, state_id: undefined, page: 1, limit: 100 },
+  const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
+    { party_id: partyId, state_id: undefined, page, limit: 50, search: searchQuery || undefined },
     { skip: !partyId }
   );
 
-  // Filter out existing members and current user
+  // Accumulate users as pages load
+  useEffect(() => {
+    if (partyUsers.length > 0) {
+      setAllUsers((prev) => {
+        // If page is 1, replace all users (fresh start)
+        if (page === 1) {
+          return partyUsers;
+        }
+        // Otherwise, accumulate
+        const existingIds = new Set(prev.map((u) => u.user_id));
+        const newUsers = partyUsers.filter((u) => !existingIds.has(u.user_id));
+        return [...prev, ...newUsers];
+      });
+    }
+  }, [partyUsers, page]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  // Filter out existing members and current user (search is done by API)
   const existingMemberIds = existingMembers.map((m) => m.UserId);
-  const availableUsers = partyUsers.filter((u) => {
+  const availableUsers = allUsers.filter((u) => {
     if ((u as any).isSuperAdmin === 1) return false;
     if (existingMemberIds.includes(u.user_id)) return false;
-    const fullName =
-      u.full_name || `${u.first_name || ""} ${u.last_name || ""}`.trim();
-    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+    return true;
   });
+
+  const hasMore = partyUsers.length === 50;
 
   const toggleUser = (userId: number) => {
     setSelectedUsers((prev) =>
@@ -689,6 +770,15 @@ function AddMembersModal({
               })
             )}
           </div>
+          {hasMore && !searchQuery && (
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={isFetching}
+              className="w-full mt-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetching ? "Loading..." : "Show More"}
+            </button>
+          )}
         </div>
 
         <div className="flex gap-3">
@@ -1432,17 +1522,40 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
   const [activeTab, setActiveTab] = useState<"recent" | "users" | "groups">(
     "recent"
   );
+  const [page, setPage] = useState(1);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
 
   const { user } = useAppSelector((state) => state.auth);
   const partyId = user?.partyId;
   const currentUserId = user?.id;
 
-  const { data: partyUsers = [] } = useGetPartyUsersQuery(
-    { party_id: partyId, state_id: undefined, page: 1, limit: 100 },
+  const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
+    { party_id: partyId, state_id: undefined, page, limit: 50, search: activeTab === 'users' ? (searchQuery || undefined) : undefined },
     { skip: !partyId }
   );
 
-  const { data: userGroups = [] } = useGetUserGroupsQuery();
+  // Accumulate users as pages load
+  useEffect(() => {
+    if (partyUsers.length > 0) {
+      setAllUsers((prev) => {
+        // If page is 1, replace all users (fresh start)
+        if (page === 1) {
+          return partyUsers;
+        }
+        // Otherwise, accumulate
+        const existingIds = new Set(prev.map((u) => u.user_id));
+        const newUsers = partyUsers.filter((u) => !existingIds.has(u.user_id));
+        return [...prev, ...newUsers];
+      });
+    }
+  }, [partyUsers, page]);
+
+  // Reset page when search or tab changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeTab]);
+
+  const { data: userGroups = [], refetch: refetchUserGroups } = useGetUserGroupsQuery();
   const { data: recentChats = [], refetch: refetchRecentChats } =
     useGetRecentChatsQuery(undefined, {
       pollingInterval: 10000, // Poll every 10 seconds (reduced from 3)
@@ -1469,14 +1582,27 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
       }, 500); // Wait 500ms before refetching
     };
 
+    const handleGroupUpdate = () => {
+      // Refetch groups when group-related events occur
+      if (refetchTimeout) {
+        clearTimeout(refetchTimeout);
+      }
+      refetchTimeout = setTimeout(() => {
+        refetchUserGroups();
+        refetchRecentChats();
+        refetchUnreadCount();
+      }, 500);
+    };
+
     socketService.on("new_direct_message", handleNewMessage);
     socketService.on("new_group_message", handleNewMessage);
     socketService.on("message_read", handleNewMessage);
     socketService.on("group_message_read", handleNewMessage);
-    socketService.on("member_left_group", handleNewMessage);
-    socketService.on("left_group", handleNewMessage);
-    socketService.on("added_to_group", handleNewMessage);
-    socketService.on("members_added", handleNewMessage);
+    socketService.on("member_left_group", handleGroupUpdate);
+    socketService.on("left_group", handleGroupUpdate);
+    socketService.on("added_to_group", handleGroupUpdate);
+    socketService.on("members_added", handleGroupUpdate);
+    socketService.on("group_created", handleGroupUpdate);
 
     return () => {
       if (refetchTimeout) {
@@ -1486,20 +1612,21 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
       socketService.off("new_group_message", handleNewMessage);
       socketService.off("message_read", handleNewMessage);
       socketService.off("group_message_read", handleNewMessage);
-      socketService.off("member_left_group", handleNewMessage);
-      socketService.off("left_group", handleNewMessage);
-      socketService.off("added_to_group", handleNewMessage);
-      socketService.off("members_added", handleNewMessage);
+      socketService.off("member_left_group", handleGroupUpdate);
+      socketService.off("left_group", handleGroupUpdate);
+      socketService.off("added_to_group", handleGroupUpdate);
+      socketService.off("members_added", handleGroupUpdate);
+      socketService.off("group_created", handleGroupUpdate);
     };
-  }, [refetchRecentChats, refetchUnreadCount]);
+  }, [refetchRecentChats, refetchUnreadCount, refetchUserGroups]);
 
-  const filteredUsers = partyUsers.filter((u) => {
+  const filteredUsers = allUsers.filter((u) => {
     if ((u as any).isSuperAdmin === 1) return false;
     if (u.user_id === currentUserId) return false;
-    const fullName =
-      u.full_name || `${u.first_name || ""} ${u.last_name || ""}`.trim();
-    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+    return true;
   });
+
+  const hasMoreUsers = partyUsers.length === 50;
 
   const filteredGroups = userGroups.filter((g) => {
     return g.Name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -1711,19 +1838,44 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
 
                     const handleClick = () => {
                       if (isGroup) {
-                        const group = userGroups.find(
+                        // Try to find group in loaded groups first
+                        let group = userGroups.find(
                           (g) => g.Id === chat.group_id
                         );
-                        if (group) {
-                          onSelectUser({ ...group, type: "group" });
+                        
+                        // If not found, create group object from chat data
+                        if (!group) {
+                          group = {
+                            Id: chat.group_id,
+                            Name: chat.chat_name,
+                            IsDelete: 0,
+                            created_by: 0,
+                            created_on: new Date().toISOString(),
+                            created_by_name: "",
+                            member_count: 0,
+                          };
                         }
+                        onSelectUser({ ...group, type: "group" });
                       } else {
-                        const user = partyUsers.find(
+                        // Try to find user in loaded users first
+                        let user = allUsers.find(
                           (u) => u.user_id === chat.other_user_id
                         );
-                        if (user) {
-                          onSelectUser(user);
+                        
+                        // If not found, create user object from chat data
+                        if (!user) {
+                          user = {
+                            user_id: chat.other_user_id,
+                            full_name: chat.chat_name,
+                            first_name: chat.chat_name,
+                            last_name: "",
+                            email: "",
+                            profileImage: chat.chat_image,
+                            party_id: partyId,
+                            created_on: new Date().toISOString(),
+                          };
                         }
+                        onSelectUser(user);
                       }
                     };
 
@@ -1853,7 +2005,6 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                               {initial}
                             </div>
                           )}
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 text-sm truncate">
@@ -1867,7 +2018,20 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                     );
                   })
                 )
-              ) : filteredGroups.length === 0 ? (
+              ) : null}
+              {activeTab === "users" && hasMoreUsers && !searchQuery && (
+                <div className="p-3 border-t border-gray-100">
+                  <button
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={isFetching}
+                    className="w-full px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isFetching ? "Loading..." : "Show More"}
+                  </button>
+                </div>
+              )}
+              {activeTab === "groups" && (
+                filteredGroups.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
                   No groups found
                 </div>
@@ -1899,6 +2063,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                     </div>
                   );
                 })
+              )
               )}
             </div>
           </>
@@ -1906,7 +2071,6 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
       </div>
       {showCreateGroup && (
         <CreateGroupModal
-          users={filteredUsers}
           onClose={() => setShowCreateGroup(false)}
         />
       )}

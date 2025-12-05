@@ -90,13 +90,14 @@ export const chatApi = createApi({
     }),
     tagTypes: ["PartyUsers", "Groups", "DirectMessages", "GroupMessages", "RecentChats"],
     endpoints: (builder) => ({
-        getPartyUsers: builder.query<User[], { party_id?: number; state_id?: number; page?: number; limit?: number }>({
-            query: ({ party_id, state_id, page = 1, limit = 100 }) => {
+        getPartyUsers: builder.query<User[], { party_id?: number; state_id?: number; page?: number; limit?: number; search?: string }>({
+            query: ({ party_id, state_id, page = 1, limit = 100, search }) => {
                 const params = new URLSearchParams();
                 if (party_id) params.append("party_id", party_id.toString());
                 if (state_id) params.append("state_id", state_id.toString());
                 params.append("page", page.toString());
                 params.append("limit", limit.toString());
+                if (search) params.append("search", search);
                 return {
                     url: `${import.meta.env.VITE_API_BASE_URL}/api/users/filter?${params.toString()}`,
                     method: "GET",
