@@ -75,6 +75,15 @@ export default function DistrictMandalList() {
         fetchAssemblies();
     }, [districtInfo.stateMasterDataId]);
 
+    // Auto-select first assembly when assemblies load
+    useEffect(() => {
+        if (assemblies.length > 0 && selectedAssemblyId === 0) {
+            const firstAssembly = assemblies[0];
+            setSelectedAssemblyId(firstAssembly.location_id || firstAssembly.id);
+            setSelectedAssemblyName(firstAssembly.displayName);
+        }
+    }, [assemblies, selectedAssemblyId]);
+
     // Fetch blocks when assembly is selected using after-assembly-data API
     useEffect(() => {
         const fetchBlocks = async () => {
@@ -104,6 +113,13 @@ export default function DistrictMandalList() {
         };
         fetchBlocks();
     }, [selectedAssemblyId]);
+
+    // Auto-select first block when blocks load
+    useEffect(() => {
+        if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
+            setSelectedBlockId(blocks[0].id);
+        }
+    }, [blocks, selectedAssemblyId, selectedBlockId]);
 
     // Fetch mandals for selected block
     const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(

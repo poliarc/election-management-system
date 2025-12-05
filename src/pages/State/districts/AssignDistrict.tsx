@@ -15,6 +15,7 @@ export default function AssignDistrict() {
   const [partyId, setPartyId] = useState<number | null>(null);
   const stateId = stateIdParam ? Number(stateIdParam) : null;
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [assignedUserIds, setAssignedUserIds] = useState<number[]>([]);
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(false);
@@ -40,8 +41,20 @@ export default function AssignDistrict() {
     }
   }, []);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      if (searchTerm !== debouncedSearchTerm) {
+        setPage(1); // Reset to page 1 when search changes
+        setAllUsers([]); // Clear accumulated users when search changes
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { data, isLoading: loadingUsers } = useGetUsersByPartyAndStateQuery(
-    { partyId: partyId!, stateId: stateId!, page, limit: 20 },
+    { partyId: partyId!, stateId: stateId!, page, limit: 20, search: debouncedSearchTerm },
     { skip: !partyId || !stateId }
   );
 
@@ -101,13 +114,8 @@ export default function AssignDistrict() {
     fetchAssigned();
   }, [districtId]);
 
-  const filteredUsers = allUsers.filter(
-    (u) =>
-      u.isActive === 1 &&
-      (u.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Filter only by active status since search is now handled by API
+  const filteredUsers = allUsers.filter((u) => u.isActive === 1);
 
   const hasMore = pagination && pagination.page < pagination.totalPages;
 

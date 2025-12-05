@@ -192,7 +192,7 @@ const Icons = {
 
 // Top-level items
 const districtItems: NavItem[] = [
-  
+
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "district-team", label: "District Team", icon: Icons.team },
   { to: "assembly", label: "Assembly List", icon: Icons.assembly },
@@ -202,9 +202,9 @@ const districtItems: NavItem[] = [
 const listItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
+  { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booth },
-  { to: "polling-centers", label: "Polling Centers", icon: Icons.polling },
-  { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
+  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
 // Other items
@@ -250,10 +250,10 @@ export default function DistrictSidebar({
 
   // Get all District assignments
   let sameTypeAssignments: StateAssignment[] = [];
-  
+
   // Get districts from stateAssignments
   const districtAssignments = stateAssignments.filter((a) => a.levelType === 'District');
-  
+
   // Get districts from permissions
   if (permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) {
     const permissionDistricts = permissions.accessibleDistricts.map((district: any) => ({
@@ -285,11 +285,11 @@ export default function DistrictSidebar({
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     setSwitchDropdownOpen(false);
-    
+
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event('districtChanged'));
     window.dispatchEvent(new Event('assignmentChanged'));
-    
+
     // Navigate to district dashboard
     navigate('/district/dashboard');
   };

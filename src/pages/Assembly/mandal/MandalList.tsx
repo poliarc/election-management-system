@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import axios from "axios";
 
 export default function MandalList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +18,12 @@ export default function MandalList() {
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
+
+    // Polling Center and Booth states
+    const [pollingCenters, setPollingCenters] = useState<any[]>([]);
+    const [booths, setBooths] = useState<any[]>([]);
+    const [loadingPollingCenters, setLoadingPollingCenters] = useState(false);
+    const [loadingBooths, setLoadingBooths] = useState(false);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -86,6 +93,54 @@ export default function MandalList() {
     );
 
     const mandals = hierarchyData?.children || [];
+
+    // Fetch Polling Centers for selected Mandal
+    const fetchPollingCenters = async (mandalId: number) => {
+        setLoadingPollingCenters(true);
+        try {
+            const token = localStorage.getItem('auth_access_token');
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandalId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.data.success) {
+                setPollingCenters(response.data.children || []);
+            }
+        } catch (error) {
+            console.error("Error fetching polling centers:", error);
+            setPollingCenters([]);
+        } finally {
+            setLoadingPollingCenters(false);
+        }
+    };
+
+    // Fetch Booths for selected Polling Center
+    const fetchBooths = async (pollingCenterId: number) => {
+        setLoadingBooths(true);
+        try {
+            const token = localStorage.getItem('auth_access_token');
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.data.success) {
+                setBooths(response.data.children || []);
+            }
+        } catch (error) {
+            console.error("Error fetching booths:", error);
+            setBooths([]);
+        } finally {
+            setLoadingBooths(false);
+        }
+    };
 
     const filteredMandals = mandals.filter((mandal) => {
         const matchesSearch = mandal.displayName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -416,6 +471,20 @@ export default function MandalList() {
                                                                         </button>
                                                                         <button
                                                                             onClick={() => {
+                                                                                fetchPollingCenters(mandal.id);
+                                                                                setOpenDropdownId(null);
+                                                                            }}
+                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
+                                                                        >
+                                                                            <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                                                                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <span className="font-medium">View Polling Centers</span>
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
                                                                                 setSelectedMandalForVoters({ id: mandal.id, name: mandal.displayName });
                                                                                 setShowAssignVotersModal(true);
                                                                                 setOpenDropdownId(null);
@@ -681,6 +750,126 @@ export default function MandalList() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {/* Polling Centers Section */}
+                {pollingCenters.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
+                        <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white">
+                            <h2 className="text-xl font-bold">Polling Centers</h2>
+                        </div>
+                        {loadingPollingCenters ? (
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                                <p className="mt-4 text-gray-600">Loading polling centers...</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gradient-to-r from-green-50 to-green-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Type</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Users</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {pollingCenters.map((pc, index) => (
+                                            <tr key={pc.id} className="hover:bg-green-50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{pc.displayName}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        {pc.levelName || "Polling Center"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        {pc.user_count || 0} users
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${pc.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                                        {pc.isActive === 1 ? "Active" : "Inactive"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                    <button
+                                                        onClick={() => fetchBooths(pc.id)}
+                                                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                        View Booths
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Booths Section */}
+                {booths.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
+                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4 text-white">
+                            <h2 className="text-xl font-bold">Booths</h2>
+                        </div>
+                        {loadingBooths ? (
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                                <p className="mt-4 text-gray-600">Loading booths...</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gradient-to-r from-purple-50 to-purple-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Type</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Users</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Created Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {booths.map((booth, index) => (
+                                            <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{booth.displayName}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                        {booth.levelName || "Booth"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        {booth.user_count || 0} users
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                                        {booth.isActive === 1 ? "Active" : "Inactive"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    {booth.created_at ? new Date(booth.created_at).toLocaleDateString() : "N/A"}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

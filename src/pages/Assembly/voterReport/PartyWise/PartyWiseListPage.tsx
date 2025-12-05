@@ -18,7 +18,6 @@ const PartyWiseListPage: React.FC = () => {
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
     const [page, setPage] = useState(1);
-    const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
@@ -28,12 +27,16 @@ const PartyWiseListPage: React.FC = () => {
         {
             assembly_id: assembly_id!,
             page,
-            limit: 1000,
+            limit: itemsPerPage,
             partFrom,
             partTo,
         },
         { skip: !assembly_id }
     );
+
+    const voters = votersData?.data || [];
+    const totalVoters = votersData?.pagination?.total || 0;
+    const totalPages = votersData?.pagination?.totalPages || 1;
 
     // Extract unique political parties from voter data
     const uniqueParties = useMemo(() => {
@@ -50,11 +53,11 @@ const PartyWiseListPage: React.FC = () => {
         return Array.from(parties).sort();
     }, [votersData]);
 
-    // Filter voters by selected political party
+    // Filter voters by selected political party (client-side for current page only)
     const filteredVoters = useMemo(() => {
-        if (!votersData?.data) return [];
+        if (!voters) return [];
 
-        return votersData.data.filter((voter) => {
+        return voters.filter((voter) => {
             // Filter by political party if selected
             if (selectedParty && voter.politcal_party !== selectedParty) {
                 return false;
@@ -67,23 +70,13 @@ const PartyWiseListPage: React.FC = () => {
             }
             return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
         });
-    }, [votersData, selectedParty]);
-
-    // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
-
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
+    }, [voters, selectedParty]);
 
     const handleReset = () => {
         setSelectedParty("");
         setPartFrom(undefined);
         setPartTo(undefined);
         setPage(1);
-        setCurrentPage(1);
     };
 
     const handleEdit = (voter: VoterList) => {
@@ -167,7 +160,7 @@ const PartyWiseListPage: React.FC = () => {
                                     value={selectedParty}
                                     onChange={(e) => {
                                         setSelectedParty(e.target.value);
-                                        setCurrentPage(1);
+                                        setPage(1);
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
@@ -232,7 +225,7 @@ const PartyWiseListPage: React.FC = () => {
                                 )}
                             </div>
                             <VoterListTable
-                                voters={paginatedVoters}
+                                voters={filteredVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
@@ -240,19 +233,19 @@ const PartyWiseListPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                                     <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                                        Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={() => setCurrentPage(currentPage - 1)}
-                                            disabled={currentPage === 1}
+                                            onClick={() => setPage(page - 1)}
+                                            disabled={page === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
                                             Previous
                                         </button>
                                         <button
-                                            onClick={() => setCurrentPage(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
+                                            onClick={() => setPage(page + 1)}
+                                            disabled={page === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
                                             Next

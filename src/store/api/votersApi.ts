@@ -28,6 +28,7 @@ interface GetVotersByAssemblyParams {
     address?: string;
     partFrom?: number;
     partTo?: number;
+    eu_ssr_form_submitted?: string;
 }
 
 interface UpdateVoterRequest extends Partial<VoterListCandidate> {
@@ -73,7 +74,7 @@ export const votersApi = createApi({
             invalidatesTags: ["Voters"],
         }),
         getVotersByAssemblyPaginated: builder.query<VoterApiResponse, GetVotersByAssemblyParams>({
-            query: ({ assembly_id, limit, page, search, fatherName, address, partFrom, partTo }) => {
+            query: ({ assembly_id, limit, page, search, fatherName, address, partFrom, partTo, eu_ssr_form_submitted }) => {
                 const params = new URLSearchParams({
                     limit: limit.toString(),
                     page: page.toString(),
@@ -84,6 +85,7 @@ export const votersApi = createApi({
                 if (address) params.append("address", address);
                 if (partFrom !== undefined) params.append("partFrom", partFrom.toString());
                 if (partTo !== undefined) params.append("partTo", partTo.toString());
+                if (eu_ssr_form_submitted) params.append("eu_ssr_form_submitted", eu_ssr_form_submitted);
 
                 return {
                     url: `/voters/assembly/${assembly_id}/paginated?${params.toString()}`,

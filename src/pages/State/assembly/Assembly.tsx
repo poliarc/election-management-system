@@ -14,7 +14,6 @@ export default function StateAssembly() {
   const [selectedDistrictParentId, setSelectedDistrictParentId] = useState<number | null>(null);
   const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string>("");
-  const [allAssemblies, setAllAssemblies] = useState<HierarchyChild[]>([]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedAssembly, setSelectedAssembly] = useState<{
     id: number;
@@ -39,7 +38,7 @@ export default function StateAssembly() {
     }
   }, []);
 
-  // Fetch districts when state is available and load all assemblies
+  // Fetch districts when state is available
   useEffect(() => {
     const loadDistricts = async () => {
       if (!stateId) return;
@@ -52,25 +51,6 @@ export default function StateAssembly() {
 
         if (response.success) {
           setDistricts(response.data.children);
-          
-          // Fetch all assemblies from all districts
-          const allAssembliesPromises = response.data.children.map((district) =>
-            fetchHierarchyChildren(district.location_id, {
-              page: 1,
-              limit: 1000,
-            })
-          );
-
-          const allAssembliesResponses = await Promise.all(allAssembliesPromises);
-          const allAssembliesData: HierarchyChild[] = [];
-          
-          allAssembliesResponses.forEach((res) => {
-            if (res.success) {
-              allAssembliesData.push(...res.data.children);
-            }
-          });
-
-          setAllAssemblies(allAssembliesData);
         }
       } catch (err) {
         console.error("Error fetching districts:", err);
@@ -79,6 +59,16 @@ export default function StateAssembly() {
 
     loadDistricts();
   }, [stateId]);
+
+  // Auto-select first district when districts load
+  useEffect(() => {
+    if (districts.length > 0 && !selectedDistrictId) {
+      const firstDistrict = districts[0];
+      setSelectedDistrictId(firstDistrict.location_id.toString());
+      setSelectedDistrictName(firstDistrict.location_name);
+      setSelectedDistrictParentId(firstDistrict.parent_id || null);
+    }
+  }, [districts, selectedDistrictId]);
 
   // Fetch assemblies when district is selected
   useEffect(() => {
@@ -185,7 +175,7 @@ export default function StateAssembly() {
     limit,
   } = useHierarchyData(
     selectedDistrictId ? Number(selectedDistrictId) : null,
-    10
+    25 // Changed from 10 to 25 items per page
   );
 
   const handleSort = (
@@ -196,23 +186,18 @@ export default function StateAssembly() {
     setOrder(order);
   };
 
-  // Use all assemblies if no district is selected, otherwise use filtered data
-  const displayData = selectedDistrictId ? data : allAssemblies;
-  
   // Filter data based on selected assembly
   const filteredData = selectedAssemblyId
-    ? displayData.filter((item) => item.location_id.toString() === selectedAssemblyId)
-    : displayData;
+    ? data.filter((item) => item.location_id.toString() === selectedAssemblyId)
+    : data;
 
-  const filteredTotal = selectedDistrictId 
-    ? (selectedAssemblyId ? filteredData.length : totalChildren)
-    : filteredData.length;
+  const filteredTotal = selectedAssemblyId ? filteredData.length : totalChildren;
 
   return (
     <div className="p-2 bg-gray-50 min-h-screen">
       <HierarchyTable
         data={filteredData}
-        loading={allAssemblies.length === 0 && !selectedDistrictId ? true : (selectedDistrictId ? loading : false)}
+        loading={loading}
         error={error}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
@@ -225,7 +210,7 @@ export default function StateAssembly() {
         emptyMessage={
           selectedDistrictId
             ? "No assemblies found for this district"
-            : "No assemblies found"
+            : "Please select a district to view assemblies"
         }
         stateName={stateName || parentName}
         districtName={selectedDistrictName}

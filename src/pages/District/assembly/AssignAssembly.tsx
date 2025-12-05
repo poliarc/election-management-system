@@ -16,6 +16,7 @@ export default function AssignAssembly() {
 
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [partyId, setPartyId] = useState<number | null>(null);
   const stateId = stateIdParam ? Number(stateIdParam) : null;
   const [assignedUserIds, setAssignedUserIds] = useState<number[]>([]);
@@ -42,8 +43,20 @@ export default function AssignAssembly() {
     }
   }, []);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      if (searchTerm !== debouncedSearchTerm) {
+        setPage(1); // Reset to page 1 when search changes
+        setAllUsers([]); // Clear accumulated users when search changes
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { data, isLoading: loadingUsers } = useGetUsersByPartyAndStateQuery(
-    { partyId: partyId!, stateId: stateId!, page, limit: 20 },
+    { partyId: partyId!, stateId: stateId!, page, limit: 20, search: debouncedSearchTerm },
     { skip: !partyId || !stateId }
   );
 
@@ -103,13 +116,8 @@ export default function AssignAssembly() {
     fetchAssigned();
   }, [assemblyId]);
 
-  const filteredUsers = allUsers.filter(
-    (user) =>
-      user.isActive === 1 &&
-      (user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Filter only by active status since search is now handled by API
+  const filteredUsers = allUsers.filter((user) => user.isActive === 1);
 
   const hasMore = pagination && pagination.page < pagination.totalPages;
 

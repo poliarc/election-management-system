@@ -20,6 +20,7 @@ const MarriedWomenReportPage: React.FC = () => {
     const [ageTo, setAgeTo] = useState<number | undefined>();
     const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
+    const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
@@ -27,7 +28,7 @@ const MarriedWomenReportPage: React.FC = () => {
         {
             assembly_id: assembly_id!,
             page,
-            limit: 1000, // Fetch more records to filter on client side
+            limit: itemsPerPage,
             partFrom,
             partTo,
         },
