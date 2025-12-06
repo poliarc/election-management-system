@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import toast from "react-hot-toast";
 import {
   fetchParties,
   fetchPartyTypes,
@@ -13,7 +14,11 @@ import {
   clearError,
   clearPartyUsers,
 } from "../../../store/partySlice";
-import type { Party, CreatePartyRequest, UpdatePartyRequest } from "../../../types/party";
+import type {
+  Party,
+  CreatePartyRequest,
+  UpdatePartyRequest,
+} from "../../../types/party";
 import { AdminAssignmentCell } from "../../../components/AdminAssignmentCell";
 import {
   Database,
@@ -36,18 +41,28 @@ import {
 
 export const PartyMasterPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { parties, partyTypes, partyUsers, loading, error, pagination, queryParams } =
-    useAppSelector((state) => state.party);
+  const {
+    parties,
+    partyTypes,
+    partyUsers,
+    loading,
+    error,
+    pagination,
+    queryParams,
+  } = useAppSelector((state) => state.party);
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Party | null>(null);
   const [viewing, setViewing] = useState<Party | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [selectedPartyForAdmin, setSelectedPartyForAdmin] = useState<Party | null>(null);
+  const [selectedPartyForAdmin, setSelectedPartyForAdmin] =
+    useState<Party | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
 
-  const [localSearch, setLocalSearch] = useState<string>(queryParams.search || "");
+  const [localSearch, setLocalSearch] = useState<string>(
+    queryParams.search || ""
+  );
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   const formRef = useRef<HTMLDivElement>(null);
@@ -61,7 +76,9 @@ export const PartyMasterPage: React.FC = () => {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      dispatch(setQueryParams({ ...queryParams, search: localSearch, page: 1 }));
+      dispatch(
+        setQueryParams({ ...queryParams, search: localSearch, page: 1 })
+      );
       dispatch(fetchParties({ ...queryParams, search: localSearch, page: 1 }));
     }, 300);
     return () => clearTimeout(timer);
@@ -69,7 +86,10 @@ export const PartyMasterPage: React.FC = () => {
 
   // Stats
   const total = parties.length;
-  const activeCount = useMemo(() => parties.filter((p) => p.isActive === 1).length, [parties]);
+  const activeCount = useMemo(
+    () => parties.filter((p) => p.isActive === 1).length,
+    [parties]
+  );
   const inactiveCount = total - activeCount;
   const typeTotal = partyTypes.length;
 
@@ -109,10 +129,16 @@ export const PartyMasterPage: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     if (!partyToDelete) return;
-    await dispatch(deleteParty(partyToDelete.party_id));
-    setShowDeleteModal(false);
-    setPartyToDelete(null);
-    dispatch(fetchParties(queryParams));
+    try {
+      await dispatch(deleteParty(partyToDelete.party_id)).unwrap();
+      toast.success("Party deleted successfully");
+      setShowDeleteModal(false);
+      setPartyToDelete(null);
+      dispatch(fetchParties(queryParams));
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete party. Please try again.");
+    }
   };
 
   const handleCancelDelete = () => {
@@ -121,12 +147,19 @@ export const PartyMasterPage: React.FC = () => {
   };
 
   const handleToggle = async (party: Party) => {
-    if (party.isActive === 1) {
-      await dispatch(deactivateParty(party.party_id));
-    } else {
-      await dispatch(activateParty(party.party_id));
+    try {
+      if (party.isActive === 1) {
+        await dispatch(deactivateParty(party.party_id)).unwrap();
+        toast.success(`${party.partyName} marked as inactive`);
+      } else {
+        await dispatch(activateParty(party.party_id)).unwrap();
+        toast.success(`${party.partyName} marked as active`);
+      }
+      dispatch(fetchParties(queryParams));
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update party status. Please try again.");
     }
-    dispatch(fetchParties(queryParams));
   };
 
   const handleAssignAdmin = (party: Party) => {
@@ -157,7 +190,10 @@ export const PartyMasterPage: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const codeSanitized = (raw: string) =>
-      raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+      raw
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 10);
     const codeValid = /^[A-Z0-9]{1,10}$/.test(partyCode);
 
     const onSubmit = async (e: React.FormEvent) => {
@@ -172,20 +208,23 @@ export const PartyMasterPage: React.FC = () => {
             partyCode: partyCode.trim(),
             party_type_id: partyTypeId,
           };
-          await dispatch(updateParty({ id: editing.party_id, data }));
+          await dispatch(updateParty({ id: editing.party_id, data })).unwrap();
+          toast.success("Party updated successfully");
         } else {
           const data: CreatePartyRequest = {
             partyName: partyName.trim(),
             partyCode: partyCode.trim(),
             party_type_id: partyTypeId,
           };
-          await dispatch(createParty(data));
+          await dispatch(createParty(data)).unwrap();
+          toast.success("Party created successfully");
         }
         dispatch(fetchParties(queryParams));
         setShowForm(false);
         setEditing(null);
       } catch (err) {
         console.error(err);
+        toast.error("Failed to save party. Please try again.");
       } finally {
         setSubmitting(false);
       }
@@ -193,7 +232,10 @@ export const PartyMasterPage: React.FC = () => {
 
     return (
       <div className="bg-white p-1 rounded-lg shadow-md">
-        <form onSubmit={onSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form
+          onSubmit={onSubmit}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
           <div className="col-span-1 sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Party Name <span className="text-red-500">*</span>
@@ -218,11 +260,13 @@ export const PartyMasterPage: React.FC = () => {
               disabled={submitting}
             >
               <option value={0}>Select party type</option>
-              {partyTypes.filter((t) => t.isActive === 1).map((type) => (
-                <option key={type.party_type_id} value={type.party_type_id}>
-                  {type.type}
-                </option>
-              ))}
+              {partyTypes
+                .filter((t) => t.isActive === 1)
+                .map((type) => (
+                  <option key={type.party_type_id} value={type.party_type_id}>
+                    {type.type}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -233,8 +277,9 @@ export const PartyMasterPage: React.FC = () => {
               type="text"
               value={partyCode}
               onChange={(e) => setPartyCode(codeSanitized(e.target.value))}
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${codeValid ? "border-gray-300" : "border-red-300"
-                }`}
+              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                codeValid ? "border-gray-300" : "border-red-300"
+              }`}
               placeholder="Enter party code (e.g., BJP, INC)"
               disabled={submitting}
             />
@@ -256,7 +301,9 @@ export const PartyMasterPage: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={submitting || !partyName.trim() || !codeValid || !partyTypeId}
+              disabled={
+                submitting || !partyName.trim() || !codeValid || !partyTypeId
+              }
               className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60"
             >
               {editing ? "Update Party" : "Create Party"}
@@ -276,7 +323,8 @@ export const PartyMasterPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <div className="flex items-center gap-2 text-indigo-700 font-semibold">
-              <Users className="w-5 h-5" /> Select Admin for {selectedPartyForAdmin.partyName}
+              <Users className="w-5 h-5" /> Select Admin for{" "}
+              {selectedPartyForAdmin.partyName}
             </div>
             <button
               onClick={() => {
@@ -291,8 +339,11 @@ export const PartyMasterPage: React.FC = () => {
           </div>
           <div className="p-5 overflow-y-auto flex-1">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading users...</div>
-            ) : partyUsers.filter((user) => user.isSuperAdmin !== 1).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Loading users...
+              </div>
+            ) : partyUsers.filter((user) => user.isSuperAdmin !== 1).length ===
+              0 ? (
               <div className="text-center py-8 text-gray-500">
                 No users found for this party
               </div>
@@ -303,10 +354,11 @@ export const PartyMasterPage: React.FC = () => {
                   .map((user) => (
                     <div
                       key={user.user_id}
-                      className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${selectedPartyForAdmin.adminId === user.user_id
-                        ? "bg-blue-100 border-blue-500"
-                        : "border-gray-200"
-                        }`}
+                      className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${
+                        selectedPartyForAdmin.adminId === user.user_id
+                          ? "bg-blue-100 border-blue-500"
+                          : "border-gray-200"
+                      }`}
                       onClick={() => handleSelectAdmin(user.user_id)}
                     >
                       <div className="flex items-center justify-between">
@@ -318,7 +370,9 @@ export const PartyMasterPage: React.FC = () => {
                             <div className="font-semibold text-gray-900">
                               {user.first_name} {user.last_name}
                             </div>
-                            <div className="text-sm text-gray-600">{user.email}</div>
+                            <div className="text-sm text-gray-600">
+                              {user.email}
+                            </div>
                             <div className="text-xs text-gray-500">
                               {user.role} • {user.contact_no}
                             </div>
@@ -365,23 +419,30 @@ export const PartyMasterPage: React.FC = () => {
             <div className="flex items-center gap-2 text-indigo-700 font-semibold">
               <Info className="w-5 h-5" /> Party Details
             </div>
-            <button onClick={() => setViewing(null)} className="text-gray-500 hover:text-gray-700">
+            <button
+              onClick={() => setViewing(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
           <div className="p-5 space-y-3 text-sm">
             <div className="flex items-center gap-2 text-gray-800">
-              <Tag className="w-4 h-4" /> <span className="font-medium">Name:</span> {viewing.partyName}
+              <Tag className="w-4 h-4" />{" "}
+              <span className="font-medium">Name:</span> {viewing.partyName}
             </div>
             <div className="flex items-center gap-2 text-gray-800">
-              <Tag className="w-4 h-4" /> <span className="font-medium">Code:</span> {viewing.partyCode}
+              <Tag className="w-4 h-4" />{" "}
+              <span className="font-medium">Code:</span> {viewing.partyCode}
             </div>
             <div className="flex items-center gap-2 text-gray-800">
-              <Database className="w-4 h-4" /> <span className="font-medium">Type:</span>{" "}
+              <Database className="w-4 h-4" />{" "}
+              <span className="font-medium">Type:</span>{" "}
               {viewing.party_type_name}
             </div>
             <div className="flex items-center gap-2 text-gray-800">
-              <UserCheck className="w-4 h-4" /> <span className="font-medium">Admin:</span>{" "}
+              <UserCheck className="w-4 h-4" />{" "}
+              <span className="font-medium">Admin:</span>{" "}
               {viewing.admin_name || "Not assigned"}
             </div>
             {viewing.admin_email && (
@@ -403,11 +464,13 @@ export const PartyMasterPage: React.FC = () => {
               )}
             </div>
             <div className="flex items-center gap-2 text-gray-800">
-              <Clock className="w-4 h-4" /> <span className="font-medium">Created:</span>{" "}
+              <Clock className="w-4 h-4" />{" "}
+              <span className="font-medium">Created:</span>{" "}
               {new Date(viewing.created_at).toLocaleString()}
             </div>
             <div className="flex items-center gap-2 text-gray-800">
-              <Clock className="w-4 h-4" /> <span className="font-medium">Updated:</span>{" "}
+              <Clock className="w-4 h-4" />{" "}
+              <span className="font-medium">Updated:</span>{" "}
               {new Date(viewing.updated_at).toLocaleString()}
             </div>
           </div>
@@ -462,8 +525,9 @@ export const PartyMasterPage: React.FC = () => {
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-yellow-800">
-                      <strong>Warning:</strong> This party has an assigned admin (
-                      {partyToDelete.admin_name}). Deleting will remove this assignment.
+                      <strong>Warning:</strong> This party has an assigned admin
+                      ({partyToDelete.admin_name}). Deleting will remove this
+                      assignment.
                     </p>
                   </div>
                 )}
@@ -496,7 +560,10 @@ export const PartyMasterPage: React.FC = () => {
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={() => dispatch(clearError())} className="text-red-500 hover:text-red-700">
+          <button
+            onClick={() => dispatch(clearError())}
+            className="text-red-500 hover:text-red-700"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -507,11 +574,13 @@ export const PartyMasterPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-              <Database className="w-8 h-8" />
+              <Database className="w-8 h-8 text-amber-900" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Party Master</h1>
-              <p className="text-purple-100 mt-1">Manage political party records</p>
+              <p className="text-purple-100 mt-1">
+                Manage political party records
+              </p>
             </div>
           </div>
           <button
@@ -528,30 +597,46 @@ export const PartyMasterPage: React.FC = () => {
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
               <Tag className="w-6 h-6 text-purple-700 bg-white rounded-full p-1 shadow" />
-              <span className="text-sm font-semibold text-purple-800">Total Parties</span>
+              <span className="text-sm font-semibold text-purple-800">
+                Total Parties
+              </span>
             </div>
-            <div className="text-4xl font-extrabold text-purple-900">{pagination.total}</div>
+            <div className="text-4xl font-extrabold text-purple-900">
+              {pagination.total}
+            </div>
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-green-100 via-green-200 to-green-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
               <ToggleRight className="w-6 h-6 text-green-700 bg-white rounded-full p-1 shadow" />
-              <span className="text-sm font-semibold text-green-800">Active Parties</span>
+              <span className="text-sm font-semibold text-green-800">
+                Active Parties
+              </span>
             </div>
-            <div className="text-4xl font-extrabold text-green-900">{activeCount}</div>
+            <div className="text-4xl font-extrabold text-green-900">
+              {activeCount}
+            </div>
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-red-100 via-red-200 to-red-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
               <ToggleLeft className="w-6 h-6 text-red-700 bg-white rounded-full p-1 shadow" />
-              <span className="text-sm font-semibold text-red-800">Inactive Parties</span>
+              <span className="text-sm font-semibold text-red-800">
+                Inactive Parties
+              </span>
             </div>
-            <div className="text-4xl font-extrabold text-red-900">{inactiveCount}</div>
+            <div className="text-4xl font-extrabold text-red-900">
+              {inactiveCount}
+            </div>
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
               <Database className="w-6 h-6 text-indigo-700 bg-white rounded-full p-1 shadow" />
-              <span className="text-sm font-semibold text-indigo-800">Party Types</span>
+              <span className="text-sm font-semibold text-indigo-800">
+                Party Types
+              </span>
             </div>
-            <div className="text-4xl font-extrabold text-indigo-900">{typeTotal}</div>
+            <div className="text-4xl font-extrabold text-indigo-900">
+              {typeTotal}
+            </div>
           </div>
         </div>
       </div>
@@ -584,15 +669,20 @@ export const PartyMasterPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
-                ? "bg-blue-50 border-blue-300 text-blue-700"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${
+                showFilters || hasActiveFilters
+                  ? "bg-blue-50 border-blue-300 text-blue-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
             >
               <Filter className="w-4 h-4" /> Filters
               {hasActiveFilters && (
                 <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {[localSearch, queryParams.isActive].filter((v) => v !== undefined && v !== "").length}
+                  {
+                    [localSearch, queryParams.isActive].filter(
+                      (v) => v !== undefined && v !== ""
+                    ).length
+                  }
                 </span>
               )}
             </button>
@@ -612,11 +702,20 @@ export const PartyMasterPage: React.FC = () => {
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
                 <select
-                  value={queryParams.isActive === undefined ? "" : queryParams.isActive}
+                  value={
+                    queryParams.isActive === undefined
+                      ? ""
+                      : queryParams.isActive
+                  }
                   onChange={(e) =>
-                    handleFilterChange("isActive", e.target.value === "" ? undefined : Number(e.target.value))
+                    handleFilterChange(
+                      "isActive",
+                      e.target.value === "" ? undefined : Number(e.target.value)
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -626,10 +725,14 @@ export const PartyMasterPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Results per page</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Results per page
+                </label>
                 <select
                   value={queryParams.limit}
-                  onChange={(e) => handleFilterChange("limit", Number(e.target.value))}
+                  onChange={(e) =>
+                    handleFilterChange("limit", Number(e.target.value))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={10}>10</option>
@@ -645,16 +748,19 @@ export const PartyMasterPage: React.FC = () => {
         <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
           <div>
             <span className="flex items-center gap-1">
-              <Database className="w-4 h-4" /> Showing {parties.length} of {pagination.total} result
+              <Database className="w-4 h-4" /> Showing {parties.length} of{" "}
+              {pagination.total} result
               {pagination.total !== 1 ? "s" : ""}
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full" /> <span>Active</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full" />{" "}
+              <span>Active</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full" /> <span>Inactive</span>
+              <div className="w-2 h-2 bg-gray-400 rounded-full" />{" "}
+              <span>Inactive</span>
             </div>
           </div>
         </div>
@@ -672,7 +778,9 @@ export const PartyMasterPage: React.FC = () => {
           </div>
         </div>
         {loading ? (
-          <div className="p-10 text-center text-gray-500">Loading parties...</div>
+          <div className="p-10 text-center text-gray-500">
+            Loading parties...
+          </div>
         ) : parties.length === 0 ? (
           <div className="p-10 text-center text-gray-500">
             No parties found. Click "Add Party" to create one.
@@ -708,26 +816,45 @@ export const PartyMasterPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${p.isActive === 1 ? "bg-purple-100" : "bg-gray-100"
-                            }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            p.isActive === 1 ? "bg-purple-100" : "bg-gray-100"
+                          }`}
                         >
                           <Database
-                            className={`w-5 h-5 ${p.isActive === 1 ? "text-purple-600" : "text-gray-400"}`}
+                            className={`w-5 h-5 ${
+                              p.isActive === 1
+                                ? "text-purple-600"
+                                : "text-gray-400"
+                            }`}
                           />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">{p.partyName}</div>
-                          <div className="text-xs text-gray-500">ID: {p.party_id}</div>
+                          <div className="text-sm font-semibold text-gray-900">
+                            {p.partyName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            ID: {p.party_id}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{p.partyCode}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{p.party_type_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <AdminAssignmentCell party={p} onAssignClick={handleAssignAdmin} />
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {p.partyCode}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {p.party_type_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button onClick={() => handleToggle(p)} className="flex items-center gap-2">
+                      <AdminAssignmentCell
+                        party={p}
+                        onAssignClick={handleAssignAdmin}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleToggle(p)}
+                        className="flex items-center gap-2"
+                      >
                         {p.isActive === 1 ? (
                           <>
                             <ToggleRight className="w-5 h-5 text-green-500" />
@@ -791,7 +918,8 @@ export const PartyMasterPage: React.FC = () => {
             </button>
 
             <span className="px-4 py-2 text-sm text-gray-600 font-medium">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+              Page {pagination.page} of {pagination.totalPages} (
+              {pagination.total} total)
             </span>
 
             <button

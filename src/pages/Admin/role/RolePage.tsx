@@ -167,7 +167,7 @@ export const RolePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-              <Shield className="w-8 h-8" />
+              <Shield className="w-8 h-8 text-amber-900" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">Role Management</h1>
@@ -223,9 +223,9 @@ export const RolePage: React.FC = () => {
             initialValues={
               editingRole
                 ? {
-                  roleName: editingRole.roleName,
-                  isActive: editingRole.isActive,
-                }
+                    roleName: editingRole.roleName,
+                    isActive: editingRole.isActive,
+                  }
                 : undefined
             }
             onSubmit={editingRole ? handleUpdateRole : handleCreateRole}
@@ -262,7 +262,8 @@ export const RolePage: React.FC = () => {
             </button>
 
             <span className="px-4 py-2 text-sm text-gray-600 font-medium">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+              Page {pagination.page} of {pagination.totalPages} (
+              {pagination.total} total)
             </span>
 
             <button

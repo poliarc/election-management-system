@@ -34,10 +34,15 @@ export const partyTypeApi = createApi({
   tagTypes: ["PartyType"],
   endpoints: (builder) => ({
     // GET all party types
-    getPartyTypes: builder.query<PartyTypeApiResponse, { page?: number; limit?: number } | void>({
+    getPartyTypes: builder.query<
+      PartyTypeApiResponse,
+      { page?: number; limit?: number } | void
+    >({
       query: (params) => ({
         url: `/all`,
-        params: params ? { page: params.page || 1, limit: params.limit || 25 } : { page: 1, limit: 25 },
+        params: params
+          ? { page: params.page || 1, limit: params.limit || 25 }
+          : { page: 1, limit: 25 },
       }),
       providesTags: ["PartyType"],
     }),
@@ -72,7 +77,10 @@ export const partyTypeApi = createApi({
     }),
 
     // ACTIVATE party type
-    activatePartyType: builder.mutation<PartyTypeOperationResponse, number | string>({
+    activatePartyType: builder.mutation<
+      PartyTypeOperationResponse,
+      number | string
+    >({
       query: (id) => ({
         url: `/${id}/activate`,
         method: "PATCH",
@@ -81,7 +89,10 @@ export const partyTypeApi = createApi({
     }),
 
     // DEACTIVATE party type
-    deactivatePartyType: builder.mutation<PartyTypeOperationResponse, number | string>({
+    deactivatePartyType: builder.mutation<
+      PartyTypeOperationResponse,
+      number | string
+    >({
       query: (id) => ({
         url: `/${id}/deactivate`,
         method: "PATCH",
@@ -90,7 +101,10 @@ export const partyTypeApi = createApi({
     }),
 
     // DELETE party type
-    deletePartyType: builder.mutation<PartyTypeOperationResponse, number | string>({
+    deletePartyType: builder.mutation<
+      PartyTypeOperationResponse,
+      number | string
+    >({
       query: (id) => ({
         url: `/delete/${id}`,
         method: "DELETE",
