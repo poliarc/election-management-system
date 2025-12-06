@@ -94,8 +94,8 @@ const OutsideLocationListPage: React.FC = () => {
     }
 
     return (
-        <div className="p-6">
-            <div className="mb-6 flex items-center justify-between">
+        <div className="p-1">
+            <div className="mb-1 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
                         Outside Location Wise List
@@ -134,8 +134,8 @@ const OutsideLocationListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-4 rounded-lg shadow mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Staying Status
@@ -181,14 +181,17 @@ const OutsideLocationListPage: React.FC = () => {
                                     placeholder="Enter part number"
                                 />
                             </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleReset}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                            >
-                                Reset
-                            </button>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    &nbsp;
+                                </label>
+                                <button
+                                    onClick={handleReset}
+                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                >
+                                    Reset
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -198,7 +201,7 @@ const OutsideLocationListPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <div className={`mb-4 text-sm text-gray-600 p-3 rounded-lg border ${stayingStatus === "outside"
+                            <div className={`mb-1 text-sm text-gray-600 p-3 rounded-lg border ${stayingStatus === "outside"
                                 ? "bg-purple-50 border-purple-200"
                                 : stayingStatus === "not_outside"
                                     ? "bg-green-50 border-green-200"

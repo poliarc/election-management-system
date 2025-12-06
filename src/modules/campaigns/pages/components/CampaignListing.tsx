@@ -310,7 +310,7 @@ export const CampaignListing = ({
   };
 
   return (
-    <div className="space-y-6 p-4 rounded-2xl bg-gray-50 shadow-md w-full">
+    <div className="space-y-1 p-1 rounded-2xl bg-gray-50 shadow-md w-full">
       {/* Header */}
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
@@ -322,14 +322,14 @@ export const CampaignListing = ({
         <div className="flex gap-2">
           {/* <button
             onClick={() => navigate("/state/campaigns/reports")}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg"
           >
             <FileText size={20} />
             View Reports
           </button> */}
           <button
             onClick={onCreateNew}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg"
           >
             <Plus size={20} />
             Create Campaign
@@ -339,37 +339,43 @@ export const CampaignListing = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Campaigns</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">Total Campaigns</p>
+              <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{stats.total}</p>
             </div>
-            <Calendar className="text-blue-600" size={24} />
+            <div className="bg-blue-100 p-3 rounded-full group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300">
+              <Calendar className="text-blue-600 group-hover:text-white transition-colors" size={24} />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-sm border border-green-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Campaigns</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-sm text-gray-600 group-hover:text-green-600 transition-colors">Active Campaigns</p>
+              <p className="text-3xl font-bold text-green-600 group-hover:scale-110 transition-transform">
                 {stats.active}
               </p>
             </div>
-            <Eye className="text-green-600" size={24} />
+            <div className="bg-green-100 p-3 rounded-full group-hover:bg-green-600 group-hover:scale-110 transition-all duration-300">
+              <Eye className="text-green-600 group-hover:text-white transition-colors" size={24} />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-600">
+              <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">Completed</p>
+              <p className="text-3xl font-bold text-gray-600 group-hover:scale-110 transition-transform">
                 {stats.completed}
               </p>
             </div>
-            <Calendar className="text-gray-600" size={24} />
+            <div className="bg-gray-100 p-3 rounded-full group-hover:bg-gray-600 group-hover:scale-110 transition-all duration-300">
+              <Calendar className="text-gray-600 group-hover:text-white transition-colors" size={24} />
+            </div>
           </div>
         </div>
       </div>
@@ -404,7 +410,7 @@ export const CampaignListing = ({
 
       {/* Campaigns List */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b">
+        <div className="p-3 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
             Campaigns ({filteredCampaigns.length})
           </h2>
@@ -440,7 +446,7 @@ export const CampaignListing = ({
                 return (
                   <div
                     key={campaign.id}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition flex flex-col sm:flex-row gap-0"
+                    className="border border-gray-200 rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-0 group"
                   >
                     {/* Campaign Images */}
                     {images.length > 0 && (
@@ -460,7 +466,7 @@ export const CampaignListing = ({
                       <div className="flex gap-2 justify-end mb-2">
                         <button
                           onClick={() => onViewDetails(campaign)}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                          className="p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md"
                           title="View Details"
                         >
                           <Eye size={16} />
@@ -468,7 +474,7 @@ export const CampaignListing = ({
                         {isCampaignActive(campaign) && (
                           <button
                             onClick={() => onEditCampaign(campaign)}
-                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                            className="p-2 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md"
                             title="Edit Campaign"
                           >
                             <Edit size={16} />
@@ -476,7 +482,7 @@ export const CampaignListing = ({
                         )}
                         <button
                           onClick={() => onDeleteCampaign(campaign)}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                          className="p-2 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md"
                           title="Delete Campaign"
                         >
                           <Trash2 size={16} />

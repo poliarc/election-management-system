@@ -138,8 +138,8 @@ export const VoterEditForm: React.FC<Props> = ({
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gray-50">
-            <div className="flex items-center mb-6">
+        <div className="min-h-screen p-1 bg-gray-50">
+            <div className="flex items-center mb-1">
                 <button
                     onClick={onCancel}
                     className="p-2 mr-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
@@ -151,8 +151,8 @@ export const VoterEditForm: React.FC<Props> = ({
 
             <form onSubmit={handleSubmit(handleSave)}>
                 {/* Personal Details - Read Only */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-900">Personal Details</h2>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <h2 className="text-lg font-semibold mb-1 text-gray-900">Personal Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <DisplayField label="Voter Name" value={initialValues?.voter_full_name_en} />
                         <DisplayField label="Relative Name" value={initialValues?.relative_full_name_en} />
@@ -170,8 +170,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 </div>
 
                 {/* Contact Details - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="flex justify-between items-center mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">Contact Details</h2>
                         {editingSection !== 'contact' && (
                             <EditButton onEdit={() => handleEdit('contact')} />
@@ -189,8 +189,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 </div>
 
                 {/* Voter Information - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="flex justify-between items-center mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">Voter Information</h2>
                         {editingSection !== 'voter_info' && (
                             <EditButton onEdit={() => handleEdit('voter_info')} />
@@ -208,8 +208,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 </div>
 
                 {/* Political Profiling - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="flex justify-between items-center mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">Voter Profiling</h2>
                         {editingSection !== 'political' && (
                             <EditButton onEdit={() => handleEdit('political')} />
@@ -290,8 +290,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 </div>
 
                 {/* Voter Location - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="flex justify-between items-center mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">Voter Location</h2>
                         {editingSection !== 'location' && (
                             <EditButton onEdit={() => handleEdit('location')} />

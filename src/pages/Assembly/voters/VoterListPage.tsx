@@ -9,7 +9,7 @@ import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "..
 
 const translations = {
     en: {
-        title: "Voter List Management",
+        title: "Voter List",
         subtitle: "Manage and update voter information",
         totalVoters: "total voters",
         searchVoters: "Search Voters",
@@ -162,8 +162,8 @@ export default function VoterListPage() {
     const totalVoters = data?.pagination?.total || 0;
 
     return (
-        <div className="p-6">
-            <div className="mb-6 flex justify-between items-start">
+        <div className="p-1">
+            <div className="mb-1 flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
                     <p className="text-gray-600 mt-1">
@@ -197,7 +197,7 @@ export default function VoterListPage() {
             ) : (
                 <>
                     {/* Search and Filters */}
-                    <div className="mb-6 bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="mb-1 bg-white p-1 rounded-lg border border-gray-200">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
