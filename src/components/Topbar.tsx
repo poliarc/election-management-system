@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment, clearSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
 import type { PanelAssignment } from "../types/auth";
+import GoogleTranslate from "./GoogleTranslate";
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const user = useAppSelector((s) => s.auth.user);
@@ -771,6 +772,9 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0" ref={menuRef}>
+          {/* Google Translate */}
+          <GoogleTranslate />
+
           {user && (
             <div className="relative">
               <button

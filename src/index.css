@@ -205,3 +205,109 @@ a:hover {
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Hide Google Translate top banner */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+/* Hide Google logo */
+.goog-logo-link {
+  display: none !important;
+}
+
+.goog-te-gadget img {
+  display: none !important;
+}
+
+/* Hide "Powered by" text */
+.goog-te-gadget>span:first-child {
+  display: none !important;
+}
+
+/* Google Translate wrapper styling */
+.google-translate-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.translate-label {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Style the language selector dropdown */
+.goog-te-combo {
+  padding: 0.5rem 2rem 0.5rem 0.75rem !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  background-color: white !important;
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  outline: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") !important;
+  background-position: right 0.5rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.25rem !important;
+}
+
+.goog-te-combo:hover {
+  border-color: #d1d5db !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.goog-te-combo:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Style the dropdown menu */
+.goog-te-menu-value {
+  color: #374151 !important;
+}
+
+.goog-te-menu-value span {
+  color: #374151 !important;
+}
+
+.goog-te-gadget select.goog-te-combo,
+#google_translate_element select.goog-te-combo {
+  min-width: 120px !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+  font-family: inherit !important;
+}
+
+/* Target the select element more specifically */
+.google-translate-container select {
+  padding: 0.5rem 2rem 0.5rem 0.75rem !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.5rem !important;
+  background-color: white !important;
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  outline: none !important;
+}
+
+.google-translate-container select:hover {
+  border-color: #d1d5db !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.google-translate-container select:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
