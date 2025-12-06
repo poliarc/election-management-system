@@ -43,9 +43,13 @@ export const PartyTypePage: React.FC = () => {
   });
 
   // ✅ Fetch data with pagination
-  const { data: itemsFromApi, isLoading, refetch } = useGetPartyTypesQuery({
+  const {
+    data: itemsFromApi,
+    isLoading,
+    refetch,
+  } = useGetPartyTypesQuery({
     page: searchParams.page,
-    limit: searchParams.limit
+    limit: searchParams.limit,
   });
 
   const backendPagination = itemsFromApi?.pagination;
@@ -55,7 +59,9 @@ export const PartyTypePage: React.FC = () => {
     page: searchParams.page,
     limit: searchParams.limit,
     total: itemsFromApi?.data?.length || 0,
-    totalPages: Math.ceil((itemsFromApi?.data?.length || 0) / searchParams.limit),
+    totalPages: Math.ceil(
+      (itemsFromApi?.data?.length || 0) / searchParams.limit
+    ),
   };
 
   // ✅ Mutations
@@ -238,7 +244,7 @@ export const PartyTypePage: React.FC = () => {
   // Inline Form
   const Form: React.FC<{ initial?: PartyTypeFormType }> = ({ initial }) => {
     const [typeName, setTypeName] = useState(initial?.typeName || "");
-    const [isActive, setIsActive] = useState(initial?.isActive ?? true);
+    const isActive = initial?.isActive ?? true;
     const [submitting, setSubmitting] = useState(false);
 
     const onSubmit = async (e: React.FormEvent) => {
@@ -270,7 +276,7 @@ export const PartyTypePage: React.FC = () => {
               </p>
             )}
           </div>
-          <div>
+          {/* <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <input
                 type="checkbox"
@@ -284,8 +290,8 @@ export const PartyTypePage: React.FC = () => {
             <p className="mt-1 text-xs text-gray-500">
               Uncheck to make this party type inactive
             </p>
-          </div>
-          <div className="flex justify-end gap-4 pt-4 border-t">
+          </div> */}
+          <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
               onClick={handleFormCancel}
@@ -427,12 +433,14 @@ export const PartyTypePage: React.FC = () => {
                     <div className="flex items-center">
                       <div className="shrink-0 h-10 w-10">
                         <div
-                          className={`h-10 w-10 rounded-full flex items-center justify-center ${pt.isActive ? "bg-purple-100" : "bg-gray-100"
-                            }`}
+                          className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            pt.isActive ? "bg-purple-100" : "bg-gray-100"
+                          }`}
                         >
                           <Database
-                            className={`w-5 h-5 ${pt.isActive ? "text-purple-600" : "text-gray-400"
-                              }`}
+                            className={`w-5 h-5 ${
+                              pt.isActive ? "text-purple-600" : "text-gray-400"
+                            }`}
                           />
                         </div>
                       </div>
@@ -454,8 +462,9 @@ export const PartyTypePage: React.FC = () => {
                         handleToggleStatus(pt.party_type_id, !pt.isActive)
                       }
                       className="flex items-center gap-2 hover:opacity-75 transition-opacity"
-                      title={`Click to ${pt.isActive ? "deactivate" : "activate"
-                        }`}
+                      title={`Click to ${
+                        pt.isActive ? "deactivate" : "activate"
+                      }`}
                     >
                       {pt.isActive ? (
                         <>
@@ -631,10 +640,11 @@ export const PartyTypePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
-                    ? "bg-purple-50 border-purple-300 text-purple-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
+                  className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${
+                    showFilters || hasActiveFilters
+                      ? "bg-purple-50 border-purple-300 text-purple-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
                   <Filter className="w-4 h-4" />
                   Filters
@@ -672,8 +682,8 @@ export const PartyTypePage: React.FC = () => {
                         searchParams.isActive === undefined
                           ? ""
                           : searchParams.isActive
-                            ? "active"
-                            : "inactive"
+                          ? "active"
+                          : "inactive"
                       }
                       onChange={(e) =>
                         handleFilterChange(
@@ -756,7 +766,8 @@ export const PartyTypePage: React.FC = () => {
               </button>
 
               <span className="px-4 py-2 text-sm text-gray-600 font-medium">
-                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+                Page {pagination.page} of {pagination.totalPages} (
+                {pagination.total} total)
               </span>
 
               <button
