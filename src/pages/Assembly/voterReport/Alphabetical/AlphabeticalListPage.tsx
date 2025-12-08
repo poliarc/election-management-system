@@ -104,8 +104,8 @@ export default function AlphabeticalListPage() {
     });
 
     return (
-        <div className="p-6">
-            <div className="mb-6 flex items-center justify-between">
+        <div className="p-1">
+            <div className="mb-1 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Alphabetical List</h1>
                     <p className="text-gray-600 mt-1">
@@ -139,7 +139,7 @@ export default function AlphabeticalListPage() {
             ) : (
                 <>
                     {/* Part Range Filters */}
-                    <div className="mb-6 bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="mb-1 bg-white p-1 rounded-lg border border-gray-200">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,14 +165,14 @@ export default function AlphabeticalListPage() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
-                            {(partFrom || partTo) && (
+                            <div>
                                 <button
                                     onClick={handleClearFilters}
-                                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+                                    className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Clear Filters
+                                    Reset
                                 </button>
-                            )}
+                            </div>
                         </div>
                     </div>
 

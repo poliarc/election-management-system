@@ -73,10 +73,10 @@ const SSRFormReportPage: React.FC = () => {
     }, [votersData]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold">SSR Form Report</h1>
@@ -102,9 +102,8 @@ const SSRFormReportPage: React.FC = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-xl shadow-md p-1 mb-1">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 SSR Form Status
@@ -146,7 +145,10 @@ const SSRFormReportPage: React.FC = () => {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
-                        <div className="flex items-end">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                &nbsp;
+                            </label>
                             <button
                                 onClick={handleReset}
                                 className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
@@ -158,8 +160,8 @@ const SSRFormReportPage: React.FC = () => {
                 </div>
 
                 {/* Results */}
-                <div className="bg-white rounded-xl shadow-md p-6">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-xl shadow-md p-1">
+                    <div className="flex items-center justify-between mb-1">
                         <h2 className="text-lg font-semibold text-gray-900">
                             Voter List ({totalVoters.toLocaleString()} voters)
                         </h2>

@@ -819,7 +819,7 @@ export const CampaignForm = ({
   };
 
   return (
-    <div className="space-y-6 p-4 rounded-xl shadow-md bg-gray-50">
+    <div className="space-y-1 p-1 rounded-xl shadow-md bg-gray-50">
       <div className="flex items-center justify-between gap-6 mb-2">
         <h1 className="text-2xl font-bold text-gray-900">
           {isEditing ? "Edit Campaign" : "Create New Campaign"}
@@ -831,11 +831,11 @@ export const CampaignForm = ({
           ← Back
         </button>
       </div>
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-3">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-1">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Title *
             </label>
             <input
@@ -855,7 +855,7 @@ export const CampaignForm = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Description *
             </label>
             <textarea
@@ -876,7 +876,7 @@ export const CampaignForm = ({
           {/* Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Start Date
               </label>
               <input
@@ -894,7 +894,7 @@ export const CampaignForm = ({
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 End Date
               </label>
               <input
@@ -915,7 +915,7 @@ export const CampaignForm = ({
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Location
             </label>
             <input
@@ -942,7 +942,7 @@ export const CampaignForm = ({
               <button
                 type="button"
                 onClick={handleAddSelector}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded flex items-center gap-1"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-300 hover:scale-105 hover:shadow-md"
               >
                 <span className="text-lg font-bold">+</span> Add
               </button>
@@ -978,6 +978,16 @@ export const CampaignForm = ({
                     <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
+
+                {/* Auto-inclusion indicator - Moved above dropdowns */}
+                {sel.autoInclude && (
+                  <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-700 font-medium">
+                      ✓ Auto-inclusion enabled for this row - will include all
+                      subordinates under selected levels
+                    </p>
+                  </div>
+                )}
 
                 {/* Cascading Dropdowns */}
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-start relative">
@@ -1394,43 +1404,49 @@ export const CampaignForm = ({
                     </button>
                   )}
                 </div>
-
-                {/* Auto-inclusion indicator */}
-                {sel.autoInclude && (
-                  <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-xs text-green-700 font-medium">
-                      ✓ Auto-inclusion enabled for this row - will include all
-                      subordinates under selected levels
-                    </p>
-                  </div>
-                )}
               </div>
             ))}
           </div>
 
           {/* Campaign Photos Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Campaign Photos
-            </label>
+            {/* Header Row */}
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Campaign Photos
+              </label>
+              {imagePreviews.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-gray-800">
+                    Campaign Images ({imagePreviews.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImages([]);
+                      setImagePreviews([]);
+                    }}
+                    className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
 
-            {/* Upload Area */}
-            <div
-              onClick={openFileSelector}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 cursor-pointer mb-4"
-            >
-              <div className="mx-auto w-16 h-16 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg mb-4">
-                <Plus className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Add Campaign Photos
-              </h3>
-              <p className="text-sm text-gray-500 mb-1">
-                Click to select multiple photos or drag and drop
-              </p>
-              <p className="text-xs text-gray-400">
-                Support for JPEG, PNG, WebP files up to 10MB each
-              </p>
+            {/* Upload Button and Images in Same Row */}
+            <div className="flex items-start gap-3 overflow-x-auto pb-2">
+              {/* Upload Button - Small */}
+              <button
+                type="button"
+                onClick={openFileSelector}
+                className="flex-shrink-0 w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-1"
+              >
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xs font-medium text-gray-600">Add Photo</span>
+              </button>
 
               <input
                 ref={fileInputRef}
@@ -1440,92 +1456,39 @@ export const CampaignForm = ({
                 onChange={handleImageChange}
                 className="hidden"
               />
-            </div>
 
-            {/* Images Preview Grid */}
-            {imagePreviews.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Campaign Images ({imagePreviews.length})
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {imagePreviews.length} new (
-                      {(
-                        selectedImages.reduce(
-                          (sum, file) => sum + file.size,
-                          0
-                        ) /
-                        1024 /
-                        1024
-                      ).toFixed(2)}{" "}
-                      MB)
-                    </p>
-                  </div>
+              {/* Images Preview - Horizontal Scroll */}
+              {imagePreviews.map((preview, index) => (
+                <div
+                  key={`new-${index}`}
+                  className="group relative flex-shrink-0 w-24 h-24 bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <img
+                    src={preview}
+                    alt={`Image ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+
+                  {/* Remove Button */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedImages([]);
-                      setImagePreviews([]);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
                     }}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                    title="Remove image"
                   >
-                    Clear All Images
+                    <X className="w-3 h-3" />
                   </button>
+
+                  {/* File Name Tooltip on Hover */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                    {selectedImages[index]?.name || `Image ${index + 1}`}
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {imagePreviews.map((preview, index) => (
-                    <div
-                      key={`new-${index}`}
-                      className="group relative bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      <div className="aspect-square relative overflow-hidden">
-                        <img
-                          src={preview}
-                          alt={`New image ${index + 1}`}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-
-                        {/* New Image Badge */}
-                        <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                          New
-                        </div>
-
-                        {/* Remove Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
-                          className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 transform scale-90 hover:scale-100 shadow-lg"
-                          title="Remove image"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-
-                      <div className="p-3">
-                        <p className="text-xs font-medium text-gray-800 truncate">
-                          {selectedImages[index]?.name || `Image ${index + 1}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {selectedImages[index]
-                            ? (
-                                selectedImages[index].size /
-                                1024 /
-                                1024
-                              ).toFixed(2) + " MB"
-                            : ""}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
 
           {/* Form Actions */}
@@ -1533,9 +1496,9 @@ export const CampaignForm = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-blue-400 disabled:to-purple-400 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none"
             >
-              <Send size={20} />
+              <Send size={20} className={isSubmitting ? "animate-pulse" : ""} />
               {isSubmitting
                 ? isEditing
                   ? "Updating..."
@@ -1547,7 +1510,7 @@ export const CampaignForm = ({
             <button
               type="button"
               onClick={onCancel}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg transition"
+              className="bg-gray-200 hover:bg-gray-600 hover:text-white text-gray-700 px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md"
             >
               Cancel
             </button>
