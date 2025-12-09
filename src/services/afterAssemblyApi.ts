@@ -114,7 +114,7 @@ export async function updateAfterAssemblyData(
     const url = `${API_CONFIG.BASE_URL}/api/after-assembly-data/update/${id}`;
 
     const response = await fetch(url, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
