@@ -29,7 +29,7 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
     if (!isOpen) return null;
 
     // Determine which API to use based on location type
-    const useAfterAssemblyApi = ['Assembly', 'Block', 'Mandal', 'Booth'].includes(locationType);
+    const useAfterAssemblyApi = ['Block', 'Mandal', 'PollingCenter', 'Sector', 'Ward', 'Zone', 'Booth'].includes(locationType);
     const isDeleting = isLoadingLocations || isLoadingLevels;
 
     const handleDeleteClick = (user: HierarchyUser) => {
