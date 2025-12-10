@@ -142,9 +142,9 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
     ];
 
     return (
-        <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+        <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
             {/* User header */}
-            <div className="px-5 py-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-5 py-6 border-b border-gray-200">
                 <div className="flex items-center gap-4">
                     <img
                         src={avatarUrl}
@@ -152,14 +152,14 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
                     />
                     <div className="min-w-0">
-                        <p className="truncate font-semibold text-black dark:text-white text-sm">
+                        <p className="truncate font-semibold text-black text-sm">
                             {firstName}
                         </p>
-                        <p className="text-xs font-medium tracking-wide text-indigo-600 dark:text-indigo-400 uppercase">
+                        <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
                             {levelName} level
                         </p>
                         {currentBoothRange && (
-                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-0.5">
+                            <p className="text-xs font-medium text-gray-600 mt-0.5">
                                 Booth: {currentBoothRange}
                             </p>
                         )}
@@ -172,13 +172,13 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         <button
                             type="button"
                             onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-                            className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                            className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition"
                         >
                             <div className="flex items-center gap-2 min-w-0">
-                                <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg className="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                <span className="font-medium text-gray-700 dark:text-gray-200 truncate">
+                                <span className="font-medium text-gray-700 truncate">
                                     {selectedAssignment.displayName || selectedAssignment.levelName}
                                 </span>
                             </div>
@@ -192,8 +192,8 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         </button>
 
                         {switchDropdownOpen && (
-                            <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800 max-h-64 overflow-y-auto">
-                                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto">
+                                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                                     Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || levelName}
                                 </div>
                                 {sameTypeAssignments.map((assignment) => (
@@ -203,8 +203,8 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                                         className={[
                                             "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                                             selectedAssignment.assignment_id === assignment.assignment_id
-                                                ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
-                                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                                                ? "bg-indigo-50 text-indigo-900"
+                                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                                         ].join(" ")}
                                     >
                                         <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -215,7 +215,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                                                 {assignment.displayName || assignment.levelName}
                                             </div>
                                             {assignment.parentLevelName && (
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                <div className="text-xs text-gray-500 truncate">
                                                     {assignment.parentLevelName}
                                                 </div>
                                             )}
@@ -243,14 +243,14 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         className={({ isActive }) =>
                             [
                                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                                "text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                 isActive
-                                    ? "bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-900/30 dark:to-gray-800 ring-1 ring-indigo-200 dark:ring-indigo-700"
-                                    : "border border-transparent hover:border-gray-200 dark:hover:border-gray-600",
+                                    ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                                    : "border border-transparent hover:border-gray-200",
                             ].join(" ")
                         }
                     >
-                        <span className="text-indigo-600 dark:text-indigo-400 shrink-0">{item.icon}</span>
+                        <span className="text-indigo-600 shrink-0">{item.icon}</span>
                         <span className="truncate">{item.label}</span>
                         <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
                         <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
@@ -259,8 +259,8 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
             </nav>
 
             {/* Account section */}
-            <div className="mt-auto pt-3 pb-5 border-t border-gray-200 dark:border-gray-700">
-                <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <div className="mt-auto pt-3 pb-5 border-t border-gray-200">
+                <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
                     Account
                 </div>
                 <div className="px-4 space-y-2">
@@ -270,15 +270,15 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                         className={({ isActive }) =>
                             [
                                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",
-                                "text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                 isActive
-                                    ? "bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-200 dark:ring-indigo-700"
-                                    : "border border-transparent hover:border-gray-200 dark:hover:border-gray-600",
+                                    ? "bg-indigo-50 ring-1 ring-indigo-200"
+                                    : "border border-transparent hover:border-gray-200",
                             ].join(" ")
                         }
                     >
                         <svg
-                            className="h-5 w-5 stroke-[1.6] text-indigo-600 dark:text-indigo-400"
+                            className="h-5 w-5 stroke-[1.6] text-indigo-600"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -296,7 +296,7 @@ export default function AfterAssemblyPanelSidebar({ onNavigate }: { onNavigate?:
                             dispatch(logout());
                             navigate("/login");
                         }}
-                        className="group w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                        className="group w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition border border-transparent hover:border-red-200"
                     >
                         <svg
                             className="h-5 w-5 stroke-[1.6]"

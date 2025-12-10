@@ -211,7 +211,7 @@ export default function DistrictUserManagement() {
         if (updatedResponse.success && updatedResponse.data?.children) {
           setDistricts(updatedResponse.data.children);
           const updatedDistrict = updatedResponse.data.children.find(
-            (d) => d.location_id === selectedDistrict.location_id
+            (d: any) => d.location_id === selectedDistrict.location_id
           );
           if (updatedDistrict) {
             setSelectedDistrict(updatedDistrict);
@@ -278,7 +278,7 @@ export default function DistrictUserManagement() {
           setDistricts(updatedResponse.data.children);
           if (selectedDistrict) {
             const updatedDistrict = updatedResponse.data.children.find(
-              (d) => d.location_id === selectedDistrict.location_id
+              (d: any) => d.location_id === selectedDistrict.location_id
             );
             if (updatedDistrict) {
               setSelectedDistrict(updatedDistrict);
@@ -352,11 +352,10 @@ export default function DistrictUserManagement() {
                       setSelectedDistrict(district);
                       setShowAssignModal(false);
                     }}
-                    className={`w-full p-4 text-left border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                      selectedDistrict?.location_id === district.location_id
-                        ? "bg-purple-50 border-l-4 border-l-purple-500"
-                        : ""
-                    }`}
+                    className={`w-full p-4 text-left border-b border-gray-200 hover:bg-gray-50 transition-colors ${selectedDistrict?.location_id === district.location_id
+                      ? "bg-purple-50 border-l-4 border-l-purple-500"
+                      : ""
+                      }`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
@@ -480,11 +479,10 @@ export default function DistrictUserManagement() {
                             </td>
                             <td className="px-6 py-4 text-sm">
                               <span
-                                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  user.is_active
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                                  }`}
                               >
                                 {user.is_active ? "Active" : "Inactive"}
                               </span>
@@ -600,11 +598,10 @@ export default function DistrictUserManagement() {
                             </td>
                             <td className="px-6 py-4 text-sm">
                               <span
-                                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  user.isActive
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${user.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                                  }`}
                               >
                                 {user.isActive ? "Active" : "Inactive"}
                               </span>

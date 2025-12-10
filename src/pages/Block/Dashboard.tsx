@@ -114,9 +114,6 @@ export default function BlockDashboard() {
                         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
                             {blockName} Block Dashboard
                         </h1>
-                        <p className="text-sm text-gray-600">
-                            Navigate to administrative & organizational sections.
-                        </p>
                     </div>
                     <div className="relative max-w-md w-full lg:w-80 group">
                         <label htmlFor="dashboard-search" className="sr-only">
