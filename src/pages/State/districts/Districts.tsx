@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
 import HierarchyTable from "../../../components/HierarchyTable";
@@ -11,6 +11,8 @@ export default function StateDistricts() {
   const [stateName, setStateName] = useState<string>("");
   const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
+  const [allDistricts, setAllDistricts] = useState<HierarchyChild[]>([]);
+  const [localPage, setLocalPage] = useState(1);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function StateDistricts() {
     }
   }, []);
 
-  // Fetch all districts for dropdown
+  // Fetch all districts for dropdown and filtering
   useEffect(() => {
     const loadDistricts = async () => {
       if (!stateId) return;
@@ -43,6 +45,7 @@ export default function StateDistricts() {
 
         if (response.success) {
           setDistricts(response.data.children);
+          setAllDistricts(response.data.children);
         }
       } catch (err) {
         console.error("Error fetching districts:", err);
@@ -64,7 +67,6 @@ export default function StateDistricts() {
     setSortBy,
     setOrder,
     currentPage,
-    limit,
   } = useHierarchyData(stateId, 10);
 
   const handleAssignUsers = (districtId: string, districtName: string) => {
@@ -78,7 +80,7 @@ export default function StateDistricts() {
   // Handle district selection
   const handleDistrictChange = (districtId: string) => {
     setSelectedDistrictId(districtId);
-    setPage(1); // Reset to page 1 when filter changes
+    setLocalPage(1); // Reset to page 1 when filter changes
   };
 
   const handleSort = (
@@ -89,12 +91,42 @@ export default function StateDistricts() {
     setOrder(order);
   };
 
-  // Filter data based on selected district
-  const filteredData = selectedDistrictId
-    ? data.filter((item) => item.location_id.toString() === selectedDistrictId)
-    : data;
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (selectedDistrictId) {
+      setLocalPage(page);
+    } else {
+      setPage(page);
+    }
+  };
 
-  const filteredTotal = selectedDistrictId ? filteredData.length : totalChildren;
+  // Memoized filtered and paginated data
+  const { paginatedData, filteredTotal, currentPageToUse } = useMemo(() => {
+    if (selectedDistrictId) {
+      // When filtering, use all districts and apply client-side pagination
+      const filtered = allDistricts.filter((item) =>
+        item.location_id.toString() === selectedDistrictId
+      );
+
+      const itemsPerPage = 10;
+      const startIndex = (localPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginated = filtered.slice(startIndex, endIndex);
+
+      return {
+        paginatedData: paginated,
+        filteredTotal: filtered.length,
+        currentPageToUse: localPage
+      };
+    } else {
+      // When not filtering, use server-side pagination
+      return {
+        paginatedData: data,
+        filteredTotal: totalChildren,
+        currentPageToUse: currentPage
+      };
+    }
+  }, [selectedDistrictId, allDistricts, data, totalChildren, localPage, currentPage]);
 
   // Calculate summary statistics from all districts (not just current page)
   const totalUsers = districts.reduce((sum, district) => sum + district.total_users, 0);
@@ -167,16 +199,16 @@ export default function StateDistricts() {
         </div>
       </div>
       <HierarchyTable
-        data={filteredData}
+        data={paginatedData}
         loading={loading}
         error={error}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         onSort={handleSort}
-        onPageChange={setPage}
-        currentPage={currentPage}
+        onPageChange={handlePageChange}
+        currentPage={currentPageToUse}
         totalItems={filteredTotal}
-        itemsPerPage={limit}
+        itemsPerPage={10}
         title="District List"
         emptyMessage="No districts found for this state"
         stateName={stateName || parentName}
