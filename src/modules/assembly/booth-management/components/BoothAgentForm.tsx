@@ -367,54 +367,48 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         if (data.fourWheeler)
           formData.append("fourWheeler", data.fourWheeler as string);
 
-        // TEMPORARY FIX: Skip numeric fields in FormData due to backend validation issues
-        // The backend expects numbers but FormData converts everything to strings
-        console.log(
-          "⚠️ SKIPPING numeric fields in FormData due to backend validation"
-        );
-        console.log("🔍 Would have added:", {
-          polling_center_id: data.polling_center_id,
-          booth_id: selectedBoothId,
-        });
-
-        // Show warning to user if they're trying to assign polling center/booth with files
-        if (
-          (data.polling_center_id && data.polling_center_id !== "") ||
-          selectedBoothId
-        ) {
-          toast(
-            "⚠️ Note: Polling center and booth assignments are temporarily disabled when uploading files. Please create the agent first, then edit to assign polling center/booth.",
-            {
-              duration: 6000,
-            }
-          );
-        }
-
-        // TODO: Fix backend to handle string numbers in FormData or use different approach
-
-        /* COMMENTED OUT DUE TO BACKEND VALIDATION ISSUE
-        // Add polling_center_id ONLY if it's a valid positive integer
+        // Add polling_center_id if valid - ensure it's a clean integer string
         if (
           data.polling_center_id &&
           data.polling_center_id !== "" &&
           data.polling_center_id !== "0"
         ) {
-          const pcId = Number(data.polling_center_id);
-          const isValidPcId = Number.isInteger(pcId) && pcId > 0;
-          if (isValidPcId) {
+          const pcId = parseInt(String(data.polling_center_id), 10);
+          if (!isNaN(pcId) && pcId > 0) {
+            console.log(
+              "🔍 Adding polling_center_id:",
+              pcId,
+              "as string:",
+              pcId.toString()
+            );
             formData.append("polling_center_id", pcId.toString());
+          } else {
+            console.warn(
+              "⚠️ Invalid polling_center_id:",
+              data.polling_center_id
+            );
           }
+        } else {
+          console.log("🔍 No polling_center_id to add");
         }
 
-        // Add booth_id ONLY if it's a valid positive integer
-        if (
-          selectedBoothId !== null &&
-          Number.isInteger(selectedBoothId) &&
-          selectedBoothId > 0
-        ) {
-          formData.append("booth_id", selectedBoothId.toString());
+        // Add booth_id if valid - ensure it's a clean integer string
+        if (selectedBoothId !== null && selectedBoothId > 0) {
+          const boothId = parseInt(String(selectedBoothId), 10);
+          if (!isNaN(boothId) && boothId > 0) {
+            console.log(
+              "🔍 Adding booth_id:",
+              boothId,
+              "as string:",
+              boothId.toString()
+            );
+            formData.append("booth_id", boothId.toString());
+          } else {
+            console.warn("⚠️ Invalid booth_id:", selectedBoothId);
+          }
+        } else {
+          console.log("🔍 No booth_id to add");
         }
-        */
 
         // Add files
         if (photoFile) {
