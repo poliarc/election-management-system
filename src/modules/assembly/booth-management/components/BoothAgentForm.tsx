@@ -53,20 +53,47 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       : selectedAssignment?.parentAssemblyId ||
         selectedAssignment?.afterAssemblyData_id;
 
+  // Form type that uses strings for HTML form compatibility
+  type FormData = Omit<BoothAgentFormData, "polling_center_id" | "booth_id"> & {
+    polling_center_id?: string;
+    booth_id?: string;
+  };
+
   const {
     register,
     handleSubmit,
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
-    defaultValues: initialData || {
+    reset,
+  } = useForm<FormData>({
+    defaultValues: {
       android_phone: "No",
       laptop: "No",
       twoWheeler: "No",
       fourWheeler: "No",
+      ...(initialData
+        ? {
+            ...initialData,
+            polling_center_id: initialData.polling_center_id
+              ? String(initialData.polling_center_id)
+              : undefined,
+            booth_id: initialData.booth_id
+              ? String(initialData.booth_id)
+              : undefined,
+          }
+        : {}),
     },
   });
+
+  // Debug: Log the current form values
+  const currentPollingCenterId = watch("polling_center_id");
+  console.log("🔍 Current polling_center_id in form:", currentPollingCenterId);
+  console.log(
+    "🔍 Initial data polling_center_id:",
+    initialData?.polling_center_id
+  );
+  console.log("🔍 Polling centers loaded:", pollingCenters.length);
 
   const category = watch("category");
   const pollingCenterId = watch("polling_center_id");
@@ -79,13 +106,41 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         .then((res) => {
           setPollingCenters(res.data);
           toast.success(`Loaded ${res.data.length} polling centers`);
+
+          // If in edit mode and we have initial data, reset the form to ensure proper values
+          if (isEditMode && initialData) {
+            console.log("🔄 Resetting form after polling centers loaded");
+            const formData: Partial<FormData> = {
+              android_phone: initialData.android_phone || "No",
+              laptop: initialData.laptop || "No",
+              twoWheeler: initialData.twoWheeler || "No",
+              fourWheeler: initialData.fourWheeler || "No",
+              category: initialData.category,
+              role: initialData.role,
+              name: initialData.name,
+              father_name: initialData.father_name,
+              phone: initialData.phone,
+              alternate_no: initialData.alternate_no,
+              email: initialData.email,
+              address: initialData.address,
+              password: initialData.password,
+              polling_center_id: initialData.polling_center_id
+                ? String(initialData.polling_center_id)
+                : undefined,
+              booth_id: initialData.booth_id
+                ? String(initialData.booth_id)
+                : undefined,
+            };
+            console.log("🔄 Form data for reset:", formData);
+            reset(formData);
+          }
         })
         .catch((err) => {
           console.error("Failed to fetch polling centers:", err);
           toast.error("Failed to load polling centers");
         });
     }
-  }, [assemblyId]);
+  }, [assemblyId, isEditMode, initialData, reset]);
 
   // Update available booths when polling center changes
   useEffect(() => {
@@ -148,6 +203,8 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           "🔧 Setting polling center ID:",
           initialData.polling_center_id
         );
+
+        // Explicitly set the polling center value as string
         setValue("polling_center_id", String(initialData.polling_center_id));
 
         // Find the polling center and load its booths
@@ -189,9 +246,6 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       }
       if (initialData.role) {
         setValue("role", initialData.role);
-      }
-      if (initialData.polling_center_id) {
-        setValue("polling_center_id", initialData.polling_center_id);
       }
     }
   }, [isEditMode, initialData, setValue]);
@@ -371,7 +425,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           >
             <option value="">Select Polling Center</option>
             {pollingCenters.map((pc) => (
-              <option key={pc.id} value={pc.id}>
+              <option key={pc.id} value={String(pc.id)}>
                 {pc.displayName}
               </option>
             ))}
