@@ -100,13 +100,30 @@ import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
 import ChatPage from "./pages/Chat/ChatPage";
 import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
-import { AfterAssemblyPanelDashboard, AfterAssemblyPanelTeam, AfterAssemblyChildHierarchy, AfterAssemblyAssignedEvents } from "./pages/AfterAssemblyPanel";
-import { SubLevelPanelDashboard, SubLevelPanelTeam, SubLevelChildHierarchy, SubLevelAssignedEvents } from "./pages/SubLevelPanel";
+import {
+  AfterAssemblyPanelDashboard,
+  AfterAssemblyPanelTeam,
+  AfterAssemblyChildHierarchy,
+  AfterAssemblyAssignedEvents,
+} from "./pages/AfterAssemblyPanel";
+import {
+  SubLevelPanelDashboard,
+  SubLevelPanelTeam,
+  SubLevelChildHierarchy,
+  SubLevelAssignedEvents,
+} from "./pages/SubLevelPanel";
 import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 import AfterAssemblySearchVoter from "./pages/AfterAssemblyPanel/SearchVoter";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
 import SubLevelBoothVoters from "./pages/SubLevelPanel/BoothVoters";
+import {
+  BoothManagementDashboard,
+  AllAgentsPage,
+  BoothInsideTeamPage,
+  BoothOutsideTeamPage,
+  PollingSupportTeamPage,
+} from "./modules/assembly/booth-management/pages";
 
 export default function App() {
   return (
@@ -185,7 +202,10 @@ export default function App() {
             <Route path="block" element={<DistrictBlock />} />
             <Route path="block/users" element={<ViewDistrictBlockUsers />} />
             <Route path="mandal" element={<DistrictMandal />} />
-            <Route path="polling-center" element={<DistrictPollingCenterList />} />
+            <Route
+              path="polling-center"
+              element={<DistrictPollingCenterList />}
+            />
             <Route path="booth" element={<DistrictBoothList />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
@@ -198,27 +218,84 @@ export default function App() {
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
-            <Route path="voter-report/alphabetical" element={<AlphabeticalListPage />} />
+            <Route
+              path="voter-report/alphabetical"
+              element={<AlphabeticalListPage />}
+            />
             <Route path="voter-report/age-wise" element={<AgeWiseListPage />} />
             <Route path="voter-report/family" element={<FamilyReportPage />} />
-            <Route path="voter-report/family-head" element={<FamilyHeadReportPage />} />
-            <Route path="voter-report/double-name" element={<DoubleNameReportPage />} />
-            <Route path="voter-report/married-women" element={<MarriedWomenReportPage />} />
-            <Route path="voter-report/single-voter" element={<SingleVoterReportPage />} />
-            <Route path="voter-report/address-wise" element={<AddressWiseListPage />} />
-            <Route path="voter-report/surname" element={<SurnameReportPage />} />
-            <Route path="voter-report/caste-wise" element={<CasteWiseReportPage />} />
-            <Route path="voter-report/party-wise" element={<PartyWiseListPage />} />
-            <Route path="voter-report/dead-alive" element={<DeadAliveListPage />} />
-            <Route path="voter-report/birth-wise" element={<BirthWiseListPage />} />
-            <Route path="voter-report/education-wise" element={<EducationWiseListPage />} />
-            <Route path="voter-report/home-shifted" element={<HomeShiftedListPage />} />
-            <Route path="voter-report/outside-location" element={<OutsideLocationListPage />} />
-            <Route path="voter-report/profession-wise" element={<ProfessionWiseListPage />} />
-            <Route path="voter-report/approach" element={<ApproachListPage />} />
-            <Route path="voter-report/labharthi" element={<LabharthiListPage />} />
-            <Route path="voter-report/ssr-form" element={<SSRFormReportPage />} />
-            <Route path="voter-report/family-labels" element={<FamilyLabelsPage />} />
+            <Route
+              path="voter-report/family-head"
+              element={<FamilyHeadReportPage />}
+            />
+            <Route
+              path="voter-report/double-name"
+              element={<DoubleNameReportPage />}
+            />
+            <Route
+              path="voter-report/married-women"
+              element={<MarriedWomenReportPage />}
+            />
+            <Route
+              path="voter-report/single-voter"
+              element={<SingleVoterReportPage />}
+            />
+            <Route
+              path="voter-report/address-wise"
+              element={<AddressWiseListPage />}
+            />
+            <Route
+              path="voter-report/surname"
+              element={<SurnameReportPage />}
+            />
+            <Route
+              path="voter-report/caste-wise"
+              element={<CasteWiseReportPage />}
+            />
+            <Route
+              path="voter-report/party-wise"
+              element={<PartyWiseListPage />}
+            />
+            <Route
+              path="voter-report/dead-alive"
+              element={<DeadAliveListPage />}
+            />
+            <Route
+              path="voter-report/birth-wise"
+              element={<BirthWiseListPage />}
+            />
+            <Route
+              path="voter-report/education-wise"
+              element={<EducationWiseListPage />}
+            />
+            <Route
+              path="voter-report/home-shifted"
+              element={<HomeShiftedListPage />}
+            />
+            <Route
+              path="voter-report/outside-location"
+              element={<OutsideLocationListPage />}
+            />
+            <Route
+              path="voter-report/profession-wise"
+              element={<ProfessionWiseListPage />}
+            />
+            <Route
+              path="voter-report/approach"
+              element={<ApproachListPage />}
+            />
+            <Route
+              path="voter-report/labharthi"
+              element={<LabharthiListPage />}
+            />
+            <Route
+              path="voter-report/ssr-form"
+              element={<SSRFormReportPage />}
+            />
+            <Route
+              path="voter-report/family-labels"
+              element={<FamilyLabelsPage />}
+            />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />
@@ -237,6 +314,24 @@ export default function App() {
               path="assigned-events"
               element={<AssemblyAssignedEvents />}
             />
+            {/* Booth Management Routes */}
+            <Route
+              path="booth-management/dashboard"
+              element={<BoothManagementDashboard />}
+            />
+            <Route path="booth-management/agents" element={<AllAgentsPage />} />
+            <Route
+              path="booth-management/inside"
+              element={<BoothInsideTeamPage />}
+            />
+            <Route
+              path="booth-management/outside"
+              element={<BoothOutsideTeamPage />}
+            />
+            <Route
+              path="booth-management/polling-support"
+              element={<PollingSupportTeamPage />}
+            />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
@@ -254,16 +349,25 @@ export default function App() {
           </Route>
 
           {/* After Assembly Panel Routes */}
-          <Route path="afterassembly/:levelId" element={<AfterAssemblyPanelLayout />}>
+          <Route
+            path="afterassembly/:levelId"
+            element={<AfterAssemblyPanelLayout />}
+          >
             <Route index element={<AfterAssemblyPanelDashboard />} />
             <Route path="dashboard" element={<AfterAssemblyPanelDashboard />} />
             <Route path="team" element={<AfterAssemblyPanelTeam />} />
-            <Route path="child-hierarchy" element={<AfterAssemblyChildHierarchy />} />
+            <Route
+              path="child-hierarchy"
+              element={<AfterAssemblyChildHierarchy />}
+            />
             <Route path="booths" element={<AfterAssemblyBooths />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<AfterAssemblySearchVoter />} />
-            <Route path="assigned-events" element={<AfterAssemblyAssignedEvents />} />
+            <Route
+              path="assigned-events"
+              element={<AfterAssemblyAssignedEvents />}
+            />
           </Route>
 
           {/* Sub Level Panel Routes */}
@@ -271,13 +375,19 @@ export default function App() {
             <Route index element={<SubLevelPanelDashboard />} />
             <Route path="dashboard" element={<SubLevelPanelDashboard />} />
             <Route path="team" element={<SubLevelPanelTeam />} />
-            <Route path="child-hierarchy" element={<SubLevelChildHierarchy />} />
+            <Route
+              path="child-hierarchy"
+              element={<SubLevelChildHierarchy />}
+            />
             <Route path="booths" element={<SubLevelBooths />} />
             <Route path="booth-voters" element={<SubLevelBoothVoters />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<SubLevelSearchVoter />} />
-            <Route path="assigned-events" element={<SubLevelAssignedEvents />} />
+            <Route
+              path="assigned-events"
+              element={<SubLevelAssignedEvents />}
+            />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />
