@@ -298,8 +298,8 @@ export const boothAgentApi = {
           }
         );
         return response.data;
-      } catch (error) {
-        console.log("🔧 Hybrid approach failed, trying two-step update...");
+      } catch (err) {
+        console.warn("Hybrid approach failed, trying two-step update...", err);
 
         // Fallback: Update JSON data first, then files
         if (Object.keys(jsonData).length > 0) {
