@@ -320,13 +320,13 @@ export default function DistrictSidebar({
             <button
               type="button"
               onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-              className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <svg className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="font-medium text-gray-700 dark:text-gray-200 truncate">
+                <span className="font-medium text-gray-700 truncate">
                   {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
               </div>
@@ -340,8 +340,8 @@ export default function DistrictSidebar({
             </button>
 
             {switchDropdownOpen && (
-              <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800 max-h-64 overflow-y-auto">
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto">
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   Switch District
                 </div>
                 {sameTypeAssignments.map((assignment) => (
@@ -351,8 +351,8 @@ export default function DistrictSidebar({
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id === assignment.assignment_id
-                        ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-200"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700",
+                        ? "bg-indigo-50 text-indigo-900"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")}
                   >
                     <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -363,7 +363,7 @@ export default function DistrictSidebar({
                         {assignment.displayName || assignment.levelName}
                       </div>
                       {assignment.parentLevelName && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <div className="text-xs text-gray-500 truncate">
                           {assignment.parentLevelName}
                         </div>
                       )}

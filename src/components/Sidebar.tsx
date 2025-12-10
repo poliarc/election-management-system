@@ -45,9 +45,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 shrink-0 h-full border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 text-gray-800 dark:text-gray-100 flex flex-col">
+    <aside className="w-64 shrink-0 h-full border-r border-gray-200 bg-white text-gray-800 flex flex-col">
       {/* User header */}
-      <div className="px-4 py-5 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-4 py-5 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <img
             src={avatarUrl}
@@ -55,10 +55,10 @@ export function Sidebar() {
             className="h-10 w-10 rounded-full ring-2 ring-indigo-500/20"
           />
           <div className="min-w-0">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               {role} Dashboard
             </p>
-            <p className="truncate font-semibold text-gray-900 dark:text-white">
+            <p className="truncate font-semibold text-gray-900">
               {firstName}
             </p>
           </div>
@@ -75,8 +75,8 @@ export function Sidebar() {
               [
                 "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200"
-                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800",
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
               ].join(" ")
             }
           >
@@ -88,7 +88,7 @@ export function Sidebar() {
 
       {/* Account section */}
       <div className="mt-auto pt-2 pb-4">
-        <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
           Account
         </div>
         <div className="px-3 space-y-1">
@@ -98,8 +98,8 @@ export function Sidebar() {
               [
                 "block rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200"
-                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800",
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
               ].join(" ")
             }
           >
@@ -108,7 +108,7 @@ export function Sidebar() {
 
           <button
             onClick={onLogout}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
           >
             Logout
           </button>
