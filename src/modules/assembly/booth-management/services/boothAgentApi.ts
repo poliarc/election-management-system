@@ -63,44 +63,47 @@ apiClient.interceptors.request.use((config) => {
 });
 
 export const boothAgentApi = {
-  // Create booth agent
+  // Create booth agent (JSON only - no files)
   createAgent: async (
     data: BoothAgentFormData
   ): Promise<ApiResponse<BoothAgent>> => {
-    // File uploads temporarily disabled
-    // const hasFiles =
-    //   data.photo instanceof File ||
-    //   data.aadhar_card instanceof File ||
-    //   data.voter_id_file instanceof File;
+    // No files - send as JSON to preserve number types
+    const jsonData: Record<string, unknown> = {};
 
-    // For now, always send as JSON to avoid FormData type conversion issues
-    // TODO: Implement proper file upload handling later
-    // if (hasFiles) {
-    //   console.warn("File uploads temporarily disabled - sending JSON only");
-    // }
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        jsonData[key] = value;
+      }
+    });
 
-    {
-      // No files - send as JSON to preserve number types
-      const jsonData: Record<string, unknown> = {};
+    const response = await axios.post(
+      `${API_BASE_URL}${BASE_PATH}/create`,
+      jsonData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: getAuthToken(),
+        },
+      }
+    );
+    return response.data;
+  },
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          jsonData[key] = value;
-        }
-      });
-
-      const response = await axios.post(
-        `${API_BASE_URL}${BASE_PATH}/create`,
-        jsonData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-      return response.data;
-    }
+  // Create booth agent with files (FormData)
+  createAgentWithFiles: async (
+    formData: FormData
+  ): Promise<ApiResponse<BoothAgent>> => {
+    const response = await axios.post(
+      `${API_BASE_URL}${BASE_PATH}/create`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: getAuthToken(),
+        },
+      }
+    );
+    return response.data;
   },
 
   // Get all booth agents with filters
@@ -131,45 +134,49 @@ export const boothAgentApi = {
     return response.data;
   },
 
-  // Update booth agent
+  // Update booth agent (JSON only - no files)
   updateAgent: async (
     id: number,
     data: Partial<BoothAgentFormData>
   ): Promise<ApiResponse<BoothAgent>> => {
-    // File uploads temporarily disabled
-    // const hasFiles =
-    //   data.photo instanceof File ||
-    //   data.aadhar_card instanceof File ||
-    //   data.voter_id_file instanceof File;
+    // No files - send as JSON to preserve number types
+    const jsonData: Record<string, unknown> = {};
 
-    // For now, always send as JSON to avoid FormData type conversion issues
-    // TODO: Implement proper file upload handling later
-    // if (hasFiles) {
-    //   console.warn("File uploads temporarily disabled - sending JSON only");
-    // }
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        jsonData[key] = value;
+      }
+    });
 
-    {
-      // No files - send as JSON to preserve number types
-      const jsonData: Record<string, unknown> = {};
+    const response = await axios.put(
+      `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+      jsonData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: getAuthToken(),
+        },
+      }
+    );
+    return response.data;
+  },
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          jsonData[key] = value;
-        }
-      });
-
-      const response = await axios.put(
-        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-        jsonData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-      return response.data;
-    }
+  // Update booth agent with files (FormData)
+  updateAgentWithFiles: async (
+    id: number,
+    formData: FormData
+  ): Promise<ApiResponse<BoothAgent>> => {
+    const response = await axios.put(
+      `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: getAuthToken(),
+        },
+      }
+    );
+    return response.data;
   },
 
   // Toggle agent status
