@@ -73,6 +73,9 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
   };
 
   const handleEdit = (agent: BoothAgent) => {
+    console.log("🔧 Editing agent:", agent);
+    console.log("🔧 Agent polling_center_id:", agent.polling_center_id);
+    console.log("🔧 Agent booth_id:", agent.booth_id);
     setEditingAgent(agent);
     setShowForm(true);
   };
@@ -112,6 +115,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
                   twoWheeler: editingAgent.twoWheeler,
                   fourWheeler: editingAgent.fourWheeler,
                   polling_center_id: editingAgent.polling_center_id,
+                  booth_id: editingAgent.booth_id,
                 }
               : category
               ? { category }

@@ -93,7 +93,18 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       const pc = pollingCenters.find((p) => p.id === Number(pollingCenterId));
       const booths = pc?.booths || [];
       setAvailableBooths(booths);
-      setSelectedBoothId(null);
+
+      // Only reset selectedBoothId if not in edit mode or if booth doesn't exist in new polling center
+      if (!isEditMode) {
+        setSelectedBoothId(null);
+      } else if (initialData?.booth_id) {
+        const boothExists = booths.some(
+          (booth) => booth.id === initialData.booth_id
+        );
+        if (!boothExists) {
+          setSelectedBoothId(null);
+        }
+      }
 
       if (booths.length > 0) {
         toast.success(`Loaded ${booths.length} booths for ${pc?.displayName}`);
@@ -104,16 +115,86 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       }
     } else {
       setAvailableBooths([]);
-      setSelectedBoothId(null);
+      if (!isEditMode) {
+        setSelectedBoothId(null);
+      }
     }
-  }, [pollingCenterId, pollingCenters]);
+  }, [pollingCenterId, pollingCenters, isEditMode, initialData?.booth_id]);
 
-  // Reset role when category changes
+  // Reset role when category changes (but not in edit mode with initial data)
   useEffect(() => {
-    if (category) {
+    if (category && !isEditMode) {
       setValue("role", undefined as unknown as BoothAgentRole);
     }
-  }, [category, setValue]);
+  }, [category, setValue, isEditMode]);
+
+  // Initialize form values in edit mode - wait for polling centers to load
+  useEffect(() => {
+    if (isEditMode && initialData && pollingCenters.length > 0) {
+      console.log("🔧 Edit mode - initialData:", initialData);
+      console.log("🔧 Available polling centers:", pollingCenters.length);
+
+      // Set form values that might not be set by defaultValues
+      if (initialData.category) {
+        console.log("🔧 Setting category:", initialData.category);
+        setValue("category", initialData.category);
+      }
+      if (initialData.role) {
+        console.log("🔧 Setting role:", initialData.role);
+        setValue("role", initialData.role);
+      }
+      if (initialData.polling_center_id) {
+        console.log(
+          "🔧 Setting polling center ID:",
+          initialData.polling_center_id
+        );
+        setValue("polling_center_id", String(initialData.polling_center_id));
+
+        // Find the polling center and load its booths
+        const pc = pollingCenters.find(
+          (p) => p.id === initialData.polling_center_id
+        );
+        if (pc) {
+          console.log("🔧 Found polling center:", pc.displayName);
+          setAvailableBooths(pc.booths || []);
+
+          // Set booth selection if booth_id exists
+          if (initialData.booth_id) {
+            console.log("🔧 Setting booth ID:", initialData.booth_id);
+            setSelectedBoothId(initialData.booth_id);
+          }
+        }
+      } else if (initialData.booth_id) {
+        // If booth_id exists but no polling_center_id, still try to set it
+        console.log(
+          "🔧 Setting booth ID (no polling center):",
+          initialData.booth_id
+        );
+        setSelectedBoothId(initialData.booth_id);
+      }
+    }
+  }, [isEditMode, initialData, setValue, pollingCenters]);
+
+  // Initialize form values in edit mode
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      // Set booth selection if booth_id exists
+      if (initialData.booth_id) {
+        setSelectedBoothId(initialData.booth_id);
+      }
+
+      // Set form values that might not be set by defaultValues
+      if (initialData.category) {
+        setValue("category", initialData.category);
+      }
+      if (initialData.role) {
+        setValue("role", initialData.role);
+      }
+      if (initialData.polling_center_id) {
+        setValue("polling_center_id", initialData.polling_center_id);
+      }
+    }
+  }, [isEditMode, initialData, setValue]);
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
