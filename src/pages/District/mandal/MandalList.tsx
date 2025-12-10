@@ -205,21 +205,65 @@ export default function DistrictMandalList() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+                {/* Header with Stats Cards */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-3 text-white">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="bg-white/20 p-2 rounded-lg">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="shrink-0">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Mandal List</h1>
+                            <p className="text-blue-100 mt-1 text-xs sm:text-sm">
+                                District: {districtInfo.districtName}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                            {/* Total Mandals Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Mandals</p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{mandals.length}</p>
+                                </div>
+                                <div className="bg-blue-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
                                 </div>
-                                <h1 className="text-3xl font-bold">Mandal List</h1>
                             </div>
-                            <p className="text-blue-100 ml-14">
-                                District: {districtInfo.districtName}
-                            </p>
+
+                            {/* Total Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                                        {mandals.reduce((sum, mandal) => sum + (mandal.user_count || 0), 0)}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Mandals Without Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Mandals Without Users</p>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                        {mandals.filter(mandal => (mandal.user_count || 0) === 0).length}
+                                    </p>
+                                </div>
+                                <div className={`rounded-full p-1.5 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                    {mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

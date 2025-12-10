@@ -36,6 +36,7 @@ interface HierarchyTableProps {
   showAssignButton?: boolean;
   onUploadVoters?: (assemblyId: number, assemblyName: string) => void;
   showUploadVotersButton?: boolean;
+  hideHeader?: boolean;
 }
 
 export default function HierarchyTable({
@@ -69,6 +70,7 @@ export default function HierarchyTable({
   showAssignButton = false,
   onUploadVoters,
   showUploadVotersButton = false,
+  hideHeader = false,
 }: HierarchyTableProps) {
   const isAssemblyView = title?.toLowerCase().includes("assembly");
   const [sortField, setSortField] = useState<
@@ -200,9 +202,11 @@ export default function HierarchyTable({
   return (
     <div className="space-y-1">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
-      </div>
+      {!hideHeader && (
+        <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
+        </div>
+      )}
 
       {/* Filters Section */}
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">

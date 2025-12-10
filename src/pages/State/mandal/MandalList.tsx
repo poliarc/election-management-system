@@ -239,21 +239,65 @@ export default function StateMandalList() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+                {/* Header with Stats Cards */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="bg-white/20 p-2 rounded-lg">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="shrink-0">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Mandal List</h1>
+                            <p className="text-blue-100 mt-1 text-xs sm:text-sm">
+                                State: {stateInfo.stateName}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                            {/* Total Mandals Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Mandals</p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{mandals.length}</p>
+                                </div>
+                                <div className="bg-blue-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
                                 </div>
-                                <h1 className="text-3xl font-bold">Mandal List</h1>
                             </div>
-                            <p className="text-blue-100 ml-14">
-                                State: {stateInfo.stateName}
-                            </p>
+
+                            {/* Total Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                                        {mandals.reduce((sum, mandal) => sum + (mandal.user_count || 0), 0)}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Mandals Without Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Mandals Without Users</p>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                        {mandals.filter(mandal => (mandal.user_count || 0) === 0).length}
+                                    </p>
+                                </div>
+                                <div className={`rounded-full p-1.5 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                    {mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -419,15 +463,10 @@ export default function StateMandalList() {
                                     <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                         <tr>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">District</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assembly</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Block</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created Date</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -435,16 +474,6 @@ export default function StateMandalList() {
                                             <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                        {districts.find(d => d.id === selectedDistrictId)?.displayName}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {assemblies.find(a => a.id === selectedAssemblyId)?.displayName}
-                                                    </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
@@ -469,33 +498,22 @@ export default function StateMandalList() {
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        {mandal.user_count || 0} users
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${mandal.isActive === 1
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
-                                                        }`}>
-                                                        {mandal.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                        View
-                                                    </button>
+                                                    <div className="flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
+                                                            className="inline-flex items-center p-1 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors mr-2"
+                                                            title="View Users"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                        </button>
+                                                        <span className="text-sm font-medium text-gray-900">
+                                                            {mandal.user_count || 0}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

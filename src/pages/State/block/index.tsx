@@ -184,12 +184,67 @@ export default function StateBlock() {
   return (
     <div className="p-1 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
-          <h1 className="text-3xl font-bold">Block List</h1>
-          <p className="text-blue-100 mt-2">
-            State: {stateInfo.stateName}
-          </p>
+        {/* Header with Stats Cards */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="shrink-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Block List</h1>
+              <p className="text-blue-100 mt-1 text-xs sm:text-sm">
+                State: {stateInfo.stateName}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+              {/* Total Blocks Card */}
+              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Total Blocks</p>
+                  <p className="text-xl sm:text-2xl font-semibold mt-1">{blocks.length}</p>
+                </div>
+                <div className="bg-blue-50 rounded-full p-1.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Total Users Card */}
+              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Assigned Users</p>
+                  <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                    {Object.values(blockUserCounts).reduce((sum, count) => sum + count, 0)}
+                  </p>
+                </div>
+                <div className="bg-green-50 rounded-full p-1.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Blocks Without Users Card */}
+              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Blocks Without Users</p>
+                  <p className={`text-xl sm:text-2xl font-semibold mt-1 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                    {Object.values(blockUserCounts).filter(count => count === 0).length}
+                  </p>
+                </div>
+                <div className={`rounded-full p-1.5 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                  {Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? (
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
@@ -345,19 +400,14 @@ export default function StateBlock() {
                       S.No
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Block Name
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Assembly
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Total Users
+                      Block Name
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Created At
-                    </th>
+                    
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Actions
+                      Total Users
                     </th>
                   </tr>
                 </thead>
@@ -371,70 +421,51 @@ export default function StateBlock() {
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {block.displayName}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                           {block.assemblyName}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <svg
-                            className="w-4 h-4 text-gray-400 mr-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        <div className="text-sm font-semibold text-gray-900">
+                          {block.displayName}
+                        </div>
+                      </td>
+                      
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() =>
+                              handleViewUsers(block.id, block.displayName)
+                            }
+                            className="inline-flex items-center p-1 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors mr-2"
+                            title="View Users"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                          </svg>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                          </button>
                           <span className="text-sm font-medium text-gray-900">
                             {blockUserCounts[block.id] !== undefined
                               ? blockUserCounts[block.id]
                               : "..."}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {block.created_at
-                          ? new Date(block.created_at).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() =>
-                            handleViewUsers(block.id, block.displayName)
-                          }
-                          className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                        >
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          View
-                        </button>
                       </td>
                     </tr>
                   ))}
