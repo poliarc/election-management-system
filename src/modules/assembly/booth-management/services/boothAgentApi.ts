@@ -89,21 +89,98 @@ export const boothAgentApi = {
     return response.data;
   },
 
-  // Create booth agent with files (FormData)
+  // Create booth agent with files (FormData) - Hybrid approach
   createAgentWithFiles: async (
     formData: FormData
   ): Promise<ApiResponse<BoothAgent>> => {
-    const response = await axios.post(
-      `${API_BASE_URL}${BASE_PATH}/create`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: getAuthToken(),
-        },
+    // Log FormData for debugging
+    console.log("🔍 API: Sending FormData to backend:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value, typeof value);
+    }
+
+    // Extract numeric fields and non-file fields to send as JSON
+    const jsonData: Record<string, unknown> = {};
+    const fileFormData = new FormData();
+    let hasFiles = false;
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        // Keep files in FormData
+        fileFormData.append(key, value);
+        hasFiles = true;
+        console.log(`📁 File field: ${key}`);
+      } else if (key === "polling_center_id" || key === "booth_id") {
+        // Convert numeric fields to actual numbers for JSON
+        const numValue = Number(value);
+        if (!isNaN(numValue) && numValue > 0) {
+          jsonData[key] = numValue; // Store as actual number
+          console.log(
+            `🔢 Numeric field: ${key} = ${numValue} (${typeof numValue})`
+          );
+        } else {
+          console.log(`⚠️ Skipping invalid ${key}: ${value}`);
+        }
+      } else {
+        // Add other fields to JSON
+        if (value !== undefined && value !== null && value !== "") {
+          jsonData[key] = value;
+          console.log(`📝 Text field: ${key} = ${value}`);
+        }
       }
-    );
-    return response.data;
+    }
+
+    // If we have files, create agent first with JSON, then upload files
+    if (hasFiles) {
+      console.log("🔧 Step 1: Creating agent with JSON data:", jsonData);
+
+      // Step 1: Create agent with JSON data (no files)
+      const createResponse = await axios.post(
+        `${API_BASE_URL}${BASE_PATH}/create`,
+        jsonData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: getAuthToken(),
+          },
+        }
+      );
+
+      const agentId = createResponse.data.data?.agent_id;
+      if (!agentId) {
+        throw new Error("Failed to get agent ID from create response");
+      }
+
+      console.log("🔧 Step 2: Uploading files for agent ID:", agentId);
+
+      // Step 2: Upload files using update endpoint
+      const updateResponse = await axios.put(
+        `${API_BASE_URL}${BASE_PATH}/update/${agentId}`,
+        fileFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: getAuthToken(),
+          },
+        }
+      );
+
+      return updateResponse.data;
+    } else {
+      // No files, send as pure JSON
+      console.log("🔧 No files, sending as JSON:", jsonData);
+      const response = await axios.post(
+        `${API_BASE_URL}${BASE_PATH}/create`,
+        jsonData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: getAuthToken(),
+          },
+        }
+      );
+      return response.data;
+    }
   },
 
   // Get all booth agents with filters
@@ -161,22 +238,125 @@ export const boothAgentApi = {
     return response.data;
   },
 
-  // Update booth agent with files (FormData)
+  // Update booth agent with files (FormData) - Hybrid approach
   updateAgentWithFiles: async (
     id: number,
     formData: FormData
   ): Promise<ApiResponse<BoothAgent>> => {
-    const response = await axios.put(
-      `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: getAuthToken(),
-        },
+    // Log FormData for debugging
+    console.log("🔍 API: Sending FormData to backend for update:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value, typeof value);
+    }
+
+    // Extract numeric fields and non-file fields to send as JSON
+    const jsonData: Record<string, unknown> = {};
+    const fileFormData = new FormData();
+    let hasFiles = false;
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        // Keep files in FormData
+        fileFormData.append(key, value);
+        hasFiles = true;
+        console.log(`📁 File field: ${key}`);
+      } else if (key === "polling_center_id" || key === "booth_id") {
+        // Convert numeric fields to actual numbers for JSON
+        const numValue = Number(value);
+        if (!isNaN(numValue) && numValue > 0) {
+          jsonData[key] = numValue; // Store as actual number
+          console.log(
+            `🔢 Numeric field: ${key} = ${numValue} (${typeof numValue})`
+          );
+        } else {
+          console.log(`⚠️ Skipping invalid ${key}: ${value}`);
+        }
+      } else {
+        // Add other fields to JSON
+        if (value !== undefined && value !== null && value !== "") {
+          jsonData[key] = value;
+          console.log(`📝 Text field: ${key} = ${value}`);
+        }
       }
-    );
-    return response.data;
+    }
+
+    // For updates, try the hybrid approach first, fallback to two-step if needed
+    if (hasFiles && Object.keys(jsonData).length > 0) {
+      // Try hybrid approach: JSON data + files in FormData
+      fileFormData.append("data", JSON.stringify(jsonData));
+      console.log("🔧 Sending hybrid FormData + JSON for update:", jsonData);
+
+      try {
+        const response = await axios.put(
+          `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+          fileFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: getAuthToken(),
+            },
+          }
+        );
+        return response.data;
+      } catch (err) {
+        console.warn("Hybrid approach failed, trying two-step update...", err);
+
+        // Fallback: Update JSON data first, then files
+        if (Object.keys(jsonData).length > 0) {
+          await axios.put(
+            `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+            jsonData,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: getAuthToken(),
+              },
+            }
+          );
+        }
+
+        // Then update files
+        const response = await axios.put(
+          `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+          fileFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: getAuthToken(),
+            },
+          }
+        );
+        return response.data;
+      }
+    } else if (hasFiles) {
+      // Only files, no other data
+      console.log("🔧 Sending only files for update");
+      const response = await axios.put(
+        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+        fileFormData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: getAuthToken(),
+          },
+        }
+      );
+      return response.data;
+    } else {
+      // No files, send as pure JSON
+      console.log("🔧 No files, sending update as JSON:", jsonData);
+      const response = await axios.put(
+        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
+        jsonData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: getAuthToken(),
+          },
+        }
+      );
+      return response.data;
+    }
   },
 
   // Toggle agent status
