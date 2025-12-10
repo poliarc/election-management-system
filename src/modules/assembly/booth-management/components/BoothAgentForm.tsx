@@ -247,46 +247,58 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       // Helper function to construct full image URL
       const getImageUrl = (imagePath: string | undefined) => {
         if (!imagePath) return null;
-        
+
         // If it's already a full URL (starts with http), return as is
-        if (imagePath.startsWith('http')) {
+        if (imagePath.startsWith("http")) {
           return imagePath;
         }
-        
+
         // If it's a data URL (base64), return as is
-        if (imagePath.startsWith('data:')) {
+        if (imagePath.startsWith("data:")) {
           return imagePath;
         }
-        
+
         // If it's a relative path, construct full URL
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+        const baseUrl =
+          import.meta.env.VITE_API_BASE_URL || window.location.origin;
         // Remove leading slash if present to avoid double slashes
-        const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+        const cleanPath = imagePath.startsWith("/")
+          ? imagePath.slice(1)
+          : imagePath;
         const fullUrl = `${baseUrl}/${cleanPath}`;
-        
-        console.log("🔗 Constructed image URL:", { imagePath, baseUrl, fullUrl });
+
+        console.log("🔗 Constructed image URL:", {
+          imagePath,
+          baseUrl,
+          fullUrl,
+        });
         return fullUrl;
       };
 
       // Set existing image previews in edit mode
-      if (initialData.photo && typeof initialData.photo === 'string') {
+      if (initialData.photo && typeof initialData.photo === "string") {
         const photoUrl = getImageUrl(initialData.photo);
         console.log("🖼️ Setting photo preview:", photoUrl);
         setPhotoPreview(photoUrl);
       }
-      
-      if (initialData.aadhar_card && typeof initialData.aadhar_card === 'string') {
+
+      if (
+        initialData.aadhar_card &&
+        typeof initialData.aadhar_card === "string"
+      ) {
         const aadharUrl = getImageUrl(initialData.aadhar_card);
         console.log("🖼️ Setting aadhar preview:", aadharUrl);
         setAadharPreview(aadharUrl);
       }
-      
-      if (initialData.voter_id_file && typeof initialData.voter_id_file === 'string') {
+
+      if (
+        initialData.voter_id_file &&
+        typeof initialData.voter_id_file === "string"
+      ) {
         const voterIdUrl = getImageUrl(initialData.voter_id_file);
         console.log("🖼️ Setting voter ID preview:", voterIdUrl);
         setVoterIdPreview(voterIdUrl);
       }
-
     }
   }, [isEditMode, initialData]);
 
@@ -320,57 +332,114 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       // Check if we have any files to upload
       const hasFiles = photoFile || aadharFile || voterIdFile;
 
+      console.log("🔍 File upload check:", {
+        hasFiles,
+        photoFile: !!photoFile,
+        aadharFile: !!aadharFile,
+        voterIdFile: !!voterIdFile,
+      });
+
       if (hasFiles) {
         // Use FormData for file uploads
         const formData = new FormData();
 
         // Add text fields
-        formData.append('category', data.category as string);
-        formData.append('role', data.role as string);
-        formData.append('name', data.name as string);
-        formData.append('phone', data.phone as string);
+        formData.append("category", data.category as string);
+        formData.append("role", data.role as string);
+        formData.append("name", data.name as string);
+        formData.append("phone", data.phone as string);
 
         // Add optional string fields
-        if (data.father_name) formData.append('father_name', data.father_name as string);
-        if (data.alternate_no) formData.append('alternate_no', data.alternate_no as string);
-        if (data.email) formData.append('email', data.email as string);
-        if (data.address) formData.append('address', data.address as string);
-        if (data.password) formData.append('password', data.password as string);
+        if (data.father_name)
+          formData.append("father_name", data.father_name as string);
+        if (data.alternate_no)
+          formData.append("alternate_no", data.alternate_no as string);
+        if (data.email) formData.append("email", data.email as string);
+        if (data.address) formData.append("address", data.address as string);
+        if (data.password) formData.append("password", data.password as string);
 
         // Add optional enum fields
-        if (data.android_phone) formData.append('android_phone', data.android_phone as string);
-        if (data.laptop) formData.append('laptop', data.laptop as string);
-        if (data.twoWheeler) formData.append('twoWheeler', data.twoWheeler as string);
-        if (data.fourWheeler) formData.append('fourWheeler', data.fourWheeler as string);
+        if (data.android_phone)
+          formData.append("android_phone", data.android_phone as string);
+        if (data.laptop) formData.append("laptop", data.laptop as string);
+        if (data.twoWheeler)
+          formData.append("twoWheeler", data.twoWheeler as string);
+        if (data.fourWheeler)
+          formData.append("fourWheeler", data.fourWheeler as string);
 
-        // Add polling_center_id if valid
-        if (data.polling_center_id && data.polling_center_id !== "") {
+        // TEMPORARY FIX: Skip numeric fields in FormData due to backend validation issues
+        // The backend expects numbers but FormData converts everything to strings
+        console.log(
+          "⚠️ SKIPPING numeric fields in FormData due to backend validation"
+        );
+        console.log("🔍 Would have added:", {
+          polling_center_id: data.polling_center_id,
+          booth_id: selectedBoothId,
+        });
+
+        // Show warning to user if they're trying to assign polling center/booth with files
+        if (
+          (data.polling_center_id && data.polling_center_id !== "") ||
+          selectedBoothId
+        ) {
+          toast(
+            "⚠️ Note: Polling center and booth assignments are temporarily disabled when uploading files. Please create the agent first, then edit to assign polling center/booth.",
+            {
+              duration: 6000,
+            }
+          );
+        }
+
+        // TODO: Fix backend to handle string numbers in FormData or use different approach
+
+        /* COMMENTED OUT DUE TO BACKEND VALIDATION ISSUE
+        // Add polling_center_id ONLY if it's a valid positive integer
+        if (
+          data.polling_center_id &&
+          data.polling_center_id !== "" &&
+          data.polling_center_id !== "0"
+        ) {
           const pcId = Number(data.polling_center_id);
-          if (!isNaN(pcId) && pcId > 0) {
-            formData.append('polling_center_id', pcId.toString());
+          const isValidPcId = Number.isInteger(pcId) && pcId > 0;
+          if (isValidPcId) {
+            formData.append("polling_center_id", pcId.toString());
           }
         }
 
-        // Add booth_id if valid
-        if (selectedBoothId !== null && selectedBoothId > 0) {
-          formData.append('booth_id', selectedBoothId.toString());
+        // Add booth_id ONLY if it's a valid positive integer
+        if (
+          selectedBoothId !== null &&
+          Number.isInteger(selectedBoothId) &&
+          selectedBoothId > 0
+        ) {
+          formData.append("booth_id", selectedBoothId.toString());
         }
+        */
 
         // Add files
         if (photoFile) {
-          formData.append('photo', photoFile);
+          formData.append("photo", photoFile);
         }
         if (aadharFile) {
-          formData.append('aadhar_card', aadharFile);
+          formData.append("aadhar_card", aadharFile);
         }
         if (voterIdFile) {
-          formData.append('voter_id_file', voterIdFile);
+          formData.append("voter_id_file", voterIdFile);
         }
 
         console.log("📤 FormData being sent with files");
 
+        // Log FormData contents for debugging
+        console.log("📤 FormData contents:");
+        for (const [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value, typeof value);
+        }
+
         if (isEditMode && initialData?.agent_id) {
-          await boothAgentApi.updateAgentWithFiles(initialData.agent_id, formData);
+          await boothAgentApi.updateAgentWithFiles(
+            initialData.agent_id,
+            formData
+          );
           toast.dismiss(loadingToast);
           toast.success("Booth agent updated successfully!");
         } else {
@@ -389,7 +458,8 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         // Add optional string fields
         if (data.father_name) payload.father_name = data.father_name as string;
-        if (data.alternate_no) payload.alternate_no = data.alternate_no as string;
+        if (data.alternate_no)
+          payload.alternate_no = data.alternate_no as string;
         if (data.email) payload.email = data.email as string;
         if (data.address) payload.address = data.address as string;
         if (data.password) payload.password = data.password as string;
@@ -398,7 +468,8 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         if (data.android_phone)
           payload.android_phone = data.android_phone as "Yes" | "No";
         if (data.laptop) payload.laptop = data.laptop as "Yes" | "No";
-        if (data.twoWheeler) payload.twoWheeler = data.twoWheeler as "Yes" | "No";
+        if (data.twoWheeler)
+          payload.twoWheeler = data.twoWheeler as "Yes" | "No";
         if (data.fourWheeler)
           payload.fourWheeler = data.fourWheeler as "Yes" | "No";
 
@@ -416,6 +487,12 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         }
 
         console.log("📤 JSON Payload being sent:", payload);
+        console.log("📤 Payload types:", {
+          polling_center_id: typeof payload.polling_center_id,
+          booth_id: typeof payload.booth_id,
+          polling_center_id_value: payload.polling_center_id,
+          booth_id_value: payload.booth_id,
+        });
 
         if (isEditMode && initialData?.agent_id) {
           await boothAgentApi.updateAgent(initialData.agent_id, payload);
@@ -486,27 +563,27 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
   // File handling functions
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    fileType: 'photo' | 'aadhar' | 'voterId'
+    fileType: "photo" | "aadhar" | "voterId"
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      event.target.value = ''; // Clear the input
+      toast.error("File size must be less than 5MB");
+      event.target.value = ""; // Clear the input
       return;
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (fileType === 'aadhar' || fileType === 'voterId') {
-      allowedTypes.push('application/pdf');
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    if (fileType === "aadhar" || fileType === "voterId") {
+      allowedTypes.push("application/pdf");
     }
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Please select a valid image file (JPG, PNG, GIF) or PDF');
-      event.target.value = ''; // Clear the input
+      toast.error("Please select a valid image file (JPG, PNG, GIF) or PDF");
+      event.target.value = ""; // Clear the input
       return;
     }
 
@@ -514,44 +591,44 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      
+
       switch (fileType) {
-        case 'photo':
+        case "photo":
           setPhotoFile(file);
           setPhotoPreview(result);
           break;
-        case 'aadhar':
+        case "aadhar":
           setAadharFile(file);
           setAadharPreview(result);
           break;
-        case 'voterId':
+        case "voterId":
           setVoterIdFile(file);
           setVoterIdPreview(result);
           break;
       }
     };
-    
+
     reader.onerror = () => {
-      toast.error('Error reading file. Please try again.');
-      event.target.value = ''; // Clear the input
+      toast.error("Error reading file. Please try again.");
+      event.target.value = ""; // Clear the input
     };
-    
+
     reader.readAsDataURL(file);
   };
 
-  const removeFile = (fileType: 'photo' | 'aadhar' | 'voterId') => {
+  const removeFile = (fileType: "photo" | "aadhar" | "voterId") => {
     switch (fileType) {
-      case 'photo':
+      case "photo":
         setPhotoFile(null);
         setPhotoPreview(null);
         console.log("🗑️ Removed photo file and preview");
         break;
-      case 'aadhar':
+      case "aadhar":
         setAadharFile(null);
         setAadharPreview(null);
         console.log("🗑️ Removed aadhar file and preview");
         break;
-      case 'voterId':
+      case "voterId":
         setVoterIdFile(null);
         setVoterIdPreview(null);
         console.log("🗑️ Removed voter ID file and preview");
@@ -824,7 +901,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => handleFileChange(e, 'photo')}
+            onChange={(e) => handleFileChange(e, "photo")}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           />
           {photoPreview && (
@@ -842,7 +919,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 />
                 <button
                   type="button"
-                  onClick={() => removeFile('photo')}
+                  onClick={() => removeFile("photo")}
                   className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                   title="Remove photo"
                 >
@@ -855,9 +932,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                     New: {photoFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">
-                    Current photo
-                  </p>
+                  <p className="text-xs text-blue-600">Current photo</p>
                 )}
               </div>
             </div>
@@ -873,13 +948,14 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           <input
             type="file"
             accept="image/*,.pdf"
-            onChange={(e) => handleFileChange(e, 'aadhar')}
+            onChange={(e) => handleFileChange(e, "aadhar")}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           />
           {aadharPreview && (
             <div className="mt-2">
               <div className="relative inline-block">
-                {aadharFile?.type === 'application/pdf' || aadharPreview.includes('.pdf') ? (
+                {aadharFile?.type === "application/pdf" ||
+                aadharPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
                     <span className="text-xs text-gray-600">PDF</span>
                   </div>
@@ -889,14 +965,17 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                     alt="Aadhar preview"
                     className="w-20 h-20 object-cover rounded border"
                     onError={() => {
-                      console.error("Failed to load aadhar image:", aadharPreview);
+                      console.error(
+                        "Failed to load aadhar image:",
+                        aadharPreview
+                      );
                       setAadharPreview(null);
                     }}
                   />
                 )}
                 <button
                   type="button"
-                  onClick={() => removeFile('aadhar')}
+                  onClick={() => removeFile("aadhar")}
                   className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                   title="Remove aadhar card"
                 >
@@ -909,9 +988,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                     New: {aadharFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">
-                    Current aadhar card
-                  </p>
+                  <p className="text-xs text-blue-600">Current aadhar card</p>
                 )}
               </div>
             </div>
@@ -923,17 +1000,20 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Voter ID Card Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Voter ID Card</label>
+          <label className="block text-sm font-medium mb-1">
+            Voter ID Card
+          </label>
           <input
             type="file"
             accept="image/*,.pdf"
-            onChange={(e) => handleFileChange(e, 'voterId')}
+            onChange={(e) => handleFileChange(e, "voterId")}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
           />
           {voterIdPreview && (
             <div className="mt-2">
               <div className="relative inline-block">
-                {voterIdFile?.type === 'application/pdf' || voterIdPreview.includes('.pdf') ? (
+                {voterIdFile?.type === "application/pdf" ||
+                voterIdPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
                     <span className="text-xs text-gray-600">PDF</span>
                   </div>
@@ -943,14 +1023,17 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                     alt="Voter ID preview"
                     className="w-20 h-20 object-cover rounded border"
                     onError={() => {
-                      console.error("Failed to load voter ID image:", voterIdPreview);
+                      console.error(
+                        "Failed to load voter ID image:",
+                        voterIdPreview
+                      );
                       setVoterIdPreview(null);
                     }}
                   />
                 )}
                 <button
                   type="button"
-                  onClick={() => removeFile('voterId')}
+                  onClick={() => removeFile("voterId")}
                   className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
                   title="Remove voter ID card"
                 >
@@ -963,9 +1046,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                     New: {voterIdFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">
-                    Current voter ID card
-                  </p>
+                  <p className="text-xs text-blue-600">Current voter ID card</p>
                 )}
               </div>
             </div>

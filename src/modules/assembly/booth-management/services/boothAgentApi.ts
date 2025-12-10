@@ -93,6 +93,12 @@ export const boothAgentApi = {
   createAgentWithFiles: async (
     formData: FormData
   ): Promise<ApiResponse<BoothAgent>> => {
+    // Log FormData for debugging
+    console.log("🔍 API: Sending FormData to backend:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value, typeof value);
+    }
+
     const response = await axios.post(
       `${API_BASE_URL}${BASE_PATH}/create`,
       formData,
@@ -166,6 +172,12 @@ export const boothAgentApi = {
     id: number,
     formData: FormData
   ): Promise<ApiResponse<BoothAgent>> => {
+    // Log FormData for debugging
+    console.log("🔍 API: Sending FormData to backend for update:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value, typeof value);
+    }
+
     const response = await axios.put(
       `${API_BASE_URL}${BASE_PATH}/update/${id}`,
       formData,
