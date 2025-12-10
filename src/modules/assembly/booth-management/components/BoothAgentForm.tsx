@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import type {
   BoothAgentFormData,
   BoothAgentCategory,
@@ -36,9 +37,10 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
   const [pollingCenters, setPollingCenters] = useState<PollingCenter[]>([]);
   const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
   const [availableBooths, setAvailableBooths] = useState<Booth[]>([]);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [aadharFile, setAadharFile] = useState<File | null>(null);
-  const [voterIdFile, setVoterIdFile] = useState<File | null>(null);
+  // File upload states temporarily disabled
+  // const [photoFile, setPhotoFile] = useState<File | null>(null);
+  // const [aadharFile, setAadharFile] = useState<File | null>(null);
+  // const [voterIdFile, setVoterIdFile] = useState<File | null>(null);
 
   const { selectedAssignment } = useAppSelector((s) => s.auth);
 
@@ -76,9 +78,11 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         .getPollingCentersHierarchy(assemblyId)
         .then((res) => {
           setPollingCenters(res.data);
+          toast.success(`Loaded ${res.data.length} polling centers`);
         })
         .catch((err) => {
           console.error("Failed to fetch polling centers:", err);
+          toast.error("Failed to load polling centers");
         });
     }
   }, [assemblyId]);
@@ -87,8 +91,17 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
   useEffect(() => {
     if (pollingCenterId) {
       const pc = pollingCenters.find((p) => p.id === Number(pollingCenterId));
-      setAvailableBooths(pc?.booths || []);
+      const booths = pc?.booths || [];
+      setAvailableBooths(booths);
       setSelectedBoothId(null);
+
+      if (booths.length > 0) {
+        toast.success(`Loaded ${booths.length} booths for ${pc?.displayName}`);
+      } else {
+        toast(`No booths found for ${pc?.displayName}`, {
+          icon: "⚠️",
+        });
+      }
     } else {
       setAvailableBooths([]);
       setSelectedBoothId(null);
@@ -104,6 +117,12 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
+
+    // Show loading toast
+    const loadingToast = toast.loading(
+      isEditMode ? "Updating booth agent..." : "Creating booth agent..."
+    );
+
     try {
       // Build properly typed payload
       const payload: Partial<BoothAgentFormData> = {
@@ -128,34 +147,36 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       if (data.fourWheeler)
         payload.fourWheeler = data.fourWheeler as "Yes" | "No";
 
-      // Convert polling_center_id to number if it exists
-      if (data.polling_center_id) {
+      // Only add polling_center_id if it's a valid number
+      if (data.polling_center_id && data.polling_center_id !== "") {
         const pcId = Number(data.polling_center_id);
         if (!isNaN(pcId) && pcId > 0) {
           payload.polling_center_id = pcId;
         }
       }
 
-      // Add booth_id as string (per type definition)
+      // Only add booth_id if it's a valid number
       if (selectedBoothId !== null && selectedBoothId > 0) {
-        payload.booth_id = String(selectedBoothId);
+        payload.booth_id = selectedBoothId;
       }
 
-      // Add files only if they exist and are File objects
-      if (photoFile && photoFile instanceof File) {
-        payload.photo = photoFile;
-      }
-      if (aadharFile && aadharFile instanceof File) {
-        payload.aadhar_card = aadharFile;
-      }
-      if (voterIdFile && voterIdFile instanceof File) {
-        payload.voter_id_file = voterIdFile;
-      }
+      console.log("📤 Payload being sent:", payload);
+      console.log("📤 Types:", {
+        polling_center_id: typeof payload.polling_center_id,
+        booth_id: typeof payload.booth_id,
+      });
+
+      // File uploads temporarily disabled
+      // TODO: Re-enable file uploads after fixing FormData type conversion
 
       if (isEditMode && initialData?.agent_id) {
         await boothAgentApi.updateAgent(initialData.agent_id, payload);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent updated successfully!");
       } else {
         await boothAgentApi.createAgent(payload as BoothAgentFormData);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent created successfully!");
       }
 
       onSuccess();
@@ -165,7 +186,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           data?: {
             error?: {
               message?: string;
-              details?: unknown;
+              details?: Array<{ path: string; message: string }>;
             };
             success?: boolean;
             message?: string;
@@ -175,17 +196,30 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       console.error("❌ Failed to save agent:", error);
       console.error("❌ Error response:", err.response?.data);
 
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+
       const errorMessage =
         err.response?.data?.error?.message ||
         err.response?.data?.message ||
-        "Failed to save agent";
+        (isEditMode ? "Failed to update agent" : "Failed to create agent");
 
       const errorDetails = err.response?.data?.error?.details;
+
+      if (errorDetails && Array.isArray(errorDetails)) {
+        // Show validation errors as individual toasts
+        errorDetails.forEach((detail) => {
+          toast.error(`${detail.path}: ${detail.message}`);
+        });
+        toast.error(errorMessage);
+      } else {
+        // Show general error message
+        toast.error(errorMessage);
+      }
+
       if (errorDetails) {
         console.error("❌ Validation details:", errorDetails);
       }
-
-      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -448,73 +482,52 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           />
         </div>
 
-        {/* Photo Upload */}
+        {/* Photo Upload - Temporarily Disabled */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Photo (Optional)
+            Photo (Temporarily Disabled)
           </label>
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setPhotoFile(file);
-              }
-            }}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            disabled
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
           />
-          {photoFile && (
-            <p className="text-xs text-green-600 mt-1">
-              Selected: {photoFile.name}
-            </p>
-          )}
+          <p className="text-xs text-orange-600 mt-1">
+            File uploads temporarily disabled while fixing API issues
+          </p>
         </div>
 
-        {/* Aadhar Card Upload */}
+        {/* Aadhar Card Upload - Temporarily Disabled */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Aadhar Card (Optional)
+            Aadhar Card (Temporarily Disabled)
           </label>
           <input
             type="file"
             accept="image/*,.pdf"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setAadharFile(file);
-              }
-            }}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            disabled
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
           />
-          {aadharFile && (
-            <p className="text-xs text-green-600 mt-1">
-              Selected: {aadharFile.name}
-            </p>
-          )}
+          <p className="text-xs text-orange-600 mt-1">
+            File uploads temporarily disabled while fixing API issues
+          </p>
         </div>
 
-        {/* Voter ID Card Upload */}
+        {/* Voter ID Card Upload - Temporarily Disabled */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Voter ID Card (Optional)
+            Voter ID Card (Temporarily Disabled)
           </label>
           <input
             type="file"
             accept="image/*,.pdf"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setVoterIdFile(file);
-              }
-            }}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            disabled
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
           />
-          {voterIdFile && (
-            <p className="text-xs text-green-600 mt-1">
-              Selected: {voterIdFile.name}
-            </p>
-          )}
+          <p className="text-xs text-orange-600 mt-1">
+            File uploads temporarily disabled while fixing API issues
+          </p>
         </div>
 
         {/* Android Phone */}
@@ -572,7 +585,12 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       <div className="flex justify-end gap-3 pt-4 border-t">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={() => {
+            toast("Form cancelled", {
+              icon: "ℹ️",
+            });
+            onCancel();
+          }}
           className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Cancel

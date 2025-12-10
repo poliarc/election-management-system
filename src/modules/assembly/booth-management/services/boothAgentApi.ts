@@ -67,40 +67,21 @@ export const boothAgentApi = {
   createAgent: async (
     data: BoothAgentFormData
   ): Promise<ApiResponse<BoothAgent>> => {
-    // Check if there are any files to upload
-    const hasFiles =
-      data.photo instanceof File ||
-      data.aadhar_card instanceof File ||
-      data.voter_id_file instanceof File;
+    // File uploads temporarily disabled
+    // const hasFiles =
+    //   data.photo instanceof File ||
+    //   data.aadhar_card instanceof File ||
+    //   data.voter_id_file instanceof File;
 
-    if (hasFiles) {
-      // Use FormData for file uploads
-      const formData = new FormData();
+    // For now, always send as JSON to avoid FormData type conversion issues
+    // TODO: Implement proper file upload handling later
+    // if (hasFiles) {
+    //   console.warn("File uploads temporarily disabled - sending JSON only");
+    // }
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-
-      const response = await axios.post(
-        `${API_BASE_URL}${BASE_PATH}/create`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-      return response.data;
-    } else {
-      // Use JSON for data without files (preserves number types)
-      const jsonData: Record<string, any> = {};
+    {
+      // No files - send as JSON to preserve number types
+      const jsonData: Record<string, unknown> = {};
 
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
@@ -155,39 +136,20 @@ export const boothAgentApi = {
     id: number,
     data: Partial<BoothAgentFormData>
   ): Promise<ApiResponse<BoothAgent>> => {
-    // Check if there are any files to upload
-    const hasFiles =
-      data.photo instanceof File ||
-      data.aadhar_card instanceof File ||
-      data.voter_id_file instanceof File;
+    // File uploads temporarily disabled
+    // const hasFiles =
+    //   data.photo instanceof File ||
+    //   data.aadhar_card instanceof File ||
+    //   data.voter_id_file instanceof File;
 
-    if (hasFiles) {
-      // Use FormData for file uploads
-      const formData = new FormData();
+    // For now, always send as JSON to avoid FormData type conversion issues
+    // TODO: Implement proper file upload handling later
+    // if (hasFiles) {
+    //   console.warn("File uploads temporarily disabled - sending JSON only");
+    // }
 
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          if (value instanceof File) {
-            formData.append(key, value);
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-
-      const response = await axios.put(
-        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-      return response.data;
-    } else {
-      // Use JSON for data without files (preserves number types)
+    {
+      // No files - send as JSON to preserve number types
       const jsonData: Record<string, unknown> = {};
 
       Object.entries(data).forEach(([key, value]) => {

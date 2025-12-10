@@ -31,7 +31,7 @@ export interface BoothAgent {
   fourWheeler?: "Yes" | "No";
   polling_center_id?: number;
   polling_center_name?: string;
-  booth_id?: string;
+  booth_id?: number;
   booth_no?: string;
   status: number;
   isDelete: number;
@@ -57,7 +57,7 @@ export interface BoothAgentFormData {
   twoWheeler?: "Yes" | "No";
   fourWheeler?: "Yes" | "No";
   polling_center_id?: number;
-  booth_id?: string;
+  booth_id?: number;
   status?: number;
 }
 
