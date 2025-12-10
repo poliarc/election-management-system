@@ -216,18 +216,65 @@ export default function BoothList() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-7xl mx-auto">
+                {/* Header with Stats Cards */}
                 <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg p-3 sm:p-3 mb-1 text-white">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/20 p-2 rounded-lg shrink-0">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16v12H4V7zm4 0V5h8v2" />
-                            </svg>
-                        </div>
-                        <div className="min-w-0 flex-1">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="shrink-0">
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Booth List</h1>
                             <p className="text-purple-100 text-xs sm:text-sm mt-1">
                                 Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
                             </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                            {/* Total Booths Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Booths</p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{booths.length}</p>
+                                </div>
+                                <div className="bg-purple-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16v12H4V7zm4 0V5h8v2" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Total Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                                        {booths.reduce((sum, booth) => sum + (booth.user_count || 0), 0)}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Booths Without Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Booths Without Users</p>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                        {booths.filter(booth => (booth.user_count || 0) === 0).length}
+                                    </p>
+                                </div>
+                                <div className={`rounded-full p-1.5 ${booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                    {booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

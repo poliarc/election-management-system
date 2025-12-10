@@ -187,19 +187,65 @@ export default function PollingCenterList() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
+                {/* Header with Stats Cards */}
                 <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-3 sm:p-3 mb-1 text-white">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/20 p-2 rounded-lg shrink-0">
-                            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                        </div>
-                        <div className="min-w-0 flex-1">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="shrink-0">
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Polling Center List</h1>
                             <p className="text-green-100 text-xs sm:text-sm mt-1">
                                 Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
                             </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                            {/* Total Polling Centers Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Polling Centers</p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{pollingCenters.length}</p>
+                                </div>
+                                <div className="bg-green-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Total Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                                        {pollingCenters.reduce((sum, pc) => sum + (pc.user_count || 0), 0)}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 rounded-full p-1.5">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Polling Centers Without Users Card */}
+                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-600">Polling Centers Without Users</p>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                        {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length}
+                                    </p>
+                                </div>
+                                <div className={`rounded-full p-1.5 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                    {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
