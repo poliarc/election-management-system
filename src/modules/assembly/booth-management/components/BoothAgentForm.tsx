@@ -34,6 +34,10 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 }) => {
   const isEditMode = !!initialData?.agent_id;
   const [loading, setLoading] = useState(false);
+  const [loadingAgentData, setLoadingAgentData] = useState(false);
+  const [agentData, setAgentData] = useState<
+    (Partial<BoothAgentFormData> & { agent_id?: number }) | null
+  >(null);
   const [pollingCenters, setPollingCenters] = useState<PollingCenter[]>([]);
   const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
   const [availableBooths, setAvailableBooths] = useState<Booth[]>([]);
@@ -76,31 +80,40 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       laptop: "No",
       twoWheeler: "No",
       fourWheeler: "No",
-      ...(initialData
-        ? {
-            ...initialData,
-            polling_center_id: initialData.polling_center_id
-              ? String(initialData.polling_center_id)
-              : undefined,
-            booth_id: initialData.booth_id
-              ? String(initialData.booth_id)
-              : undefined,
-          }
-        : {}),
+      // Form will be populated by useEffect when agentData is loaded in edit mode
     },
   });
 
-  // Debug: Log the current form values
-  const currentPollingCenterId = watch("polling_center_id");
-  console.log("🔍 Current polling_center_id in form:", currentPollingCenterId);
-  console.log(
-    "🔍 Initial data polling_center_id:",
-    initialData?.polling_center_id
-  );
-  console.log("🔍 Polling centers loaded:", pollingCenters.length);
-
+  // Watch form values
   const category = watch("category");
   const pollingCenterId = watch("polling_center_id");
+
+  // Fetch agent details in edit mode
+  useEffect(() => {
+    if (isEditMode && initialData?.agent_id) {
+      setLoadingAgentData(true);
+      console.log("🔍 Fetching agent details for ID:", initialData.agent_id);
+
+      boothAgentApi
+        .getAgentById(initialData.agent_id)
+        .then((response) => {
+          console.log("✅ Agent details fetched:", response.data);
+          setAgentData(response.data);
+        })
+        .catch((error) => {
+          console.error("❌ Failed to fetch agent details:", error);
+          toast.error("Failed to load agent details");
+          // Fallback to initialData if API fails
+          setAgentData(initialData);
+        })
+        .finally(() => {
+          setLoadingAgentData(false);
+        });
+    } else {
+      // Not in edit mode, use initialData if provided
+      setAgentData(initialData || null);
+    }
+  }, [isEditMode, initialData?.agent_id, initialData]);
 
   // Fetch polling centers
   useEffect(() => {
@@ -109,42 +122,16 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         .getPollingCentersHierarchy(assemblyId)
         .then((res) => {
           setPollingCenters(res.data);
-          toast.success(`Loaded ${res.data.length} polling centers`);
+          console.log(`✅ Loaded ${res.data.length} polling centers`);
 
-          // If in edit mode and we have initial data, reset the form to ensure proper values
-          if (isEditMode && initialData) {
-            console.log("🔄 Resetting form after polling centers loaded");
-            const formData: Partial<FormData> = {
-              android_phone: initialData.android_phone || "No",
-              laptop: initialData.laptop || "No",
-              twoWheeler: initialData.twoWheeler || "No",
-              fourWheeler: initialData.fourWheeler || "No",
-              category: initialData.category,
-              role: initialData.role,
-              name: initialData.name,
-              father_name: initialData.father_name,
-              phone: initialData.phone,
-              alternate_no: initialData.alternate_no,
-              email: initialData.email,
-              address: initialData.address,
-              password: initialData.password,
-              polling_center_id: initialData.polling_center_id
-                ? String(initialData.polling_center_id)
-                : undefined,
-              booth_id: initialData.booth_id
-                ? String(initialData.booth_id)
-                : undefined,
-            };
-            console.log("🔄 Form data for reset:", formData);
-            reset(formData);
-          }
+          console.log("✅ Polling centers loaded successfully");
         })
         .catch((err) => {
           console.error("Failed to fetch polling centers:", err);
           toast.error("Failed to load polling centers");
         });
     }
-  }, [assemblyId, isEditMode, initialData, reset]);
+  }, [assemblyId]);
 
   // Update available booths when polling center changes
   useEffect(() => {
@@ -156,9 +143,9 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       // Only reset selectedBoothId if not in edit mode or if booth doesn't exist in new polling center
       if (!isEditMode) {
         setSelectedBoothId(null);
-      } else if (initialData?.booth_id) {
+      } else if (agentData?.booth_id) {
         const boothExists = booths.some(
-          (booth) => booth.id === initialData.booth_id
+          (booth) => booth.id === agentData.booth_id
         );
         if (!boothExists) {
           setSelectedBoothId(null);
@@ -166,11 +153,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       }
 
       if (booths.length > 0) {
-        toast.success(`Loaded ${booths.length} booths for ${pc?.displayName}`);
+        console.log(`✅ Loaded ${booths.length} booths for ${pc?.displayName}`);
       } else {
-        toast(`No booths found for ${pc?.displayName}`, {
-          icon: "⚠️",
-        });
+        console.log(
+          `⚠️ No booths found for ${
+            pc?.displayName || "selected polling center"
+          }`
+        );
       }
     } else {
       setAvailableBooths([]);
@@ -178,7 +167,40 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         setSelectedBoothId(null);
       }
     }
-  }, [pollingCenterId, pollingCenters, isEditMode, initialData?.booth_id]);
+  }, [pollingCenterId, pollingCenters, isEditMode, agentData?.booth_id]);
+
+  // Reset form when agent data is loaded
+  useEffect(() => {
+    if (isEditMode && agentData && pollingCenters.length > 0) {
+      console.log("🔄 Resetting form with agent data from API");
+      const formData: Partial<FormData> = {
+        android_phone: agentData.android_phone || "No",
+        laptop: agentData.laptop || "No",
+        twoWheeler: agentData.twoWheeler || "No",
+        fourWheeler: agentData.fourWheeler || "No",
+        category: agentData.category,
+        role: agentData.role,
+        name: agentData.name,
+        father_name: agentData.father_name,
+        phone: agentData.phone,
+        alternate_no: agentData.alternate_no,
+        email: agentData.email,
+        address: agentData.address,
+        // Don't include password in edit mode
+        polling_center_id: agentData.polling_center_id
+          ? String(agentData.polling_center_id)
+          : undefined,
+        booth_id: agentData.booth_id ? String(agentData.booth_id) : undefined,
+      };
+      console.log("🔄 Form data from API:", formData);
+      reset(formData);
+
+      // Set booth selection
+      if (agentData.booth_id) {
+        setSelectedBoothId(agentData.booth_id);
+      }
+    }
+  }, [isEditMode, agentData, pollingCenters.length, reset]);
 
   // Reset role when category changes (but not in edit mode with initial data)
   useEffect(() => {
@@ -187,62 +209,15 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     }
   }, [category, setValue, isEditMode]);
 
-  // Initialize form values in edit mode - wait for polling centers to load
-  useEffect(() => {
-    if (isEditMode && initialData && pollingCenters.length > 0) {
-      console.log("🔧 Edit mode - initialData:", initialData);
-      console.log("🔧 Available polling centers:", pollingCenters.length);
-
-      // Set form values that might not be set by defaultValues
-      if (initialData.category) {
-        console.log("🔧 Setting category:", initialData.category);
-        setValue("category", initialData.category);
-      }
-      if (initialData.role) {
-        console.log("🔧 Setting role:", initialData.role);
-        setValue("role", initialData.role);
-      }
-      if (initialData.polling_center_id) {
-        console.log(
-          "🔧 Setting polling center ID:",
-          initialData.polling_center_id
-        );
-
-        // Explicitly set the polling center value as string
-        setValue("polling_center_id", String(initialData.polling_center_id));
-
-        // Find the polling center and load its booths
-        const pc = pollingCenters.find(
-          (p) => p.id === initialData.polling_center_id
-        );
-        if (pc) {
-          console.log("🔧 Found polling center:", pc.displayName);
-          setAvailableBooths(pc.booths || []);
-
-          // Set booth selection if booth_id exists
-          if (initialData.booth_id) {
-            console.log("🔧 Setting booth ID:", initialData.booth_id);
-            setSelectedBoothId(initialData.booth_id);
-          }
-        }
-      } else if (initialData.booth_id) {
-        // If booth_id exists but no polling_center_id, still try to set it
-        console.log(
-          "🔧 Setting booth ID (no polling center):",
-          initialData.booth_id
-        );
-        setSelectedBoothId(initialData.booth_id);
-      }
-    }
-  }, [isEditMode, initialData, setValue, pollingCenters]);
+  // This useEffect was removed as it's now handled by the agentData useEffect
 
   // Set existing image previews in edit mode - separate effect to ensure it runs
   useEffect(() => {
-    if (isEditMode && initialData) {
-      console.log("🖼️ Setting up image previews for edit mode");
-      console.log("🖼️ Photo:", initialData.photo);
-      console.log("🖼️ Aadhar:", initialData.aadhar_card);
-      console.log("🖼️ Voter ID:", initialData.voter_id_file);
+    if (isEditMode && agentData) {
+      console.log("🖼️ Setting up image previews for edit mode with agent data");
+      console.log("🖼️ Photo:", agentData.photo);
+      console.log("🖼️ Aadhar:", agentData.aadhar_card);
+      console.log("🖼️ Voter ID:", agentData.voter_id_file);
 
       // Helper function to construct full image URL
       const getImageUrl = (imagePath: string | undefined) => {
@@ -276,49 +251,30 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       };
 
       // Set existing image previews in edit mode
-      if (initialData.photo && typeof initialData.photo === "string") {
-        const photoUrl = getImageUrl(initialData.photo);
+      if (agentData.photo && typeof agentData.photo === "string") {
+        const photoUrl = getImageUrl(agentData.photo);
         console.log("🖼️ Setting photo preview:", photoUrl);
         setPhotoPreview(photoUrl);
       }
 
-      if (
-        initialData.aadhar_card &&
-        typeof initialData.aadhar_card === "string"
-      ) {
-        const aadharUrl = getImageUrl(initialData.aadhar_card);
+      if (agentData.aadhar_card && typeof agentData.aadhar_card === "string") {
+        const aadharUrl = getImageUrl(agentData.aadhar_card);
         console.log("🖼️ Setting aadhar preview:", aadharUrl);
         setAadharPreview(aadharUrl);
       }
 
       if (
-        initialData.voter_id_file &&
-        typeof initialData.voter_id_file === "string"
+        agentData.voter_id_file &&
+        typeof agentData.voter_id_file === "string"
       ) {
-        const voterIdUrl = getImageUrl(initialData.voter_id_file);
+        const voterIdUrl = getImageUrl(agentData.voter_id_file);
         console.log("🖼️ Setting voter ID preview:", voterIdUrl);
         setVoterIdPreview(voterIdUrl);
       }
     }
-  }, [isEditMode, initialData]);
+  }, [isEditMode, agentData]);
 
-  // Initialize form values in edit mode
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      // Set booth selection if booth_id exists
-      if (initialData.booth_id) {
-        setSelectedBoothId(initialData.booth_id);
-      }
-
-      // Set form values that might not be set by defaultValues
-      if (initialData.category) {
-        setValue("category", initialData.category);
-      }
-      if (initialData.role) {
-        setValue("role", initialData.role);
-      }
-    }
-  }, [isEditMode, initialData, setValue]);
+  // This useEffect was removed as it's now handled by the agentData useEffect
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
@@ -429,9 +385,9 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           console.log(`  ${key}:`, value, typeof value);
         }
 
-        if (isEditMode && initialData?.agent_id) {
+        if (isEditMode && agentData?.agent_id) {
           await boothAgentApi.updateAgentWithFiles(
-            initialData.agent_id,
+            agentData.agent_id,
             formData
           );
           toast.dismiss(loadingToast);
@@ -488,8 +444,8 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           booth_id_value: payload.booth_id,
         });
 
-        if (isEditMode && initialData?.agent_id) {
-          await boothAgentApi.updateAgent(initialData.agent_id, payload);
+        if (isEditMode && agentData?.agent_id) {
+          await boothAgentApi.updateAgent(agentData.agent_id, payload);
           toast.dismiss(loadingToast);
           toast.success("Booth agent updated successfully!");
         } else {
@@ -638,6 +594,18 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     setVoterIdFile(null);
     setVoterIdPreview(null);
   };
+
+  // Show loading state while fetching agent data in edit mode
+  if (isEditMode && loadingAgentData) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading agent details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
