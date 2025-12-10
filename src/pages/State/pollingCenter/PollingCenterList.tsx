@@ -529,9 +529,9 @@ export default function StatePollingCenterList() {
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Created Date
-                                            </th>
+                                            </th> */}
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Actions
                                             </th>
@@ -579,9 +579,9 @@ export default function StatePollingCenterList() {
                                                         {pollingCenter.isActive === 1 ? "Active" : "Inactive"}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {pollingCenter.created_at ? new Date(pollingCenter.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
+                                                </td> */}
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <div className="relative inline-block">
                                                         <button
@@ -767,10 +767,16 @@ export default function StatePollingCenterList() {
                                                     Name
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Email
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Phone
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Role
+                                                    State
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Party Name
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Status
@@ -788,32 +794,31 @@ export default function StatePollingCenterList() {
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10">
-                                                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                                                    <span className="text-blue-600 font-semibold text-sm">
-                                                                        {user.name?.charAt(0).toUpperCase()}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="ml-4">
-                                                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+
+                                                            <div className="">
+                                                                <div className="text-sm font-medium text-gray-900">{user.first_name} {user.last_name}</div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                        {user.phone_number || "N/A"}
+                                                        {user.email || "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {user.contact_no || "N/A"}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {user.stateName || "N/A"}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                            {user.role_name || "User"}
+                                                            {user.partyName}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active
-                                                            ? "bg-green-100 text-green-800"
-                                                            : "bg-red-100 text-red-800"
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive
+                                                            ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
                                                             }`}>
-                                                            {user.is_active ? "Active" : "Inactive"}
+                                                            {user.isActive ? "Inactive" : "Active"}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">

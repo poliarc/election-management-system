@@ -110,9 +110,6 @@ export default function AssemblyDashboard() {
                     <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
                         {assemblyName} Assembly Dashboard
                     </h1>
-                    <p className="text-sm text-gray-600">
-                        Click on any card below to navigate to that section.
-                    </p>
                 </div>
             </header>
 
