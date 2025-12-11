@@ -574,7 +574,7 @@ export const DistrictProfile = () => {
               />
             ) : currentUser?.profileImage && !headerAvatarError ? (
               <img
-                src={currentUser.profileImage}
+                src={currentUser?.profileImage}
                 alt="Profile"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 onError={() => setHeaderAvatarError(true)}
@@ -1452,7 +1452,7 @@ export const DistrictProfile = () => {
                 <img src={profileImagePreview} alt="Profile" className="w-32 h-32 rounded-full border-4 border-white object-cover relative z-10" />
               ) : currentUser?.profileImage && !cardAvatarError ? (
                 <img
-                  src={currentUser.profileImage}
+                  src={currentUser?.profileImage}
                   alt="Profile"
                   className="w-32 h-32 rounded-full border-4 border-white object-cover relative z-10"
                   onError={() => setCardAvatarError(true)}
