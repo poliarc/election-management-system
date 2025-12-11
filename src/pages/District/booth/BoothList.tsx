@@ -479,9 +479,9 @@ export default function DistrictBoothList() {
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                           {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Created Date
-                                            </th>
+                                            </th>*/}
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Actions
                                             </th>
@@ -529,9 +529,9 @@ export default function DistrictBoothList() {
                                                         {booth.isActive === 1 ? "Active" : "Inactive"}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                {/*<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {booth.created_at ? new Date(booth.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
+                                                </td>*/}
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <button
                                                         onClick={() => handleViewUsers(booth.id, booth.displayName)}
