@@ -1736,7 +1736,7 @@ export const StateProfile = () => {
                 />
               ) : currentUser?.profileImage && !cardAvatarError ? (
                 <img
-                  src={currentUser.profileImage}
+                  src={currentUser?.profileImage}
                   alt="Profile"
                   className="w-32 h-32 rounded-full border-4 border-white object-cover relative z-10"
                   onError={() => setCardAvatarError(true)}
