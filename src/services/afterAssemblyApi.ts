@@ -307,6 +307,38 @@ export async function fetchAssignedUsersForLevel(
     return response.json();
 }
 
+// Fetch assigned users for after assembly data with pagination and search
+export async function fetchAssignedUsersForLevelPaginated(
+    afterAssemblyDataId: number,
+    page: number = 1,
+    limit: number = 10,
+    search?: string
+): Promise<{ success: boolean; message: string; users: any[]; level: any; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    let url = `${API_CONFIG.BASE_URL}/api/user-after-assembly-hierarchy/level/${afterAssemblyDataId}/users?page=${page}&limit=${limit}`;
+
+    if (search && search.trim()) {
+        url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch assigned users");
+    }
+
+    return response.json();
+}
+
 // Fetch child levels by parent ID
 export async function fetchChildLevelsByParent(
     parentId: number
@@ -337,4 +369,40 @@ export async function fetchAfterAssemblyChildrenByParent(
     parentId: number
 ): Promise<{ success: boolean; message: string; data: AfterAssemblyData[] }> {
     return fetchChildLevelsByParent(parentId);
+}
+// Fetch booth level data with smart level ID handling for Booth levels
+export async function fetchBoothsByLevelSmart(
+    levelId: number,
+    levelType?: string,
+    partyLevelName?: string,
+    parentId?: number | null
+): Promise<{ success: boolean; message: string; data: any[] }> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    // Check if current level is Booth type
+    const isBooth = levelType === "Booth" || partyLevelName === "Booth";
+
+    // If it's a Booth level and parentId is available, use parentId instead of levelId
+    if (isBooth && parentId) {
+        const url = `${API_CONFIG.BASE_URL}/api/booth-level-data/level/${parentId}`;
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+            throw new Error(error.message || "Failed to fetch booths using parentId");
+        }
+
+        return response.json();
+    }
+
+    // Fallback to regular fetch for non-Booth levels or if parentId is not available
+    return fetchBoothsByLevel(levelId);
 }

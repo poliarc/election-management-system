@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchBoothsByLevel } from "../../services/afterAssemblyApi";
+import { fetchBoothsByLevelSmart } from "../../services/afterAssemblyApi";
+import { useAppSelector } from "../../store/hooks";
 import toast from "react-hot-toast";
 
 export default function SubLevelBooths() {
     const { levelId } = useParams<{ levelId: string }>();
+    const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
     const [booths, setBooths] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -14,14 +16,19 @@ export default function SubLevelBooths() {
 
     useEffect(() => {
         loadBooths();
-    }, [levelId]);
+    }, [levelId, selectedAssignment]);
 
     const loadBooths = async () => {
         if (!levelId) return;
 
         try {
             setLoading(true);
-            const response = await fetchBoothsByLevel(Number(levelId));
+            const response = await fetchBoothsByLevelSmart(
+                Number(levelId),
+                selectedAssignment?.levelType,
+                selectedAssignment?.partyLevelName,
+                selectedAssignment?.parentId
+            );
 
             if (response.success && response.data) {
                 setBooths(response.data);
@@ -117,6 +124,7 @@ export default function SubLevelBooths() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Level</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booth Range</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booth Numbers</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Booths</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 </tr>
@@ -124,7 +132,7 @@ export default function SubLevelBooths() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {currentItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                                             No booths found
                                         </td>
                                     </tr>
@@ -145,6 +153,24 @@ export default function SubLevelBooths() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">
                                                     {booth.boothFrom} - {booth.boothTo}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm text-gray-900">
+                                                    {booth.boothNumbers && booth.boothNumbers.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {booth.boothNumbers.map((number: number, idx: number) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                                                >
+                                                                    {number}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-400 italic">No booth numbers</span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
