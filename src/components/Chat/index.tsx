@@ -14,6 +14,8 @@ import {
   useGetUnreadCountQuery,
   useLeaveGroupMutation,
   useAddGroupMembersMutation,
+  useDeleteDirectMessageMutation,
+  useDeleteGroupMessageMutation,
 } from "../../services/chatApi";
 import { useAppSelector } from "../../store/hooks";
 import { socketService } from "../../services/socketService";
@@ -28,15 +30,35 @@ interface MessageBubbleProps {
   message: any;
   isOwn: boolean;
   showSender?: boolean;
+  chatType?: "direct" | "group";
 }
 
 function MessageBubble({
   message,
   isOwn,
   showSender = false,
+  chatType = "direct",
 }: MessageBubbleProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [deleteDirectMessage] = useDeleteDirectMessageMutation();
+  const [deleteGroupMessage] = useDeleteGroupMessageMutation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString("en-US", {
@@ -66,22 +88,63 @@ function MessageBubble({
     return file.type?.startsWith('image/') || file.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
   };
 
+  const handleDeleteMessage = async () => {
+    try {
+      if (chatType === "direct") {
+        await deleteDirectMessage(message.chat_id || message.Id).unwrap();
+      } else {
+        await deleteGroupMessage(message.Id).unwrap();
+      }
+      toast.success("Message deleted successfully");
+      setShowDropdown(false);
+    } catch (error) {
+      toast.error("Failed to delete message");
+    }
+  };
+
   return (
     <>
-      <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-        <div className={`max-w-[70%]`}>
+      <div className={`flex ${isOwn ? "justify-end" : "justify-start"} group`}>
+        <div className={`max-w-[70%] relative`}>
           {showSender && !isOwn && (
             <div className="text-xs text-gray-600 mb-1 ml-2 font-medium">
               {message.sender_name || "Unknown"}
             </div>
           )}
           <div
-            className={`px-3 py-2 rounded-lg ${
-              isOwn
-                ? "bg-gray-600 text-white rounded-br-none"
-                : "bg-white text-gray-900 rounded-bl-none"
-            }`}
+            className={`px-3 py-2 rounded-lg relative ${isOwn
+              ? "bg-gray-600 text-white rounded-br-none"
+              : "bg-white text-gray-900 rounded-bl-none"
+              }`}
           >
+            {/* Three dots menu - only show for own messages */}
+            {isOwn && (
+              <div className="absolute top-1 right-1" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="p-1 hover:bg-gray-500 rounded-full transition-colors"
+                >
+                  <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+                </button>
+
+                {/* Dropdown menu */}
+                {showDropdown && (
+                  <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
+                    <button
+                      onClick={handleDeleteMessage}
+                      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             {files.length > 0 && (
               <div className={`${message.message ? 'mb-2' : ''} space-y-2`}>
                 {files.map((file: any, idx: number) => (
@@ -103,9 +166,8 @@ function MessageBubble({
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 p-2 rounded text-xs ${
-                          isOwn ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
-                        } transition-colors`}
+                        className={`flex items-center gap-2 p-2 rounded text-xs ${isOwn ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                          } transition-colors`}
                       >
                         <svg
                           className="w-4 h-4 flex-shrink-0"
@@ -125,31 +187,29 @@ function MessageBubble({
                     )}
                   </div>
                 ))}
-            </div>
-          )}
-            {message.message && <div className="text-sm break-words mt-2">{message.message}</div>}
-          <div
-            className={`text-xs mt-1 flex items-center gap-1 ${
-              isOwn ? "text-gray-200" : "text-gray-500"
-            }`}
-          >
-            <span>{formatTime(message.created_at)}</span>
-            {isOwn && (
-              <svg
-                className={`w-4 h-4 ${
-                  isRead ? "text-green-500" : "text-gray-300"
-                }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-                <path d="M12.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-1-1a1 1 0 011.414-1.414l.293.293 7.293-7.293a1 1 0 011.414 0z" />
-              </svg>
+              </div>
             )}
+            {message.message && <div className="text-sm break-words mt-2">{message.message}</div>}
+            <div
+              className={`text-xs mt-1 flex items-center gap-1 ${isOwn ? "text-gray-200" : "text-gray-500"
+                }`}
+            >
+              <span>{formatTime(message.created_at)}</span>
+              {isOwn && (
+                <svg
+                  className={`w-4 h-4 ${isRead ? "text-green-500" : "text-gray-300"
+                    }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                  <path d="M12.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-1-1a1 1 0 011.414-1.414l.293.293 7.293-7.293a1 1 0 011.414 0z" />
+                </svg>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* Image Modal */}
       {selectedImage && (
@@ -173,6 +233,8 @@ function MessageBubble({
           />
         </div>
       )}
+
+
     </>
   );
 }
@@ -340,11 +402,10 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                 return (
                   <div
                     key={member.Id}
-                    className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors ${
-                      isCreator
-                        ? "bg-green-50 border-2 border-green-200"
-                        : "bg-gray-50"
-                    }`}
+                    className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors ${isCreator
+                      ? "bg-green-50 border-2 border-green-200"
+                      : "bg-gray-50"
+                      }`}
                   >
                     <div className="relative flex-shrink-0">
                       {member.user_image ? (
@@ -355,11 +416,10 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                         />
                       ) : (
                         <div
-                          className={`w-12 h-12 rounded-full ${
-                            isCreator
-                              ? "bg-gradient-to-br from-green-500 to-green-600"
-                              : "bg-gradient-to-br from-blue-500 to-blue-600"
-                          } flex items-center justify-center text-white text-sm font-semibold shadow-sm`}
+                          className={`w-12 h-12 rounded-full ${isCreator
+                            ? "bg-gradient-to-br from-green-500 to-green-600"
+                            : "bg-gradient-to-br from-blue-500 to-blue-600"
+                            } flex items-center justify-center text-white text-sm font-semibold shadow-sm`}
                         >
                           {initial}
                         </div>
@@ -435,9 +495,8 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
           )}
           <button
             onClick={onClose}
-            className={`${
-              isCreator ? "w-full" : "flex-1"
-            } px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors`}
+            className={`${isCreator ? "w-full" : "flex-1"
+              } px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition-colors`}
           >
             Close
           </button>
@@ -584,40 +643,40 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
               </div>
             ) : (
               filteredUsers.map((user) => {
-              const fullName =
-                user.full_name ||
-                `${user.first_name || ""} ${user.last_name || ""}`.trim();
-              const initial = fullName.charAt(0).toUpperCase() || "U";
-              return (
-                <label
-                  key={user.user_id}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.user_id)}
-                    onChange={() => toggleUser(user.user_id)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <div className="flex items-center gap-2 flex-1">
-                    {user.profileImage ? (
-                      <img
-                        src={user.profileImage}
-                        alt={fullName}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
-                        {initial}
+                const fullName =
+                  user.full_name ||
+                  `${user.first_name || ""} ${user.last_name || ""}`.trim();
+                const initial = fullName.charAt(0).toUpperCase() || "U";
+                return (
+                  <label
+                    key={user.user_id}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.user_id)}
+                      onChange={() => toggleUser(user.user_id)}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt={fullName}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
+                          {initial}
+                        </div>
+                      )}
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {fullName}
                       </div>
-                    )}
-                    <div className="text-sm font-medium text-gray-900 truncate">
-                      {fullName}
                     </div>
-                  </div>
-                </label>
-              );
-            })
+                  </label>
+                );
+              })
             )}
           </div>
           {hasMore && !searchQuery && (
@@ -856,9 +915,8 @@ function AddMembersModal({
           >
             {isLoading
               ? "Adding..."
-              : `Add ${
-                  selectedUsers.length > 0 ? `(${selectedUsers.length})` : ""
-                }`}
+              : `Add ${selectedUsers.length > 0 ? `(${selectedUsers.length})` : ""
+              }`}
           </button>
         </div>
       </div>
@@ -1203,11 +1261,11 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
       files:
         selectedFiles.length > 0
           ? selectedFiles.map((f) => ({
-              url: URL.createObjectURL(f),
-              name: f.name,
-              size: f.size,
-              type: f.type,
-            }))
+            url: URL.createObjectURL(f),
+            name: f.name,
+            size: f.size,
+            type: f.type,
+          }))
           : null,
       read_at: null,
       isDelete: 0,
@@ -1232,15 +1290,15 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
     try {
       await (isGroup
         ? sendGroupMessage({
-            group_id: chat.id,
-            message: messageText,
-            files: filesCopy.length > 0 ? filesCopy : undefined,
-          }).unwrap()
+          group_id: chat.id,
+          message: messageText,
+          files: filesCopy.length > 0 ? filesCopy : undefined,
+        }).unwrap()
         : sendDirectMessage({
-            receiver_id: chat.id,
-            message: messageText,
-            files: filesCopy.length > 0 ? filesCopy : undefined,
-          }).unwrap());
+          receiver_id: chat.id,
+          message: messageText,
+          files: filesCopy.length > 0 ? filesCopy : undefined,
+        }).unwrap());
 
       // Remove optimistic message and let the real one come through socket
       setLocalMessages((prev) =>
@@ -1291,9 +1349,8 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
         }}
       >
         <div
-          className={`${
-            isGroup ? "bg-green-600" : "bg-blue-600"
-          } text-white p-3 rounded-t-lg flex items-center justify-between`}
+          className={`${isGroup ? "bg-green-600" : "bg-blue-600"
+            } text-white p-3 rounded-t-lg flex items-center justify-between`}
         >
           <div
             className="flex items-center gap-2 flex-1 cursor-pointer"
@@ -1307,9 +1364,8 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
               />
             ) : (
               <div
-                className={`w-8 h-8 rounded-full bg-white ${
-                  isGroup ? "text-green-600" : "text-blue-600"
-                } flex items-center justify-center text-sm font-semibold`}
+                className={`w-8 h-8 rounded-full bg-white ${isGroup ? "text-green-600" : "text-blue-600"
+                  } flex items-center justify-center text-sm font-semibold`}
               >
                 {chat.name.charAt(0).toUpperCase()}
               </div>
@@ -1330,9 +1386,8 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                   e.stopPropagation();
                   setShowGroupInfo(true);
                 }}
-                className={`${
-                  isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
-                } p-1 rounded`}
+                className={`${isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
+                  } p-1 rounded`}
                 title="Group Info"
               >
                 <svg
@@ -1355,9 +1410,8 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                 e.stopPropagation();
                 setIsMinimized(!isMinimized);
               }}
-              className={`${
-                isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
-              } p-1 rounded`}
+              className={`${isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
+                } p-1 rounded`}
             >
               <svg
                 className="w-4 h-4"
@@ -1378,9 +1432,8 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                 e.stopPropagation();
                 onClose();
               }}
-              className={`${
-                isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
-              } p-1 rounded`}
+              className={`${isGroup ? "hover:bg-green-700" : "hover:bg-blue-700"
+                } p-1 rounded`}
             >
               <svg
                 className="w-4 h-4"
@@ -1407,6 +1460,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                   message={msg}
                   isOwn={msg.sender_id === currentUserId}
                   showSender={isGroup}
+                  chatType={isGroup ? "group" : "direct"}
                 />
               ))}
               {isTyping && (
@@ -1437,7 +1491,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                   {selectedFiles.map((file, idx) => {
                     const isImage = file.type.startsWith('image/');
                     const previewUrl = isImage ? URL.createObjectURL(file) : null;
-                    
+
                     return (
                       <div
                         key={idx}
@@ -1556,11 +1610,10 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                 <button
                   onClick={handleSend}
                   disabled={!message.trim() && selectedFiles.length === 0}
-                  className={`p-2 ${
-                    isGroup
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  } text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`p-2 ${isGroup
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                    } text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   <svg
                     className="w-4 h-4"
@@ -1782,11 +1835,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
 
   return (
     <>
-      <div className={`${
-        isMobileModal 
-          ? "relative w-full h-full flex flex-col" 
-          : "fixed bottom-0 right-0 w-full sm:w-80 md:w-72 bg-white shadow-2xl border-l border-t border-gray-200 flex flex-col z-40 max-h-[80vh] sm:max-h-[500px]"
-      } bg-white`}>
+      <div className={`${isMobileModal
+        ? "relative w-full h-full flex flex-col"
+        : "fixed bottom-0 right-0 w-full sm:w-80 md:w-72 bg-white shadow-2xl border-l border-t border-gray-200 flex flex-col z-40 max-h-[80vh] sm:max-h-[500px]"
+        } bg-white`}>
         {!isMobileModal && (
           <div
             className="bg-white border-b border-gray-200 p-3 flex items-center justify-between cursor-pointer"
@@ -1809,9 +1861,8 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
               <span className="font-semibold text-gray-800">Messaging</span>
             </div>
             <svg
-              className={`w-5 h-5 text-gray-600 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1866,11 +1917,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                   setActiveTab("recent");
                   setSearchQuery("");
                 }}
-                className={`flex-1 px-3 py-2 text-xs font-medium relative ${
-                  activeTab === "recent"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`flex-1 px-3 py-2 text-xs font-medium relative ${activeTab === "recent"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 Chats
                 {unreadCount && unreadCount.total_unread > 0 && (
@@ -1886,11 +1936,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                   setActiveTab("users");
                   setSearchQuery("");
                 }}
-                className={`flex-1 px-3 py-2 text-xs font-medium ${
-                  activeTab === "users"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === "users"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 Users
               </button>
@@ -1899,11 +1948,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                   setActiveTab("groups");
                   setSearchQuery("");
                 }}
-                className={`flex-1 px-3 py-2 text-xs font-medium ${
-                  activeTab === "groups"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === "groups"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
               >
                 Groups
               </button>
@@ -1954,7 +2002,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                         let group = userGroups.find(
                           (g) => g.Id === chat.group_id
                         );
-                        
+
                         // If not found, create group object from chat data
                         if (!group) {
                           group = {
@@ -1973,7 +2021,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                         let user = allUsers.find(
                           (u) => u.user_id === chat.other_user_id
                         );
-                        
+
                         // If not found, create user object from chat data
                         if (!user) {
                           user = {
@@ -1995,9 +2043,8 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                       <div
                         key={`${chat.chat_type}-${chatId}`}
                         onClick={handleClick}
-                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-                          isOpen ? "bg-blue-50" : ""
-                        } ${hasUnread ? "bg-green-50" : ""}`}
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                          } ${hasUnread ? "bg-green-50" : ""}`}
                       >
                         <div className="relative flex-shrink-0">
                           {chat.chat_image ? (
@@ -2008,9 +2055,8 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                             />
                           ) : (
                             <div
-                              className={`w-12 h-12 rounded-full ${
-                                isGroup ? "bg-green-500" : "bg-blue-500"
-                              } flex items-center justify-center text-white text-sm font-semibold`}
+                              className={`w-12 h-12 rounded-full ${isGroup ? "bg-green-500" : "bg-blue-500"
+                                } flex items-center justify-center text-white text-sm font-semibold`}
                             >
                               {initial}
                             </div>
@@ -2026,11 +2072,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <div
-                              className={`text-sm truncate ${
-                                hasUnread
-                                  ? "font-bold text-gray-900"
-                                  : "font-medium text-gray-900"
-                              }`}
+                              className={`text-sm truncate ${hasUnread
+                                ? "font-bold text-gray-900"
+                                : "font-medium text-gray-900"
+                                }`}
                             >
                               {chat.chat_name}
                             </div>
@@ -2047,11 +2092,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <div
-                              className={`text-xs truncate flex-1 ${
-                                hasUnread
-                                  ? "font-semibold text-gray-700"
-                                  : "text-gray-500"
-                              }`}
+                              className={`text-xs truncate flex-1 ${hasUnread
+                                ? "font-semibold text-gray-700"
+                                : "text-gray-500"
+                                }`}
                             >
                               {chat.last_message_type !== "text" && (
                                 <span className="mr-1">
@@ -2101,9 +2145,8 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                       <div
                         key={u.user_id}
                         onClick={() => onSelectUser(u)}
-                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-                          isOpen ? "bg-blue-50" : ""
-                        }`}
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                          }`}
                       >
                         <div className="relative">
                           {u.profileImage ? (
@@ -2144,38 +2187,37 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
               )}
               {activeTab === "groups" && (
                 filteredGroups.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 text-sm">
-                  No groups found
-                </div>
-              ) : (
-                filteredGroups.map((g) => {
-                  const initial = g.Name.charAt(0).toUpperCase() || "G";
-                  const isOpen = openChats.some(
-                    (chat) => chat.type === "group" && chat.id === g.Id
-                  );
-                  return (
-                    <div
-                      key={g.Id}
-                      onClick={() => onSelectUser({ ...g, type: "group" })}
-                      className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-                        isOpen ? "bg-blue-50" : ""
-                      }`}
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-semibold">
-                        {initial}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-sm truncate">
-                          {g.Name}
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    No groups found
+                  </div>
+                ) : (
+                  filteredGroups.map((g) => {
+                    const initial = g.Name.charAt(0).toUpperCase() || "G";
+                    const isOpen = openChats.some(
+                      (chat) => chat.type === "group" && chat.id === g.Id
+                    );
+                    return (
+                      <div
+                        key={g.Id}
+                        onClick={() => onSelectUser({ ...g, type: "group" })}
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                          }`}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-semibold">
+                          {initial}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {g.member_count} members
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 text-sm truncate">
+                            {g.Name}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {g.member_count} members
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
-              )
+                    );
+                  })
+                )
               )}
             </div>
           </>

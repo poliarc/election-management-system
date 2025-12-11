@@ -90,7 +90,7 @@ export default function GlobalChat() {
             {chatModalOpen && (
                 // Mobile Modal View
                 <div className="fixed inset-0 z-40 lg:hidden bg-black/50" onClick={() => setChatModalOpen(false)}>
-                    <div 
+                    <div
                         className="absolute inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -112,8 +112,8 @@ export default function GlobalChat() {
 
             {/* Desktop Modal View */}
             {chatModalOpen && (
-                <div className="hidden lg:block fixed inset-0 z-40 bg-black/30" onClick={() => setChatModalOpen(false)}>
-                    <div 
+                <div className="hidden lg:block fixed z-40 bg-black/30" style={{ top: 0, left: 0, right: '30px', bottom: 0 }} onClick={() => setChatModalOpen(false)}>
+                    <div
                         className="absolute bottom-0 right-0 w-96 bg-white shadow-2xl flex flex-col rounded-tl-lg"
                         style={{ maxHeight: '600px' }}
                         onClick={(e) => e.stopPropagation()}
@@ -156,11 +156,10 @@ export default function GlobalChat() {
 
                 {/* Main Chat Button - Slides in/out to the left of toggle button */}
                 <div
-                    className={`fixed bottom-6 right-14 z-30 transition-all duration-300 ease-in-out ${
-                        isChatButtonHidden 
-                            ? 'translate-x-24 opacity-0' 
-                            : 'translate-x-0 opacity-100'
-                    }`}
+                    className={`fixed bottom-6 right-14 z-30 transition-all duration-300 ease-in-out ${isChatButtonHidden
+                        ? 'translate-x-24 opacity-0'
+                        : 'translate-x-0 opacity-100'
+                        }`}
                 >
                     <button
                         onClick={() => setChatModalOpen(true)}
