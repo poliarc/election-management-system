@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { fetchAfterAssemblyChildrenByParent, fetchAssignedUsersForLevel, assignUserToAfterAssembly } from "../../services/afterAssemblyApi";
+import { fetchAfterAssemblyChildrenByParent, fetchAssignedUsersForLevel, fetchAssignedUsersForLevelPaginated, assignUserToAfterAssembly } from "../../services/afterAssemblyApi";
 import { fetchUsersByPartyAndState } from "../../services/levelAdminApi";
 import { useDeleteAssignedLevelsMutation } from "../../store/api/afterAssemblyApi";
 import { useAppSelector } from "../../store/hooks";
@@ -21,6 +21,14 @@ export default function AfterAssemblyChildHierarchy() {
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
 
+    // View Users modal pagination and search states
+    const [viewUsersSearchTerm, setViewUsersSearchTerm] = useState("");
+    const [viewUsersCurrentPage, setViewUsersCurrentPage] = useState(1);
+    const [viewUsersItemsPerPage] = useState(10);
+    const [viewUsersTotalPages, setViewUsersTotalPages] = useState(1);
+    const [viewUsersTotalCount, setViewUsersTotalCount] = useState(0);
+    const [isSearching, setIsSearching] = useState(false);
+
     // Delete states
     const [deleteAssignedLevels] = useDeleteAssignedLevelsMutation();
     const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
@@ -35,6 +43,12 @@ export default function AfterAssemblyChildHierarchy() {
     const [loadingAvailableUsers, setLoadingAvailableUsers] = useState(false);
     const [assigningUserId, setAssigningUserId] = useState<number | null>(null);
     const [userSearchTerm, setUserSearchTerm] = useState("");
+
+    // Pagination states for user modal
+    const [userCurrentPage, setUserCurrentPage] = useState(1);
+    const [userItemsPerPage] = useState(10);
+    const [userTotalPages, setUserTotalPages] = useState(1);
+    const [userTotalCount, setUserTotalCount] = useState(0);
 
     // Get user info from auth state
     const { user, selectedAssignment } = useAppSelector((s) => s.auth);
@@ -61,28 +75,109 @@ export default function AfterAssemblyChildHierarchy() {
         }
     };
 
-    const handleViewUsers = async (childId: number, childName: string) => {
-        setSelectedLevelId(childId);
-        setSelectedLevelName(childName);
-        setLoadingUsers(true);
+    const loadViewUsers = async (page: number = 1, search: string = "", levelId?: number) => {
+        const targetLevelId = levelId || selectedLevelId;
+        if (!targetLevelId) return;
 
         try {
-            const response = await fetchAssignedUsersForLevel(childId);
+            setLoadingUsers(true);
+            const response = await fetchAssignedUsersForLevelPaginated(
+                targetLevelId,
+                page,
+                viewUsersItemsPerPage,
+                search
+            );
+
             if (response.success && response.users) {
                 setUsers(response.users);
+                if (response.pagination) {
+                    setViewUsersTotalPages(response.pagination.totalPages);
+                    setViewUsersTotalCount(response.pagination.total);
+                } else {
+                    // Fallback for non-paginated response
+                    setViewUsersTotalPages(1);
+                    setViewUsersTotalCount(response.users.length);
+                }
+            } else {
+                // Try fallback to non-paginated API if paginated fails
+                try {
+                    const fallbackResponse = await fetchAssignedUsersForLevel(targetLevelId);
+                    if (fallbackResponse.success && fallbackResponse.users) {
+                        setUsers(fallbackResponse.users);
+                        setViewUsersTotalPages(1);
+                        setViewUsersTotalCount(fallbackResponse.users.length);
+                    } else {
+                        setUsers([]);
+                    }
+                } catch (fallbackError) {
+                    console.error("Fallback API also failed:", fallbackError);
+                    setUsers([]);
+                }
             }
         } catch (error) {
             console.error("Failed to load users:", error);
             toast.error("Failed to load users");
+            setUsers([]);
         } finally {
             setLoadingUsers(false);
         }
+    };
+
+    const handleViewUsers = async (childId: number, childName: string) => {
+
+        setSelectedLevelId(childId);
+        setSelectedLevelName(childName);
+        setViewUsersSearchTerm("");
+        setViewUsersCurrentPage(1);
+        setUsers([]);
+
+        // Load first page of users
+        await loadViewUsers(1, "", childId);
+    };
+
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        (() => {
+            let timeoutId: NodeJS.Timeout;
+            return (searchValue: string) => {
+                clearTimeout(timeoutId);
+                setIsSearching(true);
+                timeoutId = setTimeout(async () => {
+                    setViewUsersCurrentPage(1);
+                    await loadViewUsers(1, searchValue, selectedLevelId || undefined);
+                    setIsSearching(false);
+                }, 300);
+            };
+        })(),
+        [selectedLevelId]
+    );
+
+    const handleViewUsersSearch = (searchValue: string) => {
+        setViewUsersSearchTerm(searchValue);
+        if (searchValue.trim() === "") {
+            // If search is cleared, load immediately without debounce
+            setIsSearching(true);
+            setViewUsersCurrentPage(1);
+            loadViewUsers(1, "", selectedLevelId || undefined).finally(() => setIsSearching(false));
+        } else {
+            debouncedSearch(searchValue);
+        }
+    };
+
+    const handleViewUsersPageChange = async (page: number) => {
+        setViewUsersCurrentPage(page);
+        await loadViewUsers(page, viewUsersSearchTerm, selectedLevelId || undefined);
     };
 
     const handleCloseModal = () => {
         setSelectedLevelId(null);
         setSelectedLevelName("");
         setUsers([]);
+        setViewUsersSearchTerm("");
+        setViewUsersCurrentPage(1);
+        setViewUsersTotalPages(1);
+        setViewUsersTotalCount(0);
+        setIsSearching(false);
     };
 
     const handleDeleteClick = (user: any) => {
@@ -116,15 +211,47 @@ export default function AfterAssemblyChildHierarchy() {
         }
     };
 
-    const handleAssignUser = async (childId: number, childName: string) => {
-        setAssignTargetId(childId);
-        setAssignTargetName(childName);
-        setShowAssignModal(true);
-        setUserSearchTerm("");
+    const getStateId = () => {
+        // For AfterAssemblyPanel, we need to get the actual state_id
+        // Try to get it from selectedAssignment or fetch from localStorage
+        let stateId = selectedAssignment?.stateMasterData_id;
 
-        // Fetch available users
-        if (!user?.partyId || !selectedAssignment?.stateMasterData_id) {
-            toast.error("Missing party or state information");
+        // If stateMasterData_id is actually an afterAssemblyData_id, we need to find the actual state_id
+        try {
+            const authState = localStorage.getItem("auth_state");
+            if (authState) {
+                const parsed = JSON.parse(authState);
+                // Try to get state_id from stateAssignments
+                if (parsed.stateAssignments && parsed.stateAssignments.length > 0) {
+                    const stateAssignment = parsed.stateAssignments.find((a: any) => a.levelType === 'State');
+                    if (stateAssignment) {
+                        stateId = stateAssignment.stateMasterData_id;
+                    }
+                }
+                // Also try to get from assemblyAssignments if available
+                if (!stateId && parsed.assemblyAssignments && parsed.assemblyAssignments.length > 0) {
+                    const assemblyAssignment = parsed.assemblyAssignments[0];
+                    if (assemblyAssignment.stateMasterData_id) {
+                        stateId = assemblyAssignment.stateMasterData_id;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Failed to get state_id:", error);
+        }
+
+        return stateId;
+    };
+
+    const loadAvailableUsers = async (page: number = 1, search: string = "") => {
+        if (!user?.partyId) {
+            toast.error("Missing party information");
+            return;
+        }
+
+        const stateId = getStateId();
+        if (!stateId) {
+            toast.error("Missing state information");
             return;
         }
 
@@ -132,13 +259,18 @@ export default function AfterAssemblyChildHierarchy() {
             setLoadingAvailableUsers(true);
             const response = await fetchUsersByPartyAndState(
                 user.partyId,
-                selectedAssignment.stateMasterData_id
+                stateId,
+                page,
+                userItemsPerPage,
+                search
             );
 
             if (response.success && response.data) {
                 // Filter out superadmin users
                 const filteredUsers = response.data.filter((u: any) => !u.isSuperAdmin || u.isSuperAdmin === 0);
                 setAvailableUsers(filteredUsers);
+                setUserTotalPages(response.pagination.totalPages);
+                setUserTotalCount(response.pagination.total);
             }
         } catch (error) {
             console.error("Failed to load users:", error);
@@ -148,12 +280,26 @@ export default function AfterAssemblyChildHierarchy() {
         }
     };
 
+    const handleAssignUser = async (childId: number, childName: string) => {
+        setAssignTargetId(childId);
+        setAssignTargetName(childName);
+        setShowAssignModal(true);
+        setUserSearchTerm("");
+        setUserCurrentPage(1);
+
+        // Load first page of users
+        await loadAvailableUsers(1, "");
+    };
+
     const handleCloseAssignModal = () => {
         setShowAssignModal(false);
         setAssignTargetId(null);
         setAssignTargetName("");
         setAvailableUsers([]);
         setUserSearchTerm("");
+        setUserCurrentPage(1);
+        setUserTotalPages(1);
+        setUserTotalCount(0);
     };
 
     const handleConfirmAssign = async (userId: number) => {
@@ -177,6 +323,17 @@ export default function AfterAssemblyChildHierarchy() {
         } finally {
             setAssigningUserId(null);
         }
+    };
+
+    const handleUserSearch = async (searchValue: string) => {
+        setUserSearchTerm(searchValue);
+        setUserCurrentPage(1);
+        await loadAvailableUsers(1, searchValue);
+    };
+
+    const handleUserPageChange = async (page: number) => {
+        setUserCurrentPage(page);
+        await loadAvailableUsers(page, userSearchTerm);
     };
 
     const filteredChildren = children.filter((child) => {
@@ -255,7 +412,6 @@ export default function AfterAssemblyChildHierarchy() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assembly</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party Level</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -281,9 +437,6 @@ export default function AfterAssemblyChildHierarchy() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm font-medium text-gray-900">{child.displayName}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{child.assemblyName || "N/A"}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">{child.partyLevelName || child.levelName}</div>
@@ -383,13 +536,37 @@ export default function AfterAssemblyChildHierarchy() {
                             </div>
                         </div>
 
+                        {/* Search Bar */}
+                        <div className="p-6 border-b border-gray-200">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    {isSearching ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                                    ) : (
+                                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search users by name, email, or mobile..."
+                                    value={viewUsersSearchTerm}
+                                    onChange={(e) => handleViewUsersSearch(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
+
                         <div className="p-6 overflow-y-auto flex-1">
                             {loadingUsers ? (
                                 <div className="text-center py-12">
                                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                                 </div>
                             ) : users.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500">No users assigned</div>
+                                <div className="text-center py-12 text-gray-500">
+                                    {viewUsersSearchTerm ? "No users found matching your search" : "No users assigned"}
+                                </div>
                             ) : (
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -407,7 +584,9 @@ export default function AfterAssemblyChildHierarchy() {
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {users.map((user, index) => (
                                             <tr key={user.user_id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-900">
+                                                    {((viewUsersCurrentPage - 1) * viewUsersItemsPerPage) + index + 1}
+                                                </td>
                                                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
                                                     {user.first_name} {user.last_name}
                                                 </td>
@@ -435,6 +614,48 @@ export default function AfterAssemblyChildHierarchy() {
                                 </table>
                             )}
                         </div>
+
+                        {/* Pagination */}
+                        {viewUsersTotalPages > 1 && (
+                            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                                <div className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{((viewUsersCurrentPage - 1) * viewUsersItemsPerPage) + 1}</span> to{' '}
+                                    <span className="font-medium">{Math.min(viewUsersCurrentPage * viewUsersItemsPerPage, viewUsersTotalCount)}</span> of{' '}
+                                    <span className="font-medium">{viewUsersTotalCount}</span> users
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => handleViewUsersPageChange(viewUsersCurrentPage - 1)}
+                                        disabled={viewUsersCurrentPage === 1}
+                                        className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        Previous
+                                    </button>
+                                    {[...Array(Math.min(5, viewUsersTotalPages))].map((_, i) => {
+                                        const page = i + 1;
+                                        return (
+                                            <button
+                                                key={page}
+                                                onClick={() => handleViewUsersPageChange(page)}
+                                                className={`px-3 py-1 rounded text-sm font-medium ${viewUsersCurrentPage === page
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'text-gray-700 hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    })}
+                                    <button
+                                        onClick={() => handleViewUsersPageChange(viewUsersCurrentPage + 1)}
+                                        disabled={viewUsersCurrentPage === viewUsersTotalPages}
+                                        className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -471,8 +692,8 @@ export default function AfterAssemblyChildHierarchy() {
             {/* Assign User Modal */}
             {showAssignModal && (
                 <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white flex-shrink-0">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="text-2xl font-bold">Assign User</h2>
@@ -486,9 +707,9 @@ export default function AfterAssemblyChildHierarchy() {
                             </div>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-6 flex-1 flex flex-col min-h-0">
                             {/* Search Bar */}
-                            <div className="mb-4">
+                            <div className="mb-4 flex-shrink-0">
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -499,74 +720,93 @@ export default function AfterAssemblyChildHierarchy() {
                                         type="text"
                                         placeholder="Search users by name or email..."
                                         value={userSearchTerm}
-                                        onChange={(e) => setUserSearchTerm(e.target.value)}
+                                        onChange={(e) => handleUserSearch(e.target.value)}
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
 
-                            <div className="overflow-y-auto max-h-[50vh]">
+                            {/* Users List */}
+                            <div className="flex-1 overflow-y-auto min-h-0">
                                 {loadingAvailableUsers ? (
                                     <div className="text-center py-12">
                                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                                     </div>
-                                ) : availableUsers.filter(u =>
-                                    userSearchTerm === "" ||
-                                    `${u.first_name} ${u.last_name}`.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-                                    u.email.toLowerCase().includes(userSearchTerm.toLowerCase())
-                                ).length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500">No users found</div>
+                                ) : availableUsers.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500">
+                                        {userSearchTerm ? "No users found matching your search" : "No users available"}
+                                    </div>
                                 ) : (
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mobile</th>
-                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {availableUsers
-                                                .filter(u =>
-                                                    userSearchTerm === "" ||
-                                                    `${u.first_name} ${u.last_name}`.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-                                                    u.email.toLowerCase().includes(userSearchTerm.toLowerCase())
-                                                )
-                                                .map((user, index) => (
-                                                    <tr key={user.user_id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                                            {user.first_name} {user.last_name}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{user.contact_no || "N/A"}</td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <button
-                                                                onClick={() => handleConfirmAssign(user.user_id)}
-                                                                disabled={assigningUserId === user.user_id}
-                                                                className="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-                                                            >
-                                                                {assigningUserId === user.user_id ? (
-                                                                    <>
-                                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                        </svg>
-                                                                        Assigning...
-                                                                    </>
-                                                                ) : (
-                                                                    "Assign"
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                        </tbody>
-                                    </table>
+                                    <div className="space-y-2 pb-4">
+                                        {availableUsers.map((user) => (
+                                            <div key={user.user_id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex-1">
+                                                            <h4 className="text-sm font-medium text-gray-900">
+                                                                {user.first_name} {user.last_name}
+                                                            </h4>
+                                                            <p className="text-sm text-gray-500">{user.email}</p>
+                                                            <p className="text-xs text-gray-400">
+                                                                {user.contact_no} • {user.partyName} • {user.stateName}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleConfirmAssign(user.user_id)}
+                                                    disabled={assigningUserId === user.user_id}
+                                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                                >
+                                                    {assigningUserId === user.user_id ? "Assigning..." : "Assign"}
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
+
+                            {/* Pagination */}
+                            {userTotalPages > 1 && (
+                                <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 flex-shrink-0">
+                                    <div className="text-sm text-gray-700">
+                                        Showing <span className="font-medium">{((userCurrentPage - 1) * userItemsPerPage) + 1}</span> to{' '}
+                                        <span className="font-medium">{Math.min(userCurrentPage * userItemsPerPage, userTotalCount)}</span> of{' '}
+                                        <span className="font-medium">{userTotalCount}</span> users
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => handleUserPageChange(userCurrentPage - 1)}
+                                            disabled={userCurrentPage === 1}
+                                            className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                        >
+                                            Previous
+                                        </button>
+                                        {[...Array(Math.min(5, userTotalPages))].map((_, i) => {
+                                            const page = i + 1;
+                                            return (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => handleUserPageChange(page)}
+                                                    className={`px-3 py-1 rounded text-sm font-medium ${userCurrentPage === page
+                                                        ? 'bg-indigo-600 text-white'
+                                                        : 'text-gray-700 hover:bg-gray-100'
+                                                        }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            );
+                                        })}
+                                        <button
+                                            onClick={() => handleUserPageChange(userCurrentPage + 1)}
+                                            disabled={userCurrentPage === userTotalPages}
+                                            className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
