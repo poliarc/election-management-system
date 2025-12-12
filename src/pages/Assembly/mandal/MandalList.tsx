@@ -5,12 +5,13 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import { DynamicFilterSection } from "../../../components/DynamicFilterSection";
+import { useGetHierarchyDataQuery } from "../../../services/dataAvailabilityService";
+import type { FilterState, HierarchyLevel } from "../../../types/dynamicNavigation";
 import axios from "axios";
 
 export default function MandalList() {
-    const [searchTerm, setSearchTerm] = useState("");
     const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
@@ -18,6 +19,13 @@ export default function MandalList() {
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
+    
+    // Filter state
+    const [filters, setFilters] = useState<FilterState>({
+        assemblyId: 0,
+        searchTerm: "",
+        selectedItemFilter: "" // For "Filter by Mandal" functionality
+    });
 
     // Polling Center and Booth states
     const [pollingCenters, setPollingCenters] = useState<any[]>([]);
@@ -62,7 +70,7 @@ export default function MandalList() {
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -86,13 +94,34 @@ export default function MandalList() {
         fetchAssemblyDetails();
     }, [assemblyInfo.assemblyId]);
 
+    // Get hierarchy data for dynamic filtering
+    const { data: assemblyHierarchyData } = useGetHierarchyDataQuery(
+        assemblyInfo.assemblyId,
+        { skip: !assemblyInfo.assemblyId }
+    );
+
     // Fetch mandals for selected block
     const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
+        filters.blockId || selectedBlockId,
+        { skip: !filters.blockId && !selectedBlockId }
     );
 
     const mandals = hierarchyData?.children || [];
+
+    // Define available hierarchy levels for mandals page
+    // Include block filter for navigation and mandal filter for "Filter by Mandal"
+    const availableLevels: HierarchyLevel[] = [
+        {
+            type: 'block',
+            hasData: assemblyHierarchyData?.availableLevels.blocks.hasData || false,
+            isRequired: true // Required for navigation
+        },
+        {
+            type: 'mandal',
+            hasData: mandals.length > 0,
+            isRequired: false // Not required for navigation, just for filtering
+        }
+    ];
 
     // Fetch Polling Centers for selected Mandal
     const fetchPollingCenters = async (mandalId: number) => {
@@ -142,9 +171,30 @@ export default function MandalList() {
         }
     };
 
+    // Update filters when assembly changes
+    useEffect(() => {
+        if (assemblyInfo.assemblyId) {
+            setFilters(prev => ({
+                ...prev,
+                assemblyId: assemblyInfo.assemblyId
+            }));
+        }
+    }, [assemblyInfo.assemblyId]);
+
+    // Handle filter changes
+    const handleFiltersChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset to first page when filters change
+        
+        // Update selected block ID when block filter changes
+        if (newFilters.blockId !== filters.blockId) {
+            setSelectedBlockId(newFilters.blockId || 0);
+        }
+    };
+
     const filteredMandals = mandals.filter((mandal) => {
-        const matchesSearch = mandal.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedMandalFilter === "" || mandal.id.toString() === selectedMandalFilter;
+        const matchesSearch = mandal.displayName.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        const matchesFilter = !filters.selectedItemFilter || mandal.id.toString() === filters.selectedItemFilter;
         return matchesSearch && matchesFilter;
     });
 
@@ -288,87 +338,16 @@ export default function MandalList() {
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Assembly
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.assemblyName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value={0}>Select a Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Mandal
-                            </label>
-                            <select
-                                value={selectedMandalFilter}
-                                onChange={(e) => {
-                                    setSelectedMandalFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value="">All Mandals</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Mandals
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search by mandal name..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    disabled={!selectedBlockId}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic Filters */}
+                <DynamicFilterSection
+                    currentLevel="mandal"
+                    assemblyId={assemblyInfo.assemblyId}
+                    availableLevels={availableLevels}
+                    onFiltersChange={handleFiltersChange}
+                    initialFilters={filters}
+                    assemblyName={assemblyInfo.assemblyName}
+                    districtName={assemblyInfo.districtName}
+                />
 
                 {/* Mandal List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">

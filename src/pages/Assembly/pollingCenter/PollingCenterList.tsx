@@ -5,13 +5,16 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import { DynamicFilterSection } from "../../../components/DynamicFilterSection";
+import type { FilterState, HierarchyLevel } from "../../../types/dynamicNavigation";
 
 
 export default function PollingCenterList() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
-    const [selectedPollingCenterFilter, setSelectedPollingCenterFilter] = useState<string>("");
+    const [filters, setFilters] = useState<FilterState>({
+        assemblyId: 0,
+        searchTerm: "",
+        selectedItemFilter: ""
+    });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number | null>(null);
@@ -34,13 +37,15 @@ export default function PollingCenterList() {
 
     useEffect(() => {
         if (selectedAssignment) {
-            setAssemblyInfo({
+            const newAssemblyInfo = {
                 assemblyName: selectedAssignment.levelName || "",
                 districtName: selectedAssignment.parentLevelName || "",
                 assemblyId: selectedAssignment.stateMasterData_id || 0,
                 stateId: (selectedAssignment as any).state_id || 0,
                 districtId: (selectedAssignment as any).district_id || (selectedAssignment as any).parentStateMasterData_id || 0,
-            });
+            };
+            setAssemblyInfo(newAssemblyInfo);
+            setFilters(prev => ({ ...prev, assemblyId: newAssemblyInfo.assemblyId }));
         }
     }, [selectedAssignment]);
 
@@ -50,6 +55,86 @@ export default function PollingCenterList() {
         { skip: !assemblyInfo.assemblyId }
     );
 
+    // State for dynamic hierarchy detection
+    const [hasRealPollingCenters, setHasRealPollingCenters] = useState(true);
+
+    // Check if polling centers exist for the selected mandal
+    useEffect(() => {
+        const checkPollingCenters = async () => {
+            if (filters.mandalId) {
+                try {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${filters.mandalId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                            },
+                        }
+                    );
+                    const data = await response.json();
+                    
+                    // Check if the children are real polling centers (not booths)
+                    const children = data.children || [];
+                    
+                    // Enhanced logic: Check if children are actually polling centers
+                    let hasPollingCenterChildren = false;
+                    
+                    if (children.length > 0) {
+                        // Check if any child has a levelType that indicates it's a polling center
+                        const hasPollingCenterType = children.some((child: any) => {
+                            const levelType = (child.levelType || '').toLowerCase();
+                            return levelType.includes('polling') || levelType.includes('center');
+                        });
+                        
+                        // Check naming patterns - if most children are booth-like names, they're not polling centers
+                        const boothPatternCount = children.filter((child: any) => {
+                            const name = (child.displayName || child.levelName || '').toLowerCase().trim();
+                            // Booth patterns: "booth 1", "booth 111", "booth no 1", etc.
+                            return /^booth\s*(no\.?\s*)?\d+$/i.test(name);
+                        }).length;
+                        
+                        // If less than 80% of children match booth pattern, consider them polling centers
+                        const boothPatternRatio = boothPatternCount / children.length;
+                        
+                        hasPollingCenterChildren = hasPollingCenterType || boothPatternRatio < 0.8;
+                        
+                        console.log('Polling center analysis for mandal:', {
+                            mandalId: filters.mandalId,
+                            childrenCount: children.length,
+                            boothPatternCount,
+                            boothPatternRatio,
+                            hasPollingCenterType,
+                            hasRealPollingCenters: hasPollingCenterChildren,
+                            sampleNames: children.slice(0, 3).map((c: any) => c.displayName || c.levelName)
+                        });
+                    }
+                    
+                    setHasRealPollingCenters(hasPollingCenterChildren);
+                } catch (error) {
+                    console.error('Error checking polling centers:', error);
+                    setHasRealPollingCenters(false);
+                }
+            } else {
+                setHasRealPollingCenters(true); // Default to true when no mandal selected
+            }
+        };
+
+        checkPollingCenters();
+    }, [filters.mandalId]);
+
+    // Define available hierarchy levels for polling center list
+    const availableLevels: HierarchyLevel[] = [
+        { type: 'block', hasData: blocks.length > 0, isRequired: true },
+        { type: 'mandal', hasData: blocks.length > 0, isRequired: true, parentType: 'block' },
+        { type: 'pollingCenter', hasData: hasRealPollingCenters, isRequired: false, parentType: 'mandal' }
+    ];
+
+    // Handle filter changes from DynamicFilterSection
+    const handleFiltersChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset pagination when filters change
+    };
+
     // Fetch assembly hierarchy details to get state_id and district_id
     useEffect(() => {
         const fetchAssemblyDetails = async () => {
@@ -57,7 +142,7 @@ export default function PollingCenterList() {
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -81,25 +166,17 @@ export default function PollingCenterList() {
         fetchAssemblyDetails();
     }, [assemblyInfo.assemblyId]);
 
-    // Fetch mandals for selected block
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
-
-    const mandals = mandalHierarchyData?.children || [];
-
-    // Fetch polling centers for selected mandal
+    // Fetch polling centers for selected mandal using filters
     const { data: hierarchyData, isLoading: loadingPollingCenters, error } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
+        filters.mandalId || 0,
+        { skip: !filters.mandalId }
     );
 
     const pollingCenters = hierarchyData?.children || [];
 
     const filteredPollingCenters = pollingCenters.filter((pc) => {
-        const matchesSearch = pc.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedPollingCenterFilter === "" || pc.id.toString() === selectedPollingCenterFilter;
+        const matchesSearch = pc.displayName.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        const matchesFilter = filters.selectedItemFilter === "" || pc.id.toString() === filters.selectedItemFilter;
         return matchesSearch && matchesFilter;
     });
 
@@ -170,19 +247,7 @@ export default function PollingCenterList() {
         }
     }, [totalPages, currentPage]);
 
-    // Auto-select first block if available
-    useEffect(() => {
-        if (blocks.length > 0 && selectedBlockId === 0) {
-            setSelectedBlockId(blocks[0].id);
-        }
-    }, [blocks]);
 
-    // Auto-select first mandal when mandals load
-    useEffect(() => {
-        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-            setSelectedMandalId(mandals[0].id);
-        }
-    }, [mandals, selectedBlockId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -202,7 +267,9 @@ export default function PollingCenterList() {
                             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-medium text-gray-600">Total Polling Centers</p>
-                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{pollingCenters.length}</p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">
+                                        {hasRealPollingCenters ? pollingCenters.length : 0}
+                                    </p>
                                 </div>
                                 <div className="bg-green-50 rounded-full p-1.5">
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,7 +283,7 @@ export default function PollingCenterList() {
                                 <div>
                                     <p className="text-xs font-medium text-gray-600">Total Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                                        {pollingCenters.reduce((sum, pc) => sum + (pc.user_count || 0), 0)}
+                                        {hasRealPollingCenters ? pollingCenters.reduce((sum, pc) => sum + (pc.user_count || 0), 0) : 0}
                                     </p>
                                 </div>
                                 <div className="bg-green-50 rounded-full p-1.5">
@@ -230,12 +297,12 @@ export default function PollingCenterList() {
                             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-medium text-gray-600">Polling Centers Without Users</p>
-                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
-                                        {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length}
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${hasRealPollingCenters && pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                        {hasRealPollingCenters ? pollingCenters.filter(pc => (pc.user_count || 0) === 0).length : 0}
                                     </p>
                                 </div>
-                                <div className={`rounded-full p-1.5 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
-                                    {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? (
+                                <div className={`rounded-full p-1.5 ${hasRealPollingCenters && pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                    {hasRealPollingCenters && pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? (
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
@@ -250,126 +317,40 @@ export default function PollingCenterList() {
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Assembly
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.assemblyName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            >
-                                <option value={0}>Select a Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Mandal <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedMandalId}
-                                onChange={(e) => {
-                                    setSelectedMandalId(Number(e.target.value));
-                                    setSelectedPollingCenterFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select a Mandal</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Polling Center
-                            </label>
-                            <select
-                                value={selectedPollingCenterFilter}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value="">All Polling Centers</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Polling Centers
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search by polling center name..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    disabled={!selectedMandalId}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic Filter Section */}
+                <DynamicFilterSection
+                    currentLevel="pollingCenter"
+                    assemblyId={assemblyInfo.assemblyId}
+                    availableLevels={availableLevels}
+                    onFiltersChange={handleFiltersChange}
+                    initialFilters={filters}
+                    assemblyName={assemblyInfo.assemblyName}
+                    districtName={assemblyInfo.districtName}
+                />
 
                 {/* Polling Center List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {!selectedBlockId ? (
+                    {!filters.blockId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view polling centers</p>
                         </div>
-                    ) : !selectedMandalId ? (
+                    ) : !filters.mandalId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
+                        </div>
+                    ) : !hasRealPollingCenters ? (
+                        <div className="text-center py-12">
+                            <svg className="mx-auto h-12 w-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="mt-2 text-blue-600 font-medium">No polling centers found</p>
+                            <p className="mt-1 text-sm text-gray-500">This mandal has booths directly without polling centers</p>
                         </div>
                     ) : loadingPollingCenters ? (
                         <div className="text-center py-12">

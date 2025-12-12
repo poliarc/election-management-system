@@ -103,8 +103,7 @@ export const blockApi = createApi({
             query: (parentAssemblyId) =>
                 `/after-assembly-data/assembly/${parentAssemblyId}`,
             transformResponse: (response: ApiResponse<Block[]>) => {
-                console.log("=== Blocks List API Response ===");
-                console.log("Blocks data:", response.data);
+
 
                 // Return blocks with user counts
                 const blocks = response.data || [];

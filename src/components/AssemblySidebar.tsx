@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import type { StateAssignment } from "../types/api";
+import { navigationVisibilityManager } from "../services/navigationVisibilityManager";
+import type { NavigationVisibility, HierarchyDataStatus } from "../types/dynamicNavigation";
+import { useRealTimeUpdates } from "../hooks/useRealTimeUpdates";
+import { RealTimeStatusIndicator } from "./RealTimeMonitoringStatus";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -190,15 +194,22 @@ const Icons = {
   ),
 };
 
-// Top-level items
-const primaryItems: NavItem[] = [
+// Static items that are always visible
+const staticItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "team", label: "Assembly Team", icon: Icons.team },
+];
 
-  { to: "block", label: "Block", icon: Icons.block },
-  { to: "mandal", label: "Mandal", icon: Icons.mandal },
-  { to: "polling-center", label: "Polling Center", icon: Icons.polling },
-  { to: "booth", label: "Booth", icon: Icons.booths },
+// Dynamic items that depend on data availability
+const dynamicItemsConfig = [
+  { to: "block", label: "Block", icon: Icons.block, requiredData: 'blocks' as const },
+  { to: "mandal", label: "Mandal", icon: Icons.mandal, requiredData: 'mandals' as const },
+  { to: "polling-center", label: "Polling Center", icon: Icons.polling, requiredData: 'pollingCenters' as const },
+  { to: "booth", label: "Booth", icon: Icons.booths, requiredData: 'booths' as const },
+];
+
+// Items that come after dynamic items
+const postDynamicItems: NavItem[] = [
   { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
@@ -337,6 +348,23 @@ export default function AssemblySidebar({
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Dynamic navigation state - start with all items visible for better UX
+  const [navigationVisibility, setNavigationVisibility] = useState<NavigationVisibility>({
+    showBlocks: true,
+    showMandals: true,
+    showPollingCenters: true,
+    showBooths: true
+  });
+  const [isLoadingNavigation, setIsLoadingNavigation] = useState(false);
+  const isMountedRef = useRef(true);
+
+  // Set mounted ref to false on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const base = ROLE_DASHBOARD_PATH["Assembly"] || "/assembly";
   const firstName = user?.firstName || user?.username || "Assembly";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -373,37 +401,39 @@ export default function AssemblySidebar({
   );
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
 
-  // Get all Assembly assignments
-  let sameTypeAssignments: StateAssignment[] = [];
+  // Get all Assembly assignments (memoized to prevent infinite re-renders)
+  const sameTypeAssignments = useMemo(() => {
+    // Get assemblies from stateAssignments
+    const assemblyAssignments = stateAssignments.filter((a) => a.levelType === 'Assembly');
 
-  // Get assemblies from stateAssignments
-  const assemblyAssignments = stateAssignments.filter((a) => a.levelType === 'Assembly');
+    let assignments: StateAssignment[] = [];
 
-  // Get assemblies from permissions
-  if (permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) {
-    const permissionAssemblies = permissions.accessibleAssemblies.map((assembly: any) => ({
-      assignment_id: assembly.assignment_id,
-      stateMasterData_id: assembly.stateMasterData_id || 0,
-      levelName: assembly.displayName || assembly.levelName,
-      levelType: 'Assembly',
-      level_id: assembly.level_id,
-      parentId: assembly.parentId,
-      parentLevelName: assembly.parentLevelName || 'District',
-      parentLevelType: 'District',
-      displayName: assembly.displayName,
-    }));
-    sameTypeAssignments = [...assemblyAssignments, ...permissionAssemblies];
-  } else {
-    sameTypeAssignments = assemblyAssignments;
-  }
+    // Get assemblies from permissions
+    if (permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) {
+      const permissionAssemblies = permissions.accessibleAssemblies.map((assembly: any) => ({
+        assignment_id: assembly.assignment_id,
+        stateMasterData_id: assembly.stateMasterData_id || 0,
+        levelName: assembly.displayName || assembly.levelName,
+        levelType: 'Assembly',
+        level_id: assembly.level_id,
+        parentId: assembly.parentId,
+        parentLevelName: assembly.parentLevelName || 'District',
+        parentLevelType: 'District',
+        displayName: assembly.displayName,
+      }));
+      assignments = [...assemblyAssignments, ...permissionAssemblies];
+    } else {
+      assignments = assemblyAssignments;
+    }
 
-  // Remove duplicates by assignment_id
-  const seen = new Set<number>();
-  sameTypeAssignments = sameTypeAssignments.filter((a) => {
-    if (seen.has(a.assignment_id)) return false;
-    seen.add(a.assignment_id);
-    return true;
-  });
+    // Remove duplicates by assignment_id
+    const seen = new Set<number>();
+    return assignments.filter((a) => {
+      if (seen.has(a.assignment_id)) return false;
+      seen.add(a.assignment_id);
+      return true;
+    });
+  }, [stateAssignments, permissions?.accessibleAssemblies]);
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
@@ -414,9 +444,195 @@ export default function AssemblySidebar({
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event('assignmentChanged'));
 
+    // Refresh navigation visibility for new assembly
+    if (assignment.stateMasterData_id) {
+      checkNavigationVisibility(assignment.stateMasterData_id);
+    }
+
     // Navigate to assembly dashboard
     navigate('/assembly/dashboard');
   };
+
+  // Check navigation visibility for current assembly (memoized to prevent re-renders)
+  const checkNavigationVisibility = useCallback(async (assemblyId: number) => {
+    if (!isMountedRef.current) return { showBlocks: false, showMandals: false, showPollingCenters: false, showBooths: false };
+    
+    try {
+      const visibility = await navigationVisibilityManager.checkDataAvailability(assemblyId);
+      return visibility;
+    } catch (error) {
+      console.error('AssemblySidebar: Error checking navigation visibility:', error);
+      return { showBlocks: false, showMandals: false, showPollingCenters: false, showBooths: false };
+    }
+  }, []);
+
+  // Memoize assembly IDs to prevent unnecessary re-renders
+  const assemblyIds = useMemo(() => {
+    return sameTypeAssignments.map(a => a.stateMasterData_id).filter(id => id > 0);
+  }, [sameTypeAssignments]);
+
+  // Real-time updates for navigation data
+  const { forceRefresh } = useRealTimeUpdates({
+    assemblyIds,
+    onDataChange: (data: HierarchyDataStatus) => {
+      if (isMountedRef.current && data.assemblyId === selectedAssignment?.stateMasterData_id) {
+
+        // The navigation visibility manager will handle the update
+      }
+    },
+    autoStart: true,
+    refreshOnMount: false
+  });
+
+  // Initialize navigation visibility manager and check data availability
+  useEffect(() => {
+    // Only start loading if we have a valid assembly
+    if (selectedAssignment?.stateMasterData_id && assemblyIds.length > 0) {
+
+      setIsLoadingNavigation(true);
+      
+      navigationVisibilityManager.initialize(assemblyIds);
+
+      // Subscribe to navigation visibility changes with error handling
+      const unsubscribe = navigationVisibilityManager.subscribeToVisibilityChanges(
+        (visibility) => {
+          try {
+            if (isMountedRef.current) {
+
+              // Only update if we have actual data, otherwise keep showing all items
+              const hasAnyData = Object.values(visibility).some(v => v === true);
+              if (hasAnyData) {
+                setNavigationVisibility(visibility);
+              } else {
+                // Keep all items visible if no data detected
+                setNavigationVisibility({
+                  showBlocks: true,
+                  showMandals: true,
+                  showPollingCenters: true,
+                  showBooths: true
+                });
+              }
+              setIsLoadingNavigation(false);
+            }
+          } catch (error) {
+            console.error('AssemblySidebar: Error updating navigation visibility state:', error);
+            // Even on error, stop loading and show all items
+            if (isMountedRef.current) {
+              setNavigationVisibility({
+                showBlocks: true,
+                showMandals: true,
+                showPollingCenters: true,
+                showBooths: true
+              });
+              setIsLoadingNavigation(false);
+            }
+          }
+        }
+      );
+
+      // Check initial visibility with immediate loading stop
+      const checkInitialVisibility = async () => {
+        try {
+
+          const visibility = await checkNavigationVisibility(selectedAssignment.stateMasterData_id);
+          if (isMountedRef.current) {
+
+            // Only update if we have actual data, otherwise keep showing all items
+            const hasAnyData = Object.values(visibility).some(v => v === true);
+            if (hasAnyData) {
+              setNavigationVisibility(visibility);
+            } else {
+              // Keep all items visible if no data detected
+
+            }
+            setIsLoadingNavigation(false);
+          }
+        } catch (error) {
+          console.error('AssemblySidebar: Error checking initial visibility:', error);
+          if (isMountedRef.current) {
+            // Keep fallback visibility and stop loading
+
+            setIsLoadingNavigation(false);
+          }
+        }
+      };
+
+      checkInitialVisibility();
+
+      // Shorter fallback timeout to ensure loading state is always cleared
+      const fallbackTimeout = setTimeout(() => {
+        if (isMountedRef.current) {
+
+          setIsLoadingNavigation(false);
+        }
+      }, 500); // Reduced to 0.5 seconds
+
+      // Listen for assignment changes to refresh data
+      const handleAssignmentChange = () => {
+        if (selectedAssignment?.stateMasterData_id) {
+
+          setIsLoadingNavigation(true);
+          navigationVisibilityManager.refreshAssemblyData(selectedAssignment.stateMasterData_id);
+          // Also force refresh real-time data
+          forceRefresh();
+        }
+      };
+
+      window.addEventListener('assignmentChanged', handleAssignmentChange);
+
+      // Cleanup on unmount
+      return () => {
+        isMountedRef.current = false;
+        clearTimeout(fallbackTimeout);
+        unsubscribe();
+        window.removeEventListener('assignmentChanged', handleAssignmentChange);
+      };
+    } else {
+      // If no assembly selected or no assembly IDs, don't show loading
+
+      setIsLoadingNavigation(false);
+      // Keep navigation items visible even without assembly for better UX
+      setNavigationVisibility({
+        showBlocks: true,
+        showMandals: true,
+        showPollingCenters: true,
+        showBooths: true
+      });
+    }
+  }, [selectedAssignment?.stateMasterData_id, assemblyIds.length, checkNavigationVisibility, forceRefresh]); // Added missing dependencies
+
+  // Get dynamic navigation items based on visibility
+  const getDynamicNavigationItems = useMemo(() => {
+    // Always show items if we have an assembly selected
+    if (!selectedAssignment?.stateMasterData_id) {
+      return [];
+    }
+
+    const items = dynamicItemsConfig.filter(item => {
+      switch (item.requiredData) {
+        case 'blocks':
+          return navigationVisibility.showBlocks;
+        case 'mandals':
+          return navigationVisibility.showMandals;
+        case 'pollingCenters':
+          return navigationVisibility.showPollingCenters;
+        case 'booths':
+          return navigationVisibility.showBooths;
+        default:
+          return false;
+      }
+    }).map(item => ({
+      to: item.to,
+      label: item.label,
+      icon: item.icon
+    }));
+    
+
+    
+    return items;
+  }, [navigationVisibility, selectedAssignment?.stateMasterData_id, isLoadingNavigation]);
+
+
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
@@ -428,13 +644,17 @@ export default function AssemblySidebar({
             alt={firstName}
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
           />
-          <div className="min-w-0">
-            <p className="truncate font-semibold text-black text-sm">
-              {firstName}
-            </p>
-            <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              Assembly Level
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="truncate font-semibold text-black text-sm">
+                  {firstName}
+                </p>
+                <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
+                  Assembly Level
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -507,8 +727,18 @@ export default function AssemblySidebar({
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-5 space-y-2">
-        {/* Primary items */}
-        {primaryItems.map((item) => (
+
+
+        {/* Loading state for navigation - only show briefly */}
+        {isLoadingNavigation && getDynamicNavigationItems.length === 0 && selectedAssignment?.stateMasterData_id && (
+          <div className="flex items-center justify-center py-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+            <span className="ml-2 text-xs text-gray-600">Loading navigation...</span>
+          </div>
+        )}
+
+        {/* Static Navigation items - Always visible */}
+        {staticItems.map((item) => (
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
@@ -531,6 +761,70 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
+        {/* Dynamic Navigation items - Show when available */}
+        {getDynamicNavigationItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
+            className={({ isActive }) =>
+              [
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                isActive
+                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                  : "border border-transparent hover:border-gray-200",
+              ].join(" ")
+            }
+          >
+            <span className="text-indigo-600 shrink-0">{item.icon}</span>
+            <span className="truncate">{item.label}</span>
+            {/** Accent bar */}
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+            {/** Active indicator */}
+            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+          </NavLink>
+        ))}
+
+        {/* Post-dynamic Navigation items - Always visible */}
+        {postDynamicItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
+            className={({ isActive }) =>
+              [
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                isActive
+                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                  : "border border-transparent hover:border-gray-200",
+              ].join(" ")
+            }
+          >
+            <span className="text-indigo-600 shrink-0">{item.icon}</span>
+            <span className="truncate">{item.label}</span>
+            {/** Accent bar */}
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+            {/** Active indicator */}
+            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+          </NavLink>
+        ))}
+
+
+
+        {/* No data message - only show when no assembly selected */}
+        {!isLoadingNavigation && getDynamicNavigationItems.length === 0 && !selectedAssignment?.stateMasterData_id && (
+          <div className="px-3.5 py-2.5 text-xs text-gray-500 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="flex items-center gap-2">
+              <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>No assembly selected</span>
+            </div>
+          </div>
+        )}
 
         {/* Booth Management dropdown */}
         <div>
@@ -604,7 +898,8 @@ export default function AssemblySidebar({
             </div>
           )}
         </div>
-        {/* Other items before Voter Reports */}
+
+        {/* Other items after Booth Management - Always visible */}
         {otherItemsBefore.map((item) => (
           <NavLink
             key={item.to}

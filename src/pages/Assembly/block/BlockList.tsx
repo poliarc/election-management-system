@@ -5,11 +5,12 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import { DynamicFilterSection } from "../../../components/DynamicFilterSection";
+import { useGetHierarchyDataQuery } from "../../../services/dataAvailabilityService";
+import type { FilterState, HierarchyLevel } from "../../../types/dynamicNavigation";
 
 export default function BlockList() {
     const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBlockFilter, setSelectedBlockFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
@@ -17,6 +18,13 @@ export default function BlockList() {
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedBlockForVoters, setSelectedBlockForVoters] = useState<{ id: number; name: string } | null>(null);
+    
+    // Filter state
+    const [filters, setFilters] = useState<FilterState>({
+        assemblyId: 0,
+        searchTerm: "",
+        selectedItemFilter: "" // For "Filter by Block" functionality
+    });
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -49,6 +57,22 @@ export default function BlockList() {
         { skip: !assemblyInfo.assemblyId }
     );
 
+    // Get hierarchy data for dynamic filtering
+    const { data: hierarchyData } = useGetHierarchyDataQuery(
+        assemblyInfo.assemblyId,
+        { skip: !assemblyInfo.assemblyId }
+    );
+
+    // Define available hierarchy levels for blocks page
+    // Include block level for "Filter by Block" functionality
+    const availableLevels: HierarchyLevel[] = [
+        {
+            type: 'block',
+            hasData: hierarchyData?.availableLevels.blocks.hasData || false,
+            isRequired: false // Not required for navigation, just for filtering
+        }
+    ];
+
     // Fetch assembly hierarchy details to get state_id and district_id
     useEffect(() => {
         const fetchAssemblyDetails = async () => {
@@ -56,7 +80,7 @@ export default function BlockList() {
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -117,9 +141,25 @@ export default function BlockList() {
         }
     }, [blocks]);
 
+    // Update filters when assembly changes
+    useEffect(() => {
+        if (assemblyInfo.assemblyId) {
+            setFilters(prev => ({
+                ...prev,
+                assemblyId: assemblyInfo.assemblyId
+            }));
+        }
+    }, [assemblyInfo.assemblyId]);
+
+    // Handle filter changes
+    const handleFiltersChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset to first page when filters change
+    };
+
     const filteredBlocks = blocks.filter((block) => {
-        const matchesSearch = block.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedBlockFilter === "" || block.id.toString() === selectedBlockFilter;
+        const matchesSearch = block.displayName.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        const matchesFilter = !filters.selectedItemFilter || block.id.toString() === filters.selectedItemFilter;
         return matchesSearch && matchesFilter;
     });
 
@@ -249,75 +289,16 @@ export default function BlockList() {
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-1">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                District
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.districtName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Assembly
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.assemblyName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Block
-                            </label>
-                            <select
-                                value={selectedBlockFilter}
-                                onChange={(e) => {
-                                    setSelectedBlockFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="">All Blocks</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Blocks
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search by block name..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic Filters */}
+                <DynamicFilterSection
+                    currentLevel="block"
+                    assemblyId={assemblyInfo.assemblyId}
+                    availableLevels={availableLevels}
+                    onFiltersChange={handleFiltersChange}
+                    initialFilters={filters}
+                    assemblyName={assemblyInfo.assemblyName}
+                    districtName={assemblyInfo.districtName}
+                />
 
                 {/* Block List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">

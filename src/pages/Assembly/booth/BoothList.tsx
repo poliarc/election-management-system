@@ -5,14 +5,16 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import { DynamicFilterSection } from "../../../components/DynamicFilterSection";
+import type { FilterState, HierarchyLevel } from "../../../types/dynamicNavigation";
 
 
 export default function BoothList() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
-    const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number>(0);
-    const [selectedBoothFilter, setSelectedBoothFilter] = useState<string>("");
+    const [filters, setFilters] = useState<FilterState>({
+        assemblyId: 0,
+        searchTerm: "",
+        selectedItemFilter: ""
+    });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
@@ -35,13 +37,15 @@ export default function BoothList() {
 
     useEffect(() => {
         if (selectedAssignment) {
-            setAssemblyInfo({
+            const newAssemblyInfo = {
                 assemblyName: selectedAssignment.levelName || "",
                 districtName: selectedAssignment.parentLevelName || "",
                 assemblyId: selectedAssignment.stateMasterData_id || 0,
                 stateId: (selectedAssignment as any).state_id || 0,
                 districtId: (selectedAssignment as any).district_id || (selectedAssignment as any).parentStateMasterData_id || 0,
-            });
+            };
+            setAssemblyInfo(newAssemblyInfo);
+            setFilters(prev => ({ ...prev, assemblyId: newAssemblyInfo.assemblyId }));
         }
     }, [selectedAssignment]);
 
@@ -51,13 +55,115 @@ export default function BoothList() {
         { skip: !assemblyInfo.assemblyId }
     );
 
+    // State for dynamic hierarchy detection
+    const [hasPollingCenters, setHasPollingCenters] = useState(false);
+
+    // Check if polling centers exist for the selected mandal
+    useEffect(() => {
+        const checkPollingCenters = async () => {
+            if (filters.mandalId) {
+                try {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${filters.mandalId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                            },
+                        }
+                    );
+                    const data = await response.json();
+                    
+                    // Check if the children are polling centers (not booths)
+                    const children = data.children || [];
+                    
+                    // Enhanced logic: Check if children are actually polling centers
+                    // 1. If all children have booth-like names (Booth 1, Booth 111, etc.), they are booths
+                    // 2. If children have non-booth names, they might be polling centers
+                    // 3. Also check the levelType if available
+                    
+                    let hasPollingCenterChildren = false;
+                    
+                    if (children.length > 0) {
+                        // Check if any child has a levelType that indicates it's a polling center
+                        const hasPollingCenterType = children.some((child: any) => {
+                            const levelType = (child.levelType || '').toLowerCase();
+                            return levelType.includes('polling') || levelType.includes('center');
+                        });
+                        
+                        // Check naming patterns
+                        const boothPatternCount = children.filter((child: any) => {
+                            const name = (child.displayName || child.levelName || '').toLowerCase().trim();
+                            // Booth patterns: "booth 1", "booth 111", "booth no 1", etc.
+                            return /^booth\s*(no\.?\s*)?\d+$/i.test(name);
+                        }).length;
+                        
+                        // If less than 80% of children match booth pattern, consider them polling centers
+                        const boothPatternRatio = boothPatternCount / children.length;
+                        
+                        hasPollingCenterChildren = hasPollingCenterType || boothPatternRatio < 0.8;
+                        
+                        console.log('Enhanced mandal children analysis:', {
+                            mandalId: filters.mandalId,
+                            childrenCount: children.length,
+                            boothPatternCount,
+                            boothPatternRatio,
+                            hasPollingCenterType,
+                            hasPollingCenters: hasPollingCenterChildren,
+                            sampleNames: children.slice(0, 3).map((c: any) => c.displayName || c.levelName)
+                        });
+                    }
+                    
+                    setHasPollingCenters(hasPollingCenterChildren);
+                    
+                    // Provide user feedback about hierarchy detection
+                    if (hasPollingCenterChildren) {
+                        console.log('✅ Polling centers detected - showing polling center filter');
+                    } else {
+                        console.log('ℹ️ No polling centers detected - booths are directly under mandal');
+                    }
+                } catch (error) {
+                    console.error('Error checking polling centers:', error);
+                    setHasPollingCenters(false);
+                }
+            } else {
+                setHasPollingCenters(false);
+            }
+        };
+
+        checkPollingCenters();
+    }, [filters.mandalId]);
+
+    // Define available hierarchy levels for booth list
+    const availableLevels: HierarchyLevel[] = [
+        { type: 'block', hasData: blocks.length > 0, isRequired: true },
+        { type: 'mandal', hasData: blocks.length > 0, isRequired: true, parentType: 'block' },
+        { 
+            type: 'pollingCenter', 
+            hasData: hasPollingCenters, 
+            isRequired: hasPollingCenters, 
+            parentType: 'mandal' 
+        },
+        { 
+            type: 'booth', 
+            hasData: true, 
+            isRequired: false, 
+            parentType: hasPollingCenters ? 'pollingCenter' : 'mandal' 
+        }
+    ];
+
+    // Handle filter changes from DynamicFilterSection
+    const handleFiltersChange = (newFilters: FilterState) => {
+        setFilters(newFilters);
+        setCurrentPage(1); // Reset pagination when filters change
+    };
+
     useEffect(() => {
         const fetchAssemblyDetails = async () => {
             if (!assemblyInfo.assemblyId || assemblyInfo.stateId !== 0) return;
 
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -81,33 +187,20 @@ export default function BoothList() {
         fetchAssemblyDetails();
     }, [assemblyInfo.assemblyId]);
 
-    // Fetch mandals for selected block
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
-
-    const mandals = mandalHierarchyData?.children || [];
-
-    // Fetch polling centers for selected mandal
-    const { data: pollingCenterHierarchyData } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
-
-    const pollingCenters = pollingCenterHierarchyData?.children || [];
-
-    // Fetch booths for selected polling center
+    // Fetch booths - either from polling center or directly from mandal
+    const parentId = hasPollingCenters ? (filters.pollingCenterId || 0) : (filters.mandalId || 0);
+    const shouldSkip = hasPollingCenters ? !filters.pollingCenterId : !filters.mandalId;
+    
     const { data: hierarchyData, isLoading: loadingBooths, error } = useGetBlockHierarchyQuery(
-        selectedPollingCenterId,
-        { skip: !selectedPollingCenterId }
+        parentId,
+        { skip: shouldSkip }
     );
 
     const booths = hierarchyData?.children || [];
 
     const filteredBooths = booths.filter((booth) => {
-        const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedBoothFilter === "" || booth.id.toString() === selectedBoothFilter;
+        const matchesSearch = booth.displayName.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        const matchesFilter = filters.selectedItemFilter === "" || booth.id.toString() === filters.selectedItemFilter;
         return matchesSearch && matchesFilter;
     });
 
@@ -177,41 +270,7 @@ export default function BoothList() {
         }
     }, [totalPages, currentPage]);
 
-    // Reset mandal when block changes
-    useEffect(() => {
-        if (selectedBlockId === 0) {
-            setSelectedMandalId(0);
-            setSelectedPollingCenterId(0);
-        }
-    }, [selectedBlockId]);
 
-    // Reset polling center when mandal changes
-    useEffect(() => {
-        if (selectedMandalId === 0) {
-            setSelectedPollingCenterId(0);
-        }
-    }, [selectedMandalId]);
-
-    // Auto-select first block if available
-    useEffect(() => {
-        if (blocks.length > 0 && selectedBlockId === 0) {
-            setSelectedBlockId(blocks[0].id);
-        }
-    }, [blocks]);
-
-    // Auto-select first mandal when mandals load
-    useEffect(() => {
-        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-            setSelectedMandalId(mandals[0].id);
-        }
-    }, [mandals, selectedBlockId]);
-
-    // Auto-select first polling center when polling centers load
-    useEffect(() => {
-        if (pollingCenters.length > 0 && selectedMandalId > 0 && selectedPollingCenterId === 0) {
-            setSelectedPollingCenterId(pollingCenters[0].id);
-        }
-    }, [pollingCenters, selectedMandalId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -279,150 +338,33 @@ export default function BoothList() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Assembly
-                            </label>
-                            <input
-                                type="text"
-                                value={assemblyInfo.assemblyName}
-                                disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterId(0);
-                                    setSelectedBoothFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            >
-                                <option value={0}>Select a Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Mandal <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedMandalId}
-                                onChange={(e) => {
-                                    setSelectedMandalId(Number(e.target.value));
-                                    setSelectedPollingCenterId(0);
-                                    setSelectedBoothFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select a Mandal</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Polling Center <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedPollingCenterId}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterId(Number(e.target.value));
-                                    setSelectedBoothFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select a Polling Center</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Booth
-                            </label>
-                            <select
-                                value={selectedBoothFilter}
-                                onChange={(e) => {
-                                    setSelectedBoothFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedPollingCenterId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value="">All Booths</option>
-                                {booths.map((booth) => (
-                                    <option key={booth.id} value={booth.id}>
-                                        {booth.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Search Booths
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Search by booth name..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    disabled={!selectedPollingCenterId}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic Filter Section */}
+                <DynamicFilterSection
+                    currentLevel="booth"
+                    assemblyId={assemblyInfo.assemblyId}
+                    availableLevels={availableLevels}
+                    onFiltersChange={handleFiltersChange}
+                    initialFilters={filters}
+                    assemblyName={assemblyInfo.assemblyName}
+                    districtName={assemblyInfo.districtName}
+                />
 
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {!selectedBlockId ? (
+                    {!filters.blockId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view booths</p>
                         </div>
-                    ) : !selectedMandalId ? (
+                    ) : !filters.mandalId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view booths</p>
                         </div>
-                    ) : !selectedPollingCenterId ? (
+                    ) : hasPollingCenters && !filters.pollingCenterId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
