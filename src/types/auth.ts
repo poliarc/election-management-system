@@ -14,6 +14,7 @@ export interface User {
   partyName: string;
   role: string;
   userType: 'superadmin' | 'partyadmin' | 'leveladmin' | 'user';
+  state_id?: number; // Optional state_id for level admins
 }
 
 // Panel assignment types

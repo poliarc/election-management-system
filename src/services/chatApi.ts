@@ -98,6 +98,12 @@ export const chatApi = createApi({
                 params.append("page", page.toString());
                 params.append("limit", limit.toString());
                 if (search) params.append("search", search);
+
+                // Log warning if state_id is missing
+                if (!state_id) {
+                    console.warn("ChatAPI: state_id is missing from /users/filter call. This may limit user filtering to the correct state.");
+                }
+
                 return {
                     url: `${import.meta.env.VITE_API_BASE_URL}/api/users/filter?${params.toString()}`,
                     method: "GET",
