@@ -58,6 +58,11 @@ import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachList
 import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
 import SSRFormReportPage from "./pages/Assembly/voterReport/SSRForm";
 import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
+// import {
+//   UserCommunication,
+//   VoterCommunication,
+// } from "./pages/assembly/communication";
+
 import BlockDashboard from "./pages/Block/Dashboard";
 import BlockTeam from "./pages/Block/BlockTeam";
 import MandalList from "./pages/Block/mandal/MandalList";
@@ -124,6 +129,10 @@ import {
   BoothOutsideTeamPage,
   PollingSupportTeamPage,
 } from "./modules/assembly/booth-management/pages";
+import {
+  UserCommunication,
+  VoterCommunication,
+} from "./pages/Assembly/communication";
 
 export default function App() {
   return (
@@ -313,6 +322,15 @@ export default function App() {
             <Route
               path="assigned-events"
               element={<AssemblyAssignedEvents />}
+            />
+            {/* Communication Routes */}
+            <Route
+              path="communication/user-communication"
+              element={<UserCommunication />}
+            />
+            <Route
+              path="communication/voter-communication"
+              element={<VoterCommunication />}
             />
             {/* Booth Management Routes */}
             <Route
