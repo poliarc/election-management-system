@@ -129,6 +129,21 @@ const Icons = {
       />
     </svg>
   ),
+  communication: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   search: (
     <svg
       className={iconClass}
@@ -240,6 +255,20 @@ const boothManagementItems: NavItem[] = [
   },
 ];
 
+// Communication dropdown items
+const communicationItems: NavItem[] = [
+  {
+    to: "communication/user-communication",
+    label: "User Communication",
+    icon: Icons.team,
+  },
+  {
+    to: "communication/voter-communication",
+    label: "Voter Communication",
+    icon: Icons.team,
+  },
+];
+
 // Voter Reports dropdown items
 const voterReportsItems: NavItem[] = [
   {
@@ -332,7 +361,8 @@ export default function AssemblySidebar({
 }: {
   onNavigate?: () => void;
 }) {
-  const { user, stateAssignments, selectedAssignment, permissions } = useAppSelector((s) => s.auth);
+  const { user, stateAssignments, selectedAssignment, permissions } =
+    useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -360,6 +390,18 @@ export default function AssemblySidebar({
     isBoothMgmtPathActive
   );
 
+  // Determine if any communication item is active to default-open the dropdown
+  const isCommunicationPathActive = useMemo(
+    () =>
+      communicationItems.some((comm) =>
+        location.pathname.startsWith(`${base}/${comm.to}`)
+      ),
+    [location.pathname, base]
+  );
+  const [openCommunication, setOpenCommunication] = useState<boolean>(
+    isCommunicationPathActive
+  );
+
   // Determine if any voter report item is active to default-open the dropdown
   const isVoterReportPathActive = useMemo(
     () =>
@@ -377,21 +419,27 @@ export default function AssemblySidebar({
   let sameTypeAssignments: StateAssignment[] = [];
 
   // Get assemblies from stateAssignments
-  const assemblyAssignments = stateAssignments.filter((a) => a.levelType === 'Assembly');
+  const assemblyAssignments = stateAssignments.filter(
+    (a) => a.levelType === "Assembly"
+  );
 
   // Get assemblies from permissions
-  if (permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) {
-    const permissionAssemblies = permissions.accessibleAssemblies.map((assembly: any) => ({
-      assignment_id: assembly.assignment_id,
-      stateMasterData_id: assembly.stateMasterData_id || 0,
-      levelName: assembly.displayName || assembly.levelName,
-      levelType: 'Assembly',
-      level_id: assembly.level_id,
-      parentId: assembly.parentId,
-      parentLevelName: assembly.parentLevelName || 'District',
-      parentLevelType: 'District',
-      displayName: assembly.displayName,
-    }));
+  if (
+    permissions?.accessibleAssemblies &&
+    permissions.accessibleAssemblies.length > 0
+  ) {
+    const permissionAssemblies: StateAssignment[] =
+      permissions.accessibleAssemblies.map((assembly) => ({
+        assignment_id: assembly.assignment_id,
+        stateMasterData_id: assembly.stateMasterData_id || 0,
+        levelName: assembly.displayName || assembly.levelName,
+        levelType: "Assembly" as const,
+        level_id: assembly.level_id,
+        parentId: assembly.parentId,
+        parentLevelName: assembly.parentLevelName || "District",
+        parentLevelType: "District" as const,
+        displayName: assembly.displayName,
+      }));
     sameTypeAssignments = [...assemblyAssignments, ...permissionAssemblies];
   } else {
     sameTypeAssignments = assemblyAssignments;
@@ -412,10 +460,10 @@ export default function AssemblySidebar({
     setSwitchDropdownOpen(false);
 
     // Dispatch custom event to trigger data refresh
-    window.dispatchEvent(new Event('assignmentChanged'));
+    window.dispatchEvent(new Event("assignmentChanged"));
 
     // Navigate to assembly dashboard
-    navigate('/assembly/dashboard');
+    navigate("/assembly/dashboard");
   };
 
   return (
@@ -447,19 +495,38 @@ export default function AssemblySidebar({
               className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <svg className="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  className="h-4 w-4 text-indigo-600 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span className="font-medium text-gray-700 truncate">
-                  {selectedAssignment.displayName || selectedAssignment.levelName}
+                  {selectedAssignment.displayName ||
+                    selectedAssignment.levelName}
                 </span>
               </div>
               <svg
-                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${
+                  switchDropdownOpen ? "rotate-180" : "rotate-0"
+                }`}
                 viewBox="0 0 20 20"
                 fill="none"
               >
-                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
 
@@ -474,13 +541,24 @@ export default function AssemblySidebar({
                     onClick={() => handleAssignmentSwitch(assignment)}
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
-                      selectedAssignment.assignment_id === assignment.assignment_id
+                      selectedAssignment.assignment_id ===
+                      assignment.assignment_id
                         ? "bg-indigo-50 text-indigo-900"
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")}
                   >
-                    <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      className="h-4 w-4 mt-0.5 shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate text-xs">
@@ -492,9 +570,18 @@ export default function AssemblySidebar({
                         </div>
                       )}
                     </div>
-                    {selectedAssignment.assignment_id === assignment.assignment_id && (
-                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    {selectedAssignment.assignment_id ===
+                      assignment.assignment_id && (
+                      <svg
+                        className="h-4 w-4 shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </button>
@@ -628,6 +715,67 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
+        {/* Communication dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openCommunication}
+            onClick={() => setOpenCommunication((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openCommunication
+                ? "bg-gray-50 ring-1 ring-indigo-200"
+                : "border border-transparent hover:border-gray-200",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.communication}
+              <span className="text-black">Communication</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openCommunication ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openCommunication && (
+            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+              {communicationItems.map((comm) => (
+                <NavLink
+                  key={comm.to}
+                  to={`${base}/${comm.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-50 ring-1 ring-indigo-200"
+                        : "border border-transparent hover:border-gray-200",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{comm.icon}</span>
+                  <span className="truncate">{comm.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Voter Reports dropdown */}
         <div>
