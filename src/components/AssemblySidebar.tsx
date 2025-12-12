@@ -8,7 +8,6 @@ import type { StateAssignment } from "../types/api";
 import { navigationVisibilityManager } from "../services/navigationVisibilityManager";
 import type { NavigationVisibility, HierarchyDataStatus } from "../types/dynamicNavigation";
 import { useRealTimeUpdates } from "../hooks/useRealTimeUpdates";
-import { RealTimeStatusIndicator } from "./RealTimeMonitoringStatus";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { dataAvailabilityService } from '../services/dataAvailabilityService';
 import { hierarchyDependencyManager } from '../services/hierarchyDependencyManager';
 import { AutoSelectionService } from '../services/autoSelectionService';
-import { useDataRefreshTrigger } from '../hooks/useRealTimeUpdates';
 import type { 
   FilterOption, 
   FilterState, 
@@ -26,7 +25,6 @@ export const DynamicFilterSection: React.FC<DynamicFilterProps> = ({
   assemblyName = '',
   districtName = ''
 }) => {
-  const { triggerRefresh } = useDataRefreshTrigger();
   const [filters, setFilters] = useState<FilterState>({
     assemblyId,
     blockId: initialFilters.blockId,
