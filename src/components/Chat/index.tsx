@@ -546,7 +546,7 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
   const currentUserId = user?.id;
 
   const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
-    { party_id: partyId, state_id: undefined, page, limit: 50, search: searchQuery || undefined },
+    { party_id: partyId, state_id: user?.state_id, page, limit: 50, search: searchQuery || undefined },
     { skip: !partyId }
   );
 
@@ -734,7 +734,7 @@ function AddMembersModal({
   const partyId = user?.partyId;
 
   const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
-    { party_id: partyId, state_id: undefined, page, limit: 50, search: searchQuery || undefined },
+    { party_id: partyId, state_id: user?.state_id, page, limit: 50, search: searchQuery || undefined },
     { skip: !partyId }
   );
 
@@ -1695,7 +1695,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
   const currentUserId = user?.id;
 
   const { data: partyUsers = [], isFetching } = useGetPartyUsersQuery(
-    { party_id: partyId, state_id: undefined, page, limit: 50, search: activeTab === 'users' ? (searchQuery || undefined) : undefined },
+    { party_id: partyId, state_id: user?.state_id, page, limit: 50, search: activeTab === 'users' ? (searchQuery || undefined) : undefined },
     { skip: !partyId }
   );
 

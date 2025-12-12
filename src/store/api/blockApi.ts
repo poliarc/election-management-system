@@ -120,6 +120,44 @@ export const blockApi = createApi({
             providesTags: ["UserByParty"],
         }),
 
+        getUsersWithFilter: builder.query<
+            { users: UserByParty[]; pagination: { page: number; limit: number; total: number; totalPages: number } },
+            { stateId?: number; partyId?: number; page?: number; limit?: number; search?: string }
+        >({
+            query: ({ stateId, partyId, page = 1, limit = 20, search = "" }) => {
+                let url = `/users/filter?page=${page}&limit=${limit}`;
+
+                // Include party_id and state_id - ensure state_id is always included if available
+                if (partyId) url += `&party_id=${partyId}`;
+                if (stateId) url += `&state_id=${stateId}`;
+
+                // If stateId is missing, log a warning
+                if (!stateId) {
+                    console.warn("getUsersWithFilter: state_id is missing from API call. This may limit user filtering to the correct state.");
+                }
+
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+
+
+
+                return url;
+            },
+            transformResponse: (response: ApiResponse<UserByParty[]> & { pagination?: any }) => {
+                const users = response.data || [];
+                // Filter out super admin users
+                const filteredUsers = users.filter(user => {
+                    if (user.isSuperAdmin === 1) return false;
+                    const roleName = (user.role || "").toLowerCase().replace(/\s+/g, "");
+                    return roleName !== "superadmin";
+                });
+                return {
+                    users: filteredUsers,
+                    pagination: response.pagination || { page: 1, limit: 20, total: filteredUsers.length, totalPages: 1 }
+                };
+            },
+            providesTags: ["UserByParty"],
+        }),
+
         getPartyLevelsByParty: builder.query<PartyLevel[], number>({
             query: (partyId) => `/party-wise-level/party/${partyId}`,
             transformResponse: (response: ApiResponse<PartyLevel[]>) =>
@@ -170,6 +208,7 @@ export const {
     useCreateBlockMutation,
     useGetBlocksByAssemblyQuery,
     useGetUsersByPartyQuery,
+    useGetUsersWithFilterQuery,
     useGetPartyLevelsByPartyQuery,
     useCreateBlockAssignmentMutation,
     useGetBlockAssignmentsQuery,

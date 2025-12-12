@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-    useGetUsersByPartyQuery,
     useCreateBlockAssignmentMutation,
     useGetBlockAssignmentsQuery,
 } from "../../../store/api/blockApi";
+import { useGetUsersWithFilterQuery } from "../../../store/api/blockApi";
+import { useGetProfileQuery } from "../../../store/api/profileApi";
+import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
 
 export default function AssignBlock() {
@@ -13,32 +16,178 @@ export default function AssignBlock() {
     const blockId = searchParams.get("blockId");
     const blockName = searchParams.get("blockName");
 
+    const { user } = useAppSelector((s) => s.auth);
     const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
     const [assignedUserIds, setAssignedUserIds] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(20);
     const [partyId, setPartyId] = useState<number | null>(null);
+    const [stateId, setStateId] = useState<number | null>(null);
+    const [stateIdSource, setStateIdSource] = useState<string>("");
+    const [stateIdResolved, setStateIdResolved] = useState<boolean>(false);
 
+
+    // Get user profile to extract state name
+    const { data: profileData, isLoading: profileLoading } = useGetProfileQuery();
+
+    // Get all state master data to map state name to state_id
+    const { data: stateMasterData, isLoading: stateLoading } = useGetAllStateMasterDataQuery();
+
+    // Get party_id and state_id from user profile and state master data
     useEffect(() => {
+
+
+        // Get party_id from auth user
+        const userPartyId = user?.partyId;
+
+        if (userPartyId) {
+
+            setPartyId(userPartyId);
+        }
+
+        // Try to get state_id from auth user first (from Redux store)
+        if (user?.state_id) {
+            setStateId(user.state_id);
+            setStateIdSource("auth_user_redux");
+            setStateIdResolved(true);
+            return; // Exit early if we found state_id
+        }
+
+        // Fallback: Try to get state_id from localStorage auth_user
         const authUser = localStorage.getItem("auth_user");
-        console.log("AssignBlock - auth_user from localStorage:", authUser);
         if (authUser) {
             try {
-                const user = JSON.parse(authUser);
-                console.log("AssignBlock - Parsed user:", user);
-                console.log("AssignBlock - Setting partyId to:", user.partyId);
-                setPartyId(user.partyId);
-            } catch (error) {
-                console.error("AssignBlock - Error parsing auth_user:", error);
-            }
-        } else {
-            console.error("AssignBlock - No auth_user found in localStorage");
-        }
-    }, []);
+                const parsedUser = JSON.parse(authUser);
 
-    const { data: users = [], isLoading: loadingUsers, error: usersError } = useGetUsersByPartyQuery(
-        partyId!,
-        { skip: !partyId }
+                // Check multiple possible state_id fields
+                const possibleStateId = parsedUser.state_id || parsedUser.stateId || parsedUser.user_state_id;
+                if (possibleStateId) {
+                    setStateId(possibleStateId);
+                    setStateIdSource("localStorage");
+                    setStateIdResolved(true);
+                    return; // Exit early if we found state_id
+                }
+
+                // Fallback for party_id if not available from auth selector
+                const fallbackPartyId = parsedUser.party_id || parsedUser.partyId;
+                if (fallbackPartyId && !userPartyId) {
+                    setPartyId(fallbackPartyId);
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+        }
+
+        // Get state_id from profile + state master data
+        if (profileData && stateMasterData) {
+            // Find state_id by matching state name from profile with state master data
+            const userStateName = profileData.state;
+
+            if (userStateName && userStateName.trim()) {
+                // Try multiple matching strategies
+                let matchingState = stateMasterData.find(
+                    (state) => state.levelName.toLowerCase().trim() === userStateName.toLowerCase().trim()
+                );
+
+                // If exact match not found, try partial matches
+                if (!matchingState) {
+                    matchingState = stateMasterData.find(
+                        (state) =>
+                            state.levelName.toLowerCase().includes(userStateName.toLowerCase().trim()) ||
+                            userStateName.toLowerCase().includes(state.levelName.toLowerCase().trim())
+                    );
+                }
+
+                // If still not found, try removing common words and matching
+                if (!matchingState) {
+                    const cleanUserState = userStateName.toLowerCase().replace(/\b(state|pradesh)\b/g, '').trim();
+                    matchingState = stateMasterData.find(
+                        (state) => {
+                            const cleanStateName = state.levelName.toLowerCase().replace(/\b(state|pradesh)\b/g, '').trim();
+                            return cleanStateName === cleanUserState ||
+                                cleanStateName.includes(cleanUserState) ||
+                                cleanUserState.includes(cleanStateName);
+                        }
+                    );
+                }
+
+                if (matchingState) {
+                    const foundStateId = matchingState.stateMasterData_id || matchingState.id;
+
+                    setStateId(foundStateId);
+                    setStateIdSource("profile+stateMaster");
+                    setStateIdResolved(true);
+                } else if (stateMasterData.length > 0) {
+                    // Fallback: use the first available state if no match found
+                    const fallbackStateId = stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
+
+                    setStateId(fallbackStateId);
+                    setStateIdSource("fallback");
+                    setStateIdResolved(true);
+                } else {
+                    console.warn("No state master data available for state_id resolution");
+                    // Mark as resolved even if we couldn't find a state_id
+                    setStateIdResolved(true);
+                }
+            }
+        }
+
+        // If we've processed all data sources and still no stateId, try one more fallback
+        if (!profileLoading && !stateLoading && !stateId && !stateIdResolved) {
+            if (stateMasterData && stateMasterData.length > 0) {
+                // Use the first available state as absolute fallback
+                const absoluteFallbackStateId = stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
+                console.warn("Using absolute fallback state_id:", absoluteFallbackStateId);
+                setStateId(absoluteFallbackStateId);
+                setStateIdSource("absolute-fallback");
+            } else {
+                console.warn("Could not resolve state_id from any source - no state master data available");
+                // Even if we can't find state_id, we should still try to fetch users with just party_id
+                console.log("Will attempt to fetch users with party_id only");
+            }
+            setStateIdResolved(true);
+        }
+    }, [user, profileData, stateMasterData, profileLoading, stateLoading]);
+
+
+
+    // Use the blockApi for consistency
+    const { data: usersData, isLoading: loadingUsers, error: usersError } = useGetUsersWithFilterQuery(
+        {
+            partyId: partyId || undefined,
+            stateId: stateId || undefined,
+            page: currentPage,
+            limit: pageSize,
+            search: searchTerm,
+        },
+        {
+            skip: profileLoading || stateLoading || !partyId,
+            // Add refetch on mount to ensure fresh data
+            refetchOnMountOrArgChange: true
+        }
     );
+
+    const users = usersData?.users || [];
+    const pagination = usersData?.pagination || {
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 1,
+    };
+
+    // Debug logging
+    console.log("AssignBlock Debug:", {
+        partyId,
+        stateId,
+        stateIdSource,
+        stateIdResolved,
+        usersDataLength: users.length,
+        loadingUsers,
+        usersError,
+        searchTerm,
+        currentPage
+    });
 
     // Fetch already assigned users
     const { data: assignedData } = useGetBlockAssignmentsQuery(
@@ -55,27 +204,25 @@ export default function AssignBlock() {
         }
     }, [assignedData]);
 
-    console.log("AssignBlock - Party ID:", partyId);
-    console.log("AssignBlock - Skip query:", !partyId);
-    console.log("AssignBlock - Users data:", users);
-    console.log("AssignBlock - Assigned users:", assignedData?.users);
-    console.log("AssignBlock - Assigned user IDs:", assignedUserIds);
-    console.log("AssignBlock - Loading:", loadingUsers);
-    console.log("AssignBlock - Error:", usersError);
+    // Reset page when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    // Clear selected users when users data changes (except assigned ones)
+    useEffect(() => {
+        setSelectedUsers(assignedUserIds);
+    }, [usersData, assignedUserIds]);
+
+
 
     const [createAssignment, { isLoading: isAssigning }] =
         useCreateBlockAssignmentMutation();
 
+    // Filter only active users (search is handled by API)
     const filteredUsers = users.filter(
-        (user) =>
-            user.isActive === 1 &&
-            user.isSuperAdmin !== 1 &&
-            (user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        (user) => user.isActive === 1 && user.isSuperAdmin !== 1
     );
-
-    console.log("AssignBlock - Filtered users:", filteredUsers);
 
     const handleUserToggle = (userId: number) => {
         setSelectedUsers((prev) =>
@@ -117,6 +264,31 @@ export default function AssignBlock() {
         }
     };
 
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    if (profileLoading || stateLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p className="ml-3 text-gray-600">
+                                Loading {profileLoading ? "user profile" : "state data"}...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!blockId || !blockName) {
         return (
             <div className="p-6 bg-gray-50 min-h-screen">
@@ -144,16 +316,29 @@ export default function AssignBlock() {
                         <p className="text-sm text-gray-600 mt-2">
                             Block: <span className="font-medium">{blockName}</span>
                         </p>
+                        {stateId && (
+                            <p className="text-xs text-blue-600 mt-1">
+                                Using state_id: {stateId} (source: {stateIdSource})
+                            </p>
+                        )}
+                        {!stateId && (
+                            <p className="text-xs text-red-600 mt-1">
+                                Warning: state_id not found - this may limit user filtering
+                            </p>
+                        )}
+
+
                     </div>
 
                     <div className="mb-4">
                         <input
                             type="text"
-                            placeholder="Search users by name or email..."
+                            placeholder="Search users by name, email, or contact number..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={handleSearchChange}
                             className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
+
                     </div>
 
                     {loadingUsers ? (
@@ -161,16 +346,46 @@ export default function AssignBlock() {
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                             <p className="mt-2 text-gray-600">Loading users...</p>
                         </div>
+                    ) : usersError ? (
+                        <div className="text-center py-8">
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                                <p className="text-red-600 font-medium">Error loading users</p>
+                                <p className="text-red-500 text-sm mt-2">
+                                    {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
+                                </p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        </div>
                     ) : (
                         <>
-                            <div className="mb-4 text-sm text-gray-600">
-                                {selectedUsers.length} user(s) selected
+                            <div className="mb-4 flex items-center justify-between">
+                                <div className="text-sm text-gray-600">
+                                    {selectedUsers.length} user(s) selected | {pagination.total} total users
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    Page {currentPage} of {pagination.totalPages}
+                                </div>
                             </div>
 
                             <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
                                 {filteredUsers.length === 0 ? (
                                     <div className="p-4 text-center text-gray-500">
-                                        No users found
+                                        <p>No users found</p>
+                                        {/* Debug information */}
+                                        <div className="mt-4 text-xs text-gray-400 space-y-1">
+                                            <p>Debug Info:</p>
+                                            <p>Party ID: {partyId || 'Not set'}</p>
+                                            <p>State ID: {stateId || 'Not set'}</p>
+                                            <p>Total users from API: {users.length}</p>
+                                            <p>Filtered users: {filteredUsers.length}</p>
+                                            <p>Search term: {searchTerm || 'None'}</p>
+                                            <p>State resolved: {stateIdResolved ? 'Yes' : 'No'}</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="divide-y divide-gray-200">
@@ -219,6 +434,49 @@ export default function AssignBlock() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Pagination */}
+                            {pagination.totalPages > 1 && (
+                                <div className="mt-4 flex items-center justify-between">
+                                    <div className="text-sm text-gray-700">
+                                        Showing {(currentPage - 1) * pageSize + 1} to{" "}
+                                        {Math.min(currentPage * pageSize, pagination.total)} of{" "}
+                                        {pagination.total} results
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Previous
+                                        </button>
+                                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                            const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                                            if (pageNum > pagination.totalPages) return null;
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => handlePageChange(pageNum)}
+                                                    className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
+                                                        ? "bg-blue-600 text-white border-blue-600"
+                                                        : "border-gray-300 hover:bg-gray-50"
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                        <button
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage === pagination.totalPages}
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex gap-4 mt-6">
                                 <button

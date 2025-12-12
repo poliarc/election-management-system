@@ -42,6 +42,7 @@ export interface UserByParty {
     partyName: string;
     role: string;
     isActive: number;
+    stateName: string;
     isSuperAdmin?: number;
 }
 
@@ -85,13 +86,19 @@ export const assemblyApi = createApi({
 
         getUsersByPartyAndState: builder.query<
             { users: UserByParty[]; pagination: { page: number; limit: number; total: number; totalPages: number } },
-            { partyId: number; stateId: number; page?: number; limit?: number; search?: string }
+            { partyId?: number; stateId?: number; page?: number; limit?: number; search?: string }
         >({
             query: ({ partyId, stateId, page = 1, limit = 20, search = "" }) => {
-                let url = `/users/filter?party_id=${partyId}&state_id=${stateId}&page=${page}&limit=${limit}`;
-                if (search) {
-                    url += `&search=${encodeURIComponent(search)}`;
+                let url = `/users/filter?page=${page}&limit=${limit}`;
+                if (partyId) url += `&party_id=${partyId}`;
+                if (stateId) url += `&state_id=${stateId}`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+
+                // Log warning if state_id is missing
+                if (!stateId) {
+                    console.warn("API Call: state_id is missing from /users/filter call. This may limit user filtering.");
                 }
+
                 return url;
             },
             transformResponse: (response: ApiResponse<UserByParty[]> & { pagination?: any }) => {
@@ -103,6 +110,36 @@ export const assemblyApi = createApi({
                         return false;
                     }
                     // Also check role name as fallback
+                    const roleName = (user.role || "").toLowerCase().replace(/\s+/g, "");
+                    return roleName !== "superadmin";
+                });
+                return {
+                    users: filteredUsers,
+                    pagination: response.pagination || { page: 1, limit: 20, total: filteredUsers.length, totalPages: 1 }
+                };
+            },
+            providesTags: ["UserByParty"],
+        }),
+
+        getAllUsersWithFilter: builder.query<
+            { users: UserByParty[]; pagination: { page: number; limit: number; total: number; totalPages: number } },
+            { page?: number; limit?: number; search?: string; stateId?: number; partyId?: number }
+        >({
+            query: ({ page = 1, limit = 20, search = "", stateId, partyId }) => {
+                let url = `/users/filter?page=${page}&limit=${limit}`;
+
+                // Include state_id and party_id only if they have valid values
+                if (partyId) url += `&party_id=${partyId}`;
+                if (stateId) url += `&state_id=${stateId}`;
+
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                return url;
+            },
+            transformResponse: (response: ApiResponse<UserByParty[]> & { pagination?: any }) => {
+                const users = response.data || [];
+                // Filter out super admin users
+                const filteredUsers = users.filter(user => {
+                    if (user.isSuperAdmin === 1) return false;
                     const roleName = (user.role || "").toLowerCase().replace(/\s+/g, "");
                     return roleName !== "superadmin";
                 });
@@ -134,5 +171,6 @@ export const {
     useCreateAssemblyMutation,
     useGetUsersByPartyQuery,
     useGetUsersByPartyAndStateQuery,
+    useGetAllUsersWithFilterQuery,
     useCreateAssemblyAssignmentMutation,
 } = assemblyApi;

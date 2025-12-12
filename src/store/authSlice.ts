@@ -66,7 +66,7 @@ const authSlice = createSlice({
     },
     setSelectedAssignment: (state, action: PayloadAction<StateAssignment>) => {
       state.selectedAssignment = action.payload;
-      
+
       // Persist updated state
       storage.setAuthState({
         user: state.user,
@@ -111,32 +111,43 @@ const authSlice = createSlice({
         login.fulfilled,
         (state, action: PayloadAction<LoginResponseData>) => {
           const data = action.payload;
-          
+
           // Transform and store user
           state.user = authApi.transformApiUser(data.user, data.userType);
-          
+
+          // Extract state_id from levelAdminDetails and add to user object
+          if (data.levelAdminDetails && data.levelAdminDetails.length > 0) {
+            const firstLevelAdmin = data.levelAdminDetails[0];
+            if (firstLevelAdmin.state_id) {
+              state.user = {
+                ...state.user,
+                state_id: firstLevelAdmin.state_id
+              };
+            }
+          }
+
           // Store tokens
           state.accessToken = data.accessToken;
           state.refreshToken = data.refreshToken;
-          
+
           // Store role flags
           state.isPartyAdmin = data.isPartyAdmin;
           state.isLevelAdmin = data.isLevelAdmin;
           state.hasStateAssignments = data.hasStateAssignments;
-          
+
           // Transform and store panel assignments
           state.partyAdminPanels = authApi.transformPartyAdminPanels(data.partyAdminDetails);
           state.levelAdminPanels = authApi.transformLevelAdminPanels(data.levelAdminDetails);
           state.stateAssignments = data.stateAssignments;
-          
+
           // Store permissions
           state.permissions = data.permissions;
-          
+
           // Persist to storage (tokens and user for backward compatibility)
           storage.setToken('access', data.accessToken);
           storage.setToken('refresh', data.refreshToken);
           storage.setUser(state.user);
-          
+
           // Persist complete auth state
           storage.setAuthState({
             user: state.user,
@@ -151,7 +162,7 @@ const authSlice = createSlice({
             permissions: state.permissions,
             selectedAssignment: state.selectedAssignment,
           });
-          
+
           state.loading = false;
           state.error = null;
         }

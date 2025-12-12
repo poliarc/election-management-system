@@ -53,9 +53,12 @@ export default function AssignDistrict() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data, isLoading: loadingUsers } = useGetUsersByPartyAndStateQuery(
+  const { data, isLoading: loadingUsers, error: usersError } = useGetUsersByPartyAndStateQuery(
     { partyId: partyId!, stateId: stateId!, page, limit: 20, search: debouncedSearchTerm },
-    { skip: !partyId || !stateId }
+    {
+      skip: !partyId || !stateId,
+      refetchOnMountOrArgChange: true
+    }
   );
 
   const users = data?.users || [];
@@ -116,6 +119,19 @@ export default function AssignDistrict() {
 
   // Filter only by active status since search is now handled by API
   const filteredUsers = allUsers.filter((u) => u.isActive === 1);
+
+  // Debug logging
+  console.log("AssignDistrict Debug:", {
+    partyId,
+    stateId,
+    usersDataLength: users.length,
+    allUsersLength: allUsers.length,
+    filteredUsersLength: filteredUsers.length,
+    loadingUsers,
+    usersError,
+    debouncedSearchTerm,
+    page
+  });
 
   const hasMore = pagination && pagination.page < pagination.totalPages;
 
@@ -211,6 +227,27 @@ export default function AssignDistrict() {
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <p className="mt-2 text-gray-600">Loading users...</p>
             </div>
+          ) : usersError ? (
+            <div className="text-center py-8">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <p className="text-red-600 font-medium">Error loading users</p>
+                <p className="text-red-500 text-sm mt-2">
+                  {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
+                </p>
+                <div className="mt-4 text-xs text-gray-500 space-y-1">
+                  <p>Debug Info:</p>
+                  <p>Party ID: {partyId || 'Not set'}</p>
+                  <p>State ID: {stateId || 'Not set'}</p>
+                  <p>Search term: {debouncedSearchTerm || 'None'}</p>
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               <div className="mb-4 text-sm text-gray-600">
@@ -219,7 +256,17 @@ export default function AssignDistrict() {
               <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
                 {filteredUsers.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    No users found
+                    <p>No users found</p>
+                    {/* Debug information */}
+                    <div className="mt-4 text-xs text-gray-400 space-y-1">
+                      <p>Debug Info:</p>
+                      <p>Party ID: {partyId || 'Not set'}</p>
+                      <p>State ID: {stateId || 'Not set'}</p>
+                      <p>Total users from API: {allUsers.length}</p>
+                      <p>Filtered users: {filteredUsers.length}</p>
+                      <p>Search term: {debouncedSearchTerm || 'None'}</p>
+                      <p>Current page: {page}</p>
+                    </div>
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-200">
