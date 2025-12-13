@@ -1,17 +1,30 @@
 import { useState, useEffect } from "react";
-import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
-import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
 
+// Types for flexible hierarchy
+interface HierarchyLevel {
+  id: number;
+  displayName: string;
+  levelName: string;
+  parentId: number;
+  user_count?: number;
+  isActive: number;
+  assigned_users?: any[];
+  partyLevelDisplayName?: string;
+}
 
-export default function PollingCenterList() {
+interface DynamicLevel {
+  id: number;
+  name: string;
+  data: HierarchyLevel[];
+}
+
+
+export default function AssemblyPollingCenterList() {
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
-    const [selectedPollingCenterFilter, setSelectedPollingCenterFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number | null>(null);
@@ -19,6 +32,15 @@ export default function PollingCenterList() {
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedPollingCenterForVoters, setSelectedPollingCenterForVoters] = useState<{ id: number; name: string } | null>(null);
+
+    // Flexible hierarchy state
+    const [dynamicLevels, setDynamicLevels] = useState<DynamicLevel[]>([]);
+    const [selectedLevelValues, setSelectedLevelValues] = useState<number[]>([]);
+    const [, setCurrentLevelIndex] = useState<number>(-1);
+    const [availablePollingCenters, setAvailablePollingCenters] = useState<HierarchyLevel[]>([]);
+    const [loadingHierarchy, setLoadingHierarchy] = useState<boolean>(false);
+
+
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -44,63 +66,141 @@ export default function PollingCenterList() {
         }
     }, [selectedAssignment]);
 
-    // Fetch blocks for the assembly
-    const { data: blocks = [] } = useGetBlocksByAssemblyQuery(
-        assemblyInfo.assemblyId,
-        { skip: !assemblyInfo.assemblyId }
-    );
-
-    // Fetch assembly hierarchy details to get state_id and district_id
+    // Discover hierarchy when assembly is loaded
     useEffect(() => {
-        const fetchAssemblyDetails = async () => {
-            if (!assemblyInfo.assemblyId || assemblyInfo.stateId !== 0) return;
+        const discoverHierarchy = async () => {
+            if (!assemblyInfo.assemblyId) {
+                setDynamicLevels([]);
+                setSelectedLevelValues([]);
+                setCurrentLevelIndex(-1);
+                setAvailablePollingCenters([]);
+                return;
+            }
 
             try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                        },
-                    }
-                );
-                const data = await response.json();
+                setLoadingHierarchy(true);
+                
+                // Start with assembly and discover what comes next
+                await loadHierarchyLevel(assemblyInfo.assemblyId, 0);
 
-                if (data.success && data.data) {
-                    setAssemblyInfo(prev => ({
-                        ...prev,
-                        stateId: data.data.state_id || 0,
-                        districtId: data.data.district_id || data.data.parent_id || 0,
-                    }));
-                }
             } catch (error) {
-                console.error("Error fetching assembly details:", error);
+                console.error("Error discovering hierarchy:", error);
+            } finally {
+                setLoadingHierarchy(false);
             }
         };
 
-        fetchAssemblyDetails();
+        discoverHierarchy();
     }, [assemblyInfo.assemblyId]);
 
-    // Fetch mandals for selected block
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
+    // Function to load hierarchy level recursively
+    const loadHierarchyLevel = async (levelId: number, levelIndex: number) => {
+        console.log(`Loading hierarchy level ${levelIndex} for ID ${levelId}`);
+        try {
+            let response;
+            
+            // Use different API endpoints based on level
+            if (levelIndex === 0) {
+                // For assembly children, use the after-assembly-data endpoint
+                const url = `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${levelId}`;
+                console.log(`Fetching from: ${url}`);
+                response = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                });
+            } else {
+                // For subsequent levels, use the hierarchy endpoint
+                const url = `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${levelId}`;
+                console.log(`Fetching from: ${url}`);
+                response = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                });
+            }
+            
+            const data = await response.json();
+            console.log(`API Response for level ${levelIndex}:`, data);
+            let children = [];
+            
+            // Handle different response formats
+            if (levelIndex === 0) {
+                // after-assembly-data response format
+                children = data.success ? (data.data || []) : [];
+            } else {
+                // hierarchy response format
+                children = (data.success && data.children) ? data.children : [];
+            }
+            
+            console.log(`Children found for level ${levelIndex}:`, children);
+            
+            if (children.length > 0) {
+                // Check if children are polling centers (final level)
+                const arePollingCenters = children.some((child: any) => 
+                    child.levelName.toLowerCase().includes('polling center') ||
+                    child.levelName.toLowerCase().includes('polling station')
+                );
+                
+                if (arePollingCenters) {
+                    // We found polling centers, set them as available for selection
+                    setAvailablePollingCenters(children);
+                    setCurrentLevelIndex(levelIndex);
+                } else {
+                    // Add this level to dynamic levels
+                    const levelName = children[0]?.levelName || `Level ${levelIndex + 1}`;
+                    const newLevel: DynamicLevel = {
+                        id: levelIndex,
+                        name: levelName,
+                        data: children
+                    };
+                    
+                    setDynamicLevels(prev => {
+                        const newLevels = [...prev];
+                        newLevels[levelIndex] = newLevel;
+                        return newLevels;
+                    });
+                    
+                    // Don't auto-select, let user choose
+                    // This ensures filters are visible
+                }
+            } else {
+                console.log(`No children found for level ${levelIndex}`);
+            }
+        } catch (error) {
+            console.error(`Error loading hierarchy level ${levelIndex}:`, error);
+        }
+    };
 
-    const mandals = mandalHierarchyData?.children || [];
+    // Handle level selection
+    const handleLevelSelection = async (levelIndex: number, selectedId: number) => {
+        // Update selected values
+        setSelectedLevelValues(prev => {
+            const newValues = [...prev];
+            newValues[levelIndex] = selectedId;
+            // Clear subsequent selections
+            return newValues.slice(0, levelIndex + 1);
+        });
+        
+        // Clear subsequent levels
+        setDynamicLevels(prev => prev.slice(0, levelIndex + 1));
+        setAvailablePollingCenters([]);
+        
+        // Load next level
+        await loadHierarchyLevel(selectedId, levelIndex + 1);
+        setCurrentPage(1);
+    };
 
-    // Fetch polling centers for selected mandal
-    const { data: hierarchyData, isLoading: loadingPollingCenters, error } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
+    // Get polling centers to display
+    const pollingCenters = availablePollingCenters; // Show all polling centers
+    const loadingPollingCenters = loadingHierarchy;
+    const error = null;
 
-    const pollingCenters = hierarchyData?.children || [];
+
 
     const filteredPollingCenters = pollingCenters.filter((pc) => {
         const matchesSearch = pc.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedPollingCenterFilter === "" || pc.id.toString() === selectedPollingCenterFilter;
-        return matchesSearch && matchesFilter;
+        return matchesSearch;
     });
 
     const handleViewUsers = (pollingCenterId: number, pollingCenterName: string) => {
@@ -170,19 +270,7 @@ export default function PollingCenterList() {
         }
     }, [totalPages, currentPage]);
 
-    // Auto-select first block if available
-    useEffect(() => {
-        if (blocks.length > 0 && selectedBlockId === 0) {
-            setSelectedBlockId(blocks[0].id);
-        }
-    }, [blocks]);
 
-    // Auto-select first mandal when mandals load
-    useEffect(() => {
-        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-            setSelectedMandalId(mandals[0].id);
-        }
-    }, [mandals, selectedBlockId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -252,7 +340,8 @@ export default function PollingCenterList() {
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        {/* Fixed filter: Assembly */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Assembly
@@ -264,71 +353,43 @@ export default function PollingCenterList() {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            >
-                                <option value={0}>Select a Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Mandal <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedMandalId}
-                                onChange={(e) => {
-                                    setSelectedMandalId(Number(e.target.value));
-                                    setSelectedPollingCenterFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select a Mandal</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter by Polling Center
-                            </label>
-                            <select
-                                value={selectedPollingCenterFilter}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterFilter(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value="">All Polling Centers</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
+                        {/* Dynamic filters based on available hierarchy */}
+                        {dynamicLevels.map((level, index) => {
+                            const isDisabled = !assemblyInfo.assemblyId || (index > 0 && (!selectedLevelValues[index - 1] || selectedLevelValues[index - 1] === 0));
+                            const selectedValue = selectedLevelValues[index] || 0;
+
+                            return (
+                                <div key={`level-${index}`}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Select {level.name} <span className="text-red-500">*</span>
+                                        {loadingHierarchy && index === dynamicLevels.length - 1 && (
+                                            <span className="ml-2 inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></span>
+                                        )}
+                                    </label>
+                                    <select
+                                        value={selectedValue}
+                                        onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value > 0) {
+                                                handleLevelSelection(index, value);
+                                            }
+                                        }}
+                                        disabled={isDisabled || loadingHierarchy}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <option value={0}>Select {level.name}</option>
+                                        {level.data.map((option) => (
+                                            <option key={option.id} value={option.id}>
+                                                {option.displayName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        })}
+
+                        {/* Search Polling Centers - moved to same row */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Search Polling Centers
@@ -347,29 +408,36 @@ export default function PollingCenterList() {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    disabled={!selectedMandalId}
+                                    disabled={availablePollingCenters.length === 0}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
+
+                        {/* Fill remaining grid spaces if needed */}
+                        {Array.from({ length: Math.max(0, 6 - 1 - dynamicLevels.length - 1) }).map((_, index) => (
+                            <div key={`empty-${index}`} className="hidden lg:block"></div>
+                        ))}
                     </div>
                 </div>
 
                 {/* Polling Center List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {!selectedBlockId ? (
+                    {availablePollingCenters.length === 0 ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
-                        </div>
-                    ) : !selectedMandalId ? (
-                        <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
+                            <p className="mt-2 text-gray-500 font-medium">
+                                {!assemblyInfo.assemblyId 
+                                    ? "Loading assembly information..." 
+                                    : loadingHierarchy
+                                        ? "Loading hierarchy..."
+                                        : dynamicLevels.length > 0 
+                                            ? "Please complete your selections to view polling centers"
+                                            : "No data available for the selected assembly"
+                                }
+                            </p>
                         </div>
                     ) : loadingPollingCenters ? (
                         <div className="text-center py-12">
@@ -410,7 +478,9 @@ export default function PollingCenterList() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                        {hierarchyData?.parent.displayName}
+                                                        {dynamicLevels.length > 0 ? dynamicLevels[dynamicLevels.length - 1]?.data.find(item => 
+                                                            availablePollingCenters.some(pc => pc.parentId === item.id)
+                                                        )?.displayName || 'Parent Level' : 'Parent Level'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">

@@ -1,22 +1,42 @@
 import { useState, useEffect } from "react";
-import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 
+// Types for flexible hierarchy
+interface HierarchyLevel {
+  id: number;
+  displayName: string;
+  levelName: string;
+  parentId: number;
+  user_count?: number;
+  isActive: number;
+  assigned_users?: any[];
+  partyLevelDisplayName?: string;
+}
+
+interface DynamicLevel {
+  id: number;
+  name: string;
+  data: HierarchyLevel[];
+}
+
 export default function DistrictBoothList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
-    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
-    const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
     const [selectedBoothName, setSelectedBoothName] = useState<string>("");
 
+    // Flexible hierarchy state
     const [assemblies, setAssemblies] = useState<any[]>([]);
-    const [blocks, setBlocks] = useState<any[]>([]);
+    const [dynamicLevels, setDynamicLevels] = useState<DynamicLevel[]>([]);
+    const [selectedLevelValues, setSelectedLevelValues] = useState<number[]>([]);
+    const [, setCurrentLevelIndex] = useState<number>(-1);
+    const [availableBooths, setAvailableBooths] = useState<HierarchyLevel[]>([]);
+    const [selectedBoothForFilter, setSelectedBoothForFilter] = useState<number>(0);
+    const [loadingHierarchy, setLoadingHierarchy] = useState<boolean>(false);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -79,78 +99,139 @@ export default function DistrictBoothList() {
         }
     }, [assemblies, selectedAssemblyId]);
 
-    // Fetch blocks when assembly is selected
+    // Discover hierarchy when assembly is selected
     useEffect(() => {
-        const fetchBlocks = async () => {
+        const discoverHierarchy = async () => {
             if (!selectedAssemblyId) {
-                setBlocks([]);
+                setDynamicLevels([]);
+                setSelectedLevelValues([]);
+                setCurrentLevelIndex(-1);
+                setAvailableBooths([]);
+                setSelectedBoothForFilter(0);
                 return;
             }
+
             try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${selectedAssemblyId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                        },
-                    }
-                );
-                const data = await response.json();
-                if (data.success) {
-                    setBlocks(data.data || []);
-                }
+                setLoadingHierarchy(true);
+                
+                // Start with assembly and discover what comes next
+                await loadHierarchyLevel(selectedAssemblyId, 0);
+
             } catch (error) {
-                console.error("Error fetching blocks:", error);
-                setBlocks([]);
+                console.error("Error discovering hierarchy:", error);
+            } finally {
+                setLoadingHierarchy(false);
             }
         };
-        fetchBlocks();
+
+        discoverHierarchy();
     }, [selectedAssemblyId]);
 
-    // Auto-select first block when blocks load
-    useEffect(() => {
-        if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
-            setSelectedBlockId(blocks[0].id);
+    // Function to load hierarchy level recursively
+    const loadHierarchyLevel = async (levelId: number, levelIndex: number) => {
+        console.log(`Loading hierarchy level ${levelIndex} for ID ${levelId}`);
+        try {
+            let response;
+            
+            // Use different API endpoints based on level
+            if (levelIndex === 0) {
+                // For assembly children, use the after-assembly-data endpoint
+                const url = `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${levelId}`;
+                console.log(`Fetching from: ${url}`);
+                response = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                });
+            } else {
+                // For subsequent levels, use the hierarchy endpoint
+                const url = `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${levelId}`;
+                console.log(`Fetching from: ${url}`);
+                response = await fetch(url, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                });
+            }
+            
+            const data = await response.json();
+            console.log(`API Response for level ${levelIndex}:`, data);
+            let children = [];
+            
+            // Handle different response formats
+            if (levelIndex === 0) {
+                // after-assembly-data response format
+                children = data.success ? (data.data || []) : [];
+            } else {
+                // hierarchy response format
+                children = (data.success && data.children) ? data.children : [];
+            }
+            
+            console.log(`Children found for level ${levelIndex}:`, children);
+            
+            if (children.length > 0) {
+                // Check if children are booths (final level)
+                const areBooths = children.some((child: any) => 
+                    child.levelName.toLowerCase().includes('booth') ||
+                    child.levelName.toLowerCase().includes('polling station')
+                );
+                
+                if (areBooths) {
+                    // We found booths, set them as available for selection
+                    setAvailableBooths(children);
+                    setCurrentLevelIndex(levelIndex);
+                } else {
+                    // Add this level to dynamic levels
+                    const levelName = children[0]?.levelName || `Level ${levelIndex + 1}`;
+                    const newLevel: DynamicLevel = {
+                        id: levelIndex,
+                        name: levelName,
+                        data: children
+                    };
+                    
+                    setDynamicLevels(prev => {
+                        const newLevels = [...prev];
+                        newLevels[levelIndex] = newLevel;
+                        return newLevels;
+                    });
+                    
+                    // Don't auto-select, let user choose
+                    // This ensures filters are visible
+                }
+            } else {
+                console.log(`No children found for level ${levelIndex}`);
+            }
+        } catch (error) {
+            console.error(`Error loading hierarchy level ${levelIndex}:`, error);
         }
-    }, [blocks, selectedAssemblyId, selectedBlockId]);
+    };
 
-    // Fetch mandals for selected block
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
+    // Handle level selection
+    const handleLevelSelection = async (levelIndex: number, selectedId: number) => {
+        // Update selected values
+        setSelectedLevelValues(prev => {
+            const newValues = [...prev];
+            newValues[levelIndex] = selectedId;
+            // Clear subsequent selections
+            return newValues.slice(0, levelIndex + 1);
+        });
+        
+        // Clear subsequent levels
+        setDynamicLevels(prev => prev.slice(0, levelIndex + 1));
+        setAvailableBooths([]);
+        setSelectedBoothForFilter(0);
+        
+        // Load next level
+        await loadHierarchyLevel(selectedId, levelIndex + 1);
+        setCurrentPage(1);
+    };
 
-    const mandals = mandalHierarchyData?.children || [];
-
-    // Auto-select first mandal when mandals load
-    useEffect(() => {
-        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-            setSelectedMandalId(mandals[0].id);
-        }
-    }, [mandals, selectedBlockId, selectedMandalId]);
-
-    // Fetch polling centers for selected mandal
-    const { data: pollingCenterHierarchyData } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
-
-    const pollingCenters = pollingCenterHierarchyData?.children || [];
-
-    // Auto-select first polling center when polling centers load
-    useEffect(() => {
-        if (pollingCenters.length > 0 && selectedMandalId > 0 && selectedPollingCenterId === 0) {
-            setSelectedPollingCenterId(pollingCenters[0].id);
-        }
-    }, [pollingCenters, selectedMandalId, selectedPollingCenterId]);
-
-    // Fetch booths for selected polling center
-    const { data: hierarchyData, isLoading: loadingBooths, error } = useGetBlockHierarchyQuery(
-        selectedPollingCenterId,
-        { skip: !selectedPollingCenterId }
-    );
-
-    const booths = hierarchyData?.children || [];
+    // Get booths to display based on selection
+    const booths = selectedBoothForFilter > 0 
+        ? availableBooths.filter(booth => booth.id === selectedBoothForFilter)
+        : availableBooths; // Show all booths by default
+    const loadingBooths = loadingHierarchy;
+    const error = null;
 
     const filteredBooths = booths.filter((booth) => {
         const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -231,9 +312,17 @@ export default function DistrictBoothList() {
                 <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg p-3 sm:p-3 mb-1 text-white">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="shrink-0">
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Booth List</h1>
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                                {selectedBoothForFilter > 0 
+                                    ? `Booth: ${availableBooths.find(b => b.id === selectedBoothForFilter)?.displayName || 'Selected Booth'}`
+                                    : 'Booth List'
+                                }
+                            </h1>
                             <p className="text-purple-100 text-xs sm:text-sm mt-1">
                                 District: {districtInfo.districtName} | State: {districtInfo.stateName}
+                                {selectedBoothForFilter > 0 && (
+                                    <span className="ml-2">| Filtered View</span>
+                                )}
                             </p>
                         </div>
 
@@ -241,8 +330,12 @@ export default function DistrictBoothList() {
                             {/* Total Booths Card */}
                             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Booths</p>
-                                    <p className="text-xl sm:text-2xl font-semibold mt-1">{booths.length}</p>
+                                    <p className="text-xs font-medium text-gray-600">
+                                        {selectedBoothForFilter > 0 ? 'Selected Booth' : 'Total Booths'}
+                                    </p>
+                                    <p className="text-xl sm:text-2xl font-semibold mt-1">
+                                        {selectedBoothForFilter > 0 ? '1' : availableBooths.length}
+                                    </p>
                                 </div>
                                 <div className="bg-purple-50 rounded-full p-1.5">
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,6 +386,7 @@ export default function DistrictBoothList() {
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-md p-3 mb-1">
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        {/* Fixed filters: State, District, Assembly */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 State
@@ -323,9 +417,9 @@ export default function DistrictBoothList() {
                                 value={selectedAssemblyId}
                                 onChange={(e) => {
                                     setSelectedAssemblyId(Number(e.target.value));
-                                    setSelectedBlockId(0);
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterId(0);
+                                    setSelectedLevelValues([]);
+                                    setSelectedBoothForFilter(0);
+                                    setCurrentLevelIndex(-1);
                                     setCurrentPage(1);
                                 }}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -338,72 +432,70 @@ export default function DistrictBoothList() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterId(0);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedAssemblyId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Mandal <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedMandalId}
-                                onChange={(e) => {
-                                    setSelectedMandalId(Number(e.target.value));
-                                    setSelectedPollingCenterId(0);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Mandal</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Polling Center <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedPollingCenterId}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterId(Number(e.target.value));
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Polling Center</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
+                        {/* Dynamic filters based on available hierarchy */}
+                        {dynamicLevels.map((level, index) => {
+                            const isDisabled = !selectedAssemblyId || (index > 0 && (!selectedLevelValues[index - 1] || selectedLevelValues[index - 1] === 0));
+                            const selectedValue = selectedLevelValues[index] || 0;
+
+                            return (
+                                <div key={`level-${index}`}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Select {level.name} <span className="text-red-500">*</span>
+                                        {loadingHierarchy && index === dynamicLevels.length - 1 && (
+                                            <span className="ml-2 inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-purple-600"></span>
+                                        )}
+                                    </label>
+                                    <select
+                                        value={selectedValue}
+                                        onChange={(e) => {
+                                            const value = Number(e.target.value);
+                                            if (value > 0) {
+                                                handleLevelSelection(index, value);
+                                            }
+                                        }}
+                                        disabled={isDisabled || loadingHierarchy}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <option value={0}>Select {level.name}</option>
+                                        {level.data.map((option) => (
+                                            <option key={option.id} value={option.id}>
+                                                {option.displayName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        })}
+
+                        {/* Booth filter dropdown */}
+                        {availableBooths.length > 0 && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Filter by Booth
+                                </label>
+                                <select
+                                    value={selectedBoothForFilter}
+                                    onChange={(e) => {
+                                        setSelectedBoothForFilter(Number(e.target.value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value={0}>All Booths</option>
+                                    {availableBooths.map((booth) => (
+                                        <option key={booth.id} value={booth.id}>
+                                            {booth.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Fill remaining grid spaces if needed */}
+                        {Array.from({ length: Math.max(0, 6 - 3 - dynamicLevels.length - (availableBooths.length > 0 ? 1 : 0)) }).map((_, index) => (
+                            <div key={`empty-${index}`} className="hidden lg:block"></div>
+                        ))}
                     </div>
                     <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -423,7 +515,7 @@ export default function DistrictBoothList() {
                                     setSearchTerm(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                disabled={!selectedPollingCenterId}
+                                disabled={availableBooths.length === 0}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             />
                         </div>
@@ -432,12 +524,21 @@ export default function DistrictBoothList() {
 
                 {/* Booth List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {!selectedPollingCenterId ? (
+                    {availableBooths.length === 0 ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a polling center to view booths</p>
+                            <p className="mt-2 text-gray-500 font-medium">
+                                {!selectedAssemblyId 
+                                    ? "Please select an assembly to continue" 
+                                    : loadingHierarchy
+                                        ? "Loading hierarchy..."
+                                        : dynamicLevels.length > 0 
+                                            ? "Please complete your selections to view booths"
+                                            : "No data available for the selected assembly"
+                                }
+                            </p>
                         </div>
                     ) : loadingBooths ? (
                         <div className="text-center py-12">
@@ -495,7 +596,14 @@ export default function DistrictBoothList() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {hierarchyData?.parent.displayName}
+                                                        {(() => {
+                                                            // Get the last level name from dynamic levels
+                                                            if (dynamicLevels.length > 0) {
+                                                                const lastLevel = dynamicLevels[dynamicLevels.length - 1];
+                                                                return lastLevel.name;
+                                                            }
+                                                            return assemblies.find(a => (a.location_id || a.id) === selectedAssemblyId)?.displayName || "Assembly";
+                                                        })()}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
