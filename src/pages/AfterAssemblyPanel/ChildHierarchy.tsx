@@ -50,6 +50,9 @@ export default function AfterAssemblyChildHierarchy() {
     const [userTotalPages, setUserTotalPages] = useState(1);
     const [userTotalCount, setUserTotalCount] = useState(0);
 
+    // User counts for each level
+    const [userCounts, setUserCounts] = useState<Record<number, number>>({});
+
     // Get user info from auth state
     const { user, selectedAssignment } = useAppSelector((s) => s.auth);
 
@@ -66,6 +69,8 @@ export default function AfterAssemblyChildHierarchy() {
 
             if (response.success && response.data) {
                 setChildren(response.data);
+                // Load user counts for each child level
+                loadUserCounts(response.data);
             }
         } catch (error) {
             console.error("Failed to load child levels:", error);
@@ -73,6 +78,27 @@ export default function AfterAssemblyChildHierarchy() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const loadUserCounts = async (childrenData: any[]) => {
+        const counts: Record<number, number> = {};
+        
+        // Fetch user count for each child level
+        for (const child of childrenData) {
+            try {
+                const response = await fetchAssignedUsersForLevel(child.id);
+                if (response.success && response.users) {
+                    counts[child.id] = response.users.length;
+                } else {
+                    counts[child.id] = 0;
+                }
+            } catch (error) {
+                console.error(`Failed to load user count for level ${child.id}:`, error);
+                counts[child.id] = 0;
+            }
+        }
+        
+        setUserCounts(counts);
     };
 
     const loadViewUsers = async (page: number = 1, search: string = "", levelId?: number) => {
@@ -201,6 +227,11 @@ export default function AfterAssemblyChildHierarchy() {
                 toast.success("User unassigned successfully");
                 // Reload users
                 handleViewUsers(selectedLevelId, selectedLevelName);
+                // Update user count
+                setUserCounts(prev => ({
+                    ...prev,
+                    [selectedLevelId]: Math.max(0, (prev[selectedLevelId] || 0) - 1)
+                }));
             }
         } catch (error: any) {
             console.error("Delete error:", error);
@@ -316,6 +347,11 @@ export default function AfterAssemblyChildHierarchy() {
             if (response.success) {
                 toast.success("User assigned successfully");
                 handleCloseAssignModal();
+                // Update user count
+                setUserCounts(prev => ({
+                    ...prev,
+                    [assignTargetId]: (prev[assignTargetId] || 0) + 1
+                }));
             }
         } catch (error: any) {
             console.error("Assign error:", error);
@@ -409,18 +445,19 @@ export default function AfterAssemblyChildHierarchy() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party Level</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assign</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {currentItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                             No child levels found
                                         </td>
                                     </tr>
@@ -448,27 +485,32 @@ export default function AfterAssemblyChildHierarchy() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-center gap-1">
                                                     <button
                                                         onClick={() => handleViewUsers(child.id, child.displayName)}
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-teal-600 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                                        title="View Users"
                                                     >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                         </svg>
-                                                        View Users
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleAssignUser(child.id, child.displayName)}
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                        </svg>
-                                                        Assign User
-                                                    </button>
+                                                    <span className="text-xs text-gray-600 font-medium">
+                                                        ({userCounts[child.id] || 0})
+                                                    </span>
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <button
+                                                    onClick={() => handleAssignUser(child.id, child.displayName)}
+                                                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-teal-600 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                                                    title="Assign User"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
