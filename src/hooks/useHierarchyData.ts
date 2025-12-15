@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchHierarchyChildren,
   getSelectedDistrict,
+  fetchAllDistrictsAssemblies,
 } from "../services/hierarchyApi";
-import type { HierarchyChild, HierarchyQueryParams } from "../types/hierarchy";
+import type { FetchAllDistrictsAssembliesParams } from "../services/hierarchyApi";
+import type { HierarchyChild, HierarchyQueryParams, EnhancedHierarchyChild } from "../types/hierarchy";
 import { useDebounce } from "./useDebounce";
 
 interface UseHierarchyDataResult {
@@ -146,4 +148,73 @@ export function useSelectedDistrictId(): number | null {
   }, []);
 
   return districtId;
+}
+
+// ----------------------------------------------------------
+// Hook for fetching assemblies from all districts
+// ----------------------------------------------------------
+interface UseAllDistrictsAssemblyDataResult {
+  allAssembliesData: EnhancedHierarchyChild[];
+  loading: boolean;
+  error: string | null;
+  refetchAll: () => void;
+}
+
+export function useAllDistrictsAssemblyData(
+  stateId: number | null,
+  districts: HierarchyChild[],
+  searchInput: string = "",
+  sortBy: HierarchyQueryParams["sortBy"] = "location_name",
+  order: "asc" | "desc" = "asc",
+  userAssignmentFilter: 'all' | 'with-users' | 'without-users' = 'all'
+): UseAllDistrictsAssemblyDataResult {
+  const [allAssembliesData, setAllAssembliesData] = useState<EnhancedHierarchyChild[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  // -----------------------
+  // FETCH ALL DISTRICTS ASSEMBLIES FUNCTION
+  // -----------------------
+  const fetchAllData = useCallback(async () => {
+    if (!stateId || districts.length === 0) {
+      setAllAssembliesData([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params: FetchAllDistrictsAssembliesParams = {
+        stateId,
+        districts,
+        search: debouncedSearch || undefined,
+        sortBy,
+        order,
+        userAssignmentFilter,
+      };
+
+      const assemblies = await fetchAllDistrictsAssemblies(params);
+      setAllAssembliesData(assemblies);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while fetching all districts assemblies");
+      setAllAssembliesData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [stateId, districts, debouncedSearch, sortBy, order, userAssignmentFilter]);
+
+  // Fetch on mount and when dependencies change
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
+
+  return {
+    allAssembliesData,
+    loading,
+    error,
+    refetchAll: fetchAllData,
+  };
 }

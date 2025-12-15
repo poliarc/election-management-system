@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { HierarchyUser } from '../types/hierarchy';
 import { useDeleteAssignedLocationsMutation } from '../store/api/stateMasterApi';
 import { useDeleteAssignedLevelsMutation } from '../store/api/afterAssemblyApi';
@@ -16,6 +16,25 @@ interface UserDetailsModalProps {
 export default function UserDetailsModal({ users, locationName, locationId, locationType = 'District', isOpen, onClose, onUserDeleted }: UserDetailsModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
+            }
+        };
+
+        if (openMenuId !== null) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openMenuId]);
 
     // Use different APIs based on location type
     // District uses state hierarchy API, Block/Mandal/Booth use after-assembly API
@@ -160,12 +179,10 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Username</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Email</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Mobile</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Designation</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Phone Number</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Party</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Assigned Date</th>
                                             <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
                                         </tr>
                                     </thead>
@@ -176,8 +193,7 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                                     {user.first_name} {user.last_name}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.user_name}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">{user.role || 'N/A'}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{user.mobile_number}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{user.party?.party_name || 'N/A'}</td>
                                                 <td className="px-4 py-3 text-sm">
@@ -190,33 +206,46 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                                                         {user.is_active ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
-                                                    {new Date(user.assigned_at).toLocaleDateString()}
-                                                </td>
                                                 <td className="px-4 py-3 text-center">
-                                                    <button
-                                                        onClick={() => handleDeleteClick(user)}
-                                                        disabled={deletingUserId === user.user_id}
-                                                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                                        title="Remove user from this location"
-                                                    >
-                                                        {deletingUserId === user.user_id ? (
-                                                            <>
-                                                                <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24">
+                                                    <div className="relative inline-block text-left" ref={openMenuId === user.user_id ? menuRef : null}>
+                                                        <button
+                                                            onClick={() => setOpenMenuId(openMenuId === user.user_id ? null : user.user_id)}
+                                                            disabled={deletingUserId === user.user_id}
+                                                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+                                                            title="More actions"
+                                                        >
+                                                            {deletingUserId === user.user_id ? (
+                                                                <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                                 </svg>
-                                                                Deleting...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            ) : (
+                                                                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                                 </svg>
-                                                                Delete
-                                                            </>
+                                                            )}
+                                                        </button>
+                                                        
+                                                        {openMenuId === user.user_id && (
+                                                            <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
+                                                                <div className="py-1" role="menu">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleDeleteClick(user);
+                                                                            setOpenMenuId(null);
+                                                                        }}
+                                                                        className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                                                                        role="menuitem"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                        </svg>
+                                                                        Delete User
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         )}
-                                                    </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

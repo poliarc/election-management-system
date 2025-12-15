@@ -171,6 +171,7 @@ export default function DistrictAssembly() {
         onAssignUsers={handleAssignUsers}
         showAssignButton={true}
         hideHeader={true}
+        hideActiveUsersColumn={true}
       />
     </div>
   );
