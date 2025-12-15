@@ -15,6 +15,15 @@ export default function StateBoothList() {
     const [itemsPerPage] = useState(10);
     const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
     const [selectedBoothName, setSelectedBoothName] = useState<string>("");
+    const [allBooths, setAllBooths] = useState<any[]>([]);
+    const [isLoadingAllBooths, setIsLoadingAllBooths] = useState(false);
+    const [boothsCache, setBoothsCache] = useState<{[key: number]: any[]}>({});
+    const [availableLevels, setAvailableLevels] = useState({
+        hasPollingCenters: false,
+        hasMandals: true,
+        hasBlocks: true,
+        deepestLevel: 'mandal' // mandal, pollingCenter, etc.
+    });
 
     const [districts, setDistricts] = useState<any[]>([]);
     const [assemblies, setAssemblies] = useState<any[]>([]);
@@ -37,6 +46,323 @@ export default function StateBoothList() {
             });
         }
     }, [selectedAssignment]);
+
+    // Optimized function to fetch all booths with parallel requests and batching
+    const fetchAllBooths = async () => {
+        if (!stateInfo.stateId) return;
+
+        setIsLoadingAllBooths(true);
+        const allBoothsData: any[] = [];
+
+        try {
+            // Step 1: Fetch all districts in parallel with higher limit
+            const districtsResponse = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}?page=1&limit=500`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const districtsData = await districtsResponse.json();
+
+            if (!districtsData.success || !districtsData.data?.children) {
+                return;
+            }
+
+            // Step 2: Fetch all assemblies in parallel
+            const assemblyPromises = districtsData.data.children.map(async (district: any) => {
+                try {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id}?page=1&limit=500`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                            },
+                        }
+                    );
+                    const data = await response.json();
+                    return {
+                        district,
+                        assemblies: data.success ? data.data?.children || [] : []
+                    };
+                } catch (error) {
+                    console.error(`Error fetching assemblies for district ${district.location_id}:`, error);
+                    return { district, assemblies: [] };
+                }
+            });
+
+            const assemblyResults = await Promise.all(assemblyPromises);
+
+            // Step 3: Fetch all blocks in parallel
+            const blockPromises: Promise<any>[] = [];
+            assemblyResults.forEach(({ district, assemblies }) => {
+                assemblies.forEach((assembly: any) => {
+                    blockPromises.push(
+                        fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                },
+                            }
+                        )
+                        .then(response => response.json())
+                        .then(data => ({
+                            district,
+                            assembly,
+                            blocks: data.success ? data.data || [] : []
+                        }))
+                        .catch(error => {
+                            console.error(`Error fetching blocks for assembly ${assembly.location_id}:`, error);
+                            return { district, assembly, blocks: [] };
+                        })
+                    );
+                });
+            });
+
+            const blockResults = await Promise.all(blockPromises);
+
+            // Step 4: Fetch all mandals in parallel
+            const mandalPromises: Promise<any>[] = [];
+            blockResults.forEach(({ district, assembly, blocks }) => {
+                blocks.forEach((block: any) => {
+                    mandalPromises.push(
+                        fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                },
+                            }
+                        )
+                        .then(response => response.json())
+                        .then(data => ({
+                            district,
+                            assembly,
+                            block,
+                            mandals: data.success ? data.children || [] : []
+                        }))
+                        .catch(error => {
+                            console.error(`Error fetching mandals for block ${block.id}:`, error);
+                            return { district, assembly, block, mandals: [] };
+                        })
+                    );
+                });
+            });
+
+            const mandalResults = await Promise.all(mandalPromises);
+
+            // Step 5: Fetch all booths in parallel (final level)
+            const boothPromises: Promise<any>[] = [];
+            mandalResults.forEach(({ district, assembly, block, mandals }) => {
+                mandals.forEach((mandal: any) => {
+                    boothPromises.push(
+                        fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                },
+                            }
+                        )
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.children && data.children.length > 0) {
+                                const firstChild = data.children[0];
+                                
+                                if (firstChild.levelName === 'Booth') {
+                                    // Direct booths under mandal
+                                    return data.children.map((booth: any) => ({
+                                        ...booth,
+                                        hierarchyPath: `${stateInfo.stateName} → ${district.location_name} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName}`,
+                                        sourceLevel: 'Mandal',
+                                        districtName: district.location_name,
+                                        assemblyName: assembly.location_name,
+                                        blockName: block.displayName,
+                                        mandalName: mandal.displayName
+                                    }));
+                                } else {
+                                    // These are polling centers - fetch booths from each
+                                    const pollingCenterPromises = data.children.map((pollingCenter: any) =>
+                                        fetch(
+                                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenter.id}`,
+                                            {
+                                                headers: {
+                                                    Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                                },
+                                            }
+                                        )
+                                        .then(response => response.json())
+                                        .then(boothData => {
+                                            if (boothData.success && boothData.children) {
+                                                return boothData.children.map((booth: any) => ({
+                                                    ...booth,
+                                                    hierarchyPath: `${stateInfo.stateName} → ${district.location_name} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
+                                                    sourceLevel: 'Polling Center',
+                                                    districtName: district.location_name,
+                                                    assemblyName: assembly.location_name,
+                                                    blockName: block.displayName,
+                                                    mandalName: mandal.displayName,
+                                                    pollingCenterName: pollingCenter.displayName
+                                                }));
+                                            }
+                                            return [];
+                                        })
+                                        .catch(error => {
+                                            console.error(`Error fetching booths for polling center ${pollingCenter.id}:`, error);
+                                            return [];
+                                        })
+                                    );
+                                    
+                                    return Promise.all(pollingCenterPromises).then(results => results.flat());
+                                }
+                            }
+                            return [];
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching children for mandal ${mandal.id}:`, error);
+                            return [];
+                        })
+                    );
+                });
+            });
+
+            // Wait for all booth requests to complete
+            const boothResults = await Promise.all(boothPromises);
+            
+            // Flatten all booth results
+            const flatBooths = boothResults.flat();
+            allBoothsData.push(...flatBooths);
+
+            setAllBooths(allBoothsData);
+            // Cache the results
+            setBoothsCache(prev => ({
+                ...prev,
+                [stateInfo.stateId]: allBoothsData
+            }));
+        } catch (error) {
+            console.error("Error fetching all booths:", error);
+        } finally {
+            setIsLoadingAllBooths(false);
+        }
+    };
+
+    // Function to detect available hierarchy levels
+    const detectHierarchyLevels = async () => {
+        if (!stateInfo.stateId) return;
+
+        try {
+            // Check a sample path to determine hierarchy structure
+            const districtsResponse = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}?page=1&limit=1`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const districtsData = await districtsResponse.json();
+
+            if (districtsData.success && districtsData.data?.children?.length > 0) {
+                const sampleDistrict = districtsData.data.children[0];
+
+                // Check assemblies
+                const assembliesResponse = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${sampleDistrict.location_id}?page=1&limit=1`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const assembliesData = await assembliesResponse.json();
+
+                if (assembliesData.success && assembliesData.data?.children?.length > 0) {
+                    const sampleAssembly = assembliesData.data.children[0];
+
+                    // Check blocks
+                    const blocksResponse = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${sampleAssembly.location_id}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                            },
+                        }
+                    );
+                    const blocksData = await blocksResponse.json();
+
+                    if (blocksData.success && blocksData.data?.length > 0) {
+                        const sampleBlock = blocksData.data[0];
+
+                        // Check mandals
+                        const mandalsResponse = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${sampleBlock.id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                },
+                            }
+                        );
+                        const mandalsData = await mandalsResponse.json();
+
+                        if (mandalsData.success && mandalsData.children?.length > 0) {
+                            const sampleMandal = mandalsData.children[0];
+
+                            // Check what's under mandal
+                            const childrenResponse = await fetch(
+                                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${sampleMandal.id}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                    },
+                                }
+                            );
+                            const childrenData = await childrenResponse.json();
+
+                            if (childrenData.success && childrenData.children?.length > 0) {
+                                const firstChild = childrenData.children[0];
+
+                                if (firstChild.levelName === 'Booth') {
+                                    // Direct booths under mandal
+                                    setAvailableLevels({
+                                        hasPollingCenters: false,
+                                        hasMandals: true,
+                                        hasBlocks: true,
+                                        deepestLevel: 'mandal'
+                                    });
+                                } else {
+                                    // Polling centers exist
+                                    setAvailableLevels({
+                                        hasPollingCenters: true,
+                                        hasMandals: true,
+                                        hasBlocks: true,
+                                        deepestLevel: 'pollingCenter'
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error detecting hierarchy levels:", error);
+        }
+    };
+
+    // Fetch all booths when state info is available (with caching)
+    useEffect(() => {
+        if (stateInfo.stateId) {
+            detectHierarchyLevels();
+            
+            // Check cache first
+            if (boothsCache[stateInfo.stateId]) {
+                setAllBooths(boothsCache[stateInfo.stateId]);
+            } else {
+                fetchAllBooths();
+            }
+        }
+    }, [stateInfo.stateId]);
 
     // Fetch districts using user-state-hierarchies API
     useEffect(() => {
@@ -68,12 +394,7 @@ export default function StateBoothList() {
         fetchDistricts();
     }, [stateInfo.stateId]);
 
-    // Auto-select first district when districts load
-    useEffect(() => {
-        if (districts.length > 0 && selectedDistrictId === 0) {
-            setSelectedDistrictId(districts[0].location_id || districts[0].id);
-        }
-    }, [districts, selectedDistrictId]);
+    // Districts loaded - no auto-selection
 
     // Fetch assemblies when district is selected
     useEffect(() => {
@@ -108,12 +429,7 @@ export default function StateBoothList() {
         fetchAssemblies();
     }, [selectedDistrictId]);
 
-    // Auto-select first assembly when assemblies load
-    useEffect(() => {
-        if (assemblies.length > 0 && selectedDistrictId > 0 && selectedAssemblyId === 0) {
-            setSelectedAssemblyId(assemblies[0].location_id || assemblies[0].id);
-        }
-    }, [assemblies, selectedDistrictId, selectedAssemblyId]);
+    // Assemblies loaded - no auto-selection
 
     // Fetch blocks when assembly is selected
     useEffect(() => {
@@ -142,12 +458,7 @@ export default function StateBoothList() {
         fetchBlocks();
     }, [selectedAssemblyId]);
 
-    // Auto-select first block when blocks load
-    useEffect(() => {
-        if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
-            setSelectedBlockId(blocks[0].id);
-        }
-    }, [blocks, selectedAssemblyId, selectedBlockId]);
+    // Blocks loaded - no auto-selection
 
     // Fetch mandals for selected block
     const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
@@ -157,12 +468,7 @@ export default function StateBoothList() {
 
     const mandals = mandalHierarchyData?.children || [];
 
-    // Auto-select first mandal when mandals load
-    useEffect(() => {
-        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-            setSelectedMandalId(mandals[0].id);
-        }
-    }, [mandals, selectedBlockId, selectedMandalId]);
+    // Mandals loaded - no auto-selection
 
     // Fetch polling centers for selected mandal
     const { data: pollingCenterHierarchyData } = useGetBlockHierarchyQuery(
@@ -172,23 +478,72 @@ export default function StateBoothList() {
 
     const pollingCenters = pollingCenterHierarchyData?.children || [];
 
-    // Auto-select first polling center when polling centers load
-    useEffect(() => {
-        if (pollingCenters.length > 0 && selectedMandalId > 0 && selectedPollingCenterId === 0) {
-            setSelectedPollingCenterId(pollingCenters[0].id);
-        }
-    }, [pollingCenters, selectedMandalId, selectedPollingCenterId]);
+    // Polling centers loaded - no auto-selection
 
-    // Fetch booths for selected polling center
-    const { data: hierarchyData, isLoading: loadingBooths, error } = useGetBlockHierarchyQuery(
+    // Legacy booth fetching for selected polling center (kept for backward compatibility)
+    const { isLoading: loadingBooths, error } = useGetBlockHierarchyQuery(
         selectedPollingCenterId,
         { skip: !selectedPollingCenterId }
     );
 
-    const booths = hierarchyData?.children || [];
+
+
+    // Use all booths by default, or filtered booths based on selected hierarchy levels
+    const booths = (() => {
+        // If any filter is selected, filter from allBooths based on hierarchy
+        if (selectedDistrictId > 0 || selectedAssemblyId > 0 || selectedBlockId > 0 || selectedMandalId > 0 || selectedPollingCenterId > 0) {
+            return allBooths.filter(booth => {
+                // Check district filter using pre-computed name
+                if (selectedDistrictId > 0) {
+                    const selectedDistrict = districts.find(d => d.id === selectedDistrictId || d.location_id === selectedDistrictId);
+                    if (!selectedDistrict || booth.districtName !== selectedDistrict.displayName) {
+                        return false;
+                    }
+                }
+
+                // Check assembly filter using pre-computed name
+                if (selectedAssemblyId > 0) {
+                    const selectedAssembly = assemblies.find(a => a.id === selectedAssemblyId || a.location_id === selectedAssemblyId);
+                    if (!selectedAssembly || booth.assemblyName !== selectedAssembly.displayName) {
+                        return false;
+                    }
+                }
+
+                // Check block filter using pre-computed name
+                if (selectedBlockId > 0) {
+                    const selectedBlock = blocks.find(b => b.id === selectedBlockId);
+                    if (!selectedBlock || booth.blockName !== selectedBlock.displayName) {
+                        return false;
+                    }
+                }
+
+                // Check mandal filter using pre-computed name
+                if (selectedMandalId > 0) {
+                    const selectedMandal = mandals.find(m => m.id === selectedMandalId);
+                    if (!selectedMandal || booth.mandalName !== selectedMandal.displayName) {
+                        return false;
+                    }
+                }
+
+                // Check polling center filter using pre-computed name (if applicable)
+                if (selectedPollingCenterId > 0 && availableLevels.hasPollingCenters) {
+                    const selectedPollingCenter = pollingCenters.find(pc => pc.id === selectedPollingCenterId);
+                    if (!selectedPollingCenter || booth.pollingCenterName !== selectedPollingCenter.displayName) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+        }
+
+        // Return all booths if no filters are selected
+        return allBooths;
+    })();
 
     const filteredBooths = booths.filter((booth) => {
-        const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (booth.hierarchyPath && booth.hierarchyPath.toLowerCase().includes(searchTerm.toLowerCase()));
         return matchesSearch;
     });
 
@@ -200,6 +555,7 @@ export default function StateBoothList() {
     const handleCloseModal = () => {
         setSelectedBoothId(null);
         setSelectedBoothName("");
+        setDropdownOpen(null);
     };
 
     // Delete mutation
@@ -207,6 +563,7 @@ export default function StateBoothList() {
     const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState<any | null>(null);
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
 
     const handleDeleteClick = (user: any) => {
         setUserToDelete(user);
@@ -259,6 +616,23 @@ export default function StateBoothList() {
         }
     }, [totalPages, currentPage]);
 
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownOpen !== null) {
+                const target = event.target as Element;
+                if (!target.closest('.relative')) {
+                    setDropdownOpen(null);
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownOpen]);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 p-1">
             <div className="max-w-7xl mx-auto">
@@ -267,9 +641,7 @@ export default function StateBoothList() {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="shrink-0">
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Booth List</h1>
-                            <p className="text-purple-100 mt-1 text-xs sm:text-sm">
-                                State: {stateInfo.stateName}
-                            </p>
+                        
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
@@ -327,7 +699,10 @@ export default function StateBoothList() {
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {/* Hierarchy Info */}
+                   
+                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${availableLevels.hasPollingCenters ? 'lg:grid-cols-6' : 'lg:grid-cols-5'}`}>
+                        {/* State - Always visible */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 State
@@ -339,6 +714,8 @@ export default function StateBoothList() {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                             />
                         </div>
+
+                        {/* District - Always visible */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Select District <span className="text-red-500">*</span>
@@ -363,6 +740,8 @@ export default function StateBoothList() {
                                 ))}
                             </select>
                         </div>
+
+                        {/* Assembly - Always visible */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Select Assembly <span className="text-red-500">*</span>
@@ -387,72 +766,84 @@ export default function StateBoothList() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedBlockId}
-                                onChange={(e) => {
-                                    setSelectedBlockId(Number(e.target.value));
-                                    setSelectedMandalId(0);
-                                    setSelectedPollingCenterId(0);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedAssemblyId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Block</option>
-                                {blocks.map((block) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Mandal <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedMandalId}
-                                onChange={(e) => {
-                                    setSelectedMandalId(Number(e.target.value));
-                                    setSelectedPollingCenterId(0);
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedBlockId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Mandal</option>
-                                {mandals.map((mandal) => (
-                                    <option key={mandal.id} value={mandal.id}>
-                                        {mandal.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Polling Center <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedPollingCenterId}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterId(Number(e.target.value));
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select Polling Center</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
+                        {/* Block - Show if available */}
+                        {availableLevels.hasBlocks && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Block <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={selectedBlockId}
+                                    onChange={(e) => {
+                                        setSelectedBlockId(Number(e.target.value));
+                                        setSelectedMandalId(0);
+                                        setSelectedPollingCenterId(0);
+                                        setCurrentPage(1);
+                                    }}
+                                    disabled={!selectedAssemblyId}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value={0}>Select Block</option>
+                                    {blocks.map((block) => (
+                                        <option key={block.id} value={block.id}>
+                                            {block.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Mandal - Show if available */}
+                        {availableLevels.hasMandals && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Mandal <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={selectedMandalId}
+                                    onChange={(e) => {
+                                        setSelectedMandalId(Number(e.target.value));
+                                        setSelectedPollingCenterId(0);
+                                        setCurrentPage(1);
+                                    }}
+                                    disabled={!selectedBlockId}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value={0}>Select Mandal</option>
+                                    {mandals.map((mandal) => (
+                                        <option key={mandal.id} value={mandal.id}>
+                                            {mandal.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Polling Center - Show only if available */}
+                        {availableLevels.hasPollingCenters && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Polling Center <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={selectedPollingCenterId}
+                                    onChange={(e) => {
+                                        setSelectedPollingCenterId(Number(e.target.value));
+                                        setCurrentPage(1);
+                                    }}
+                                    disabled={!selectedMandalId}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value={0}>Select Polling Center</option>
+                                    {pollingCenters.map((pc) => (
+                                        <option key={pc.id} value={pc.id}>
+                                            {pc.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
                     <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -466,14 +857,13 @@ export default function StateBoothList() {
                             </div>
                             <input
                                 type="text"
-                                placeholder="Search by booth name..."
+                                placeholder="Search by booth name or location..."
                                 value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                disabled={!selectedPollingCenterId}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -481,14 +871,7 @@ export default function StateBoothList() {
 
                 {/* Booth List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {!selectedPollingCenterId ? (
-                        <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a polling center to view booths</p>
-                        </div>
-                    ) : loadingBooths ? (
+                    {(isLoadingAllBooths || loadingBooths) ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
                             <p className="mt-4 text-gray-600">Loading booths...</p>
@@ -503,6 +886,11 @@ export default function StateBoothList() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
                             <p className="mt-2 text-gray-500 font-medium">No booths found</p>
+                            {searchTerm && (
+                                <p className="mt-1 text-sm text-gray-400">
+                                    Try adjusting your search terms
+                                </p>
+                            )}
                         </div>
                     ) : (
                         <>
@@ -514,7 +902,7 @@ export default function StateBoothList() {
                                                 S.No
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Polling Center
+                                                Mandal
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Level Type
@@ -528,12 +916,6 @@ export default function StateBoothList() {
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Created Date
-                                            </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Actions
-                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -544,7 +926,7 @@ export default function StateBoothList() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {hierarchyData?.parent.displayName}
+                                                        {booth.mandalName || 'N/A'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -561,15 +943,15 @@ export default function StateBoothList() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-semibold text-gray-900">{booth.displayName}</p>
-                                                            <p className="text-xs text-gray-500">{booth.partyLevelDisplayName}</p>
+                                                            
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <button
                                                             onClick={() => handleViewUsers(booth.id, booth.displayName)}
-                                                            className="inline-flex items-center p-1 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors mr-2"
+                                                            className="inline-flex items-center p-1 rounded-md text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
                                                             title="View Users"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -589,21 +971,6 @@ export default function StateBoothList() {
                                                         }`}>
                                                         {booth.isActive === 1 ? "Active" : "Inactive"}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {booth.created_at ? new Date(booth.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => handleViewUsers(booth.id, booth.displayName)}
-                                                        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-purple-600 text-white hover:bg-purple-700 hover:shadow-md"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                        View
-                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -683,38 +1050,34 @@ export default function StateBoothList() {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No.</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party Name</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {users.map((user: any) => (
+                                            {users.map((user: any, index: number) => (
                                                 <tr key={user.user_id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {index + 1}
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10">
-                                                                <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                                                    <span className="text-purple-600 font-semibold text-sm">
-                                                                        {user.first_name?.charAt(0).toUpperCase() || 'U'}
-                                                                    </span>
+                                                            
+                                                            <div className="ml-0">
+                                                                <div className="text-sm font-medium text-gray-900">
+                                                                    {user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A'}
                                                                 </div>
-                                                            </div>
-                                                            <div className="ml-4">
-                                                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                                                 <div className="text-sm text-gray-500">{user.email}</div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-900">{user.first_name || 'N/A'}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-900">{user.last_name || 'N/A'}</div>
+                                                        <div className="text-sm text-gray-900">{user.designation || 'N/A'}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="text-sm text-gray-900">{user.contact_no || 'N/A'}</div>
@@ -730,20 +1093,39 @@ export default function StateBoothList() {
                                                             {user.isActive ? 'Inactive' : 'Active'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
                                                         <button
-                                                            onClick={() => handleDeleteClick(user)}
-                                                            disabled={deletingUserId === user.user_id}
-                                                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            onClick={() => setDropdownOpen(dropdownOpen === user.user_id ? null : user.user_id)}
+                                                            className="text-gray-400 hover:text-gray-600 focus:outline-none"
                                                         >
-                                                            {deletingUserId === user.user_id ? (
-                                                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                                                            ) : (
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                </svg>
-                                                            )}
+                                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                                            </svg>
                                                         </button>
+                                                        
+                                                        {dropdownOpen === user.user_id && (
+                                                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                                                                <div className="py-1">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            handleDeleteClick(user);
+                                                                            setDropdownOpen(null);
+                                                                        }}
+                                                                        disabled={deletingUserId === user.user_id}
+                                                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        {deletingUserId === user.user_id ? (
+                                                                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                                                                        ) : (
+                                                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                            </svg>
+                                                                        )}
+                                                                        Delete User
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))}
