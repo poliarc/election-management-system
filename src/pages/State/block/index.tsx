@@ -19,6 +19,9 @@ export default function StateBlock() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
+  // State for all blocks in the state
+  const [allBlocks, setAllBlocks] = useState<any[]>([]);
+
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
   );
@@ -41,23 +44,9 @@ export default function StateBlock() {
   const districtsData = useHierarchyData(stateInfo.stateId, 100);
   const districts = districtsData.data || [];
 
-  // Auto-select first district when districts load
-  useEffect(() => {
-    if (districts.length > 0 && !selectedDistrictId) {
-      setSelectedDistrictId(districts[0].location_id);
-    }
-  }, [districts, selectedDistrictId]);
-
   // Get assemblies for the selected district
   const assembliesData = useHierarchyData(selectedDistrictId, 100);
   const assemblies = assembliesData.data || [];
-
-  // Auto-select first assembly when assemblies load
-  useEffect(() => {
-    if (assemblies.length > 0 && selectedDistrictId && !selectedAssemblyId) {
-      setSelectedAssemblyId(assemblies[0].location_id);
-    }
-  }, [assemblies, selectedDistrictId, selectedAssemblyId]);
 
   // Reset assembly when district changes
   useEffect(() => {
@@ -65,14 +54,117 @@ export default function StateBlock() {
     setCurrentPage(1);
   }, [selectedDistrictId]);
 
+  // Fetch all blocks for the state (across all districts/assemblies)
+  useEffect(() => {
+    const fetchAllBlocks = async () => {
+      if (!stateInfo.stateId) return;
+      try {
+        const token = localStorage.getItem("auth_access_token");
+        // Fetch all districts
+        const districtRes = await fetch(
+          `${
+            import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${
+            stateInfo.stateId
+          }?page=1&limit=100`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const districtData = await districtRes.json();
+        const districts = districtData.data?.children || [];
+
+        // Fetch all assemblies for each district
+        const assemblies = (
+          await Promise.all(
+            districts.map(async (district: any) => {
+              const res = await fetch(
+                `${
+                  import.meta.env.VITE_API_BASE_URL
+                }/api/user-state-hierarchies/hierarchy/children/${
+                  district.location_id || district.id
+                }?page=1&limit=100`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const data = await res.json();
+              return (data.data?.children || []).map((assembly: any) => ({
+                ...assembly,
+                districtId: district.location_id || district.id,
+                districtName: district.location_name,
+              }));
+            })
+          )
+        ).flat();
+
+        // Fetch all blocks for each assembly
+        const blocks = (
+          await Promise.all(
+            assemblies.map(async (assembly: any) => {
+              const res = await fetch(
+                `${
+                  import.meta.env.VITE_API_BASE_URL
+                }/api/after-assembly-data/assembly/${
+                  assembly.location_id || assembly.id
+                }`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const data = await res.json();
+              return (data.data || []).map((block: any) => ({
+                ...block,
+                assemblyId: assembly.location_id || assembly.id,
+                assemblyName: assembly.location_name,
+                districtId: assembly.districtId,
+                districtName: assembly.districtName,
+              }));
+            })
+          )
+        ).flat();
+
+        setAllBlocks(blocks);
+
+        // Fetch user counts for all blocks in parallel
+        const countPromises = blocks.map(async (block: any) => {
+          try {
+            const userRes = await fetch(
+              `${
+                import.meta.env.VITE_API_BASE_URL
+              }/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const userData = await userRes.json();
+            return {
+              blockId: block.id,
+              count:
+                userData.data?.total_users || userData.data?.users?.length || 0,
+            };
+          } catch (error) {
+            console.error(`Error fetching users for block ${block.id}:`, error);
+            return { blockId: block.id, count: 0 };
+          }
+        });
+
+        const countResults = await Promise.all(countPromises);
+        const counts: Record<number, number> = {};
+        countResults.forEach(({ blockId, count }) => {
+          counts[blockId] = count;
+        });
+        setBlockUserCounts(counts);
+      } catch (err) {
+        console.error("Error fetching all blocks:", err);
+      }
+    };
+    fetchAllBlocks();
+  }, [stateInfo.stateId]);
+
   // Get blocks for selected assembly
   const {
-    data: blocks = [],
+    data: blocksFromApi = [],
     isLoading,
     error,
   } = useGetBlocksByAssemblyQuery(selectedAssemblyId!, {
     skip: !selectedAssemblyId,
   });
+
+  // Show all blocks if no assembly is selected, otherwise show filtered blocks
+  const blocks = selectedAssemblyId ? blocksFromApi : allBlocks;
 
   // Fetch user counts for all blocks
   const [blockUserCounts, setBlockUserCounts] = useState<
@@ -86,10 +178,12 @@ export default function StateBlock() {
     useGetBlockAssignmentsQuery(selectedBlockId!, { skip: !selectedBlockId });
 
   // Delete mutation
-  const [deleteAssignedLevels, { isLoading: isDeleting }] = useDeleteAssignedLevelsMutation();
+  const [deleteAssignedLevels, { isLoading: isDeleting }] =
+    useDeleteAssignedLevelsMutation();
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [openMenuUserId, setOpenMenuUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -97,7 +191,9 @@ export default function StateBlock() {
       for (const block of blocks) {
         try {
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
+            `${
+              import.meta.env.VITE_API_BASE_URL
+            }/api/user-after-assembly-hierarchy/after-assembly/${block.id}`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem(
@@ -146,18 +242,25 @@ export default function StateBlock() {
 
       const response = await deleteAssignedLevels({
         user_id: userToDelete.user_id,
-        afterAssemblyData_ids: [selectedBlockId]
+        afterAssemblyData_ids: [selectedBlockId],
       }).unwrap();
 
       if (response.success && response.deleted.length > 0) {
         // Refresh the page to show updated data
         window.location.reload();
       } else if (response.errors && response.errors.length > 0) {
-        alert(`Error: ${response.errors[0].error || 'Failed to delete user assignment'}`);
+        alert(
+          `Error: ${
+            response.errors[0].error || "Failed to delete user assignment"
+          }`
+        );
       }
     } catch (error: any) {
       console.error("Delete error:", error);
-      alert(error?.data?.message || "Failed to delete user assignment. Please try again.");
+      alert(
+        error?.data?.message ||
+          "Failed to delete user assignment. Please try again."
+      );
     } finally {
       setDeletingUserId(null);
       setUserToDelete(null);
@@ -188,7 +291,9 @@ export default function StateBlock() {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Block List</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                Block List
+              </h1>
               <p className="text-blue-100 mt-1 text-xs sm:text-sm">
                 State: {stateInfo.stateName}
               </p>
@@ -198,12 +303,26 @@ export default function StateBlock() {
               {/* Total Blocks Card */}
               <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Total Blocks</p>
-                  <p className="text-xl sm:text-2xl font-semibold mt-1">{blocks.length}</p>
+                  <p className="text-xs font-medium text-gray-600">
+                    Total Blocks
+                  </p>
+                  <p className="text-xl sm:text-2xl font-semibold mt-1">
+                    {blocks.length}
+                  </p>
                 </div>
                 <div className="bg-blue-50 rounded-full p-1.5">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
                 </div>
               </div>
@@ -211,14 +330,29 @@ export default function StateBlock() {
               {/* Total Users Card */}
               <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Assigned Users</p>
+                  <p className="text-xs font-medium text-gray-600">
+                    Assigned Users
+                  </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                    {Object.values(blockUserCounts).reduce((sum, count) => sum + count, 0)}
+                    {Object.values(blockUserCounts).reduce(
+                      (sum, count) => sum + count,
+                      0
+                    )}
                   </p>
                 </div>
                 <div className="bg-green-50 rounded-full p-1.5">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                    />
                   </svg>
                 </div>
               </div>
@@ -226,19 +360,62 @@ export default function StateBlock() {
               {/* Blocks Without Users Card */}
               <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Blocks Without Users</p>
-                  <p className={`text-xl sm:text-2xl font-semibold mt-1 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
-                    {Object.values(blockUserCounts).filter(count => count === 0).length}
+                  <p className="text-xs font-medium text-gray-600">
+                    Blocks Without Users
+                  </p>
+                  <p
+                    className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                      Object.values(blockUserCounts).filter(
+                        (count) => count === 0
+                      ).length > 0
+                        ? "text-red-600"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {
+                      Object.values(blockUserCounts).filter(
+                        (count) => count === 0
+                      ).length
+                    }
                   </p>
                 </div>
-                <div className={`rounded-full p-1.5 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
-                  {Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? (
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <div
+                  className={`rounded-full p-1.5 ${
+                    Object.values(blockUserCounts).filter(
+                      (count) => count === 0
+                    ).length > 0
+                      ? "bg-red-50"
+                      : "bg-gray-50"
+                  }`}
+                >
+                  {Object.values(blockUserCounts).filter((count) => count === 0)
+                    .length > 0 ? (
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </div>
@@ -346,31 +523,12 @@ export default function StateBlock() {
 
         {/* Block List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {!selectedAssemblyId ? (
-            <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="mt-2 text-gray-500 font-medium">
-                Please select a district and assembly to view blocks
-              </p>
-            </div>
-          ) : isLoading ? (
+          {isLoading && selectedAssemblyId ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">Loading blocks...</p>
             </div>
-          ) : error ? (
+          ) : error && selectedAssemblyId ? (
             <div className="text-center py-12 text-red-600">
               <p>Error loading blocks</p>
             </div>
@@ -405,7 +563,7 @@ export default function StateBlock() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Block Name
                     </th>
-                    
+
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Total Users
                     </th>
@@ -430,7 +588,7 @@ export default function StateBlock() {
                           {block.displayName}
                         </div>
                       </td>
-                      
+
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center">
                           <button
@@ -460,11 +618,15 @@ export default function StateBlock() {
                               />
                             </svg>
                           </button>
-                          <span className="text-sm font-medium text-gray-900">
-                            {blockUserCounts[block.id] !== undefined
-                              ? blockUserCounts[block.id]
-                              : "..."}
-                          </span>
+                          {blockUserCounts[block.id] !== undefined ? (
+                            <span className="text-sm font-medium text-gray-900">
+                              {blockUserCounts[block.id]}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400">
+                              Loading...
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -518,10 +680,11 @@ export default function StateBlock() {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                          }`}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
                       >
                         {pageNum}
                       </button>
@@ -612,10 +775,10 @@ export default function StateBlock() {
                             Name
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Email
+                            Designation
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Contact
+                            Phone Number
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Party
@@ -623,9 +786,9 @@ export default function StateBlock() {
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          {/* <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Assigned At
-                          </th>
+                          </th> */}
                           <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Actions
                           </th>
@@ -649,10 +812,10 @@ export default function StateBlock() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.email}
+                              {user.role || "N/A"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.contact_no}
+                              {user.contact_no || "N/A"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -661,45 +824,106 @@ export default function StateBlock() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span
-                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.user_active === 1
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                                  }`}
+                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  user.user_active === 1
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
                               >
                                 {user.user_active === 1 ? "Active" : "Inactive"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                               {user.assigned_at
                                 ? new Date(
-                                  user.assigned_at
-                                ).toLocaleDateString()
+                                    user.assigned_at
+                                  ).toLocaleDateString()
                                 : "N/A"}
-                            </td>
+                            </td> */}
                             <td className="px-6 py-4 whitespace-nowrap text-center">
-                              <button
-                                onClick={() => handleDeleteClick(user)}
-                                disabled={deletingUserId === user.user_id}
-                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                title="Remove user from this block"
-                              >
-                                {deletingUserId === user.user_id ? (
+                              <div className="relative">
+                                <button
+                                  onClick={() =>
+                                    setOpenMenuUserId(
+                                      openMenuUserId === user.user_id
+                                        ? null
+                                        : user.user_id
+                                    )
+                                  }
+                                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                                  title="More options"
+                                >
+                                  <svg
+                                    className="w-5 h-5 text-gray-600"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                  </svg>
+                                </button>
+                                {openMenuUserId === user.user_id && (
                                   <>
-                                    <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Deleting...
-                                  </>
-                                ) : (
-                                  <>
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Delete
+                                    <div
+                                      className="fixed inset-0 z-10"
+                                      onClick={() => setOpenMenuUserId(null)}
+                                    ></div>
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                      <button
+                                        onClick={() => {
+                                          setOpenMenuUserId(null);
+                                          handleDeleteClick(user);
+                                        }}
+                                        disabled={
+                                          deletingUserId === user.user_id
+                                        }
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        {deletingUserId === user.user_id ? (
+                                          <>
+                                            <svg
+                                              className="animate-spin h-4 w-4 mr-2"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                              ></circle>
+                                              <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                              ></path>
+                                            </svg>
+                                            Deleting...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <svg
+                                              className="w-4 h-4 mr-2"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                              />
+                                            </svg>
+                                            Delete
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
                                   </>
                                 )}
-                              </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -753,15 +977,30 @@ export default function StateBlock() {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <svg
+                    className="w-6 h-6 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
                   </svg>
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
                   Confirm Deletion
                 </h3>
                 <p className="mt-2 text-sm text-gray-600 text-center">
-                  Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{selectedBlockName}</span>?
+                  Are you sure you want to remove{" "}
+                  <span className="font-semibold">
+                    {userToDelete.first_name} {userToDelete.last_name}
+                  </span>{" "}
+                  from{" "}
+                  <span className="font-semibold">{selectedBlockName}</span>?
                 </p>
                 <p className="mt-2 text-xs text-gray-500 text-center">
                   This action will unassign the user from this block.
@@ -779,7 +1018,7 @@ export default function StateBlock() {
                   disabled={isDeleting}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>

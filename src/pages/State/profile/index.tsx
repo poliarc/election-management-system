@@ -58,28 +58,28 @@ const InlineConfirmationModal: React.FC<{
   confirmText = "Confirm",
   loading,
 }) => {
-    if (!isOpen) return null;
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
-          <h3 className="text-lg font-semibold mb-2">{title}</h3>
-          <p className="text-sm text-gray-600 mb-4">{message}</p>
-          <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={loading}
-              className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
-            >
-              {loading ? "Please wait..." : confirmText}
-            </button>
-          </div>
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-sm text-gray-600 mb-4">{message}</p>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-60"
+          >
+            {loading ? "Please wait..." : confirmText}
+          </button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 // Reusable Input Field
 type InputFieldProps = {
@@ -214,19 +214,20 @@ export const StateProfile = () => {
   const image =
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&h=200&q=80";
 
-  // RTK Query hooks
-  const { data: profileData, isLoading, isError, error } = useGetProfileQuery();
+  // RTK Query hooks - force refetch on mount to get fresh user data
+  const {
+    data: profileData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetProfileQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
-  // State management
-  const [currentUser, setCurrentUser] = React.useState<any>(() => {
-    try {
-      const raw = localStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  // State management - don't initialize from localStorage to prevent showing stale user data
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
 
   const [userId, setUserId] = React.useState<number | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
@@ -242,12 +243,19 @@ export const StateProfile = () => {
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // Force refetch fresh profile data on mount to ensure correct user is displayed
+  React.useEffect(() => {
+    setCurrentUser(null);
+    setUserId(null);
+    refetch();
+  }, [refetch]);
+
   // Inject animation styles
   React.useEffect(() => {
-    if (!document.head.querySelector('style[data-profile-animations]')) {
+    if (!document.head.querySelector("style[data-profile-animations]")) {
       const styleSheet = document.createElement("style");
       styleSheet.textContent = profileAnimationStyles;
-      styleSheet.setAttribute('data-profile-animations', 'true');
+      styleSheet.setAttribute("data-profile-animations", "true");
       document.head.appendChild(styleSheet);
     }
   }, []);
@@ -605,7 +613,10 @@ export const StateProfile = () => {
     <div className="w-full m-0 animate-fadeIn">
       {/* Header */}
       <div className="w-full bg-gradient-to-br from-white via-blue-50/30 to-white shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 sm:p-8 border border-blue-100/50 backdrop-blur-sm transform hover:scale-[1.01]">
-        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 p-1 shadow-xl animate-gradient-rotate group cursor-pointer" onClick={handleSelectImageClick}>
+        <div
+          className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 p-1 shadow-xl animate-gradient-rotate group cursor-pointer"
+          onClick={handleSelectImageClick}
+        >
           <div className="w-full h-full bg-white rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white shadow-inner relative">
             {profileImagePreview ? (
               <img
@@ -627,15 +638,38 @@ export const StateProfile = () => {
             )}
             {/* Camera Icon Overlay */}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-full">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </div>
           </div>
           <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            <svg
+              className="w-4 h-4 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           {/* Hidden File Input */}
@@ -654,16 +688,41 @@ export const StateProfile = () => {
           </h1>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
             <p className="text-sm sm:text-base text-gray-600 font-medium flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="w-4 h-4 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
               {currentUser?.stateName}
             </p>
             <span className="hidden sm:inline text-gray-300">|</span>
             <p className="text-sm text-gray-500 flex items-center gap-2">
-              <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <svg
+                className="w-4 h-4 text-purple-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
               </svg>
               {currentUser?.role}
             </p>
@@ -674,7 +733,10 @@ export const StateProfile = () => {
       {/* Main Section */}
       <div className="mt-8 flex flex-col lg:flex-row gap-6">
         {/* Left: Form */}
-        <div className="flex-1 bg-gradient-to-br from-white to-blue-50/20 rounded-3xl p-6 sm:p-8 border border-blue-100/50 shadow-xl backdrop-blur-sm animate-fadeIn" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+        <div
+          className="flex-1 bg-gradient-to-br from-white to-blue-50/20 rounded-3xl p-6 sm:p-8 border border-blue-100/50 shadow-xl backdrop-blur-sm animate-fadeIn"
+          style={{ animationDelay: "0.2s", animationFillMode: "both" }}
+        >
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Edit/Save Buttons */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-8">
@@ -687,16 +749,41 @@ export const StateProfile = () => {
                   >
                     {isUpdating ? (
                       <>
-                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Saving...
                       </>
                     ) : (
                       <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                         Save Changes
                       </>
@@ -712,8 +799,18 @@ export const StateProfile = () => {
                       reset();
                     }}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                     Cancel
                   </button>
@@ -728,8 +825,18 @@ export const StateProfile = () => {
                     setIsEditing(true);
                   }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                   Edit Profile
                 </button>
@@ -1030,15 +1137,16 @@ export const StateProfile = () => {
                             year: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${!areAllRowsFilled(educationValues, [
-                          "std",
-                          "institute",
-                          "boardUniversity",
-                          "year",
-                        ])
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800"
-                          }`}
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(educationValues, [
+                            "std",
+                            "institute",
+                            "boardUniversity",
+                            "year",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
                         <Plus size={18} /> Add Education
                       </button>
@@ -1140,16 +1248,17 @@ export const StateProfile = () => {
                             durationTo: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${!areAllRowsFilled(experienceValues, [
-                          "designation",
-                          "organization",
-                          "years",
-                          "durationFrom",
-                          "durationTo",
-                        ])
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800"
-                          }`}
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(experienceValues, [
+                            "designation",
+                            "organization",
+                            "years",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
                         <Plus size={18} /> Add Experience
                       </button>
@@ -1261,15 +1370,16 @@ export const StateProfile = () => {
                             age: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${!areAllRowsFilled(childrenValues, [
-                          "name",
-                          "dob",
-                          "gender",
-                          "age",
-                        ])
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800"
-                          }`}
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(childrenValues, [
+                            "name",
+                            "dob",
+                            "gender",
+                            "age",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
                         <Plus size={18} /> Add Child
                       </button>
@@ -1385,17 +1495,18 @@ export const StateProfile = () => {
                             durationTo: "",
                           })
                         }
-                        className={`flex items-center gap-1 ${!areAllRowsFilled(positionValues, [
-                          "title",
-                          "designation",
-                          "state",
-                          "district",
-                          "durationFrom",
-                          "durationTo",
-                        ])
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800"
-                          }`}
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(positionValues, [
+                            "title",
+                            "designation",
+                            "state",
+                            "district",
+                            "durationFrom",
+                            "durationTo",
+                          ])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
                         <Plus size={18} /> Add Position
                       </button>
@@ -1657,10 +1768,11 @@ export const StateProfile = () => {
                           !areAllRowsFilled(vehicleValues, ["type", "count"])
                         }
                         onClick={() => appendVehicle({ type: "", count: "" })}
-                        className={`flex items-center gap-1 ${!areAllRowsFilled(vehicleValues, ["type", "count"])
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:text-blue-800"
-                          }`}
+                        className={`flex items-center gap-1 ${
+                          !areAllRowsFilled(vehicleValues, ["type", "count"])
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
                         <Plus size={18} /> Add Vehicle
                       </button>
