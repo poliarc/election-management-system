@@ -922,9 +922,7 @@ export default function StateMandalList() {
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Assigned At
-                          </th>
+
                           <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Actions
                           </th>
@@ -968,13 +966,6 @@ export default function StateMandalList() {
                               >
                                 {user.user_active === 1 ? "Active" : "Inactive"}
                               </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.assigned_at
-                                ? new Date(
-                                    user.assigned_at
-                                  ).toLocaleDateString()
-                                : "N/A"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-center">
                               <div className="relative inline-block">
