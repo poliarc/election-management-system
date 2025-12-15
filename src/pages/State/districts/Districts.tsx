@@ -218,6 +218,7 @@ export default function StateDistricts() {
         onAssignUsers={handleAssignUsers}
         showAssignButton={true}
         hideHeader={true}
+        hideActiveUsersColumn={true}
       />
     </div>
   );

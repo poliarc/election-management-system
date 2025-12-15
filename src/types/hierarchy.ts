@@ -20,6 +20,7 @@ export interface HierarchyUser {
     assigned_at: string;
     assignment_updated_at: string;
     user_created_at: string;
+    role?: string; // Designation/Role field
 }
 
 export interface HierarchyChild {
@@ -69,4 +70,11 @@ export interface HierarchyListItem extends HierarchyChild {
     id: number; // alias for location_id
     name: string; // alias for location_name
     type: string; // alias for location_type
+}
+
+// Enhanced hierarchy child with district information for all-districts view
+export interface EnhancedHierarchyChild extends HierarchyChild {
+    district_name: string;
+    district_id: number;
+    has_users: boolean;
 }

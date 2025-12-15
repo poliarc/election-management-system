@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import type { HierarchyChild } from "../types/hierarchy";
+import { useState } from "react";
+import type { HierarchyChild, EnhancedHierarchyChild } from "../types/hierarchy";
 import UserDetailsModal from "./UserDetailsModal";
 
 interface HierarchyTableProps {
-  data: HierarchyChild[];
+  data: (HierarchyChild | EnhancedHierarchyChild)[];
   loading: boolean;
   error: string | null;
   searchInput: string;
@@ -37,6 +37,12 @@ interface HierarchyTableProps {
   onUploadVoters?: (assemblyId: number, assemblyName: string) => void;
   showUploadVotersButton?: boolean;
   hideHeader?: boolean;
+  // New props for enhanced filtering
+  showAllDistricts?: boolean;
+  userAssignmentFilter?: 'all' | 'with-users' | 'without-users';
+  onUserAssignmentFilterChange?: (filter: 'all' | 'with-users' | 'without-users') => void;
+  // Hide Active Users column for Assembly List only
+  hideActiveUsersColumn?: boolean;
 }
 
 export default function HierarchyTable({
@@ -71,6 +77,12 @@ export default function HierarchyTable({
   onUploadVoters,
   showUploadVotersButton = false,
   hideHeader = false,
+  // New props for enhanced filtering
+  showAllDistricts = false,
+  userAssignmentFilter = 'all',
+  onUserAssignmentFilterChange,
+  // Hide Active Users column for Assembly List only
+  hideActiveUsersColumn = false,
 }: HierarchyTableProps) {
   const isAssemblyView = title?.toLowerCase().includes("assembly");
   const [sortField, setSortField] = useState<
@@ -83,25 +95,6 @@ export default function HierarchyTable({
     locationId: number;
     locationType: HierarchyChild["location_type"];
   } | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null);
-      }
-    };
-
-    if (openMenuId !== null) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openMenuId]);
 
   const handleSort = (field: typeof sortField) => {
     const newOrder =
@@ -212,12 +205,14 @@ export default function HierarchyTable({
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
         <div
           className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
-            ? "sm:grid-cols-3 lg:grid-cols-5"
+            ? "sm:grid-cols-3 lg:grid-cols-6"
             : assemblies.length > 0 && onAssemblyChange
-              ? "sm:grid-cols-2 lg:grid-cols-4"
+              ? "sm:grid-cols-2 lg:grid-cols-5"
               : districts.length > 0 && onDistrictChange
-                ? "sm:grid-cols-2 lg:grid-cols-3"
-                : "sm:grid-cols-3"
+                ? "sm:grid-cols-2 lg:grid-cols-4"
+                : onUserAssignmentFilterChange
+                  ? "sm:grid-cols-2 lg:grid-cols-3"
+                  : "sm:grid-cols-2"
             } gap-3`}
         >
           {/* State Field (Disabled) */}
@@ -247,7 +242,7 @@ export default function HierarchyTable({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">
-                  {isAssemblyView ? "Select District" : "Select District"}
+                  All Districts
                 </option>
                 {districts.map((district) => (
                   <option
@@ -321,6 +316,24 @@ export default function HierarchyTable({
                     {block.location_name}
                   </option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {/* User Assignment Filter - Only show if handler is provided */}
+          {onUserAssignmentFilterChange && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                User Assignment
+              </label>
+              <select
+                value={userAssignmentFilter}
+                onChange={(e) => onUserAssignmentFilterChange(e.target.value as 'all' | 'with-users' | 'without-users')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Assemblies</option>
+                <option value="with-users">With Users</option>
+                <option value="without-users">Without Users</option>
               </select>
             </div>
           )}
@@ -434,24 +447,39 @@ export default function HierarchyTable({
                     <SortIcon field="total_users" />
                   </button>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort("active_users")}
-                    className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
-                  >
-                    <span>Active Users</span>
-                    <SortIcon field="active_users" />
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
+                {!hideActiveUsersColumn && (
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <button
+                      onClick={() => handleSort("active_users")}
+                      className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
+                    >
+                      <span>Active Users</span>
+                      <SortIcon field="active_users" />
+                    </button>
+                  </th>
+                )}
+                {showUploadVotersButton && (
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <div className="flex items-center justify-center space-x-2">
+                     
+                      <span>Upload Voters</span>
+                    </div>
+                  </th>
+                )}
+                {showAssignButton && (
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <div className="flex items-center justify-center space-x-2">
+                  
+                      <span>Assigned Users</span>
+                    </div>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={5 + (!hideActiveUsersColumn ? 1 : 0) + (showUploadVotersButton ? 1 : 0) + (showAssignButton ? 1 : 0)} className="px-6 py-12 text-center">
                     <svg
                       className="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
@@ -482,6 +510,8 @@ export default function HierarchyTable({
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       {blockName
                         ? `${assemblyName} / ${blockName}`
+                        : showAllDistricts && 'district_name' in item
+                        ? (item as EnhancedHierarchyChild).district_name
                         : assemblyName ||
                         districtName ||
                         (districts.length > 0 && item.parent_id
@@ -548,143 +578,42 @@ export default function HierarchyTable({
                         </span>
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-green-600">
-                          {item.active_users}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="relative inline-block text-left" ref={openMenuId === item.location_id ? menuRef : null}>
-                        <button
-                          onClick={() => setOpenMenuId(openMenuId === item.location_id ? null : item.location_id)}
-                          className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
-                          title="Actions"
-                        >
-                          <svg
-                            className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
+                    {!hideActiveUsersColumn && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {item.active_users}
+                      </td>
+                    )}
+                    {showUploadVotersButton && (
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {/* Upload Voters Button Only */}
+                        {onUploadVoters && (
+                          <button
+                            onClick={() => onUploadVoters(item.location_id, item.location_name)}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 transition-all duration-200 group"
+                            title="Upload Voters"
                           >
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-
-                        {openMenuId === item.location_id && (
-                          <div className="absolute right-0 z-10 mt-2 w-56 rounded-xl shadow-2xl bg-white border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                            <div className="py-2" role="menu">
-                              <button
-                                onClick={() => {
-                                  setSelectedUsers({
-                                    users: item.users || [],
-                                    locationName: item.location_name,
-                                    locationId: item.location_id,
-                                    locationType: item.location_type,
-                                  });
-                                  setOpenMenuId(null);
-                                }}
-                                disabled={!item.users || item.users.length === 0}
-                                className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-all ${item.users && item.users.length > 0
-                                  ? "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700"
-                                  : "text-gray-300 cursor-not-allowed bg-gray-50"
-                                  }`}
-                                role="menuitem"
-                              >
-                                <div className={`p-2 rounded-lg ${item.users && item.users.length > 0 ? "bg-blue-100" : "bg-gray-200"}`}>
-                                  <svg
-                                    className={`w-4 h-4 ${item.users && item.users.length > 0 ? "text-blue-600" : "text-gray-400"}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                  </svg>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-medium">View Users</div>
-                                  {item.users && item.users.length > 0 && (
-                                    <div className="text-xs text-gray-500">{item.users.length} assigned</div>
-                                  )}
-                                </div>
-                              </button>
-                              {showAssignButton && onAssignUsers && (
-                                <button
-                                  onClick={() => {
-                                    onAssignUsers(String(item.location_id), item.location_name);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:text-green-700 flex items-center gap-3 transition-all"
-                                  role="menuitem"
-                                >
-                                  <div className="p-2 rounded-lg bg-green-100">
-                                    <svg
-                                      className="w-4 h-4 text-green-600"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium">Assign Users</div>
-                                    <div className="text-xs text-gray-500">Add team members</div>
-                                  </div>
-                                </button>
-                              )}
-                              {showUploadVotersButton && onUploadVoters && (
-                                <button
-                                  onClick={() => {
-                                    onUploadVoters(item.location_id, item.location_name);
-                                    setOpenMenuId(null);
-                                  }}
-                                  className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:text-purple-700 flex items-center gap-3 transition-all"
-                                  role="menuitem"
-                                >
-                                  <div className="p-2 rounded-lg bg-purple-100">
-                                    <svg
-                                      className="w-4 h-4 text-purple-600"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium">Upload Voters</div>
-                                    <div className="text-xs text-gray-500">Import voter data</div>
-                                  </div>
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                            <svg className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </button>
                         )}
-                      </div>
-                    </td>
+                      </td>
+                    )}
+                    {showAssignButton && (
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {onAssignUsers && (
+                          <button
+                            onClick={() => onAssignUsers(item.location_id.toString(), item.location_name)}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
+                            title="Assign Users"
+                          >
+                            <svg className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

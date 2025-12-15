@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/api';
+import type { HierarchyChild, EnhancedHierarchyChild } from '../types/hierarchy';
 
 export interface HierarchyItem {
   id: number;
@@ -270,5 +271,122 @@ export const getSelectedState = () => {
   } catch (error) {
     console.error('Error getting selected state:', error);
     return null;
+  }
+};
+
+// Enhanced interfaces for multi-district assembly fetching
+export interface FetchAllDistrictsAssembliesParams {
+  stateId: number;
+  districts: HierarchyChild[];
+  search?: string;
+  sortBy?: 'location_name' | 'total_users' | 'active_users';
+  order?: 'asc' | 'desc';
+  userAssignmentFilter?: 'all' | 'with-users' | 'without-users';
+}
+
+
+
+// New function to fetch assemblies from all districts
+export const fetchAllDistrictsAssemblies = async (
+  params: FetchAllDistrictsAssembliesParams
+): Promise<EnhancedHierarchyChild[]> => {
+  try {
+    const authState = localStorage.getItem('auth_state');
+    const token = authState ? JSON.parse(authState).accessToken : null;
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Create parallel API calls for all districts
+    const districtPromises = params.districts.map(async (district) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', '1');
+      queryParams.append('limit', '1000'); // Get all assemblies
+      if (params.search) queryParams.append('search', params.search);
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params.order) queryParams.append('order', params.order);
+
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id}?${queryParams.toString()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch assemblies for district ${district.location_name}: ${response.status}`);
+        return [];
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data.children) {
+        // Enhance each assembly with district information
+        return data.data.children.map((assembly: HierarchyChild): EnhancedHierarchyChild => ({
+          ...assembly,
+          district_name: district.location_name,
+          district_id: district.location_id,
+          has_users: assembly.total_users > 0,
+        }));
+      }
+      
+      return [];
+    });
+
+    // Wait for all district API calls to complete
+    const districtResults = await Promise.all(districtPromises);
+    
+    // Flatten all assemblies into a single array
+    let allAssemblies: EnhancedHierarchyChild[] = districtResults.flat();
+
+    // Apply user assignment filter if specified
+    if (params.userAssignmentFilter && params.userAssignmentFilter !== 'all') {
+      if (params.userAssignmentFilter === 'with-users') {
+        allAssemblies = allAssemblies.filter(assembly => assembly.has_users);
+      } else if (params.userAssignmentFilter === 'without-users') {
+        allAssemblies = allAssemblies.filter(assembly => !assembly.has_users);
+      }
+    }
+
+    // Apply sorting if specified
+    if (params.sortBy) {
+      allAssemblies.sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (params.sortBy) {
+          case 'location_name':
+            aValue = a.location_name.toLowerCase();
+            bValue = b.location_name.toLowerCase();
+            break;
+          case 'total_users':
+            aValue = a.total_users;
+            bValue = b.total_users;
+            break;
+          case 'active_users':
+            aValue = a.active_users;
+            bValue = b.active_users;
+            break;
+          default:
+            aValue = a.location_name.toLowerCase();
+            bValue = b.location_name.toLowerCase();
+        }
+
+        if (params.order === 'desc') {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        } else {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        }
+      });
+    }
+
+    return allAssemblies;
+  } catch (error) {
+    console.error('Error fetching all districts assemblies:', error);
+    throw error;
   }
 };
