@@ -19,7 +19,6 @@ export default function UserCommunication() {
   const [userStateId, setUserStateId] = useState<number | null>(null);
   const [userPartyId, setUserPartyId] = useState<number | null>(null);
 
-
   // Get user profile to extract state name and party_id
   const { data: profileData, isLoading: profileLoading } = useGetProfileQuery();
 
@@ -43,7 +42,8 @@ export default function UserCommunication() {
         const parsedUser = JSON.parse(authUser);
 
         // Check multiple possible state_id fields
-        const possibleStateId = parsedUser.state_id || parsedUser.stateId || parsedUser.user_state_id;
+        const possibleStateId =
+          parsedUser.state_id || parsedUser.stateId || parsedUser.user_state_id;
         if (possibleStateId) {
           setUserStateId(possibleStateId);
           return; // Exit early if we found state_id
@@ -55,7 +55,7 @@ export default function UserCommunication() {
           setUserPartyId(fallbackPartyId);
         }
       } catch (error) {
-        // Silent error handling
+        console.error("Failed to parse auth_user from localStorage:", error);
       }
     }
 
@@ -66,29 +66,41 @@ export default function UserCommunication() {
       if (userStateName && userStateName.trim()) {
         // Try multiple matching strategies
         let matchingState = stateMasterData.find(
-          (state) => state.levelName.toLowerCase().trim() === userStateName.toLowerCase().trim()
+          (state) =>
+            state.levelName.toLowerCase().trim() ===
+            userStateName.toLowerCase().trim()
         );
 
         // If exact match not found, try partial matches
         if (!matchingState) {
           matchingState = stateMasterData.find(
             (state) =>
-              state.levelName.toLowerCase().includes(userStateName.toLowerCase().trim()) ||
-              userStateName.toLowerCase().includes(state.levelName.toLowerCase().trim())
+              state.levelName
+                .toLowerCase()
+                .includes(userStateName.toLowerCase().trim()) ||
+              userStateName
+                .toLowerCase()
+                .includes(state.levelName.toLowerCase().trim())
           );
         }
 
         // If still not found, try removing common words and matching
         if (!matchingState) {
-          const cleanUserState = userStateName.toLowerCase().replace(/\b(state|pradesh)\b/g, '').trim();
-          matchingState = stateMasterData.find(
-            (state) => {
-              const cleanStateName = state.levelName.toLowerCase().replace(/\b(state|pradesh)\b/g, '').trim();
-              return cleanStateName === cleanUserState ||
-                cleanStateName.includes(cleanUserState) ||
-                cleanUserState.includes(cleanStateName);
-            }
-          );
+          const cleanUserState = userStateName
+            .toLowerCase()
+            .replace(/\b(state|pradesh)\b/g, "")
+            .trim();
+          matchingState = stateMasterData.find((state) => {
+            const cleanStateName = state.levelName
+              .toLowerCase()
+              .replace(/\b(state|pradesh)\b/g, "")
+              .trim();
+            return (
+              cleanStateName === cleanUserState ||
+              cleanStateName.includes(cleanUserState) ||
+              cleanUserState.includes(cleanStateName)
+            );
+          });
         }
 
         if (matchingState) {
@@ -96,7 +108,8 @@ export default function UserCommunication() {
           setUserStateId(stateId);
         } else if (stateMasterData.length > 0) {
           // Fallback: use the first available state if no match found
-          const fallbackStateId = stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
+          const fallbackStateId =
+            stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
           setUserStateId(fallbackStateId);
         }
       }
@@ -134,8 +147,6 @@ export default function UserCommunication() {
     totalPages: 1,
   };
 
-
-
   // Reset page when search changes
   useEffect(() => {
     setCurrentPage(1);
@@ -145,8 +156,6 @@ export default function UserCommunication() {
   useEffect(() => {
     setSelectedUsers(new Set());
   }, [usersData]);
-
-
 
   const handleUserSelect = (userId: number) => {
     const newSelected = new Set(selectedUsers);
@@ -240,8 +249,6 @@ export default function UserCommunication() {
     );
   }
 
-
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
@@ -249,17 +256,22 @@ export default function UserCommunication() {
         <p className="text-gray-600 mt-1">
           Send SMS or WhatsApp messages to users
         </p>
-
-
-
       </div>
 
       {/* Missing Data Warning - Only show if critical data is missing */}
       {!userPartyId && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex">
-            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 text-yellow-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
             <div className="ml-3">
               <p className="text-sm text-yellow-800">
@@ -304,10 +316,11 @@ export default function UserCommunication() {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={() => setMessageType("SMS")}
-              className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${messageType === "SMS"
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+              className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
+                messageType === "SMS"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <svg
@@ -328,10 +341,11 @@ export default function UserCommunication() {
             </button>
             <button
               onClick={() => setMessageType("WhatsApp")}
-              className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${messageType === "WhatsApp"
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+              className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
+                messageType === "WhatsApp"
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <svg
@@ -382,7 +396,6 @@ export default function UserCommunication() {
               onChange={handleSearchChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
-
           </div>
 
           {/* Users Header */}
@@ -443,7 +456,10 @@ export default function UserCommunication() {
                         <th className="px-4 py-3 text-left">
                           <input
                             type="checkbox"
-                            checked={users.length > 0 && selectedUsers.size === users.length}
+                            checked={
+                              users.length > 0 &&
+                              selectedUsers.size === users.length
+                            }
                             onChange={handleSelectAll}
                             className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                           />
@@ -469,8 +485,11 @@ export default function UserCommunication() {
                       {users.map((user) => (
                         <tr
                           key={user.user_id}
-                          className={`hover:bg-indigo-50 cursor-pointer transition-colors ${selectedUsers.has(user.user_id) ? "bg-indigo-50" : ""
-                            }`}
+                          className={`hover:bg-indigo-50 cursor-pointer transition-colors ${
+                            selectedUsers.has(user.user_id)
+                              ? "bg-indigo-50"
+                              : ""
+                          }`}
                           onClick={() => handleUserSelect(user.user_id)}
                         >
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -487,10 +506,14 @@ export default function UserCommunication() {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-600">{user.email}</div>
+                            <div className="text-sm text-gray-600">
+                              {user.email}
+                            </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-600">{user.contact_no}</div>
+                            <div className="text-sm text-gray-600">
+                              {user.contact_no}
+                            </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -498,7 +521,9 @@ export default function UserCommunication() {
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-600">{user.partyName}</div>
+                            <div className="text-sm text-gray-600">
+                              {user.partyName}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -532,33 +557,38 @@ export default function UserCommunication() {
 
                     {/* Desktop: Show page numbers */}
                     <div className="hidden sm:flex gap-1">
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (pagination.totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= pagination.totalPages - 2) {
-                          pageNum = pagination.totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
+                      {Array.from(
+                        { length: Math.min(5, pagination.totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (pagination.totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
 
-                        if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+                          if (pageNum < 1 || pageNum > pagination.totalPages)
+                            return null;
 
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
-                              ? "bg-indigo-600 text-white border-indigo-600"
-                              : "border-gray-300 hover:bg-gray-50"
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`px-3 py-1 text-sm border rounded-md ${
+                                currentPage === pageNum
+                                  ? "bg-indigo-600 text-white border-indigo-600"
+                                  : "border-gray-300 hover:bg-gray-50"
                               }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
                     </div>
 
                     <button
@@ -587,10 +617,11 @@ export default function UserCommunication() {
               <button
                 onClick={handleSendMessage}
                 disabled={sending}
-                className={`px-6 py-2 rounded-lg font-medium transition-colors ${messageType === "SMS"
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                  messageType === "SMS"
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {sending ? (
                   <div className="flex items-center gap-2">
