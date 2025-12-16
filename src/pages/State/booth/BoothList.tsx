@@ -3,7 +3,7 @@ import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
-import UserDetailsModal from "../../../components/UserDetailsModal";
+import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 export default function StateBoothList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,15 +17,9 @@ export default function StateBoothList() {
     const [selectedBoothId] = useState<number | null>(null);
     const [allBooths, setAllBooths] = useState<any[]>([]);
 
-    // State for UserDetailsModal
-    const [selectedUsers, setSelectedUsers] = useState<{
-        users: any[];
-        locationName: string;
-        locationId: number;
-        locationType: string;
-        parentLocationName?: string;
-        parentLocationType?: string;
-    } | null>(null);
+    // State for inline user display
+    const [expandedBoothId, setExpandedBoothId] = useState<number | null>(null);
+    const [boothUsers, setBoothUsers] = useState<Record<number, any[]>>({});
     const [isLoadingAllBooths, setIsLoadingAllBooths] = useState(false);
     const [boothsCache, setBoothsCache] = useState<{[key: number]: any[]}>({});
     const [availableLevels, setAvailableLevels] = useState({
@@ -557,7 +551,19 @@ export default function StateBoothList() {
         return matchesSearch;
     });
 
-    const handleViewUsers = async (boothId: number, boothName: string) => {
+    const handleViewUsers = async (boothId: number) => {
+        // If already expanded, collapse it
+        if (expandedBoothId === boothId) {
+            setExpandedBoothId(null);
+            return;
+        }
+
+        // If users already loaded, just expand
+        if (boothUsers[boothId]) {
+            setExpandedBoothId(boothId);
+            return;
+        }
+
         try {
             const response = await fetch(
                 `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${boothId}`,
@@ -570,22 +576,12 @@ export default function StateBoothList() {
             const data = await response.json();
             
             if (data.success && data.data?.users) {
-                // Debug: Log the API response to see data structure
-                console.log('Booth API Response:', data);
-                console.log('Users data:', data.data.users);
-                
-                // Find the booth to get mandal info
-                const booth = allBooths.find(b => b.id === boothId);
-                const mandalName = booth?.mandalName || 'Unknown Mandal';
-                
-                setSelectedUsers({
-                    users: data.data.users,
-                    locationName: boothName,
-                    locationId: boothId,
-                    locationType: 'Booth',
-                    parentLocationName: mandalName,
-                    parentLocationType: 'Mandal'
-                });
+                // Store users data
+                setBoothUsers(prev => ({
+                    ...prev,
+                    [boothId]: data.data.users
+                }));
+                setExpandedBoothId(boothId);
             } else {
                 console.log('Booth API Error or No Users:', data);
             }
@@ -686,7 +682,7 @@ export default function StateBoothList() {
                             {/* Total Users Card */}
                             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xs font-medium text-gray-600">Active Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                         {booths.reduce((sum, booth) => sum + (booth.user_count || 0), 0)}
                                     </p>
@@ -945,59 +941,89 @@ export default function StateBoothList() {
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {paginatedBooths.map((booth, index) => (
-                                            <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {(currentPage - 1) * itemsPerPage + index + 1}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                        {booth.mandalName || 'N/A'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        {booth.levelName || "Booth"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="bg-purple-100 p-2 rounded-lg">
-                                                            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                            </svg>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-gray-900">{booth.displayName}</p>
-                                                            
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <button
-                                                            onClick={() => handleViewUsers(booth.id, booth.displayName)}
-                                                            className="inline-flex items-center p-1 rounded-md text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
-                                                            title="View Users"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                        </button>
-                                                        <span className="text-sm font-medium text-gray-900">
-                                                            {booth.user_count || 0}
+                                            <>
+                                                <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        {(currentPage - 1) * itemsPerPage + index + 1}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                            {booth.mandalName || 'N/A'}
                                                         </span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
-                                                        }`}>
-                                                        {booth.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                            {booth.levelName || "Booth"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-purple-100 p-2 rounded-lg">
+                                                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                                </svg>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-gray-900">{booth.displayName}</p>
+                                                                
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={() => handleViewUsers(booth.id)}
+                                                                className={`inline-flex items-center p-1 rounded-md transition-colors ${
+                                                                    expandedBoothId === booth.id
+                                                                        ? "text-purple-700 bg-purple-100"
+                                                                        : "text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                                                                }`}
+                                                                title={expandedBoothId === booth.id ? "Hide Users" : "View Users"}
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                </svg>
+                                                            </button>
+                                                            <span className="text-sm font-medium text-gray-900">
+                                                                {booth.user_count || 0}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1
+                                                            ? "bg-green-100 text-green-800"
+                                                            : "bg-red-100 text-red-800"
+                                                            }`}>
+                                                            {booth.isActive === 1 ? "Active" : "Inactive"}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                
+                                                {/* Inline User Display */}
+                                                {expandedBoothId === booth.id && boothUsers[booth.id] && (
+                                                    <InlineUserDisplay
+                                                        users={boothUsers[booth.id]}
+                                                        locationName={booth.displayName}
+                                                        locationId={booth.id}
+                                                        locationType="Booth"
+                                                        parentLocationName={booth.mandalName || 'Unknown Mandal'}
+                                                        parentLocationType="Mandal"
+                                                        onUserDeleted={() => {
+                                                            // Refresh user counts after deletion
+                                                            setExpandedBoothId(null);
+                                                            setBoothUsers(prev => {
+                                                                const updated = { ...prev };
+                                                                delete updated[booth.id];
+                                                                return updated;
+                                                            });
+                                                            window.location.reload();
+                                                        }}
+                                                        onClose={() => setExpandedBoothId(null)}
+                                                        colSpan={6}
+                                                    />
+                                                )}
+                                            </>
                                         ))}
                                     </tbody>
                                 </table>
@@ -1041,23 +1067,7 @@ export default function StateBoothList() {
                 </div>
             </div>
 
-            {/* User Details Modal */}
-            {selectedUsers && (
-                <UserDetailsModal
-                    users={selectedUsers.users}
-                    locationName={selectedUsers.locationName}
-                    locationId={selectedUsers.locationId}
-                    locationType={selectedUsers.locationType as any}
-                    parentLocationName={selectedUsers.parentLocationName}
-                    parentLocationType={selectedUsers.parentLocationType as any}
-                    isOpen={true}
-                    onClose={() => setSelectedUsers(null)}
-                    onUserDeleted={() => {
-                        setSelectedUsers(null);
-                        // Refresh data if needed
-                    }}
-                />
-            )}
+
 
             {/* Confirm Delete Modal */}
             {showConfirmModal && (
