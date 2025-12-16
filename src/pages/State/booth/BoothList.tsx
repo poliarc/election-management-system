@@ -3,6 +3,7 @@ import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
+import UserDetailsModal from "../../../components/UserDetailsModal";
 
 export default function StateBoothList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -13,9 +14,18 @@ export default function StateBoothList() {
     const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number>(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
-    const [selectedBoothName, setSelectedBoothName] = useState<string>("");
+    const [selectedBoothId] = useState<number | null>(null);
     const [allBooths, setAllBooths] = useState<any[]>([]);
+
+    // State for UserDetailsModal
+    const [selectedUsers, setSelectedUsers] = useState<{
+        users: any[];
+        locationName: string;
+        locationId: number;
+        locationType: string;
+        parentLocationName?: string;
+        parentLocationType?: string;
+    } | null>(null);
     const [isLoadingAllBooths, setIsLoadingAllBooths] = useState(false);
     const [boothsCache, setBoothsCache] = useState<{[key: number]: any[]}>({});
     const [availableLevels, setAvailableLevels] = useState({
@@ -547,34 +557,53 @@ export default function StateBoothList() {
         return matchesSearch;
     });
 
-    const handleViewUsers = (boothId: number, boothName: string) => {
-        setSelectedBoothId(boothId);
-        setSelectedBoothName(boothName);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedBoothId(null);
-        setSelectedBoothName("");
-        setDropdownOpen(null);
+    const handleViewUsers = async (boothId: number, boothName: string) => {
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${boothId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.users) {
+                // Debug: Log the API response to see data structure
+                console.log('Booth API Response:', data);
+                console.log('Users data:', data.data.users);
+                
+                // Find the booth to get mandal info
+                const booth = allBooths.find(b => b.id === boothId);
+                const mandalName = booth?.mandalName || 'Unknown Mandal';
+                
+                setSelectedUsers({
+                    users: data.data.users,
+                    locationName: boothName,
+                    locationId: boothId,
+                    locationType: 'Booth',
+                    parentLocationName: mandalName,
+                    parentLocationType: 'Mandal'
+                });
+            } else {
+                console.log('Booth API Error or No Users:', data);
+            }
+        } catch (error) {
+            console.error(`Error fetching users for booth ${boothId}:`, error);
+        }
     };
 
     // Delete mutation
     const [deleteAssignedLevels, { isLoading: isDeleting }] = useDeleteAssignedLevelsMutation();
-    const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState<any | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
-
-    const handleDeleteClick = (user: any) => {
-        setUserToDelete(user);
-        setShowConfirmModal(true);
-    };
 
     const handleConfirmDelete = async () => {
         if (!userToDelete || !selectedBoothId) return;
 
         try {
-            setDeletingUserId(userToDelete.user_id);
             setShowConfirmModal(false);
 
             const response = await deleteAssignedLevels({
@@ -591,7 +620,6 @@ export default function StateBoothList() {
             console.error("Delete error:", error);
             alert(error?.data?.message || "Failed to delete user assignment. Please try again.");
         } finally {
-            setDeletingUserId(null);
             setUserToDelete(null);
         }
     };
@@ -600,9 +628,6 @@ export default function StateBoothList() {
         setShowConfirmModal(false);
         setUserToDelete(null);
     };
-
-    const selectedBooth = booths.find(b => b.id === selectedBoothId);
-    const users = selectedBooth?.assigned_users || [];
 
     const totalPages = Math.ceil(filteredBooths.length / itemsPerPage);
     const paginatedBooths = filteredBooths.slice(
@@ -1016,126 +1041,22 @@ export default function StateBoothList() {
                 </div>
             </div>
 
-            {/* View Users Modal */}
-            {selectedBoothId && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-white">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Assigned Users</h2>
-                                    <p className="text-purple-100 mt-1">Booth: {selectedBoothName}</p>
-                                </div>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-                            {users.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    <p className="mt-2 text-gray-500 font-medium">No users assigned to this booth</p>
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No.</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {users.map((user: any, index: number) => (
-                                                <tr key={user.user_id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                        {index + 1}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            
-                                                            <div className="ml-0">
-                                                                <div className="text-sm font-medium text-gray-900">
-                                                                    {user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A'}
-                                                                </div>
-                                                                <div className="text-sm text-gray-500">{user.email}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-900">{user.designation || 'N/A'}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-900">{user.contact_no || 'N/A'}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                            {user.partyName || 'User'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                                                            }`}>
-                                                            {user.isActive ? 'Inactive' : 'Active'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
-                                                        <button
-                                                            onClick={() => setDropdownOpen(dropdownOpen === user.user_id ? null : user.user_id)}
-                                                            className="text-gray-400 hover:text-gray-600 focus:outline-none"
-                                                        >
-                                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                            </svg>
-                                                        </button>
-                                                        
-                                                        {dropdownOpen === user.user_id && (
-                                                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                                                                <div className="py-1">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            handleDeleteClick(user);
-                                                                            setDropdownOpen(null);
-                                                                        }}
-                                                                        disabled={deletingUserId === user.user_id}
-                                                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                    >
-                                                                        {deletingUserId === user.user_id ? (
-                                                                            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
-                                                                        ) : (
-                                                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                            </svg>
-                                                                        )}
-                                                                        Delete User
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+            {/* User Details Modal */}
+            {selectedUsers && (
+                <UserDetailsModal
+                    users={selectedUsers.users}
+                    locationName={selectedUsers.locationName}
+                    locationId={selectedUsers.locationId}
+                    locationType={selectedUsers.locationType as any}
+                    parentLocationName={selectedUsers.parentLocationName}
+                    parentLocationType={selectedUsers.parentLocationType as any}
+                    isOpen={true}
+                    onClose={() => setSelectedUsers(null)}
+                    onUserDeleted={() => {
+                        setSelectedUsers(null);
+                        // Refresh data if needed
+                    }}
+                />
             )}
 
             {/* Confirm Delete Modal */}

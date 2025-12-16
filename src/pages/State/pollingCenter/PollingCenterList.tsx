@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import axios from "axios";
+import UserDetailsModal from "../../../components/UserDetailsModal";
 
 export default function StatePollingCenterList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,6 +33,16 @@ export default function StatePollingCenterList() {
 
   // State for all polling centers in the state
   const [allPollingCenters, setAllPollingCenters] = useState<any[]>([]);
+
+  // State for UserDetailsModal
+  const [selectedUsers, setSelectedUsers] = useState<{
+    users: any[];
+    locationName: string;
+    locationId: number;
+    locationType: string;
+    parentLocationName?: string;
+    parentLocationType?: string;
+  } | null>(null);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -343,12 +354,44 @@ export default function StatePollingCenterList() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleViewUsers = (
+  const handleViewUsers = async (
     pollingCenterId: number,
     pollingCenterName: string
   ) => {
-    setSelectedPollingCenterId(pollingCenterId);
-    setSelectedPollingCenterName(pollingCenterName);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${pollingCenterId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      
+      if (data.success && data.data?.users) {
+        // Debug: Log the API response to see data structure
+        console.log('Polling Center API Response:', data);
+        console.log('Users data:', data.data.users);
+        
+        // Find the polling center to get mandal info
+        const pollingCenter = allPollingCenters.find(pc => pc.id === pollingCenterId);
+        const mandalName = pollingCenter?.mandalName || 'Unknown Mandal';
+        
+        setSelectedUsers({
+          users: data.data.users,
+          locationName: pollingCenterName,
+          locationId: pollingCenterId,
+          locationType: 'PollingCenter',
+          parentLocationName: mandalName,
+          parentLocationType: 'Mandal'
+        });
+      } else {
+        console.log('Polling Center API Error or No Users:', data);
+      }
+    } catch (error) {
+      console.error(`Error fetching users for polling center ${pollingCenterId}:`, error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -1502,6 +1545,24 @@ export default function StatePollingCenterList() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* User Details Modal */}
+      {selectedUsers && (
+        <UserDetailsModal
+          users={selectedUsers.users}
+          locationName={selectedUsers.locationName}
+          locationId={selectedUsers.locationId}
+          locationType={selectedUsers.locationType as any}
+          parentLocationName={selectedUsers.parentLocationName}
+          parentLocationType={selectedUsers.parentLocationType as any}
+          isOpen={true}
+          onClose={() => setSelectedUsers(null)}
+          onUserDeleted={() => {
+            setSelectedUsers(null);
+            // Refresh data if needed
+          }}
+        />
       )}
     </div>
   );

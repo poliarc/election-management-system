@@ -11,9 +11,22 @@ interface UserDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUserDeleted?: () => void;
+    // New hierarchical context props
+    parentLocationName?: string;
+    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
 }
 
-export default function UserDetailsModal({ users, locationName, locationId, locationType = 'District', isOpen, onClose, onUserDeleted }: UserDetailsModalProps) {
+export default function UserDetailsModal({ 
+    users, 
+    locationName, 
+    locationId, 
+    locationType = 'District', 
+    isOpen, 
+    onClose, 
+    onUserDeleted,
+    parentLocationName,
+    parentLocationType 
+}: UserDetailsModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -46,6 +59,103 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
     const [userToDelete, setUserToDelete] = useState<HierarchyUser | null>(null);
 
     if (!isOpen) return null;
+
+    // Debug: Log the users data to see structure
+    console.log('UserDetailsModal - Users data:', users);
+    if (users.length > 0) {
+        console.log('First user sample:', users[0]);
+        console.log('Phone field check:', {
+            mobile_number: users[0].mobile_number,
+            contact_no: users[0].contact_no,
+            phone: users[0].phone
+        });
+        console.log('Party field check:', {
+            party: users[0].party,
+            party_name: users[0].party_name,
+            partyName: users[0].partyName
+        });
+        console.log('Status field check:', {
+            is_active: users[0].is_active,
+            status: users[0].status,
+            active: users[0].active,
+            user_active: users[0].user_active
+        });
+    }
+
+    // Function to format hierarchical header text
+    const formatHierarchicalHeader = (): string => {
+        // Sanitize input strings to prevent XSS and handle edge cases
+        const sanitizeString = (str?: string): string => {
+            if (!str || typeof str !== 'string') return '';
+            // Remove potentially dangerous characters and limit length
+            return str.trim().replace(/[<>]/g, '').slice(0, 100);
+        };
+
+        // Validate location types against allowed values
+        const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth'];
+        const isValidLocationType = (type?: string): boolean => {
+            return type ? validLocationTypes.includes(type) : false;
+        };
+
+        const sanitizedParentName = sanitizeString(parentLocationName);
+        const sanitizedLocationName = sanitizeString(locationName);
+        const sanitizedParentType = isValidLocationType(parentLocationType) ? parentLocationType : undefined;
+        const sanitizedLocationType = isValidLocationType(locationType) ? locationType : 'Location';
+
+        // If no parent context is provided or invalid, fall back to current location only
+        if (!sanitizedParentName || !sanitizedParentType) {
+            return sanitizedLocationName || 'Unknown Location';
+        }
+
+        // Ensure we have valid current location name
+        if (!sanitizedLocationName) {
+            return `${sanitizedParentType}: ${sanitizedParentName}`;
+        }
+
+        // Format with hierarchical context: "Parent Type: Parent Name | Current Type: Current Name"
+        return `${sanitizedParentType}: ${sanitizedParentName} | ${sanitizedLocationType}: ${sanitizedLocationName}`;
+    };
+
+    // Function to get parent column header
+    const getParentColumnHeader = (): string | null => {
+        const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth'];
+        if (parentLocationType && validLocationTypes.includes(parentLocationType)) {
+            return parentLocationType;
+        }
+        return null;
+    };
+
+    // Function to get current location column header
+    const getCurrentLocationColumnHeader = (): string => {
+        const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth'];
+        if (locationType && validLocationTypes.includes(locationType)) {
+            return locationType;
+        }
+        return 'Location';
+    };
+
+    // Function to get parent location name
+    const getParentLocationName = (): string => {
+        const sanitizeString = (str?: string): string => {
+            if (!str || typeof str !== 'string') return '';
+            return str.trim().replace(/[<>]/g, '').slice(0, 100);
+        };
+        return sanitizeString(parentLocationName) || '';
+    };
+
+    // Function to get current location name
+    const getCurrentLocationName = (): string => {
+        const sanitizeString = (str?: string): string => {
+            if (!str || typeof str !== 'string') return '';
+            return str.trim().replace(/[<>]/g, '').slice(0, 100);
+        };
+        return sanitizeString(locationName) || 'Unknown';
+    };
+
+    // Check if we should show parent column
+    const shouldShowParentColumn = (): boolean => {
+        return !!(parentLocationName && parentLocationType);
+    };
 
     // Determine which API to use based on location type
     const useAfterAssemblyApi = ['Block', 'Mandal', 'PollingCenter', 'Sector', 'Ward', 'Zone', 'Booth'].includes(locationType);
@@ -104,14 +214,35 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
     // Filter users based on search and status
     const filteredUsers = users.filter(user => {
         const matchesSearch = searchTerm === '' ||
-            user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.mobile_number.includes(searchTerm);
+            (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.mobile_number && user.mobile_number.includes(searchTerm)) ||
+            (user.contact_no && user.contact_no.includes(searchTerm)) ||
+            (user.phone && user.phone.includes(searchTerm));
 
+        // Enhanced status checking for filtering
+        const checkActiveStatus = (value: any): boolean => {
+            if (value === undefined || value === null) return false;
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'number') return value === 1;
+            if (typeof value === 'string') return value === 'active' || value === '1' || value === 'true';
+            return false;
+        };
+
+        let isUserActive = false;
+        if (user.is_active !== undefined && user.is_active !== null) {
+            isUserActive = checkActiveStatus(user.is_active);
+        } else if (user.user_active !== undefined && user.user_active !== null) {
+            isUserActive = checkActiveStatus(user.user_active);
+        } else if (user.active !== undefined && user.active !== null) {
+            isUserActive = checkActiveStatus(user.active);
+        } else if (user.status !== undefined && user.status !== null) {
+            isUserActive = checkActiveStatus(user.status);
+        }
         const matchesStatus = filterStatus === 'all' ||
-            (filterStatus === 'active' && user.is_active) ||
-            (filterStatus === 'inactive' && !user.is_active);
+            (filterStatus === 'active' && isUserActive) ||
+            (filterStatus === 'inactive' && !isUserActive);
 
         return matchesSearch && matchesStatus;
     });
@@ -124,7 +255,7 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                     <div className="bg-blue-600 px-6 py-4 rounded-t-lg flex items-center justify-between">
                         <div>
                             <h3 className="text-xl font-semibold text-white">Assigned Users</h3>
-                            <p className="text-sm text-blue-100 mt-1">{locationName}</p>
+                            <p className="text-sm text-blue-100 mt-1">{formatHierarchicalHeader()}</p>
                         </div>
                         <button
                             onClick={onClose}
@@ -178,10 +309,14 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
+                                            {shouldShowParentColumn() && (
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{getParentColumnHeader()}</th>
+                                            )}
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{getCurrentLocationColumnHeader()}</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Designation</th>
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Phone Number</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Party</th>
+                                            {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Party</th> */}
                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
                                             <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
                                         </tr>
@@ -190,21 +325,77 @@ export default function UserDetailsModal({ users, locationName, locationId, loca
                                         {filteredUsers.map((user, index) => (
                                             <tr key={user.assignment_id || index} className="hover:bg-gray-50">
                                                 <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
+                                                {shouldShowParentColumn() && (
+                                                    <td className="px-4 py-3 text-sm text-gray-600">
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {getParentLocationName()}
+                                                        </div>
+                                                    </td>
+                                                )}
+                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {getCurrentLocationName()}
+                                                    </div>
+                                                </td>
                                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                                     {user.first_name} {user.last_name}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.role || 'N/A'}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.mobile_number}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.party?.party_name || 'N/A'}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">{user.role || user.designation || 'N/A'}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                    {(() => {
+                                                        const phone = user.mobile_number || user.contact_no || user.phone;
+                                                        console.log(`Phone for user ${user.user_id}:`, { mobile_number: user.mobile_number, contact_no: user.contact_no, phone: user.phone, result: phone });
+                                                        return phone || 'N/A';
+                                                    })()}
+                                                </td>
+                                                {/* <td className="px-4 py-3 text-sm text-gray-600">
+                                                    {(() => {
+                                                        const party = user.party?.party_name || user.party_name || user.partyName;
+                                                        console.log(`Party for user ${user.user_id}:`, { party_obj: user.party, party_name: user.party_name, partyName: user.partyName, result: party });
+                                                        return party || 'N/A';
+                                                    })()}
+                                                </td> */}
                                                 <td className="px-4 py-3 text-sm">
-                                                    <span
-                                                        className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-red-100 text-red-800'
-                                                            }`}
-                                                    >
-                                                        {user.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
+                                                    {(() => {
+                                                        // Enhanced status checking with more field variations
+                                                        const checkActiveStatus = (value: any): boolean => {
+                                                            if (value === undefined || value === null) return false;
+                                                            if (typeof value === 'boolean') return value;
+                                                            if (typeof value === 'number') return value === 1;
+                                                            if (typeof value === 'string') return value === 'active' || value === '1' || value === 'true';
+                                                            return false;
+                                                        };
+
+                                                        let isActive = false;
+                                                        if (user.is_active !== undefined && user.is_active !== null) {
+                                                            isActive = checkActiveStatus(user.is_active);
+                                                        } else if (user.user_active !== undefined && user.user_active !== null) {
+                                                            isActive = checkActiveStatus(user.user_active);
+                                                        } else if (user.active !== undefined && user.active !== null) {
+                                                            isActive = checkActiveStatus(user.active);
+                                                        } else if (user.status !== undefined && user.status !== null) {
+                                                            isActive = checkActiveStatus(user.status);
+                                                        }
+                                                        
+                                                        console.log(`Status for user ${user.user_id}:`, { 
+                                                            is_active: user.is_active, 
+                                                            user_active: user.user_active, 
+                                                            active: user.active, 
+                                                            status: user.status, 
+                                                            result: isActive 
+                                                        });
+                                                        
+                                                        return (
+                                                            <span
+                                                                className={`px-2 py-1 text-xs font-medium rounded-full ${isActive
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                                    }`}
+                                                            >
+                                                                {isActive ? 'Active' : 'Inactive'}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td className="px-4 py-3 text-center">
                                                     <div className="relative inline-block text-left" ref={openMenuId === user.user_id ? menuRef : null}>

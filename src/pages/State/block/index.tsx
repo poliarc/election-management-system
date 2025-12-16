@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
+import UserDetailsModal from "../../../components/UserDetailsModal";
 
 export default function StateBlock() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +22,16 @@ export default function StateBlock() {
 
   // State for all blocks in the state
   const [allBlocks, setAllBlocks] = useState<any[]>([]);
+
+  // State for UserDetailsModal
+  const [selectedUsers, setSelectedUsers] = useState<{
+    users: any[];
+    locationName: string;
+    locationId: number;
+    locationType: string;
+    parentLocationName?: string;
+    parentLocationType?: string;
+  } | null>(null);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -218,9 +229,41 @@ export default function StateBlock() {
     }
   }, [blocks]);
 
-  const handleViewUsers = (blockId: number, blockName: string) => {
-    setSelectedBlockId(blockId);
-    setSelectedBlockName(blockName);
+  const handleViewUsers = async (blockId: number, blockName: string) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${blockId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      
+      if (data.success && data.data?.users) {
+        // Debug: Log the API response to see data structure
+        console.log('Block API Response:', data);
+        console.log('Users data:', data.data.users);
+        
+        // Find the block to get assembly info
+        const block = allBlocks.find(b => b.id === blockId);
+        const assemblyName = block?.assemblyName || 'Unknown Assembly';
+        
+        setSelectedUsers({
+          users: data.data.users,
+          locationName: blockName,
+          locationId: blockId,
+          locationType: 'Block',
+          parentLocationName: assemblyName,
+          parentLocationType: 'Assembly'
+        });
+      } else {
+        console.log('Block API Error or No Users:', data);
+      }
+    } catch (error) {
+      console.error(`Error fetching users for block ${blockId}:`, error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -1025,6 +1068,24 @@ export default function StateBlock() {
           </div>
         )}
       </div>
+
+      {/* User Details Modal */}
+      {selectedUsers && (
+        <UserDetailsModal
+          users={selectedUsers.users}
+          locationName={selectedUsers.locationName}
+          locationId={selectedUsers.locationId}
+          locationType={selectedUsers.locationType as any}
+          parentLocationName={selectedUsers.parentLocationName}
+          parentLocationType={selectedUsers.parentLocationType as any}
+          isOpen={true}
+          onClose={() => setSelectedUsers(null)}
+          onUserDeleted={() => {
+            setSelectedUsers(null);
+            // Refresh data if needed
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -94,7 +94,67 @@ export default function HierarchyTable({
     locationName: string;
     locationId: number;
     locationType: HierarchyChild["location_type"];
+    parentLocationName?: string;
+    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
   } | null>(null);
+
+  // Function to determine parent context based on current view and available props
+  const getParentContext = (item: HierarchyChild | EnhancedHierarchyChild): { parentName?: string; parentType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' } => {
+    // Determine parent context based on current location type and available props
+    switch (item.location_type) {
+      case 'District':
+        // For districts, parent is state
+        return {
+          parentName: stateName || parentName,
+          parentType: 'State'
+        };
+      case 'Assembly':
+        // For assemblies, parent is district
+        if (showAllDistricts && 'district_name' in item) {
+          // In all-districts mode, use the district name from enhanced data
+          return {
+            parentName: (item as EnhancedHierarchyChild).district_name,
+            parentType: 'District'
+          };
+        }
+        return {
+          parentName: districtName || parentName,
+          parentType: 'District'
+        };
+      case 'Block':
+        // For blocks, parent is assembly
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      case 'Mandal':
+        // For mandals, parent could be assembly or block depending on context
+        if (blockName) {
+          return {
+            parentName: blockName,
+            parentType: 'Block'
+          };
+        }
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      case 'Booth':
+        // For booths, parent could be mandal, block, or assembly depending on context
+        if (blockName) {
+          return {
+            parentName: blockName,
+            parentType: 'Block'
+          };
+        }
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      default:
+        return {};
+    }
+  };
 
   const handleSort = (field: typeof sortField) => {
     const newOrder =
@@ -535,11 +595,14 @@ export default function HierarchyTable({
                       <button
                         onClick={() => {
                           if (item.users && item.users.length > 0) {
+                            const parentContext = getParentContext(item);
                             setSelectedUsers({
                               users: item.users || [],
                               locationName: item.location_name,
                               locationId: item.location_id,
                               locationType: item.location_type,
+                              parentLocationName: parentContext.parentName,
+                              parentLocationType: parentContext.parentType,
                             });
                           }
                         }}
@@ -697,6 +760,8 @@ export default function HierarchyTable({
           locationName={selectedUsers.locationName}
           locationId={selectedUsers.locationId}
           locationType={selectedUsers.locationType}
+          parentLocationName={selectedUsers.parentLocationName}
+          parentLocationType={selectedUsers.parentLocationType}
           isOpen={true}
           onClose={() => setSelectedUsers(null)}
           onUserDeleted={() => {

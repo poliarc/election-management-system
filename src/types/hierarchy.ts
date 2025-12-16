@@ -16,11 +16,19 @@ export interface HierarchyUser {
     party_id: number;
     is_active: boolean;
     assignment_active: boolean;
-    user_active: boolean;
     assigned_at: string;
     assignment_updated_at: string;
     user_created_at: string;
     role?: string; // Designation/Role field
+    
+    // Additional optional fields for flexibility
+    contact_no?: string;
+    phone?: string;
+    designation?: string;
+    partyName?: string;
+    status?: string | number | boolean;
+    active?: boolean;
+    user_active?: number | boolean | string; // Common field variation
 }
 
 export interface HierarchyChild {
