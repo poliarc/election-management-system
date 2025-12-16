@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useAppSelector } from "../../../store/hooks";
 import { useGetUsersByPartyAndStateQuery } from "../../../store/api/assemblyApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 
-type MessageType = "SMS" | "WhatsApp";
+type MessageType = "SMS" | "WHATSAPP";
 
 export default function UserCommunication() {
   const { user } = useAppSelector((s) => s.auth);
@@ -182,12 +182,26 @@ export default function UserCommunication() {
       setSending(true);
       setError(null);
 
+      const trimmed = message.trim();
+      if (trimmed.length === 0 || trimmed.length > 1600) {
+        setError("Message must be between 1 and 1600 characters");
+        setSending(false);
+        return;
+      }
+
       const selectedUsersList = users.filter((user) =>
         selectedUsers.has(user.user_id)
       );
 
+      const payload = {
+        message_type: messageType,
+        message_content: trimmed,
+        recipient_type: selectedUsersList.length > 1 ? "MULTIPLE" : "SINGLE",
+        recipient_users: selectedUsersList.map((user) => user.user_id),
+      };
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/communication/send`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-communication/send`,
         {
           method: "POST",
           headers: {
@@ -196,15 +210,7 @@ export default function UserCommunication() {
             )}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            type: messageType.toLowerCase(),
-            message: message.trim(),
-            recipients: selectedUsersList.map((user) => ({
-              id: user.user_id,
-              contact_no: user.contact_no,
-              name: `${user.first_name} ${user.last_name}`,
-            })),
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -234,7 +240,7 @@ export default function UserCommunication() {
     setCurrentPage(page);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
@@ -340,9 +346,9 @@ export default function UserCommunication() {
               </div>
             </button>
             <button
-              onClick={() => setMessageType("WhatsApp")}
+              onClick={() => setMessageType("WHATSAPP")}
               className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
-                messageType === "WhatsApp"
+                messageType === "WHATSAPP"
                   ? "bg-green-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
@@ -377,10 +383,10 @@ export default function UserCommunication() {
               onChange={(e) => setMessage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
               placeholder={`Type your ${messageType} message here...`}
-              maxLength={1000}
+              maxLength={1600}
             />
             <div className="mt-2 text-sm text-gray-500">
-              {message.length}/1000 characters
+              {message.length}/1600 characters
             </div>
           </div>
         )}
