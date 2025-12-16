@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { HierarchyChild, EnhancedHierarchyChild } from "../types/hierarchy";
 import UserDetailsModal from "./UserDetailsModal";
+import InlineUserDisplay from "./InlineUserDisplay";
 
 interface HierarchyTableProps {
   data: (HierarchyChild | EnhancedHierarchyChild)[];
@@ -94,7 +95,78 @@ export default function HierarchyTable({
     locationName: string;
     locationId: number;
     locationType: HierarchyChild["location_type"];
+    parentLocationName?: string;
+    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
   } | null>(null);
+
+  // New state for inline user display
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [expandedUsers, setExpandedUsers] = useState<{
+    users: HierarchyChild["users"];
+    locationName: string;
+    locationId: number;
+    locationType: HierarchyChild["location_type"];
+    parentLocationName?: string;
+    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
+  } | null>(null);
+
+  // Function to determine parent context based on current view and available props
+  const getParentContext = (item: HierarchyChild | EnhancedHierarchyChild): { parentName?: string; parentType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' } => {
+    // Determine parent context based on current location type and available props
+    switch (item.location_type) {
+      case 'District':
+        // For districts, parent is state
+        return {
+          parentName: stateName || parentName,
+          parentType: 'State'
+        };
+      case 'Assembly':
+        // For assemblies, parent is district
+        if (showAllDistricts && 'district_name' in item) {
+          // In all-districts mode, use the district name from enhanced data
+          return {
+            parentName: (item as EnhancedHierarchyChild).district_name,
+            parentType: 'District'
+          };
+        }
+        return {
+          parentName: districtName || parentName,
+          parentType: 'District'
+        };
+      case 'Block':
+        // For blocks, parent is assembly
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      case 'Mandal':
+        // For mandals, parent could be assembly or block depending on context
+        if (blockName) {
+          return {
+            parentName: blockName,
+            parentType: 'Block'
+          };
+        }
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      case 'Booth':
+        // For booths, parent could be mandal, block, or assembly depending on context
+        if (blockName) {
+          return {
+            parentName: blockName,
+            parentType: 'Block'
+          };
+        }
+        return {
+          parentName: assemblyName,
+          parentType: 'Assembly'
+        };
+      default:
+        return {};
+    }
+  };
 
   const handleSort = (field: typeof sortField) => {
     const newOrder =
@@ -499,123 +571,185 @@ export default function HierarchyTable({
                   </td>
                 </tr>
               ) : (
-                data.map((item, index) => (
-                  <tr
-                    key={item.location_id}
-                    className="hover:bg-blue-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                      {blockName
-                        ? `${assemblyName} / ${blockName}`
-                        : showAllDistricts && 'district_name' in item
-                        ? (item as EnhancedHierarchyChild).district_name
-                        : assemblyName ||
-                        districtName ||
-                        (districts.length > 0 && item.parent_id
-                          ? districts.find((d) => d.location_id === item.parent_id)?.location_name
-                          : null) ||
-                        stateName ||
-                        parentName ||
-                        "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {item.location_type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
-                        {item.location_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => {
-                          if (item.users && item.users.length > 0) {
-                            setSelectedUsers({
-                              users: item.users || [],
-                              locationName: item.location_name,
-                              locationId: item.location_id,
-                              locationType: item.location_type,
-                            });
-                          }
-                        }}
-                        disabled={!item.users || item.users.length === 0}
-                        className={`flex items-center ${item.users && item.users.length > 0
-                          ? "cursor-pointer hover:text-blue-600"
-                          : "cursor-default"
-                          }`}
-                        title={
-                          item.users && item.users.length > 0
-                            ? "Click to view users"
-                            : "No users assigned"
-                        }
-                      >
-                        <svg
-                          className="w-4 h-4 text-blue-500 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-900">
-                          {item.total_users}
+                data.flatMap((item, index) => {
+                  const totalColumns = 5 + (!hideActiveUsersColumn ? 1 : 0) + (showUploadVotersButton ? 1 : 0) + (showAssignButton ? 1 : 0);
+                  
+                  const rows = [
+                    // Main table row
+                    <tr
+                      key={item.location_id}
+                      className="hover:bg-blue-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                        {blockName
+                          ? `${assemblyName} / ${blockName}`
+                          : showAllDistricts && 'district_name' in item
+                          ? (item as EnhancedHierarchyChild).district_name
+                          : assemblyName ||
+                          districtName ||
+                          (districts.length > 0 && item.parent_id
+                            ? districts.find((d) => d.location_id === item.parent_id)?.location_name
+                            : null) ||
+                          stateName ||
+                          parentName ||
+                          "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {item.location_type}
                         </span>
-                      </button>
-                    </td>
-                    {!hideActiveUsersColumn && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.active_users}
                       </td>
-                    )}
-                    {showUploadVotersButton && (
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {/* Upload Voters Button Only */}
-                        {onUploadVoters && (
-                          <button
-                            onClick={() => onUploadVoters(item.location_id, item.location_name)}
-                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 transition-all duration-200 group"
-                            title="Upload Voters"
-                          >
-                            <svg className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">
+                          {item.location_name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => {
+                            if (item.users && item.users.length > 0) {
+                              const parentContext = getParentContext(item);
+                              
+                              // Toggle inline expansion
+                              if (expandedRowId === item.location_id) {
+                                // Close if already expanded
+                                setExpandedRowId(null);
+                                setExpandedUsers(null);
+                              } else {
+                                // Open new expansion (closes any previously expanded)
+                                setExpandedRowId(item.location_id);
+                                setExpandedUsers({
+                                  users: item.users || [],
+                                  locationName: item.location_name,
+                                  locationId: item.location_id,
+                                  locationType: item.location_type,
+                                  parentLocationName: parentContext.parentName,
+                                  parentLocationType: parentContext.parentType,
+                                });
+                              }
+                            }
+                          }}
+                          disabled={!item.users || item.users.length === 0}
+                          className={`flex items-center ${item.users && item.users.length > 0
+                            ? "cursor-pointer hover:text-blue-600"
+                            : "cursor-default"
+                            }`}
+                          title={
+                            item.users && item.users.length > 0
+                              ? expandedRowId === item.location_id ? "Click to collapse users" : "Click to view users"
+                              : "No users assigned"
+                          }
+                        >
+                          {expandedRowId === item.location_id ? (
+                            // Expanded state - show collapse icon
+                            <svg
+                              className="w-4 h-4 text-blue-600 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 15l7-7 7 7"
+                              />
                             </svg>
-                          </button>
-                        )}
-                      </td>
-                    )}
-                    {showAssignButton && (
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {onAssignUsers && (
-                          <button
-                            onClick={() => onAssignUsers(item.location_id.toString(), item.location_name)}
-                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
-                            title="Assign Users"
-                          >
-                            <svg className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          ) : (
+                            // Collapsed state - show expand icon
+                            <svg
+                              className="w-4 h-4 text-blue-500 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
                             </svg>
-                          </button>
-                        )}
+                          )}
+                          <span className="text-sm font-medium text-gray-900">
+                            {item.total_users}
+                          </span>
+                        </button>
                       </td>
-                    )}
-                  </tr>
-                ))
+                      {!hideActiveUsersColumn && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {item.active_users}
+                        </td>
+                      )}
+                      {showUploadVotersButton && (
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {/* Upload Voters Button Only */}
+                          {onUploadVoters && (
+                            <button
+                              onClick={() => onUploadVoters(item.location_id, item.location_name)}
+                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 transition-all duration-200 group"
+                              title="Upload Voters"
+                            >
+                              <svg className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                      )}
+                      {showAssignButton && (
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {onAssignUsers && (
+                            <button
+                              onClick={() => onAssignUsers(item.location_id.toString(), item.location_name)}
+                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
+                              title="Assign Users"
+                            >
+                              <svg className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ];
+
+                  // Add inline user display row if this item is expanded
+                  if (expandedRowId === item.location_id && expandedUsers) {
+                    rows.push(
+                      <InlineUserDisplay
+                        key={`inline-${item.location_id}`}
+                        users={expandedUsers.users}
+                        locationName={expandedUsers.locationName}
+                        locationId={expandedUsers.locationId}
+                        locationType={expandedUsers.locationType}
+                        parentLocationName={expandedUsers.parentLocationName}
+                        parentLocationType={expandedUsers.parentLocationType}
+                        colSpan={totalColumns}
+                        onClose={() => {
+                          setExpandedRowId(null);
+                          setExpandedUsers(null);
+                        }}
+                        onUserDeleted={() => {
+                          // Refresh the data by triggering a page reload
+                          window.location.reload();
+                        }}
+                      />
+                    );
+                  }
+
+                  return rows;
+                })
               )}
             </tbody>
           </table>
@@ -697,6 +831,8 @@ export default function HierarchyTable({
           locationName={selectedUsers.locationName}
           locationId={selectedUsers.locationId}
           locationType={selectedUsers.locationType}
+          parentLocationName={selectedUsers.parentLocationName}
+          parentLocationType={selectedUsers.parentLocationType}
           isOpen={true}
           onClose={() => setSelectedUsers(null)}
           onUserDeleted={() => {

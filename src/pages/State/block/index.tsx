@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import {
   useGetBlocksByAssemblyQuery,
-  useGetBlockAssignmentsQuery,
 } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
-import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
+
+import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 export default function StateBlock() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +21,10 @@ export default function StateBlock() {
 
   // State for all blocks in the state
   const [allBlocks, setAllBlocks] = useState<any[]>([]);
+
+  // State for inline user display
+  const [expandedBlockId, setExpandedBlockId] = useState<number | null>(null);
+  const [blockUsers, setBlockUsers] = useState<Record<number, any[]>>({});
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -170,20 +174,8 @@ export default function StateBlock() {
   const [blockUserCounts, setBlockUserCounts] = useState<
     Record<number, number>
   >({});
-  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
-  const [selectedBlockName, setSelectedBlockName] = useState<string>("");
 
-  // Fetch users for selected block (for modal)
-  const { data: blockUsersData, isLoading: loadingUsers } =
-    useGetBlockAssignmentsQuery(selectedBlockId!, { skip: !selectedBlockId });
 
-  // Delete mutation
-  const [deleteAssignedLevels, { isLoading: isDeleting }] =
-    useDeleteAssignedLevelsMutation();
-  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any | null>(null);
-  const [openMenuUserId, setOpenMenuUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -218,61 +210,46 @@ export default function StateBlock() {
     }
   }, [blocks]);
 
-  const handleViewUsers = (blockId: number, blockName: string) => {
-    setSelectedBlockId(blockId);
-    setSelectedBlockName(blockName);
-  };
+  const handleViewUsers = async (blockId: number) => {
+    // If already expanded, collapse it
+    if (expandedBlockId === blockId) {
+      setExpandedBlockId(null);
+      return;
+    }
 
-  const handleCloseModal = () => {
-    setSelectedBlockId(null);
-    setSelectedBlockName("");
-  };
-
-  const handleDeleteClick = (user: any) => {
-    setUserToDelete(user);
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!userToDelete || !selectedBlockId) return;
+    // If users already loaded, just expand
+    if (blockUsers[blockId]) {
+      setExpandedBlockId(blockId);
+      return;
+    }
 
     try {
-      setDeletingUserId(userToDelete.user_id);
-      setShowConfirmModal(false);
-
-      const response = await deleteAssignedLevels({
-        user_id: userToDelete.user_id,
-        afterAssemblyData_ids: [selectedBlockId],
-      }).unwrap();
-
-      if (response.success && response.deleted.length > 0) {
-        // Refresh the page to show updated data
-        window.location.reload();
-      } else if (response.errors && response.errors.length > 0) {
-        alert(
-          `Error: ${
-            response.errors[0].error || "Failed to delete user assignment"
-          }`
-        );
-      }
-    } catch (error: any) {
-      console.error("Delete error:", error);
-      alert(
-        error?.data?.message ||
-          "Failed to delete user assignment. Please try again."
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${blockId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+          },
+        }
       );
-    } finally {
-      setDeletingUserId(null);
-      setUserToDelete(null);
+      const data = await response.json();
+      
+      if (data.success && data.data?.users) {
+        // Store users data
+        setBlockUsers(prev => ({
+          ...prev,
+          [blockId]: data.data.users
+        }));
+        setExpandedBlockId(blockId);
+      } else {
+        console.log('Block API Error or No Users:', data);
+      }
+    } catch (error) {
+      console.error(`Error fetching users for block ${blockId}:`, error);
     }
   };
 
-  const handleCancelDelete = () => {
-    setShowConfirmModal(false);
-    setUserToDelete(null);
-  };
 
-  const users = blockUsersData?.users || [];
 
   const filteredBlocks = blocks.filter((block) =>
     block.displayName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -565,71 +542,101 @@ export default function StateBlock() {
                     </th>
 
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Total Users
+                      Active Users
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedBlocks.map((block, index) => (
-                    <tr
-                      key={block.id}
-                      className="hover:bg-blue-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {block.assemblyName}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {block.displayName}
-                        </div>
-                      </td>
+                    <>
+                      <tr
+                        key={block.id}
+                        className="hover:bg-blue-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {block.assemblyName}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {block.displayName}
+                          </div>
+                        </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center">
-                          <button
-                            onClick={() =>
-                              handleViewUsers(block.id, block.displayName)
-                            }
-                            className="inline-flex items-center p-1 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors mr-2"
-                            title="View Users"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center">
+                            <button
+                              onClick={() =>
+                                handleViewUsers(block.id)
+                              }
+                              className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
+                                expandedBlockId === block.id
+                                  ? "text-blue-700 bg-blue-100"
+                                  : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              }`}
+                              title={expandedBlockId === block.id ? "Hide Users" : "View Users"}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                          </button>
-                          {blockUserCounts[block.id] !== undefined ? (
-                            <span className="text-sm font-medium text-gray-900">
-                              {blockUserCounts[block.id]}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-400">
-                              Loading...
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
+                            {blockUserCounts[block.id] !== undefined ? (
+                              <span className="text-sm font-medium text-gray-900">
+                                {blockUserCounts[block.id]}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-400">
+                                Loading...
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {/* Inline User Display */}
+                      {expandedBlockId === block.id && blockUsers[block.id] && (
+                        <InlineUserDisplay
+                          users={blockUsers[block.id]}
+                          locationName={block.displayName}
+                          locationId={block.id}
+                          locationType="Block"
+                          parentLocationName={block.assemblyName}
+                          parentLocationType="Assembly"
+                          onUserDeleted={() => {
+                            // Refresh user counts after deletion
+                            setExpandedBlockId(null);
+                            setBlockUsers(prev => {
+                              const updated = { ...prev };
+                              delete updated[block.id];
+                              return updated;
+                            });
+                            window.location.reload();
+                          }}
+                          onClose={() => setExpandedBlockId(null)}
+                          colSpan={4}
+                        />
+                      )}
+                    </>
                   ))}
                 </tbody>
               </table>
@@ -703,328 +710,10 @@ export default function StateBlock() {
           </div>
         )}
 
-        {/* Modal for viewing users */}
-        {selectedBlockId && (
-          <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-              {/* Modal Header */}
-              <div className="bg-linear-to-r from-blue-600 to-blue-700 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">Block Users</h2>
-                    <p className="text-blue-100 mt-1">
-                      Block: {selectedBlockName}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleCloseModal}
-                    className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
 
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-                {loadingUsers ? (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-gray-600">Loading users...</p>
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="text-center py-12">
-                    <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <p className="mt-2 text-gray-500 font-medium">
-                      No users assigned to this block
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            S.No
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Name
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Designation
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Phone Number
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Party
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Status
-                          </th>
-                          {/* <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Assigned At
-                          </th> */}
-                          <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map((user: any, index: number) => (
-                          <tr
-                            key={user.assignment_id}
-                            className="hover:bg-blue-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {index + 1}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-semibold text-gray-900">
-                                {user.first_name} {user.last_name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {user.username}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.role || "N/A"}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.contact_no || "N/A"}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {user.partyName}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  user.user_active === 1
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {user.user_active === 1 ? "Active" : "Inactive"}
-                              </span>
-                            </td>
-                            {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                              {user.assigned_at
-                                ? new Date(
-                                    user.assigned_at
-                                  ).toLocaleDateString()
-                                : "N/A"}
-                            </td> */}
-                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                              <div className="relative">
-                                <button
-                                  onClick={() =>
-                                    setOpenMenuUserId(
-                                      openMenuUserId === user.user_id
-                                        ? null
-                                        : user.user_id
-                                    )
-                                  }
-                                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                                  title="More options"
-                                >
-                                  <svg
-                                    className="w-5 h-5 text-gray-600"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                  </svg>
-                                </button>
-                                {openMenuUserId === user.user_id && (
-                                  <>
-                                    <div
-                                      className="fixed inset-0 z-10"
-                                      onClick={() => setOpenMenuUserId(null)}
-                                    ></div>
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                                      <button
-                                        onClick={() => {
-                                          setOpenMenuUserId(null);
-                                          handleDeleteClick(user);
-                                        }}
-                                        disabled={
-                                          deletingUserId === user.user_id
-                                        }
-                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                      >
-                                        {deletingUserId === user.user_id ? (
-                                          <>
-                                            <svg
-                                              className="animate-spin h-4 w-4 mr-2"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                              ></circle>
-                                              <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                              ></path>
-                                            </svg>
-                                            Deleting...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <svg
-                                              className="w-4 h-4 mr-2"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                              />
-                                            </svg>
-                                            Delete
-                                          </>
-                                        )}
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer */}
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <svg
-                      className="w-5 h-5 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Total Users
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {users.length}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Confirmation Modal */}
-        {showConfirmModal && userToDelete && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-              <div className="p-6">
-                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                  <svg
-                    className="w-6 h-6 text-red-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
-                  Confirm Deletion
-                </h3>
-                <p className="mt-2 text-sm text-gray-600 text-center">
-                  Are you sure you want to remove{" "}
-                  <span className="font-semibold">
-                    {userToDelete.first_name} {userToDelete.last_name}
-                  </span>{" "}
-                  from{" "}
-                  <span className="font-semibold">{selectedBlockName}</span>?
-                </p>
-                <p className="mt-2 text-xs text-gray-500 text-center">
-                  This action will unassign the user from this block.
-                </p>
-              </div>
-              <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
-                <button
-                  onClick={handleCancelDelete}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+
     </div>
   );
 }
