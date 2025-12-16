@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useAppSelector } from "../../../store/hooks";
 import { useGetUsersByPartyAndStateQuery } from "../../../store/api/assemblyApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
