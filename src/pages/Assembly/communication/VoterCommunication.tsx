@@ -5,6 +5,11 @@ import type { VoterList } from "../../../types/voter";
 import { useDebounce } from "../../../hooks/useDebounce";
 
 type MessageType = "SMS" | "WhatsApp";
+type ContactField =
+  | "contact_number1"
+  | "contact_number2"
+  | "contact_number3"
+  | "contact_number4";
 
 interface SelectedContact {
   key: string;
@@ -13,11 +18,25 @@ interface SelectedContact {
   name: string;
   partNo?: string;
   epic?: string;
+  contactField: ContactField;
 }
 
 export default function VoterCommunication() {
   const { selectedAssignment } = useAppSelector((s) => s.auth);
   const assemblyId = selectedAssignment?.stateMasterData_id;
+
+  // Read state id from stored auth user for API payloads
+  const storedStateId = useMemo(() => {
+    const raw = localStorage.getItem("auth_user");
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed?.state_id ?? null;
+    } catch (err) {
+      console.error("Failed to parse auth_user from localStorage", err);
+      return null;
+    }
+  }, []);
 
   const [messageType, setMessageType] = useState<MessageType | null>(null);
   const [message, setMessage] = useState("");
@@ -70,6 +89,17 @@ export default function VoterCommunication() {
     return Array.from(new Set(contacts));
   };
 
+  const resolveContactField = (
+    voter: VoterList,
+    contact: string
+  ): ContactField => {
+    if (voter.contact_number1 === contact) return "contact_number1";
+    if (voter.contact_number2 === contact) return "contact_number2";
+    if (voter.contact_number3 === contact) return "contact_number3";
+    if (voter.contact_number4 === contact) return "contact_number4";
+    return "contact_number1";
+  };
+
   const isContactSelected = (voterId: number, contact: string) => {
     const key = `${voterId}-${contact}`;
     return selectedContacts.has(key);
@@ -92,6 +122,7 @@ export default function VoterCommunication() {
             }`.trim() || "Voter",
           partNo: voter.part_no,
           epic: voter.voter_id_epic_no,
+          contactField: resolveContactField(voter, contact),
         });
       }
       return next;
@@ -111,6 +142,7 @@ export default function VoterCommunication() {
           }`.trim() || "Voter",
         partNo: voter.part_no,
         epic: voter.voter_id_epic_no,
+        contactField: resolveContactField(voter, contact),
       }));
     });
 
@@ -147,16 +179,41 @@ export default function VoterCommunication() {
       setSending(true);
       setSendError(null);
 
+      const trimmedMessage = message.trim();
+
+      if (trimmedMessage.length === 0 || trimmedMessage.length > 1600) {
+        setSendError("Message must be between 1 and 1600 characters");
+        setSending(false);
+        return;
+      }
+
       const recipients = Array.from(selectedContacts.values()).map((item) => ({
-        id: item.voterId,
+        voter_id: item.voterId,
         contact_no: item.contact,
         name: item.name,
         part_no: item.partNo,
         epic_no: item.epic,
+        contact_field: item.contactField,
       }));
 
+      const contactFields = Array.from(
+        new Set(
+          Array.from(selectedContacts.values()).map((c) => c.contactField)
+        )
+      );
+
+      const payload = {
+        message_type: messageType === "WhatsApp" ? "WHATSAPP" : "SMS",
+        message_content: trimmedMessage,
+        contact_field: contactFields[0] || "contact_number1",
+        filter_criteria: storedStateId
+          ? { state_id: storedStateId }
+          : { state_id: null },
+        recipients,
+      };
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/communication/send`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/voter-communication/send`,
         {
           method: "POST",
           headers: {
@@ -165,11 +222,7 @@ export default function VoterCommunication() {
             )}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            type: messageType.toLowerCase(),
-            message: message.trim(),
-            recipients,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
