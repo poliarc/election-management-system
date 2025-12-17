@@ -82,7 +82,7 @@ export default function AfterAssemblyChildHierarchy() {
 
     const loadUserCounts = async (childrenData: any[]) => {
         const counts: Record<number, number> = {};
-        
+
         // Fetch user count for each child level
         for (const child of childrenData) {
             try {
@@ -97,7 +97,7 @@ export default function AfterAssemblyChildHierarchy() {
                 counts[child.id] = 0;
             }
         }
-        
+
         setUserCounts(counts);
     };
 
@@ -243,32 +243,38 @@ export default function AfterAssemblyChildHierarchy() {
     };
 
     const getStateId = () => {
-        // For AfterAssemblyPanel, we need to get the actual state_id
-        // Try to get it from selectedAssignment or fetch from localStorage
+        // First try to get state_id from auth user (most reliable)
+        if (user?.state_id) {
+            return user.state_id;
+        }
+
+        // Fallback: Try to get it from selectedAssignment
         let stateId = selectedAssignment?.stateMasterData_id;
 
         // If stateMasterData_id is actually an afterAssemblyData_id, we need to find the actual state_id
-        try {
-            const authState = localStorage.getItem("auth_state");
-            if (authState) {
-                const parsed = JSON.parse(authState);
-                // Try to get state_id from stateAssignments
-                if (parsed.stateAssignments && parsed.stateAssignments.length > 0) {
-                    const stateAssignment = parsed.stateAssignments.find((a: any) => a.levelType === 'State');
-                    if (stateAssignment) {
-                        stateId = stateAssignment.stateMasterData_id;
+        if (!stateId) {
+            try {
+                const authState = localStorage.getItem("auth_state");
+                if (authState) {
+                    const parsed = JSON.parse(authState);
+                    // Try to get state_id from stateAssignments
+                    if (parsed.stateAssignments && parsed.stateAssignments.length > 0) {
+                        const stateAssignment = parsed.stateAssignments.find((a: any) => a.levelType === 'State');
+                        if (stateAssignment) {
+                            stateId = stateAssignment.stateMasterData_id;
+                        }
+                    }
+                    // Also try to get from assemblyAssignments if available
+                    if (!stateId && parsed.assemblyAssignments && parsed.assemblyAssignments.length > 0) {
+                        const assemblyAssignment = parsed.assemblyAssignments[0];
+                        if (assemblyAssignment.stateMasterData_id) {
+                            stateId = assemblyAssignment.stateMasterData_id;
+                        }
                     }
                 }
-                // Also try to get from assemblyAssignments if available
-                if (!stateId && parsed.assemblyAssignments && parsed.assemblyAssignments.length > 0) {
-                    const assemblyAssignment = parsed.assemblyAssignments[0];
-                    if (assemblyAssignment.stateMasterData_id) {
-                        stateId = assemblyAssignment.stateMasterData_id;
-                    }
-                }
+            } catch (error) {
+                console.error("Failed to get state_id:", error);
             }
-        } catch (error) {
-            console.error("Failed to get state_id:", error);
         }
 
         return stateId;
@@ -448,7 +454,7 @@ export default function AfterAssemblyChildHierarchy() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
-                                    
+
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
                                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assign</th>
@@ -475,7 +481,7 @@ export default function AfterAssemblyChildHierarchy() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm font-medium text-gray-900">{child.displayName}</div>
                                             </td>
-                                            
+
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${child.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                                                     }`}>

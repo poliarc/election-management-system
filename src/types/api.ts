@@ -17,6 +17,7 @@ export interface ApiUser {
   sex: string | null;
   party_id: number;
   role_id: number;
+  state_id?: number; // Optional state_id field
   modules: string | null;
   profileImage: string | null;
   isActive: number;

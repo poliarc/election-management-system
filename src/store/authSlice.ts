@@ -112,16 +112,30 @@ const authSlice = createSlice({
         (state, action: PayloadAction<LoginResponseData>) => {
           const data = action.payload;
 
-          // Transform and store user
+          // Transform and store user (includes state_id if available in user data)
           state.user = authApi.transformApiUser(data.user, data.userType);
 
-          // Extract state_id from levelAdminDetails and add to user object
-          if (data.levelAdminDetails && data.levelAdminDetails.length > 0) {
-            const firstLevelAdmin = data.levelAdminDetails[0];
-            if (firstLevelAdmin.state_id) {
+          // Extract state_id from additional sources if not already present
+          if (!state.user.state_id) {
+            let extractedStateId: number | undefined;
+
+            // 1. For level admins: get from levelAdminDetails
+            if (data.levelAdminDetails && data.levelAdminDetails.length > 0) {
+              const firstLevelAdmin = data.levelAdminDetails[0];
+              extractedStateId = firstLevelAdmin.state_id;
+            }
+
+            // 2. For users with state assignments: get from stateAssignments
+            if (!extractedStateId && data.stateAssignments && data.stateAssignments.length > 0) {
+              const firstStateAssignment = data.stateAssignments[0];
+              extractedStateId = firstStateAssignment.stateMasterData_id;
+            }
+
+            // Add state_id to user object if found from additional sources
+            if (extractedStateId) {
               state.user = {
                 ...state.user,
-                state_id: firstLevelAdmin.state_id
+                state_id: extractedStateId
               };
             }
           }

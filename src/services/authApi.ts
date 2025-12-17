@@ -69,6 +69,7 @@ export function transformApiUser(apiUser: ApiUser, userType: string): User {
     partyName: apiUser.partyName,
     role: apiUser.role,
     userType: userType as any,
+    state_id: apiUser.state_id, // Include state_id if available
   };
 }
 
