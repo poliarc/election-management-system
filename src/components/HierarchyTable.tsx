@@ -1,5 +1,8 @@
 import { useState } from "react";
-import type { HierarchyChild, EnhancedHierarchyChild } from "../types/hierarchy";
+import type {
+  HierarchyChild,
+  EnhancedHierarchyChild,
+} from "../types/hierarchy";
 import UserDetailsModal from "./UserDetailsModal";
 import InlineUserDisplay from "./InlineUserDisplay";
 
@@ -40,8 +43,10 @@ interface HierarchyTableProps {
   hideHeader?: boolean;
   // New props for enhanced filtering
   showAllDistricts?: boolean;
-  userAssignmentFilter?: 'all' | 'with-users' | 'without-users';
-  onUserAssignmentFilterChange?: (filter: 'all' | 'with-users' | 'without-users') => void;
+  userAssignmentFilter?: "all" | "with-users" | "without-users";
+  onUserAssignmentFilterChange?: (
+    filter: "all" | "with-users" | "without-users"
+  ) => void;
   // Hide Active Users column for Assembly List only
   hideActiveUsersColumn?: boolean;
 }
@@ -80,7 +85,7 @@ export default function HierarchyTable({
   hideHeader = false,
   // New props for enhanced filtering
   showAllDistricts = false,
-  userAssignmentFilter = 'all',
+  userAssignmentFilter = "all",
   onUserAssignmentFilterChange,
   // Hide Active Users column for Assembly List only
   hideActiveUsersColumn = false,
@@ -96,7 +101,13 @@ export default function HierarchyTable({
     locationId: number;
     locationType: HierarchyChild["location_type"];
     parentLocationName?: string;
-    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
+    parentLocationType?:
+      | "State"
+      | "District"
+      | "Assembly"
+      | "Block"
+      | "Mandal"
+      | "Booth";
   } | null>(null);
 
   // New state for inline user display
@@ -107,61 +118,78 @@ export default function HierarchyTable({
     locationId: number;
     locationType: HierarchyChild["location_type"];
     parentLocationName?: string;
-    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
+    parentLocationType?:
+      | "State"
+      | "District"
+      | "Assembly"
+      | "Block"
+      | "Mandal"
+      | "Booth";
   } | null>(null);
 
   // Function to determine parent context based on current view and available props
-  const getParentContext = (item: HierarchyChild | EnhancedHierarchyChild): { parentName?: string; parentType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' } => {
+  const getParentContext = (
+    item: HierarchyChild | EnhancedHierarchyChild
+  ): {
+    parentName?: string;
+    parentType?:
+      | "State"
+      | "District"
+      | "Assembly"
+      | "Block"
+      | "Mandal"
+      | "Booth";
+  } => {
     // Determine parent context based on current location type and available props
     switch (item.location_type) {
-      case 'District':
+      case "District":
         // For districts, parent is state
         return {
           parentName: stateName || parentName,
-          parentType: 'State'
+          parentType: "State",
         };
-      case 'Assembly':
+      case "Assembly":
         // For assemblies, parent is district
-        if (showAllDistricts && 'district_name' in item) {
+        if (showAllDistricts && "district_name" in item) {
           // In all-districts mode, use the district name from enhanced data
           return {
             parentName: (item as EnhancedHierarchyChild).district_name,
-            parentType: 'District'
+            parentType: "District",
           };
         }
         return {
           parentName: districtName || parentName,
-          parentType: 'District'
+          parentType: "District",
         };
-      case 'Block':
+      case "Block":
         // For blocks, parent is assembly
         return {
           parentName: assemblyName,
-          parentType: 'Assembly'
+          parentType: "Assembly",
         };
-      case 'Mandal':
+      case "Mandal":
         // For mandals, parent could be assembly or block depending on context
         if (blockName) {
           return {
             parentName: blockName,
-            parentType: 'Block'
+            parentType: "Block",
           };
         }
         return {
           parentName: assemblyName,
-          parentType: 'Assembly'
+          parentType: "Assembly",
         };
-      case 'Booth':
+      case "Booth":
         // For booths, parent could be mandal, block, or assembly depending on context
         if (blockName) {
           return {
             parentName: blockName,
-            parentType: 'Block'
+            parentType: "Block",
           };
         }
         return {
           parentName: assemblyName,
-          parentType: 'Assembly'
+          parentType: "Assembly",
         };
       default:
         return {};
@@ -276,16 +304,17 @@ export default function HierarchyTable({
       {/* Filters Section */}
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
         <div
-          className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
-            ? "sm:grid-cols-3 lg:grid-cols-6"
-            : assemblies.length > 0 && onAssemblyChange
+          className={`grid grid-cols-1 ${
+            blocks.length > 0 && onBlockChange
+              ? "sm:grid-cols-3 lg:grid-cols-6"
+              : assemblies.length > 0 && onAssemblyChange
               ? "sm:grid-cols-2 lg:grid-cols-5"
               : districts.length > 0 && onDistrictChange
-                ? "sm:grid-cols-2 lg:grid-cols-4"
-                : onUserAssignmentFilterChange
-                  ? "sm:grid-cols-2 lg:grid-cols-3"
-                  : "sm:grid-cols-2"
-            } gap-3`}
+              ? "sm:grid-cols-2 lg:grid-cols-4"
+              : onUserAssignmentFilterChange
+              ? "sm:grid-cols-2 lg:grid-cols-3"
+              : "sm:grid-cols-3 lg:grid-cols-3"
+          } gap-3`}
         >
           {/* State Field (Disabled) */}
           {stateName && (
@@ -313,9 +342,7 @@ export default function HierarchyTable({
                 onChange={(e) => onDistrictChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">
-                  All Districts
-                </option>
+                <option value="">All Districts</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id}
@@ -377,10 +404,11 @@ export default function HierarchyTable({
                 value={selectedBlock}
                 onChange={(e) => onBlockChange(e.target.value)}
                 disabled={!selectedAssembly}
-                className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
-                  ? "bg-gray-100 text-gray-600 cursor-not-allowed"
-                  : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  }`}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${
+                  !selectedAssembly
+                    ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+                    : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                }`}
               >
                 <option value="">Select Block</option>
                 {blocks.map((block) => (
@@ -400,7 +428,11 @@ export default function HierarchyTable({
               </label>
               <select
                 value={userAssignmentFilter}
-                onChange={(e) => onUserAssignmentFilterChange(e.target.value as 'all' | 'with-users' | 'without-users')}
+                onChange={(e) =>
+                  onUserAssignmentFilterChange(
+                    e.target.value as "all" | "with-users" | "without-users"
+                  )
+                }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Assemblies</option>
@@ -477,14 +509,14 @@ export default function HierarchyTable({
                   {blockName
                     ? "Assembly / Block"
                     : isAssemblyView && stateName
-                      ? "District"
-                      : assemblyName
-                        ? "Assembly"
-                        : stateName
-                          ? "State"
-                          : districtName
-                            ? "District"
-                            : "Location"}
+                    ? "District"
+                    : assemblyName
+                    ? "Assembly"
+                    : stateName
+                    ? "State"
+                    : districtName
+                    ? "District"
+                    : "Location"}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Type
@@ -498,14 +530,14 @@ export default function HierarchyTable({
                       {blockName
                         ? "Mandal"
                         : isAssemblyView && stateName
-                          ? "Assembly"
-                          : assemblyName
-                            ? "Block"
-                            : stateName
-                              ? "District"
-                              : districtName
-                                ? "Assembly"
-                                : "Name"}
+                        ? "Assembly"
+                        : assemblyName
+                        ? "Block"
+                        : stateName
+                        ? "District"
+                        : districtName
+                        ? "Assembly"
+                        : "Name"}
                     </span>
                     <SortIcon field="location_name" />
                   </button>
@@ -533,7 +565,6 @@ export default function HierarchyTable({
                 {showUploadVotersButton && (
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
-                     
                       <span>Upload Voters</span>
                     </div>
                   </th>
@@ -541,7 +572,6 @@ export default function HierarchyTable({
                 {showAssignButton && (
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
-                  
                       <span>Assigned Users</span>
                     </div>
                   </th>
@@ -551,7 +581,15 @@ export default function HierarchyTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={5 + (!hideActiveUsersColumn ? 1 : 0) + (showUploadVotersButton ? 1 : 0) + (showAssignButton ? 1 : 0)} className="px-6 py-12 text-center">
+                  <td
+                    colSpan={
+                      5 +
+                      (!hideActiveUsersColumn ? 1 : 0) +
+                      (showUploadVotersButton ? 1 : 0) +
+                      (showAssignButton ? 1 : 0)
+                    }
+                    className="px-6 py-12 text-center"
+                  >
                     <svg
                       className="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
@@ -572,8 +610,12 @@ export default function HierarchyTable({
                 </tr>
               ) : (
                 data.flatMap((item, index) => {
-                  const totalColumns = 5 + (!hideActiveUsersColumn ? 1 : 0) + (showUploadVotersButton ? 1 : 0) + (showAssignButton ? 1 : 0);
-                  
+                  const totalColumns =
+                    5 +
+                    (!hideActiveUsersColumn ? 1 : 0) +
+                    (showUploadVotersButton ? 1 : 0) +
+                    (showAssignButton ? 1 : 0);
+
                   const rows = [
                     // Main table row
                     <tr
@@ -586,16 +628,18 @@ export default function HierarchyTable({
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                         {blockName
                           ? `${assemblyName} / ${blockName}`
-                          : showAllDistricts && 'district_name' in item
+                          : showAllDistricts && "district_name" in item
                           ? (item as EnhancedHierarchyChild).district_name
                           : assemblyName ||
-                          districtName ||
-                          (districts.length > 0 && item.parent_id
-                            ? districts.find((d) => d.location_id === item.parent_id)?.location_name
-                            : null) ||
-                          stateName ||
-                          parentName ||
-                          "N/A"}
+                            districtName ||
+                            (districts.length > 0 && item.parent_id
+                              ? districts.find(
+                                  (d) => d.location_id === item.parent_id
+                                )?.location_name
+                              : null) ||
+                            stateName ||
+                            parentName ||
+                            "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -612,7 +656,7 @@ export default function HierarchyTable({
                           onClick={() => {
                             if (item.users && item.users.length > 0) {
                               const parentContext = getParentContext(item);
-                              
+
                               // Toggle inline expansion
                               if (expandedRowId === item.location_id) {
                                 // Close if already expanded
@@ -633,13 +677,16 @@ export default function HierarchyTable({
                             }
                           }}
                           disabled={!item.users || item.users.length === 0}
-                          className={`flex items-center ${item.users && item.users.length > 0
-                            ? "cursor-pointer hover:text-blue-600"
-                            : "cursor-default"
-                            }`}
+                          className={`flex items-center ${
+                            item.users && item.users.length > 0
+                              ? "cursor-pointer hover:text-blue-600"
+                              : "cursor-default"
+                          }`}
                           title={
                             item.users && item.users.length > 0
-                              ? expandedRowId === item.location_id ? "Click to collapse users" : "Click to view users"
+                              ? expandedRowId === item.location_id
+                                ? "Click to collapse users"
+                                : "Click to view users"
                               : "No users assigned"
                           }
                         >
@@ -695,12 +742,27 @@ export default function HierarchyTable({
                           {/* Upload Voters Button Only */}
                           {onUploadVoters && (
                             <button
-                              onClick={() => onUploadVoters(item.location_id, item.location_name)}
+                              onClick={() =>
+                                onUploadVoters(
+                                  item.location_id,
+                                  item.location_name
+                                )
+                              }
                               className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 transition-all duration-200 group"
                               title="Upload Voters"
                             >
-                              <svg className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              <svg
+                                className="w-5 h-5 text-purple-600 group-hover:text-purple-700 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                />
                               </svg>
                             </button>
                           )}
@@ -710,18 +772,33 @@ export default function HierarchyTable({
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {onAssignUsers && (
                             <button
-                              onClick={() => onAssignUsers(item.location_id.toString(), item.location_name)}
+                              onClick={() =>
+                                onAssignUsers(
+                                  item.location_id.toString(),
+                                  item.location_name
+                                )
+                              }
                               className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 transition-all duration-200 group"
                               title="Assign Users"
                             >
-                              <svg className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                              <svg
+                                className="w-5 h-5 text-blue-600 group-hover:text-blue-700 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                />
                               </svg>
                             </button>
                           )}
                         </td>
                       )}
-                    </tr>
+                    </tr>,
                   ];
 
                   // Add inline user display row if this item is expanded
@@ -802,10 +879,11 @@ export default function HierarchyTable({
                     <button
                       key={pageNum}
                       onClick={() => onPageChange(pageNum)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
                     >
                       {pageNum}
                     </button>
