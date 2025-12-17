@@ -25,6 +25,9 @@ export default function StateBlock() {
   // State for inline user display
   const [expandedBlockId, setExpandedBlockId] = useState<number | null>(null);
   const [blockUsers, setBlockUsers] = useState<Record<number, any[]>>({});
+  
+  // State for filtering blocks without users
+  const [showBlocksWithoutUsers, setShowBlocksWithoutUsers] = useState(false);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -251,9 +254,29 @@ export default function StateBlock() {
 
 
 
-  const filteredBlocks = blocks.filter((block) =>
-    block.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle blocks without users filter
+  const handleBlocksWithoutUsersClick = () => {
+    const blocksWithoutUsersCount = Object.entries(blockUserCounts).filter(
+      ([_, count]) => count === 0
+    ).length;
+    
+    if (blocksWithoutUsersCount > 0) {
+      setShowBlocksWithoutUsers(!showBlocksWithoutUsers);
+      setCurrentPage(1); // Reset to page 1
+    }
+  };
+
+  const filteredBlocks = blocks.filter((block) => {
+    const matchesSearch = block.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (showBlocksWithoutUsers) {
+      // When filtering blocks without users, only show blocks with 0 users
+      const hasNoUsers = blockUserCounts[block.id] === 0;
+      return matchesSearch && hasNoUsers;
+    }
+    
+    return matchesSearch;
+  });
 
   const totalPages = Math.ceil(filteredBlocks.length / itemsPerPage);
   const paginatedBlocks = filteredBlocks.slice(
@@ -308,7 +331,7 @@ export default function StateBlock() {
               <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">
-                    Assigned Users
+                    Total Users
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {Object.values(blockUserCounts).reduce(
@@ -334,11 +357,30 @@ export default function StateBlock() {
                 </div>
               </div>
 
-              {/* Blocks Without Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              {/* Blocks Without Users Card - Clickable */}
+              <div 
+                onClick={handleBlocksWithoutUsersClick}
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  Object.values(blockUserCounts).filter(
+                    (count) => count === 0
+                  ).length > 0
+                    ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                    : 'cursor-default'
+                } ${
+                  showBlocksWithoutUsers 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : ''
+                }`}
+                title={Object.values(blockUserCounts).filter(
+                  (count) => count === 0
+                ).length > 0 ? "Click to view blocks without users" : "No blocks without users"}
+              >
                 <div>
                   <p className="text-xs font-medium text-gray-600">
                     Blocks Without Users
+                    {showBlocksWithoutUsers && (
+                      <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                    )}
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
@@ -542,7 +584,7 @@ export default function StateBlock() {
                     </th>
 
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Active Users
+                      Total Users
                     </th>
                   </tr>
                 </thead>

@@ -23,6 +23,9 @@ export default function StateMandalList() {
   // State for inline user display
   const [expandedMandalId, setExpandedMandalId] = useState<number | null>(null);
   const [mandalUsers, setMandalUsers] = useState<Record<number, any[]>>({});
+  
+  // State for filtering mandals without users
+  const [showMandalsWithoutUsers, setShowMandalsWithoutUsers] = useState(false);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -260,6 +263,16 @@ export default function StateMandalList() {
   // Show all mandals if no block is selected, otherwise show filtered mandals
   const mandals = selectedBlockId ? hierarchyData?.children || [] : allMandals;
 
+  // Handle mandals without users filter
+  const handleMandalsWithoutUsersClick = () => {
+    const mandalsWithoutUsersCount = mandals.filter((mandal) => (mandal.user_count || 0) === 0).length;
+    
+    if (mandalsWithoutUsersCount > 0) {
+      setShowMandalsWithoutUsers(!showMandalsWithoutUsers);
+      setCurrentPage(1); // Reset to page 1
+    }
+  };
+
   const filteredMandals = mandals.filter((mandal) => {
     const matchesSearch = mandal.displayName
       .toLowerCase()
@@ -267,7 +280,13 @@ export default function StateMandalList() {
     const matchesFilter =
       selectedMandalFilter === "" ||
       mandal.id.toString() === selectedMandalFilter;
-    return matchesSearch && matchesFilter;
+    
+    // Apply mandals without users filter
+    const matchesWithoutUsersFilter = showMandalsWithoutUsers 
+      ? (mandal.user_count || 0) === 0 
+      : true;
+    
+    return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
   });
 
   const handleViewUsers = async (mandalId: number) => {
@@ -396,11 +415,26 @@ export default function StateMandalList() {
                 </div>
               </div>
 
-              {/* Mandals Without Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              {/* Mandals Without Users Card - Clickable */}
+              <div 
+                onClick={handleMandalsWithoutUsersClick}
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  mandals.filter((mandal) => (mandal.user_count || 0) === 0).length > 0
+                    ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                    : 'cursor-default'
+                } ${
+                  showMandalsWithoutUsers 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : ''
+                }`}
+                title={mandals.filter((mandal) => (mandal.user_count || 0) === 0).length > 0 ? "Click to view mandals without users" : "No mandals without users"}
+              >
                 <div>
                   <p className="text-xs font-medium text-gray-600">
                     Mandals Without Users
+                    {showMandalsWithoutUsers && (
+                      <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                    )}
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
@@ -652,7 +686,7 @@ export default function StateMandalList() {
                         Display Name
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                       Active Users
+                       Total Users
                       </th>
                     </tr>
                   </thead>

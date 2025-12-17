@@ -79,6 +79,7 @@ export interface ProfileData {
   profileImage?: string;
   partyName?: string;
   role?: string;
+  role_name: string
 }
 
 // Update profile payload structure
@@ -192,7 +193,15 @@ export const profileApi = createApi({
       transformResponse: (response: { success: boolean; message: string; data: ProfileData }) => response.data,
       invalidatesTags: ['Profile'],
     }),
+    toggleUserStatus: builder.mutation<{ success: boolean; message: string; data: any }, { id: number; isActive: boolean }>({
+      query: ({ id, isActive }) => ({
+        url: `/users/${id}/toggle-status`,
+        method: 'PATCH',
+        body: { isActive },
+      }),
+      invalidatesTags: ['Profile'],
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation } = profileApi;
+export const { useGetProfileQuery, useUpdateProfileMutation, useToggleUserStatusMutation } = profileApi;

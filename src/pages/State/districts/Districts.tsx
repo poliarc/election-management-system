@@ -13,6 +13,7 @@ export default function StateDistricts() {
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
   const [allDistricts, setAllDistricts] = useState<HierarchyChild[]>([]);
   const [localPage, setLocalPage] = useState(1);
+  const [showDistrictsWithoutUsers, setShowDistrictsWithoutUsers] = useState(false);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -80,7 +81,17 @@ export default function StateDistricts() {
   // Handle district selection
   const handleDistrictChange = (districtId: string) => {
     setSelectedDistrictId(districtId);
+    setShowDistrictsWithoutUsers(false); // Reset districts without users filter
     setLocalPage(1); // Reset to page 1 when filter changes
+  };
+
+  // Handle districts without users filter
+  const handleDistrictsWithoutUsersClick = () => {
+    if (districtsWithoutUsers > 0) {
+      setShowDistrictsWithoutUsers(!showDistrictsWithoutUsers);
+      setSelectedDistrictId(""); // Reset district selection
+      setLocalPage(1); // Reset to page 1
+    }
   };
 
   const handleSort = (
@@ -93,7 +104,7 @@ export default function StateDistricts() {
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    if (selectedDistrictId) {
+    if (selectedDistrictId || showDistrictsWithoutUsers) {
       setLocalPage(page);
     } else {
       setPage(page);
@@ -103,10 +114,24 @@ export default function StateDistricts() {
   // Memoized filtered and paginated data
   const { paginatedData, filteredTotal, currentPageToUse } = useMemo(() => {
     if (selectedDistrictId) {
-      // When filtering, use all districts and apply client-side pagination
+      // When filtering by specific district, use all districts and apply client-side pagination
       const filtered = allDistricts.filter((item) =>
         item.location_id.toString() === selectedDistrictId
       );
+
+      const itemsPerPage = 10;
+      const startIndex = (localPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginated = filtered.slice(startIndex, endIndex);
+
+      return {
+        paginatedData: paginated,
+        filteredTotal: filtered.length,
+        currentPageToUse: localPage
+      };
+    } else if (showDistrictsWithoutUsers) {
+      // When filtering districts without users, use all districts and apply client-side pagination
+      const filtered = allDistricts.filter((item) => item.total_users === 0);
 
       const itemsPerPage = 10;
       const startIndex = (localPage - 1) * itemsPerPage;
@@ -126,7 +151,7 @@ export default function StateDistricts() {
         currentPageToUse: currentPage
       };
     }
-  }, [selectedDistrictId, allDistricts, data, totalChildren, localPage, currentPage]);
+  }, [selectedDistrictId, showDistrictsWithoutUsers, allDistricts, data, totalChildren, localPage, currentPage]);
 
   // Calculate summary statistics from all districts (not just current page)
   const totalUsers = districts.reduce((sum, district) => sum + district.total_users, 0);
@@ -175,10 +200,27 @@ export default function StateDistricts() {
               </div>
             </div>
 
-            {/* Districts Without Users Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            {/* Districts Without Users Card - Clickable */}
+            <div 
+              onClick={handleDistrictsWithoutUsersClick}
+              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                districtsWithoutUsers > 0 
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                  : 'cursor-default'
+              } ${
+                showDistrictsWithoutUsers 
+                  ? 'ring-2 ring-red-500 bg-red-50' 
+                  : ''
+              }`}
+              title={districtsWithoutUsers > 0 ? "Click to view districts without users" : "No districts without users"}
+            >
               <div>
-                <p className="text-xs font-medium text-gray-600">Districts Without Users</p>
+                <p className="text-xs font-medium text-gray-600">
+                  Districts Without Users
+                  {showDistrictsWithoutUsers && (
+                    <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                  )}
+                </p>
                 <p className={`text-xl sm:text-2xl font-semibold mt-1 ${districtsWithoutUsers > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                   {formatNumber(districtsWithoutUsers)}
                 </p>

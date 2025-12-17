@@ -26,6 +26,9 @@ export default function StateAssembly() {
   const [sortBy, setSortBy] = useState<"location_name" | "total_users" | "active_users">("location_name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  
+  // State for filtering assemblies without users
+  const [showAssembliesWithoutUsers, setShowAssembliesWithoutUsers] = useState(false);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -133,6 +136,14 @@ export default function StateAssembly() {
     setCurrentPage(1); // Reset to page 1 when search changes
   };
 
+  // Handle assemblies without users filter
+  const handleAssembliesWithoutUsersClick = () => {
+    if (assembliesWithoutUsers > 0) {
+      setShowAssembliesWithoutUsers(!showAssembliesWithoutUsers);
+      setCurrentPage(1); // Reset to page 1
+    }
+  };
+
   const handleSort = (
     sortBy: "location_name" | "total_users" | "active_users",
     order: "asc" | "desc"
@@ -235,6 +246,11 @@ export default function StateAssembly() {
     );
   }
 
+  // Apply assemblies without users filter
+  if (showAssembliesWithoutUsers) {
+    filteredData = filteredData.filter((item) => item.total_users === 0);
+  }
+
 
 
   // Calculate pagination for filtered data
@@ -292,10 +308,27 @@ export default function StateAssembly() {
               </div>
             </div>
 
-            {/* Assemblies Without Users Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            {/* Assemblies Without Users Card - Clickable */}
+            <div 
+              onClick={handleAssembliesWithoutUsersClick}
+              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                assembliesWithoutUsers > 0 
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                  : 'cursor-default'
+              } ${
+                showAssembliesWithoutUsers 
+                  ? 'ring-2 ring-red-500 bg-red-50' 
+                  : ''
+              }`}
+              title={assembliesWithoutUsers > 0 ? "Click to view assemblies without users" : "No assemblies without users"}
+            >
               <div>
-                <p className="text-xs font-medium text-gray-600">Assemblies Without Users</p>
+                <p className="text-xs font-medium text-gray-600">
+                  Assemblies Without Users
+                  {showAssembliesWithoutUsers && (
+                    <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                  )}
+                </p>
                 <p className={`text-xl sm:text-2xl font-semibold mt-1 ${assembliesWithoutUsers > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                   {formatNumber(assembliesWithoutUsers)}
                 </p>

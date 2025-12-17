@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { HierarchyUser } from '../types/hierarchy';
 import { useDeleteAssignedLocationsMutation } from '../store/api/stateMasterApi';
 import { useDeleteAssignedLevelsMutation } from '../store/api/afterAssemblyApi';
+import { useToggleUserStatusMutation } from '../store/api/profileApi';
 
 interface InlineUserDisplayProps {
   users: HierarchyUser[];
@@ -30,9 +31,16 @@ export default function InlineUserDisplay({
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [togglingUserId, setTogglingUserId] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<HierarchyUser | null>(null);
+  const [localUsers, setLocalUsers] = useState<HierarchyUser[]>(users);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Update local users when props change
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -55,6 +63,7 @@ export default function InlineUserDisplay({
   // District uses state hierarchy API, Block/Mandal/Booth use after-assembly API
   const [deleteAssignedLocations, { isLoading: isLoadingLocations }] = useDeleteAssignedLocationsMutation();
   const [deleteAssignedLevels, { isLoading: isLoadingLevels }] = useDeleteAssignedLevelsMutation();
+  const [toggleUserStatus] = useToggleUserStatusMutation();
 
   // Determine which API to use based on location type
   const useAfterAssemblyApi = ['Block', 'Mandal', 'PollingCenter', 'Sector', 'Ward', 'Zone', 'Booth'].includes(locationType);
@@ -185,8 +194,77 @@ export default function InlineUserDisplay({
     setUserToDelete(null);
   };
 
+  const handleToggleStatus = async (user: HierarchyUser) => {
+    try {
+      setTogglingUserId(user.user_id);
+      setOpenMenuId(null);
+
+      // Determine current status
+      const checkActiveStatus = (value: any): boolean => {
+        if (value === undefined || value === null) return false;
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'number') return value === 1;
+        if (typeof value === 'string') return value === 'active' || value === '1' || value === 'true';
+        return false;
+      };
+
+      let currentStatus = false;
+      if (user.is_active !== undefined && user.is_active !== null) {
+        currentStatus = checkActiveStatus(user.is_active);
+      } else if (user.user_active !== undefined && user.user_active !== null) {
+        currentStatus = checkActiveStatus(user.user_active);
+      } else if (user.active !== undefined && user.active !== null) {
+        currentStatus = checkActiveStatus(user.active);
+      } else if (user.status !== undefined && user.status !== null) {
+        currentStatus = checkActiveStatus(user.status);
+      }
+
+      // Toggle the status (if currently active, make inactive and vice versa)
+      const newStatus = !currentStatus;
+
+      // Update local state immediately for instant UI feedback
+      setLocalUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.user_id === user.user_id 
+            ? { 
+                ...u, 
+                is_active: newStatus,
+                assignment_active: newStatus,
+                user_active: newStatus ? 1 : 0,
+                active: newStatus,
+                status: newStatus ? 1 : 0
+              } as HierarchyUser
+            : u
+        )
+      );
+
+      const response = await toggleUserStatus({ 
+        id: user.user_id, 
+        isActive: newStatus 
+      }).unwrap();
+
+      if (response.success) {
+        // Successfully toggled status, refresh the data from server
+        if (onUserDeleted) {
+          onUserDeleted(); // This will refresh the user list
+        }
+      } else {
+        // Revert local state if API call failed
+        setLocalUsers(users);
+        alert(`Error: ${response.message || 'Failed to toggle user status'}`);
+      }
+    } catch (error: any) {
+      console.error("Toggle status error:", error);
+      // Revert local state if API call failed
+      setLocalUsers(users);
+      alert(error?.data?.message || "Failed to toggle user status. Please try again.");
+    } finally {
+      setTogglingUserId(null);
+    }
+  };
+
   // Filter users based on search and status
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = localUsers.filter(user => {
     const matchesSearch = searchTerm === '' ||
       (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -239,7 +317,7 @@ export default function InlineUserDisplay({
                 {/* Total Users Count */}
                 <div className="flex-shrink-0">
                   <span className="text-sm text-white/90 font-medium">
-                    Total: {users.length} users
+                    Total: {localUsers.length} users
                   </span>
                 </div>
 
@@ -327,7 +405,7 @@ export default function InlineUserDisplay({
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">
                             {user.first_name} {user.last_name}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{user.role || user.designation || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{user.role_name || user.role || user.designation || 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {user.mobile_number || user.contact_no || user.phone || 'N/A'}
                           </td>
@@ -369,11 +447,11 @@ export default function InlineUserDisplay({
                             <div className="relative inline-block text-left" ref={openMenuId === user.user_id ? menuRef : null}>
                               <button
                                 onClick={() => setOpenMenuId(openMenuId === user.user_id ? null : user.user_id)}
-                                disabled={deletingUserId === user.user_id}
+                                disabled={deletingUserId === user.user_id || togglingUserId === user.user_id}
                                 className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
                                 title="More actions"
                               >
-                                {deletingUserId === user.user_id ? (
+                                {(deletingUserId === user.user_id || togglingUserId === user.user_id) ? (
                                   <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -388,6 +466,53 @@ export default function InlineUserDisplay({
                               {openMenuId === user.user_id && (
                                 <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
                                   <div className="py-1" role="menu">
+                                    {(() => {
+                                      // Check user status for toggle option
+                                      const checkActiveStatus = (value: any): boolean => {
+                                        if (value === undefined || value === null) return false;
+                                        if (typeof value === 'boolean') return value;
+                                        if (typeof value === 'number') return value === 1;
+                                        if (typeof value === 'string') return value === 'active' || value === '1' || value === 'true';
+                                        return false;
+                                      };
+
+                                      let isActive = false;
+                                      if (user.is_active !== undefined && user.is_active !== null) {
+                                        isActive = checkActiveStatus(user.is_active);
+                                      } else if (user.user_active !== undefined && user.user_active !== null) {
+                                        isActive = checkActiveStatus(user.user_active);
+                                      } else if (user.active !== undefined && user.active !== null) {
+                                        isActive = checkActiveStatus(user.active);
+                                      } else if (user.status !== undefined && user.status !== null) {
+                                        isActive = checkActiveStatus(user.status);
+                                      }
+
+                                      return (
+                                        <button
+                                          onClick={() => handleToggleStatus(user)}
+                                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${
+                                            isActive ? 'text-orange-700' : 'text-green-700'
+                                          }`}
+                                          role="menuitem"
+                                        >
+                                          {isActive ? (
+                                            <>
+                                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                              </svg>
+                                              Inactive
+                                            </>
+                                          ) : (
+                                            <>
+                                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                              </svg>
+                                              Active
+                                            </>
+                                          )}
+                                        </button>
+                                      );
+                                    })()}
                                     <button
                                       onClick={() => {
                                         handleDeleteClick(user);
