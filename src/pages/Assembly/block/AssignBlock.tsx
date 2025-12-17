@@ -6,9 +6,10 @@ import {
 } from "../../../store/api/blockApi";
 import { useGetUsersWithFilterQuery } from "../../../store/api/blockApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
-import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useGetAllStateMasterDataQuery, useDeleteAssignedLocationsMutation } from "../../../store/api/stateMasterApi";
 import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
+import type { HierarchyUser } from "../../../types/hierarchy";
 
 export default function AssignBlock() {
     const navigate = useNavigate();
@@ -26,6 +27,12 @@ export default function AssignBlock() {
     const [stateId, setStateId] = useState<number | null>(null);
     const [stateIdSource, setStateIdSource] = useState<string>("");
     const [stateIdResolved, setStateIdResolved] = useState<boolean>(false);
+    
+    // Tab state
+    const [activeTab, setActiveTab] = useState<'assign' | 'assigned'>('assign');
+    const [assignedUsers, setAssignedUsers] = useState<HierarchyUser[]>([]);
+    const [loadingAssignedUsers, setLoadingAssignedUsers] = useState(false);
+    const [unassigningUserId, setUnassigningUserId] = useState<number | null>(null);
 
 
     // Get user profile to extract state name
@@ -195,13 +202,28 @@ export default function AssignBlock() {
         { skip: !blockId }
     );
 
+    // Fetch assigned users with full details
+    const fetchAssignedUsers = async () => {
+        if (!blockId) return;
+        try {
+            setLoadingAssignedUsers(true);
+            // Use the existing assigned data from the query
+            if (assignedData?.users) {
+                setAssignedUsers(assignedData.users);
+                const assignedIds = assignedData.users.map((user: any) => user.user_id);
+                setAssignedUserIds(assignedIds);
+                setSelectedUsers(assignedIds);
+            }
+        } catch (e) {
+            console.error("Error processing assigned users:", e);
+        } finally {
+            setLoadingAssignedUsers(false);
+        }
+    };
+
     // Set assigned user IDs when data is loaded
     useEffect(() => {
-        if (assignedData?.users) {
-            const assignedIds = assignedData.users.map((user: any) => user.user_id);
-            setAssignedUserIds(assignedIds);
-            setSelectedUsers(assignedIds);
-        }
+        fetchAssignedUsers();
     }, [assignedData]);
 
     // Reset page when search changes
@@ -218,6 +240,8 @@ export default function AssignBlock() {
 
     const [createAssignment, { isLoading: isAssigning }] =
         useCreateBlockAssignmentMutation();
+    
+    const [deleteAssignedLocations] = useDeleteAssignedLocationsMutation();
 
     // Filter only active users (search is handled by API)
     const filteredUsers = users.filter(
@@ -255,12 +279,41 @@ export default function AssignBlock() {
             toast.success(
                 `Successfully assigned ${selectedUsers.length} user(s) to block`
             );
-            navigate("/assembly/block");
-            window.location.reload();
+            // Refresh assigned users list
+            fetchAssignedUsers();
+            // Switch to assigned tab to show the newly assigned users
+            setActiveTab('assigned');
         } catch (error: any) {
             console.error(error?.data?.message);
             navigate("/assembly/block");
             window.location.reload();
+        }
+    };
+
+    const handleUnassign = async (userId: number, userName: string) => {
+        if (!blockId) {
+            toast.error("Block ID not found");
+            return;
+        }
+        
+        try {
+            setUnassigningUserId(userId);
+            const response = await deleteAssignedLocations({
+                userId: userId,
+                stateMasterData_id: Number(blockId)
+            }).unwrap();
+
+            if (response.success) {
+                toast.success(`Unassigned ${userName} from block`);
+                // Refresh assigned users list
+                fetchAssignedUsers();
+            } else {
+                toast.error("Failed to unassign user");
+            }
+        } catch (e: any) {
+            toast.error(e?.data?.message || "Failed to unassign user");
+        } finally {
+            setUnassigningUserId(null);
         }
     };
 
@@ -306,21 +359,32 @@ export default function AssignBlock() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Assign Users to Block
-                        </h1>
-                        <p className="text-sm text-gray-600 mt-2">
+                <div className="bg-white rounded-xl shadow-lg p-3">
+                    <div className="mb-1">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => navigate("/assembly/block")}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Back to Block List"
+                            >
+                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                Manage Block Users
+                            </h1>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2 px-13">
                             Block: <span className="font-medium">{blockName}</span>
                         </p>
-                        {stateId && (
+                        {/* {stateId && (
                             <p className="text-xs text-blue-600 mt-1">
                                 Using state_id: {stateId} (source: {stateIdSource})
                             </p>
-                        )}
+                        )} */}
                         {!stateId && (
                             <p className="text-xs text-red-600 mt-1">
                                 Warning: state_id not found - this may limit user filtering
@@ -330,7 +394,38 @@ export default function AssignBlock() {
 
                     </div>
 
-                    <div className="mb-4">
+                    {/* Tab Navigation */}
+                    <div className="mb-1">
+                        <div className="border-b border-gray-200">
+                            <nav className="-mb-px flex space-x-8">
+                                <button
+                                    onClick={() => setActiveTab('assign')}
+                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                        activeTab === 'assign'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    Assign Users
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('assigned')}
+                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                        activeTab === 'assigned'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    Assigned Users ({assignedUsers.length})
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Tab Content */}
+                    {activeTab === 'assign' ? (
+                        <>
+                            <div className="mb-1">
                         <input
                             type="text"
                             placeholder="Search users by name, email, or contact number..."
@@ -363,12 +458,19 @@ export default function AssignBlock() {
                         </div>
                     ) : (
                         <>
-                            <div className="mb-4 flex items-center justify-between">
+                            <div className="mb-1 flex items-center justify-between">
                                 <div className="text-sm text-gray-600">
                                     {selectedUsers.length} user(s) selected | {pagination.total} total users
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                    Page {currentPage} of {pagination.totalPages}
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={handleAssign}
+                                        disabled={isAssigning || selectedUsers.length === 0}
+                                        className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                                    >
+                                        {isAssigning ? "Assigning..." : "Assign Selected Users"}
+                                    </button>
+                                    
                                 </div>
                             </div>
 
@@ -424,6 +526,7 @@ export default function AssignBlock() {
                                                                     <p className="text-xs text-gray-500">
                                                                         {user.role} | {user.contact_no}
                                                                     </p>
+                                                                    
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -493,6 +596,73 @@ export default function AssignBlock() {
                                     Cancel
                                 </button>
                             </div>
+                        </>
+                    )}
+                </>
+            ) : (
+                        /* Assigned Users Tab */
+                        <>
+                            {loadingAssignedUsers ? (
+                                <div className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className="mt-2 text-gray-600">Loading assigned users...</p>
+                                </div>
+                            ) : assignedUsers.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <p className="mt-2 text-gray-500 font-medium">No users assigned to this block</p>
+                                    <p className="text-sm text-gray-400">Use the "Assign Users" tab to assign users to this block.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mb-4 text-sm text-gray-600">
+                                        {assignedUsers.length} user(s) currently assigned to this block
+                                    </div>
+                                    <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                                        <div className="divide-y divide-gray-200">
+                                            {assignedUsers.map((user) => (
+                                                <div key={user.user_id} className="p-4 hover:bg-gray-50">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-gray-900">
+                                                                {user.first_name} {user.last_name}
+                                                            </p>
+                                                            <p className="text-sm text-gray-600">{user.email}</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                 {user.mobile_number || user.contact_no}
+                                                            </p>
+                                                            <div className="mt-1 flex items-center gap-2">
+                                                                {user.assigned_at && (
+                                                                    <span className="text-xs text-gray-400">
+                                                                        Assigned: {new Date(user.assigned_at).toLocaleDateString()}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleUnassign(user.user_id, `${user.first_name} ${user.last_name}`)}
+                                                            disabled={unassigningUserId === user.user_id}
+                                                            className="ml-4 bg-red-600 text-white py-1 px-3 rounded text-sm hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                                                        >
+                                                            {unassigningUserId === user.user_id ? "Unassigning..." : "Unassign"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 mt-6">
+                                        <button
+                                            onClick={() => navigate("/assembly/block")}
+                                            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                                        >
+                                            Back to Block List
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
                 </div>

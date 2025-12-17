@@ -28,6 +28,9 @@ export default function StateBoothList() {
         hasBlocks: true,
         deepestLevel: 'mandal' // mandal, pollingCenter, etc.
     });
+    
+    // State for filtering booths without users
+    const [showBoothsWithoutUsers, setShowBoothsWithoutUsers] = useState(false);
 
     const [districts, setDistricts] = useState<any[]>([]);
     const [assemblies, setAssemblies] = useState<any[]>([]);
@@ -545,10 +548,26 @@ export default function StateBoothList() {
         return allBooths;
     })();
 
+    // Handle booths without users filter
+    const handleBoothsWithoutUsersClick = () => {
+        const boothsWithoutUsersCount = booths.filter(booth => (booth.user_count || 0) === 0).length;
+        
+        if (boothsWithoutUsersCount > 0) {
+            setShowBoothsWithoutUsers(!showBoothsWithoutUsers);
+            setCurrentPage(1); // Reset to page 1
+        }
+    };
+
     const filteredBooths = booths.filter((booth) => {
         const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (booth.hierarchyPath && booth.hierarchyPath.toLowerCase().includes(searchTerm.toLowerCase()));
-        return matchesSearch;
+        
+        // Apply booths without users filter
+        const matchesWithoutUsersFilter = showBoothsWithoutUsers 
+            ? (booth.user_count || 0) === 0 
+            : true;
+        
+        return matchesSearch && matchesWithoutUsersFilter;
     });
 
     const handleViewUsers = async (boothId: number) => {
@@ -682,7 +701,7 @@ export default function StateBoothList() {
                             {/* Total Users Card */}
                             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Active Users</p>
+                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                         {booths.reduce((sum, booth) => sum + (booth.user_count || 0), 0)}
                                     </p>
@@ -694,10 +713,27 @@ export default function StateBoothList() {
                                 </div>
                             </div>
 
-                            {/* Booths Without Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            {/* Booths Without Users Card - Clickable */}
+                            <div 
+                                onClick={handleBoothsWithoutUsersClick}
+                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                    booths.filter(booth => (booth.user_count || 0) === 0).length > 0
+                                        ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                                        : 'cursor-default'
+                                } ${
+                                    showBoothsWithoutUsers 
+                                        ? 'ring-2 ring-red-500 bg-red-50' 
+                                        : ''
+                                }`}
+                                title={booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? "Click to view booths without users" : "No booths without users"}
+                            >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Booths Without Users</p>
+                                    <p className="text-xs font-medium text-gray-600">
+                                        Booths Without Users
+                                        {showBoothsWithoutUsers && (
+                                            <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                                        )}
+                                    </p>
                                     <p className={`text-xl sm:text-2xl font-semibold mt-1 ${booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                                         {booths.filter(booth => (booth.user_count || 0) === 0).length}
                                     </p>
@@ -932,11 +968,11 @@ export default function StateBoothList() {
                                                 Display Name
                                             </th>
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Users
+                                               Total Users
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Status
-                                            </th>
+                                            </th> */}
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -990,14 +1026,14 @@ export default function StateBoothList() {
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                    {/* <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1
                                                             ? "bg-green-100 text-green-800"
                                                             : "bg-red-100 text-red-800"
                                                             }`}>
                                                             {booth.isActive === 1 ? "Active" : "Inactive"}
                                                         </span>
-                                                    </td>
+                                                    </td> */}
                                                 </tr>
                                                 
                                                 {/* Inline User Display */}

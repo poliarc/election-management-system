@@ -20,6 +20,7 @@ export interface HierarchyUser {
     assignment_updated_at: string;
     user_created_at: string;
     role?: string; // Designation/Role field
+    role_name?: string; // Role name from API
     
     // Additional optional fields for flexibility
     contact_no?: string;

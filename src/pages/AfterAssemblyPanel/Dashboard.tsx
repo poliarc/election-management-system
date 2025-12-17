@@ -103,7 +103,7 @@ export default function AfterAssemblyPanelDashboard() {
 
                         <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Child Levels</p>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Sub Levels</p>
                                 <p className="text-2xl sm:text-3xl font-semibold text-purple-600 mt-1">
                                     {loading ? "..." : stats.childLevels}
                                 </p>

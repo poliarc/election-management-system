@@ -32,6 +32,9 @@ export default function StatePollingCenterList() {
   // State for inline user display
   const [expandedPollingCenterId, setExpandedPollingCenterId] = useState<number | null>(null);
   const [pollingCenterUsers, setPollingCenterUsers] = useState<Record<number, any[]>>({});
+  
+  // State for filtering polling centers without users
+  const [showPollingCentersWithoutUsers, setShowPollingCentersWithoutUsers] = useState(false);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -333,6 +336,16 @@ export default function StatePollingCenterList() {
     }
   };
 
+  // Handle polling centers without users filter
+  const handlePollingCentersWithoutUsersClick = () => {
+    const pollingCentersWithoutUsersCount = pollingCenters.filter((pc) => (pc.user_count || 0) === 0).length;
+    
+    if (pollingCentersWithoutUsersCount > 0) {
+      setShowPollingCentersWithoutUsers(!showPollingCentersWithoutUsers);
+      setCurrentPage(1); // Reset to page 1
+    }
+  };
+
   const filteredPollingCenters = pollingCenters.filter((pc) => {
     const matchesSearch = pc.displayName
       .toLowerCase()
@@ -340,7 +353,13 @@ export default function StatePollingCenterList() {
     const matchesFilter =
       selectedPollingCenterFilter === "" ||
       pc.id.toString() === selectedPollingCenterFilter;
-    return matchesSearch && matchesFilter;
+    
+    // Apply polling centers without users filter
+    const matchesWithoutUsersFilter = showPollingCentersWithoutUsers 
+      ? (pc.user_count || 0) === 0 
+      : true;
+    
+    return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
   });
 
   const handleViewUsers = async (pollingCenterId: number) => {
@@ -443,7 +462,7 @@ export default function StatePollingCenterList() {
               <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">
-                    Active Users
+                    Total Users
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {pollingCenters.reduce(
@@ -469,11 +488,26 @@ export default function StatePollingCenterList() {
                 </div>
               </div>
 
-              {/* Polling Centers Without Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              {/* Polling Centers Without Users Card - Clickable */}
+              <div 
+                onClick={handlePollingCentersWithoutUsersClick}
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  pollingCenters.filter((pc) => (pc.user_count || 0) === 0).length > 0
+                    ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                    : 'cursor-default'
+                } ${
+                  showPollingCentersWithoutUsers 
+                    ? 'ring-2 ring-red-500 bg-red-50' 
+                    : ''
+                }`}
+                title={pollingCenters.filter((pc) => (pc.user_count || 0) === 0).length > 0 ? "Click to view polling centers without users" : "No polling centers without users"}
+              >
                 <div>
                   <p className="text-xs font-medium text-gray-600">
                     Polling Centers Without Users
+                    {showPollingCentersWithoutUsers && (
+                      <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                    )}
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
@@ -752,11 +786,11 @@ export default function StatePollingCenterList() {
                         Display Name
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Users
+                        Total Users
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Status
-                      </th>
+                      </th> */}
                       {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Created Date
                                             </th> */}
@@ -851,7 +885,7 @@ export default function StatePollingCenterList() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          {/* <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                 pollingCenter.isActive === 1
@@ -863,7 +897,7 @@ export default function StatePollingCenterList() {
                                 ? "Active"
                                 : "Inactive"}
                             </span>
-                          </td>
+                          </td> */}
                           {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                       {pollingCenter.created_at ? new Date(pollingCenter.created_at).toLocaleDateString() : "N/A"}
                                                   </td> */}

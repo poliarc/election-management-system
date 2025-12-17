@@ -80,10 +80,22 @@ export default function SubLevelPanelTeam() {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    #
+                                    S.No
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    State Name
+                                </th>
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Assembly Name
+                                </th> */}
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                   Display Name
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Name
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Designation
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Email
@@ -91,12 +103,7 @@ export default function SubLevelPanelTeam() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Mobile
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Party Name
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    State Name
-                                </th>
+                                
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
@@ -105,7 +112,7 @@ export default function SubLevelPanelTeam() {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                                         No team members found
                                     </td>
                                 </tr>
@@ -116,8 +123,26 @@ export default function SubLevelPanelTeam() {
                                             {startIndex + index + 1}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">{user.stateName || "N/A"}</div>
+                                        </td>
+                                        {/* <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">
+                                                {user.assemblyName || user.assembly_name || user.parentAssemblyName || user.parentId || "N/A"}
+                                            </div>
+                                        </td> */}
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">
+                                                {user.displayName || user.blockName || user.block_name || user.levelName || "N/A"}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900">
                                                 {user.first_name} {user.last_name}
+                                            </div>
+                                        </td>
+                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">
+                                                {user.role_name || user.designation || user.role || "N/A"}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -128,12 +153,7 @@ export default function SubLevelPanelTeam() {
                                                 {user.contact_no || user.mobile_number || "N/A"}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.partyName || "N/A"}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.stateName || "N/A"}</div>
-                                        </td>
+                                       
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isActive === 1
                                                 ? "bg-red-100 text-red-800"
