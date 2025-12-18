@@ -13,6 +13,7 @@ export default function DistrictAssembly() {
     state: string;
     district: string;
   }>({ state: "", district: "" });
+  const [showWithoutUsers, setShowWithoutUsers] = useState(false);
 
   const {
     data,
@@ -87,6 +88,14 @@ export default function DistrictAssembly() {
   const assembliesWithoutUsers = data.filter(
     (assembly) => assembly.total_users === 0
   ).length;
+
+  const filteredAssemblies = showWithoutUsers
+    ? data.filter((assembly) => assembly.total_users === 0)
+    : data;
+
+  useEffect(() => {
+    setPage(1);
+  }, [showWithoutUsers, setPage]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -167,15 +176,28 @@ export default function DistrictAssembly() {
                 <p className="text-xs font-medium text-gray-600">
                   Assemblies Without Users
                 </p>
-                <p
-                  className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (assembliesWithoutUsers === 0) return;
+                    setShowWithoutUsers(true);
+                    setSearchInput("");
+                    setPage(1);
+                  }}
+                  className={`text-left text-xl sm:text-2xl font-semibold mt-1 ${
                     assembliesWithoutUsers > 0
-                      ? "text-red-600"
-                      : "text-gray-400"
+                      ? "text-red-600 hover:underline"
+                      : "text-gray-400 cursor-default"
                   }`}
+                  disabled={assembliesWithoutUsers === 0}
+                  title={
+                    assembliesWithoutUsers > 0
+                      ? "Show assemblies without users"
+                      : "No assemblies without users"
+                  }
                 >
                   {formatNumber(assembliesWithoutUsers)}
-                </p>
+                </button>
               </div>
               <div
                 className={`rounded-full p-1.5 ${
@@ -217,8 +239,21 @@ export default function DistrictAssembly() {
         </div>
       </div>
 
+      {showWithoutUsers && (
+        <div className="mb-2 flex items-center justify-between rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+          <span>Filtering assemblies without users</span>
+          <button
+            type="button"
+            onClick={() => setShowWithoutUsers(false)}
+            className="underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
+
       <HierarchyTable
-        data={data}
+        data={filteredAssemblies}
         loading={loading}
         error={error}
         searchInput={searchInput}
@@ -226,7 +261,9 @@ export default function DistrictAssembly() {
         onSort={handleSort}
         onPageChange={setPage}
         currentPage={currentPage}
-        totalItems={totalChildren}
+        totalItems={
+          showWithoutUsers ? filteredAssemblies.length : totalChildren
+        }
         itemsPerPage={limit}
         title="Assembly List"
         emptyMessage="No assemblies found for this district"
