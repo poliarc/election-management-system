@@ -160,7 +160,7 @@ export default function DistrictPollingCenterList() {
       // Step 4: Fetch all polling centers in parallel (simplified approach like State implementation)
       const pollingCenterPromises: Promise<any>[] = [];
       mandalResults.forEach(({ assembly, block, mandals }) => {
-        mandals.forEach((mandal: any) => {
+        mandals.forEach((mandal: unknown) => {
           pollingCenterPromises.push(
             fetch(
               `${
@@ -181,7 +181,7 @@ export default function DistrictPollingCenterList() {
                   // Simplified approach: treat all children as potential polling centers
                   // Filter out direct booths but include everything else
                   return data.children
-                    .filter((child: any) => {
+                    .filter((child: unknown) => {
                       // Skip direct booths under mandals
                       return (
                         child.levelName !== "Booth" &&
@@ -875,7 +875,7 @@ export default function DistrictPollingCenterList() {
               <p className="mt-2 text-gray-500 font-medium">
                 No polling centers found
               </p>
-              <div className="mt-4 text-xs text-gray-400 space-y-1">
+              {/* <div className="mt-4 text-xs text-gray-400 space-y-1">
                 <p>Debug Info:</p>
                 <p>Total polling centers: {allPollingCenters.length}</p>
                 <p>Filtered polling centers: {pollingCenters.length}</p>
@@ -887,7 +887,7 @@ export default function DistrictPollingCenterList() {
                   Without users filter:{" "}
                   {showPollingCentersWithoutUsers ? "ON" : "OFF"}
                 </p>
-              </div>
+              </div> */}
             </div>
           ) : (
             <>
@@ -899,7 +899,10 @@ export default function DistrictPollingCenterList() {
                         S.No
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Parent Name
+                        {pollingCenters.length > 0 &&
+                        pollingCenters[0].mandalName
+                          ? "Mandal"
+                          : "Parent Location"}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Level Type
@@ -930,9 +933,11 @@ export default function DistrictPollingCenterList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900 font-medium">
-                              {pollingCenter.mandalName}
+                              {pollingCenter.mandalName || "N/A"}
                             </div>
-                            <div className="text-xs text-gray-500">Mandal</div>
+                            <div className="text-xs text-gray-500">
+                              {pollingCenter.mandalName ? "Mandal" : "Unknown"}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
