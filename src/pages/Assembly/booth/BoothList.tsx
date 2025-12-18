@@ -3,8 +3,8 @@ import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
-import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 
 export default function BoothList() {
@@ -15,11 +15,16 @@ export default function BoothList() {
     const [selectedBoothFilter, setSelectedBoothFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [selectedBoothId, setSelectedBoothId] = useState<number | null>(null);
-    const [selectedBoothName, setSelectedBoothName] = useState<string>("");
-    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedBoothForVoters, setSelectedBoothForVoters] = useState<{ id: number; name: string } | null>(null);
+    
+    // State for inline user display
+    const [expandedBoothId, setExpandedBoothId] = useState<number | null>(null);
+    const [boothUsers, setBoothUsers] = useState<Record<number, any[]>>({});
+    
+    // State for filtering booths without users
+    const [showBoothsWithoutUsers, setShowBoothsWithoutUsers] = useState(false);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -97,73 +102,192 @@ export default function BoothList() {
 
     const pollingCenters = pollingCenterHierarchyData?.children || [];
 
-    // Fetch booths for selected polling center
-    const { data: hierarchyData, isLoading: loadingBooths, error } = useGetBlockHierarchyQuery(
-        selectedPollingCenterId,
-        { skip: !selectedPollingCenterId }
-    );
+    // State for all booths in the mandal
+    const [allBooths, setAllBooths] = useState<any[]>([]);
+    const [loadingBooths, setLoadingBooths] = useState(false);
+    const [error, setError] = useState<any>(null);
+    const [hasPollingCentersWithBooths, setHasPollingCentersWithBooths] = useState(false);
 
-    const booths = hierarchyData?.children || [];
-
-    const filteredBooths = booths.filter((booth) => {
-        const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = selectedBoothFilter === "" || booth.id.toString() === selectedBoothFilter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const handleViewUsers = (boothId: number, boothName: string) => {
-        setSelectedBoothId(boothId);
-        setSelectedBoothName(boothName);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedBoothId(null);
-        setSelectedBoothName("");
-    };
-
-    const [deleteAssignedLevels] = useDeleteAssignedLevelsMutation();
-    const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [userToDelete, setUserToDelete] = useState<any | null>(null);
-
-    const handleDeleteClick = (user: any) => {
-        setUserToDelete(user);
-        setShowConfirmModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!userToDelete || !selectedBoothId) return;
-
-        try {
-            setDeletingUserId(userToDelete.user_id);
-            setShowConfirmModal(false);
-
-            const response = await deleteAssignedLevels({
-                user_id: userToDelete.user_id,
-                afterAssemblyData_ids: [selectedBoothId]
-            }).unwrap();
-
-            if (response.success && response.deleted.length > 0) {
-                window.location.reload();
-            } else if (response.errors && response.errors.length > 0) {
-                alert(`Error: ${response.errors[0].error || 'Failed to delete user assignment'}`);
+    // Fetch all booths for selected mandal (handle both direct booths and booths inside polling centers)
+    useEffect(() => {
+        const fetchAllBooths = async () => {
+            if (!selectedMandalId) {
+                setAllBooths([]);
+                return;
             }
-        } catch (error: any) {
-            console.error("Delete error:", error);
-            alert(error?.data?.message || "Failed to delete user assignment. Please try again.");
-        } finally {
-            setDeletingUserId(null);
-            setUserToDelete(null);
+
+            setLoadingBooths(true);
+            setError(null);
+
+            try {
+                const token = localStorage.getItem("auth_access_token");
+                
+                // First get direct children of mandal
+                const mandalChildrenRes = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const mandalChildrenData = await mandalChildrenRes.json();
+                const mandalChildren = mandalChildrenData.children || [];
+
+                let allBooths: any[] = [];
+                let hasPollingCenters = false;
+                let hasDirectBooths = false;
+
+                // Check each child to determine if it's a booth or polling center
+                for (const child of mandalChildren) {
+                    // Try to fetch children first to determine the structure
+                    try {
+                        const childrenRes = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${child.id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        const childrenData = await childrenRes.json();
+                        const children = childrenData.children || [];
+                        
+                        if (children.length > 0) {
+                            // This child has children, so it's a polling center
+                            hasPollingCenters = true;
+                            
+                            // Check if the children are actually booths (not more polling centers)
+                            // Add these children as booths with polling center info
+                            const boothsWithPC = children.map((booth: any) => ({
+                                ...booth,
+                                pollingCenterId: child.id,
+                                pollingCenterName: child.displayName,
+                            }));
+                            
+                            allBooths = allBooths.concat(boothsWithPC);
+                        } else {
+                            // This child has no children
+                            // Check if it's a booth by examining its levelName or other properties
+                            const isActualBooth = child.levelName === 'Booth' || 
+                                                child.levelName === 'booth' ||
+                                                child.displayName?.toLowerCase().includes('booth') ||
+                                                // If it doesn't have children and is not explicitly a polling center, treat as booth
+                                                (child.levelName !== 'PollingCenter' && child.levelName !== 'Polling Center');
+                            
+                            if (isActualBooth) {
+                                hasDirectBooths = true;
+                                allBooths.push({
+                                    ...child,
+                                    pollingCenterId: null,
+                                    pollingCenterName: "Direct under Mandal",
+                                });
+                            }
+                            // If it's not a booth, we ignore it (it might be an empty polling center)
+                        }
+                    } catch (childError) {
+                        // If we can't fetch children, check if it looks like a booth
+                        console.log(`Error fetching children for ${child.displayName}:`, childError);
+                        const isLikelyBooth = child.levelName === 'Booth' || 
+                                            child.levelName === 'booth' ||
+                                            child.displayName?.toLowerCase().includes('booth');
+                        
+                        if (isLikelyBooth) {
+                            hasDirectBooths = true;
+                            allBooths.push({
+                                ...child,
+                                pollingCenterId: null,
+                                pollingCenterName: "Direct under Mandal",
+                            });
+                        }
+                    }
+                }
+
+                // If we only have polling centers (no direct booths) and no booths inside polling centers,
+                // then don't show anything in booth list
+                if (hasPollingCenters && !hasDirectBooths && allBooths.length === 0) {
+                    setAllBooths([]);
+                    setHasPollingCentersWithBooths(false);
+                } else {
+                    setAllBooths(allBooths);
+                    setHasPollingCentersWithBooths(hasPollingCenters && allBooths.some(booth => booth.pollingCenterId));
+                }
+                
+                // Reset polling center filter if no polling centers with booths
+                if (!hasPollingCenters || allBooths.length === 0) {
+                    setSelectedPollingCenterId(0);
+                }
+            } catch (err) {
+                console.error("Error fetching booths:", err);
+                setError(err);
+            } finally {
+                setLoadingBooths(false);
+            }
+        };
+
+        fetchAllBooths();
+    }, [selectedMandalId]);
+
+    const booths = allBooths;
+
+    // Handle booths without users filter
+    const handleBoothsWithoutUsersClick = () => {
+        const boothsWithoutUsersCount = booths.filter(booth => (booth.user_count || 0) === 0).length;
+        
+        if (boothsWithoutUsersCount > 0) {
+            setShowBoothsWithoutUsers(!showBoothsWithoutUsers);
+            setCurrentPage(1); // Reset to page 1
         }
     };
 
-    const handleCancelDelete = () => {
-        setShowConfirmModal(false);
-        setUserToDelete(null);
-    };
+    const filteredBooths = booths.filter((booth) => {
+        const matchesSearch = booth.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesBoothFilter = selectedBoothFilter === "" || booth.id.toString() === selectedBoothFilter;
+        
+        // Only apply polling center filter if we have polling centers with booths
+        const matchesPollingCenterFilter = !hasPollingCentersWithBooths || 
+            selectedPollingCenterId === 0 || 
+            (selectedPollingCenterId === -1 && !booth.pollingCenterId) || // -1 for direct booths
+            booth.pollingCenterId === selectedPollingCenterId;
+        
+        // Apply booths without users filter
+        const matchesWithoutUsersFilter = showBoothsWithoutUsers 
+            ? (booth.user_count || 0) === 0 
+            : true;
+            
+        return matchesSearch && matchesBoothFilter && matchesPollingCenterFilter && matchesWithoutUsersFilter;
+    });
 
-    const selectedBooth = booths.find(b => b.id === selectedBoothId);
-    const users = selectedBooth?.assigned_users || [];
+    const handleViewUsers = async (boothId: number) => {
+        // If already expanded, collapse it
+        if (expandedBoothId === boothId) {
+            setExpandedBoothId(null);
+            return;
+        }
+
+        // If users already loaded, just expand
+        if (boothUsers[boothId]) {
+            setExpandedBoothId(boothId);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${boothId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.users) {
+                // Store users data
+                setBoothUsers(prev => ({
+                    ...prev,
+                    [boothId]: data.data.users
+                }));
+                setExpandedBoothId(boothId);
+            } else {
+                console.log('Booth API Error or No Users:', data);
+            }
+        } catch (error) {
+            console.error(`Error fetching users for booth ${boothId}:`, error);
+        }
+    };
 
     const totalPages = Math.ceil(filteredBooths.length / itemsPerPage);
     const paginatedBooths = filteredBooths.slice(
@@ -189,6 +313,7 @@ export default function BoothList() {
     useEffect(() => {
         if (selectedMandalId === 0) {
             setSelectedPollingCenterId(0);
+            setHasPollingCentersWithBooths(false);
         }
     }, [selectedMandalId]);
 
@@ -206,12 +331,7 @@ export default function BoothList() {
         }
     }, [mandals, selectedBlockId]);
 
-    // Auto-select first polling center when polling centers load
-    useEffect(() => {
-        if (pollingCenters.length > 0 && selectedMandalId > 0 && selectedPollingCenterId === 0) {
-            setSelectedPollingCenterId(pollingCenters[0].id);
-        }
-    }, [pollingCenters, selectedMandalId]);
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -255,10 +375,27 @@ export default function BoothList() {
                                 </div>
                             </div>
 
-                            {/* Booths Without Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            {/* Booths Without Users Card - Clickable */}
+                            <div 
+                                onClick={handleBoothsWithoutUsersClick}
+                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                    booths.filter(booth => (booth.user_count || 0) === 0).length > 0
+                                        ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                                        : 'cursor-default'
+                                } ${
+                                    showBoothsWithoutUsers 
+                                        ? 'ring-2 ring-red-500 bg-red-50' 
+                                        : ''
+                                }`}
+                                title={booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? "Click to view booths without users" : "No booths without users"}
+                            >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Booths Without Users</p>
+                                    <p className="text-xs font-medium text-gray-600">
+                                        Booths Without Users
+                                        {showBoothsWithoutUsers && (
+                                            <span className="ml-2 text-red-600 font-semibold"></span>
+                                        )}
+                                    </p>
                                     <p className={`text-xl sm:text-2xl font-semibold mt-1 ${booths.filter(booth => (booth.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                                         {booths.filter(booth => (booth.user_count || 0) === 0).length}
                                     </p>
@@ -280,7 +417,7 @@ export default function BoothList() {
                 </div>
 
                 <div className="bg-white rounded-xl shadow-md p-3 mb-1">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${hasPollingCentersWithBooths ? 'lg:grid-cols-6' : 'lg:grid-cols-5'}`}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Assembly
@@ -338,28 +475,31 @@ export default function BoothList() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Polling Center <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={selectedPollingCenterId}
-                                onChange={(e) => {
-                                    setSelectedPollingCenterId(Number(e.target.value));
-                                    setSelectedBoothFilter("");
-                                    setCurrentPage(1);
-                                }}
-                                disabled={!selectedMandalId}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value={0}>Select a Polling Center</option>
-                                {pollingCenters.map((pc) => (
-                                    <option key={pc.id} value={pc.id}>
-                                        {pc.displayName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {hasPollingCentersWithBooths && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Filter by Polling Center
+                                </label>
+                                <select
+                                    value={selectedPollingCenterId}
+                                    onChange={(e) => {
+                                        setSelectedPollingCenterId(Number(e.target.value));
+                                        setSelectedBoothFilter("");
+                                        setCurrentPage(1);
+                                    }}
+                                    disabled={!selectedMandalId}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value={0}>All Polling Centers</option>
+                                
+                                    {pollingCenters.map((pc) => (
+                                        <option key={pc.id} value={pc.id}>
+                                            {pc.displayName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Filter by Booth
@@ -370,7 +510,7 @@ export default function BoothList() {
                                     setSelectedBoothFilter(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                disabled={!selectedPollingCenterId}
+                                disabled={!selectedMandalId}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             >
                                 <option value="">All Booths</option>
@@ -399,7 +539,7 @@ export default function BoothList() {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    disabled={!selectedPollingCenterId}
+                                    disabled={!selectedMandalId}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
@@ -422,13 +562,7 @@ export default function BoothList() {
                             </svg>
                             <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
                         </div>
-                    ) : !selectedPollingCenterId ? (
-                        <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a polling center to view booths</p>
-                        </div>
+
                     ) : loadingBooths ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -443,7 +577,12 @@ export default function BoothList() {
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No booths found</p>
+                            <p className="mt-2 text-gray-500 font-medium">No booths found in this mandal</p>
+                            <p className="mt-1 text-xs text-gray-400">
+                                This mandal may contain only polling centers. 
+                                <br />
+                                Please check the <span className="font-semibold">Polling Center</span> section to view polling centers.
+                            </p>
                         </div>
                     ) : (
                         <>
@@ -452,23 +591,40 @@ export default function BoothList() {
                                     <thead className="bg-gradient-to-r from-purple-50 to-purple-100 sticky top-0">
                                         <tr>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Polling Center</th>
+                                            {hasPollingCentersWithBooths && (
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Polling Center</th>
+                                            )}
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                {hasPollingCentersWithBooths ? "Mandal / Polling Center" : "Mandal"}
+                                            </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Total Users</th>
+                                            
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Booth</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {paginatedBooths.map((booth, index) => (
-                                            <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
+                                            <>
+                                                <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
+                                                {hasPollingCentersWithBooths && (
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                            booth.pollingCenterId ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                                        }`}>
+                                                            {booth.pollingCenterName || "Direct under Mandal"}
+                                                        </span>
+                                                    </td>
+                                                )}
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        {hierarchyData?.parent.displayName}
+                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                        booth.pollingCenterId ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'
+                                                    }`}>
+                                                        {booth.pollingCenterId ? booth.pollingCenterName : mandals.find(m => m.id === selectedMandalId)?.displayName || "Mandal"}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -492,9 +648,13 @@ export default function BoothList() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <div className="flex items-center justify-center">
                                                         <button
-                                                            onClick={() => handleViewUsers(booth.id, booth.displayName)}
-                                                            className="inline-flex items-center p-1 rounded-md text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors mr-2"
-                                                            title="View Users"
+                                                            onClick={() => handleViewUsers(booth.id)}
+                                                            className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
+                                                                expandedBoothId === booth.id
+                                                                    ? "text-purple-700 bg-purple-100"
+                                                                    : "text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                                                            }`}
+                                                            title={expandedBoothId === booth.id ? "Hide Users" : "View Users"}
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -506,69 +666,47 @@ export default function BoothList() {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                        {booth.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
+                                                
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="relative inline-block">
-                                                        <button
-                                                            onClick={() => setOpenDropdownId(openDropdownId === booth.id ? null : booth.id)}
-                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                                        >
-                                                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                            </svg>
-                                                        </button>
-
-                                                        {openDropdownId === booth.id && (
-                                                            <>
-                                                                <div
-                                                                    className="fixed inset-0 z-10"
-                                                                    onClick={() => setOpenDropdownId(null)}
-                                                                />
-                                                                <div
-                                                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${index >= paginatedBooths.length - 2 && paginatedBooths.length >= 5 ? 'bottom-full mb-2' : 'top-full mt-2'}`}
-                                                                >
-                                                                    <div className="py-1">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                handleViewUsers(booth.id, booth.displayName);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">View Users</span>
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setSelectedBoothForVoters({ id: booth.id, name: booth.displayName });
-                                                                                setShowAssignVotersModal(true);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">Assign Booth Voters</span>
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedBoothForVoters({ id: booth.id, name: booth.displayName });
+                                                            setShowAssignVotersModal(true);
+                                                        }}
+                                                        className="p-2 hover:bg-indigo-50 rounded-lg transition-colors group"
+                                                        title="Assign Booth Voters"
+                                                    >
+                                                        <svg className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                             </tr>
+                                            
+                                            {/* Inline User Display */}
+                                            {expandedBoothId === booth.id && boothUsers[booth.id] && (
+                                                <InlineUserDisplay
+                                                    users={boothUsers[booth.id]}
+                                                    locationName={booth.displayName}
+                                                    locationId={booth.id}
+                                                    locationType="Booth"
+                                                    parentLocationName={booth.pollingCenterName || "Mandal"}
+                                                    parentLocationType={booth.pollingCenterId ? "PollingCenter" : "Mandal"}
+                                                    onUserDeleted={() => {
+                                                        // Refresh user counts after deletion
+                                                        setExpandedBoothId(null);
+                                                        setBoothUsers(prev => {
+                                                            const updated = { ...prev };
+                                                            delete updated[booth.id];
+                                                            return updated;
+                                                        });
+                                                        window.location.reload();
+                                                    }}
+                                                    onClose={() => setExpandedBoothId(null)}
+                                                    colSpan={hasPollingCentersWithBooths ? 8 : 7}
+                                                />
+                                            )}
+                                        </>
                                         ))}
                                     </tbody>
                                 </table>
@@ -630,128 +768,34 @@ export default function BoothList() {
                         </>
                     )}
                 </div>
+            </div>
 
-                {selectedBoothId && (
-                    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-white">
-                                    Users Assigned to {selectedBoothName}
-                                </h2>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-                                {users.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this booth</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party Name</th>
-                                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {users.map((user, index) => (
-                                                    <tr key={user.user_id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="flex items-center">
-                                                                <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                                                    <span className="text-purple-600 font-semibold">
-                                                                        {user.first_name?.charAt(0).toUpperCase()}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="ml-4">
-                                                                    <div className="text-sm font-medium text-gray-900">{user.first_name} {user.last_name}</div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.contact_no || "N/A"}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                {user.partyName}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                                            <button
-                                                                onClick={() => handleDeleteClick(user)}
-                                                                disabled={deletingUserId === user.user_id}
-                                                                className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                {deletingUserId === user.user_id ? (
-                                                                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                                                                ) : (
-                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
+            <style>{`
+                .scrollbar-thin::-webkit-scrollbar {
+                    height: 8px;
+                    width: 8px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-track {
+                    background: #f1f5f9;
+                    border-radius: 4px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb {
+                    background: #9333ea;
+                    border-radius: 4px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                    background: #7c3aed;
+                }
+                .scrollbar-track-gray-200::-webkit-scrollbar-track {
+                    background: #e5e7eb;
+                }
+                .scrollbar-thumb-purple-500::-webkit-scrollbar-thumb {
+                    background: #9333ea;
+                }
+            `}</style>
 
-                {showConfirmModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Are you sure you want to remove {userToDelete?.name} from this booth?
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={handleCancelDelete}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {showAssignVotersModal && selectedBoothForVoters && (
+            {/* Assign Booth Voters Modal */}
+            {showAssignVotersModal && selectedBoothForVoters && (
                     <AssignBoothVotersModal
                         isOpen={showAssignVotersModal}
                         onClose={() => {
@@ -766,7 +810,6 @@ export default function BoothList() {
                         districtId={assemblyInfo.districtId}
                     />
                 )}
-            </div>
         </div>
     );
 }
