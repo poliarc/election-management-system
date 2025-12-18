@@ -936,7 +936,7 @@ export default function DistrictPollingCenterList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {pollingCenter.levelName || "Polling Center"}
+                              Polling Center
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
