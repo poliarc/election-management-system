@@ -205,16 +205,18 @@ export default function DistrictBoothList() {
                           .then((response) => response.json())
                           .then((boothData) => {
                             if (boothData.success && boothData.children) {
-                              return boothData.children.map((booth: any) => ({
-                                ...booth,
-                                hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
-                                sourceLevel: "Polling Center",
-                                districtName: districtInfo.districtName,
-                                assemblyName: assembly.location_name,
-                                blockName: block.displayName,
-                                mandalName: mandal.displayName,
-                                pollingCenterName: pollingCenter.displayName,
-                              }));
+                              return boothData.children.map(
+                                (booth: unknown) => ({
+                                  ...booth,
+                                  hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
+                                  sourceLevel: "Polling Center",
+                                  districtName: districtInfo.districtName,
+                                  assemblyName: assembly.location_name,
+                                  blockName: block.displayName,
+                                  mandalName: mandal.displayName,
+                                  pollingCenterName: pollingCenter.displayName,
+                                })
+                              );
                             }
                             return [];
                           })
@@ -922,7 +924,11 @@ export default function DistrictBoothList() {
                         S.No
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Parent Location
+                        {booths.length > 0 && booths[0].pollingCenterName
+                          ? "Polling Center"
+                          : booths.length > 0 && booths[0].mandalName
+                          ? "Mandal"
+                          : "Parent Location"}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Level Type
@@ -968,7 +974,7 @@ export default function DistrictBoothList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {booth.levelName || "Booth"}
+                              Booth
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
