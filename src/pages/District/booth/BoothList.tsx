@@ -5,6 +5,14 @@ import type { RootState } from "../../../store";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import type { HierarchyUser } from "../../../types/hierarchy";
 
+type HierarchyNode = Record<string, any>;
+type BlockResult = { assembly: HierarchyNode; blocks: HierarchyNode[] };
+type MandalResult = {
+  assembly: HierarchyNode;
+  block: HierarchyNode;
+  mandals: HierarchyNode[];
+};
+
 export default function DistrictBoothList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -79,42 +87,43 @@ export default function DistrictBoothList() {
       }
 
       // Step 2: Fetch all blocks in parallel
-      const blockPromises = assembliesData.data.children.map(
-        async (assembly: any) => {
-          try {
-            const response = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/after-assembly-data/assembly/${assembly.location_id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
-            );
-            const data = await response.json();
-            return {
-              assembly,
-              blocks: data.success ? data.data || [] : [],
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching blocks for assembly ${assembly.location_id}:`,
-              error
-            );
-            return { assembly, blocks: [] };
+      const blockPromises: Promise<BlockResult>[] =
+        assembliesData.data.children.map(
+          async (assembly: HierarchyNode): Promise<BlockResult> => {
+            try {
+              const response = await fetch(
+                `${
+                  import.meta.env.VITE_API_BASE_URL
+                }/api/after-assembly-data/assembly/${assembly.location_id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem(
+                      "auth_access_token"
+                    )}`,
+                  },
+                }
+              );
+              const data = await response.json();
+              return {
+                assembly,
+                blocks: data.success ? data.data || [] : [],
+              };
+            } catch (error) {
+              console.error(
+                `Error fetching blocks for assembly ${assembly.location_id}:`,
+                error
+              );
+              return { assembly, blocks: [] };
+            }
           }
-        }
-      );
+        );
 
       const blockResults = await Promise.all(blockPromises);
 
       // Step 3: Fetch all mandals in parallel
-      const mandalPromises: Promise<any>[] = [];
+      const mandalPromises: Promise<MandalResult>[] = [];
       blockResults.forEach(({ assembly, blocks }) => {
-        blocks.forEach((block: any) => {
+        blocks.forEach((block: HierarchyNode) => {
           mandalPromises.push(
             fetch(
               `${
@@ -147,12 +156,14 @@ export default function DistrictBoothList() {
         });
       });
 
-      const mandalResults = await Promise.all(mandalPromises);
+      const mandalResults = (await Promise.all(
+        mandalPromises
+      )) as MandalResult[];
 
       // Step 4: Fetch all booths in parallel
-      const boothPromises: Promise<any>[] = [];
+      const boothPromises: Promise<HierarchyNode[]>[] = [];
       mandalResults.forEach(({ assembly, block, mandals }) => {
-        mandals.forEach((mandal: any) => {
+        (mandals || []).forEach((mandal: HierarchyNode) => {
           boothPromises.push(
             fetch(
               `${
@@ -170,12 +181,14 @@ export default function DistrictBoothList() {
             )
               .then((response) => response.json())
               .then((data) => {
-                if (data.success && data.children && data.children.length > 0) {
-                  const firstChild = data.children[0];
+                const children = (data.children || []) as HierarchyNode[];
+
+                if (data.success && children.length > 0) {
+                  const firstChild = children[0];
 
                   if (firstChild.levelName === "Booth") {
                     // Direct booths under mandal
-                    return data.children.map((booth: any) => ({
+                    return children.map((booth: HierarchyNode) => ({
                       ...booth,
                       hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName}`,
                       sourceLevel: "Mandal",
@@ -184,28 +197,33 @@ export default function DistrictBoothList() {
                       blockName: block.displayName,
                       mandalName: mandal.displayName,
                     }));
-                  } else {
-                    // These are polling centers - fetch booths from each
-                    const pollingCenterPromises = data.children.map(
-                      (pollingCenter: any) =>
-                        fetch(
-                          `${
-                            import.meta.env.VITE_API_BASE_URL
-                          }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                            pollingCenter.id
-                          }`,
-                          {
-                            headers: {
-                              Authorization: `Bearer ${localStorage.getItem(
-                                "auth_access_token"
-                              )}`,
-                            },
-                          }
-                        )
-                          .then((response) => response.json())
-                          .then((boothData) => {
-                            if (boothData.success && boothData.children) {
-                              return boothData.children.map((booth: any) => ({
+                  }
+
+                  // These are polling centers - fetch booths from each
+                  const pollingCenterPromises: Promise<HierarchyNode[]>[] =
+                    children.map((pollingCenter: HierarchyNode) =>
+                      fetch(
+                        `${
+                          import.meta.env.VITE_API_BASE_URL
+                        }/api/user-after-assembly-hierarchy/hierarchy/children/${
+                          pollingCenter.id
+                        }`,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${localStorage.getItem(
+                              "auth_access_token"
+                            )}`,
+                          },
+                        }
+                      )
+                        .then((response) => response.json())
+                        .then((boothData) => {
+                          const boothChildren = (boothData.children ||
+                            []) as HierarchyNode[];
+
+                          if (boothData.success && boothChildren.length > 0) {
+                            return boothChildren.map(
+                              (booth: HierarchyNode) => ({
                                 ...booth,
                                 hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
                                 sourceLevel: "Polling Center",
@@ -214,23 +232,23 @@ export default function DistrictBoothList() {
                                 blockName: block.displayName,
                                 mandalName: mandal.displayName,
                                 pollingCenterName: pollingCenter.displayName,
-                              }));
-                            }
-                            return [];
-                          })
-                          .catch((error) => {
-                            console.error(
-                              `Error fetching booths for polling center ${pollingCenter.id}:`,
-                              error
+                              })
                             );
-                            return [];
-                          })
+                          }
+                          return [];
+                        })
+                        .catch((error) => {
+                          console.error(
+                            `Error fetching booths for polling center ${pollingCenter.id}:`,
+                            error
+                          );
+                          return [];
+                        })
                     );
 
-                    return Promise.all(pollingCenterPromises).then((results) =>
-                      results.flat()
-                    );
-                  }
+                  return Promise.all(pollingCenterPromises).then((results) =>
+                    results.flat()
+                  );
                 }
                 return [];
               })

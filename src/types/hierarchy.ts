@@ -15,7 +15,7 @@ export interface HierarchyUser {
   party_name: string;
   user_state: string;
   user_district: string;
-  user_role: string;
+  user_role?: string;
   party_id: number;
   is_active: boolean;
   assignment_active: boolean;

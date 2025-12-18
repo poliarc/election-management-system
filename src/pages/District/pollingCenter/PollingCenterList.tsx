@@ -6,6 +6,14 @@ import axios from "axios";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import type { HierarchyUser } from "../../../types/hierarchy";
 
+type HierarchyNode = Record<string, any>;
+type BlockResult = { assembly: HierarchyNode; blocks: HierarchyNode[] };
+type MandalResult = {
+  assembly: HierarchyNode;
+  block: HierarchyNode;
+  mandals: HierarchyNode[];
+};
+
 export default function DistrictPollingCenterList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -91,40 +99,41 @@ export default function DistrictPollingCenterList() {
       }
 
       // Step 2: Fetch all blocks in parallel
-      const blockPromises = assembliesData.data.children.map(
-        async (assembly: any) => {
-          try {
-            const response = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/after-assembly-data/assembly/${assembly.location_id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const data = await response.json();
-            return {
-              assembly,
-              blocks: data.success ? data.data || [] : [],
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching blocks for assembly ${assembly.location_id}:`,
-              error
-            );
-            return { assembly, blocks: [] };
+      const blockPromises: Promise<BlockResult>[] =
+        assembliesData.data.children.map(
+          async (assembly: HierarchyNode): Promise<BlockResult> => {
+            try {
+              const response = await fetch(
+                `${
+                  import.meta.env.VITE_API_BASE_URL
+                }/api/after-assembly-data/assembly/${assembly.location_id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              const data = await response.json();
+              return {
+                assembly,
+                blocks: data.success ? data.data || [] : [],
+              };
+            } catch (error) {
+              console.error(
+                `Error fetching blocks for assembly ${assembly.location_id}:`,
+                error
+              );
+              return { assembly, blocks: [] };
+            }
           }
-        }
-      );
+        );
 
       const blockResults = await Promise.all(blockPromises);
 
       // Step 3: Fetch all mandals in parallel
-      const mandalPromises: Promise<any>[] = [];
+      const mandalPromises: Promise<MandalResult>[] = [];
       blockResults.forEach(({ assembly, blocks }) => {
-        blocks.forEach((block: any) => {
+        blocks.forEach((block: HierarchyNode) => {
           mandalPromises.push(
             fetch(
               `${
@@ -155,12 +164,14 @@ export default function DistrictPollingCenterList() {
         });
       });
 
-      const mandalResults = await Promise.all(mandalPromises);
+      const mandalResults = (await Promise.all(
+        mandalPromises
+      )) as MandalResult[];
 
       // Step 4: Fetch all polling centers in parallel (simplified approach like State implementation)
-      const pollingCenterPromises: Promise<any>[] = [];
+      const pollingCenterPromises: Promise<HierarchyNode[]>[] = [];
       mandalResults.forEach(({ assembly, block, mandals }) => {
-        mandals.forEach((mandal: any) => {
+        (mandals || []).forEach((mandal: HierarchyNode) => {
           pollingCenterPromises.push(
             fetch(
               `${
@@ -177,18 +188,20 @@ export default function DistrictPollingCenterList() {
               .then((response) => response.json())
               .then((data) => {
                 console.log(`Mandal ${mandal.displayName} children:`, data);
-                if (data.success && data.children && data.children.length > 0) {
+                const children = (data.children || []) as HierarchyNode[];
+
+                if (data.success && children.length > 0) {
                   // Simplified approach: treat all children as potential polling centers
                   // Filter out direct booths but include everything else
-                  return data.children
-                    .filter((child: any) => {
+                  return children
+                    .filter((child: HierarchyNode) => {
                       // Skip direct booths under mandals
                       return (
                         child.levelName !== "Booth" &&
                         child.levelName !== "booth"
                       );
                     })
-                    .map((pollingCenter: any) => ({
+                    .map((pollingCenter: HierarchyNode) => ({
                       ...pollingCenter,
                       hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName}`,
                       districtName: districtInfo.districtName,
