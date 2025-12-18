@@ -1,22 +1,21 @@
 // Hierarchy API Types
 
 export interface HierarchyUser {
-    user_role: string | undefined;
-    assignment_id: number;
-    user_id: number;
-    user_name: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    mobile_number: string;
-    party?: {
-        party_name: string;
-        party_code: string;
-    };
+  user_role?: string;
+  assignment_id: number;
+  user_id: number;
+  user_name: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  mobile_number: string;
+  party?: {
+    party_name: string;
+    party_code: string;
+  };
   party_name: string;
   user_state: string;
   user_district: string;
-  user_role?: string;
   party_id: number;
   is_active: boolean;
   assignment_active: boolean;
