@@ -592,25 +592,34 @@ export default function DistrictBoothList() {
 
               {/* Booths Without Users Card */}
               <div
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all ${
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105"
                     : "cursor-default"
+                } ${
+                  showBoothsWithoutUsers
+                    ? "ring-2 ring-orange-500 bg-orange-50"
+                    : ""
                 }`}
                 onClick={handleBoothsWithoutUsersClick}
                 title={
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
                     ? showBoothsWithoutUsers
-                      ? "Show all booths"
-                      : "Show only booths without users"
+                      ? "Click to show all booths"
+                      : "Click to show only booths without users"
                     : "No booths without users"
                 }
               >
                 <div>
                   <p className="text-xs font-medium text-gray-600">
                     Booths Without Users
+                    {showBoothsWithoutUsers && (
+                      <span className="ml-2 text-orange-600 font-semibold">
+                        (Filtered)
+                      </span>
+                    )}
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
@@ -840,6 +849,43 @@ export default function DistrictBoothList() {
               />
             </div>
           </div>
+
+          {/* Active Filter Indicator */}
+          {showBoothsWithoutUsers && (
+            <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                    />
+                  </svg>
+                  <span className="text-sm font-medium text-orange-800">
+                    Showing only booths without users (
+                    {
+                      booths.filter((booth) => (booth.user_count || 0) === 0)
+                        .length
+                    }{" "}
+                    booths)
+                  </span>
+                </div>
+                <button
+                  onClick={handleBoothsWithoutUsersClick}
+                  className="text-orange-600 hover:text-orange-800 text-sm font-medium"
+                >
+                  Clear Filter
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Booth List */}
