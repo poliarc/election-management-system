@@ -647,20 +647,21 @@ export default function UserCommunication() {
                             />
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Contact
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             State
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Party
+                            District
                           </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Designation
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Phone Number
+                          </th>
+                          
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -682,6 +683,16 @@ export default function UserCommunication() {
                                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                               />
                             </td>
+                             <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {user.stateName}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm text-gray-600">
+                                {user.districtName}
+                              </div>
+                            </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">
                                 {user.first_name} {user.last_name}
@@ -689,7 +700,7 @@ export default function UserCommunication() {
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="text-sm text-gray-600">
-                                {user.email}
+                                {user.role}
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
@@ -697,16 +708,7 @@ export default function UserCommunication() {
                                 {user.contact_no}
                               </div>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {user.stateName}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
-                                {user.partyName}
-                              </div>
-                            </td>
+                           
                           </tr>
                         ))}
                       </tbody>
