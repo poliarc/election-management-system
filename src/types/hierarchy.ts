@@ -1,6 +1,7 @@
 // Hierarchy API Types
 
 export interface HierarchyUser {
+    user_role: string | undefined;
     assignment_id: number;
     user_id: number;
     user_name: string;
