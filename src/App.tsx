@@ -102,6 +102,7 @@ import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
+import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
 import ChatPage from "./pages/Chat/ChatPage";
 import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
@@ -166,6 +167,7 @@ export default function App() {
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
+            <Route path="assembly-hierarchy" element={<AssemblyHierarchyManager />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>

@@ -3,9 +3,9 @@ import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
-import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
-import axios from "axios";
+import InlineUserDisplay from "../../../components/InlineUserDisplay";
+
 
 export default function MandalList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -13,17 +13,18 @@ export default function MandalList() {
     const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [selectedMandalId, setSelectedMandalId] = useState<number | null>(null);
-    const [selectedMandalName, setSelectedMandalName] = useState<string>("");
-    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
+    
+    // State for inline user display
+    const [expandedMandalId, setExpandedMandalId] = useState<number | null>(null);
+    const [mandalUsers, setMandalUsers] = useState<Record<number, any[]>>({});
+    
+    // State for filtering mandals without users
+    const [showMandalsWithoutUsers, setShowMandalsWithoutUsers] = useState(false);
 
-    // Polling Center and Booth states
-    const [pollingCenters, setPollingCenters] = useState<any[]>([]);
-    const [booths, setBooths] = useState<any[]>([]);
-    const [loadingPollingCenters, setLoadingPollingCenters] = useState(false);
-    const [loadingBooths, setLoadingBooths] = useState(false);
+
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -94,114 +95,68 @@ export default function MandalList() {
 
     const mandals = hierarchyData?.children || [];
 
-    // Fetch Polling Centers for selected Mandal
-    const fetchPollingCenters = async (mandalId: number) => {
-        setLoadingPollingCenters(true);
-        try {
-            const token = localStorage.getItem('auth_access_token');
-            const response = await axios.get(
-                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandalId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            if (response.data.success) {
-                setPollingCenters(response.data.children || []);
-            }
-        } catch (error) {
-            console.error("Error fetching polling centers:", error);
-            setPollingCenters([]);
-        } finally {
-            setLoadingPollingCenters(false);
-        }
-    };
-
-    // Fetch Booths for selected Polling Center
-    const fetchBooths = async (pollingCenterId: number) => {
-        setLoadingBooths(true);
-        try {
-            const token = localStorage.getItem('auth_access_token');
-            const response = await axios.get(
-                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            if (response.data.success) {
-                setBooths(response.data.children || []);
-            }
-        } catch (error) {
-            console.error("Error fetching booths:", error);
-            setBooths([]);
-        } finally {
-            setLoadingBooths(false);
+    // Handle mandals without users filter
+    const handleMandalsWithoutUsersClick = () => {
+        const mandalsWithoutUsersCount = mandals.filter(mandal => (mandal.user_count || 0) === 0).length;
+        
+        if (mandalsWithoutUsersCount > 0) {
+            setShowMandalsWithoutUsers(!showMandalsWithoutUsers);
+            setCurrentPage(1); // Reset to page 1
         }
     };
 
     const filteredMandals = mandals.filter((mandal) => {
         const matchesSearch = mandal.displayName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = selectedMandalFilter === "" || mandal.id.toString() === selectedMandalFilter;
-        return matchesSearch && matchesFilter;
+        
+        // Apply mandals without users filter
+        const matchesWithoutUsersFilter = showMandalsWithoutUsers 
+            ? (mandal.user_count || 0) === 0 
+            : true;
+        
+        return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
     });
 
-    const handleViewUsers = (mandalId: number, mandalName: string) => {
-        setSelectedMandalId(mandalId);
-        setSelectedMandalName(mandalName);
-    };
+    const handleViewUsers = async (mandalId: number) => {
+        // If already expanded, collapse it
+        if (expandedMandalId === mandalId) {
+            setExpandedMandalId(null);
+            return;
+        }
 
-    const handleCloseModal = () => {
-        setSelectedMandalId(null);
-        setSelectedMandalName("");
-    };
-
-    // Delete mutation
-    const [deleteAssignedLevels, { isLoading: isDeleting }] = useDeleteAssignedLevelsMutation();
-    const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [userToDelete, setUserToDelete] = useState<any | null>(null);
-
-    const handleDeleteClick = (user: any) => {
-        setUserToDelete(user);
-        setShowConfirmModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!userToDelete || !selectedMandalId) return;
+        // If users already loaded, just expand
+        if (mandalUsers[mandalId]) {
+            setExpandedMandalId(mandalId);
+            return;
+        }
 
         try {
-            setDeletingUserId(userToDelete.user_id);
-            setShowConfirmModal(false);
-
-            const response = await deleteAssignedLevels({
-                user_id: userToDelete.user_id,
-                afterAssemblyData_ids: [selectedMandalId]
-            }).unwrap();
-
-            if (response.success && response.deleted.length > 0) {
-                window.location.reload();
-            } else if (response.errors && response.errors.length > 0) {
-                alert(`Error: ${response.errors[0].error || 'Failed to delete user assignment'}`);
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${mandalId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.users) {
+                // Store users data
+                setMandalUsers(prev => ({
+                    ...prev,
+                    [mandalId]: data.data.users
+                }));
+                setExpandedMandalId(mandalId);
+            } else {
+                console.log('Mandal API Error or No Users:', data);
             }
-        } catch (error: any) {
-            console.error("Delete error:", error);
-            alert(error?.data?.message || "Failed to delete user assignment. Please try again.");
-        } finally {
-            setDeletingUserId(null);
-            setUserToDelete(null);
+        } catch (error) {
+            console.error(`Error fetching users for mandal ${mandalId}:`, error);
         }
     };
 
-    const handleCancelDelete = () => {
-        setShowConfirmModal(false);
-        setUserToDelete(null);
-    };
 
-    const selectedMandal = mandals.find(m => m.id === selectedMandalId);
-    const users = selectedMandal?.assigned_users || [];
 
     const totalPages = Math.ceil(filteredMandals.length / itemsPerPage);
     const paginatedMandals = filteredMandals.slice(
@@ -264,10 +219,27 @@ export default function MandalList() {
                                 </div>
                             </div>
 
-                            {/* Mandals Without Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            {/* Mandals Without Users Card - Clickable */}
+                            <div 
+                                onClick={handleMandalsWithoutUsersClick}
+                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                    mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0
+                                        ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                                        : 'cursor-default'
+                                } ${
+                                    showMandalsWithoutUsers 
+                                        ? 'ring-2 ring-red-500 bg-red-50' 
+                                        : ''
+                                }`}
+                                title={mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? "Click to view mandals without users" : "No mandals without users"}
+                            >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Mandals Without Users</p>
+                                    <p className="text-xs font-medium text-gray-600">
+                                        Mandals Without Users
+                                        {showMandalsWithoutUsers && (
+                                            <span className="ml-2 text-red-600 font-semibold"></span>
+                                        )}
+                                    </p>
                                     <p className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                                         {mandals.filter(mandal => (mandal.user_count || 0) === 0).length}
                                     </p>
@@ -414,19 +386,18 @@ export default function MandalList() {
                                                 Display Name
                                             </th>
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Users
+                                               Total Users
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Status
-                                            </th>
+                                            
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Actions
+                                                Assigned Booth
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {paginatedMandals.map((mandal, index) => (
-                                            <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
+                                            <>
+                                                <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
@@ -456,9 +427,13 @@ export default function MandalList() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <div className="flex items-center justify-center">
                                                         <button
-                                                            onClick={() => handleViewUsers(mandal.id, mandal.displayName)}
-                                                            className="inline-flex items-center p-1 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors mr-2"
-                                                            title="View Users"
+                                                            onClick={() => handleViewUsers(mandal.id)}
+                                                            className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
+                                                                expandedMandalId === mandal.id
+                                                                    ? "text-blue-700 bg-blue-100"
+                                                                    : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                            }`}
+                                                            title={expandedMandalId === mandal.id ? "Hide Users" : "View Users"}
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -470,93 +445,47 @@ export default function MandalList() {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${mandal.isActive === 1
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
-                                                        }`}>
-                                                        {mandal.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
+                                                
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="relative inline-block">
-                                                        <button
-                                                            onClick={() => setOpenDropdownId(openDropdownId === mandal.id ? null : mandal.id)}
-                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                                        >
-                                                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                            </svg>
-                                                        </button>
-
-                                                        {openDropdownId === mandal.id && (
-                                                            <>
-                                                                <div
-                                                                    className="fixed inset-0 z-10"
-                                                                    onClick={() => setOpenDropdownId(null)}
-                                                                />
-                                                                <div
-                                                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${index >= paginatedMandals.length - 2 && paginatedMandals.length >= 5
-                                                                        ? 'bottom-full mb-2'
-                                                                        : 'top-full mt-2'
-                                                                        }`}
-                                                                    style={{
-                                                                        scrollbarWidth: 'thin',
-                                                                        scrollbarColor: '#9ca3af #f3f4f6'
-                                                                    }}
-                                                                >
-                                                                    <div className="py-1">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                handleViewUsers(mandal.id, mandal.displayName);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">View Users</span>
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                fetchPollingCenters(mandal.id);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">View Polling Centers</span>
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setSelectedMandalForVoters({ id: mandal.id, name: mandal.displayName });
-                                                                                setShowAssignVotersModal(true);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">Assign Booth Voters</span>
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedMandalForVoters({ id: mandal.id, name: mandal.displayName });
+                                                            setShowAssignVotersModal(true);
+                                                        }}
+                                                        className="p-2 hover:bg-indigo-50 rounded-lg transition-colors group"
+                                                        title="Assign Booth Voters"
+                                                    >
+                                                        <svg className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                             </tr>
+                                            
+                                            {/* Inline User Display */}
+                                            {expandedMandalId === mandal.id && mandalUsers[mandal.id] && (
+                                                <InlineUserDisplay
+                                                    users={mandalUsers[mandal.id]}
+                                                    locationName={mandal.displayName}
+                                                    locationId={mandal.id}
+                                                    locationType="Mandal"
+                                                    parentLocationName={hierarchyData?.parent.displayName}
+                                                    parentLocationType="Block"
+                                                    onUserDeleted={() => {
+                                                        // Refresh user counts after deletion
+                                                        setExpandedMandalId(null);
+                                                        setMandalUsers(prev => {
+                                                            const updated = { ...prev };
+                                                            delete updated[mandal.id];
+                                                            return updated;
+                                                        });
+                                                        window.location.reload();
+                                                    }}
+                                                    onClose={() => setExpandedMandalId(null)}
+                                                    colSpan={7}
+                                                />
+                                            )}
+                                        </>
                                         ))}
                                     </tbody>
                                 </table>
@@ -629,301 +558,6 @@ export default function MandalList() {
                         </>
                     )}
                 </div>
-
-                {/* Modal for viewing users */}
-                {selectedMandalId && (
-                    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                            {/* Modal Header */}
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white flex-shrink-0">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-2xl font-bold">Mandal Users</h2>
-                                        <p className="text-blue-100 mt-1">Mandal: {selectedMandalName}</p>
-                                    </div>
-                                    <button
-                                        onClick={handleCloseModal}
-                                        className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Modal Body */}
-                            <div className="p-6 overflow-y-auto flex-1">
-                                {users.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this mandal</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50 sticky top-0">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        S.No
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Name
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Email
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Contact
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Party
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Status
-                                                    </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Assigned At
-                                                    </th>
-                                                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Actions
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {users.map((user: any, index: number) => (
-                                                    <tr key={user.assignment_id || index} className="hover:bg-blue-50 transition-colors">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {index + 1}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-gray-900">
-                                                                {user.first_name} {user.last_name}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">
-                                                                {user.username}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.email || "N/A"}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.contact_no || "N/A"}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                {user.partyName || "N/A"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span
-                                                                className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.user_active === 1
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : "bg-red-100 text-red-800"
-                                                                    }`}
-                                                            >
-                                                                {user.user_active === 1 ? "Active" : "Inactive"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.assigned_at ? new Date(user.assigned_at).toLocaleDateString() : "N/A"}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                            <button
-                                                                onClick={() => handleDeleteClick(user)}
-                                                                disabled={deletingUserId === user.user_id}
-                                                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                                                title="Remove user from this mandal"
-                                                            >
-                                                                {deletingUserId === user.user_id ? (
-                                                                    <>
-                                                                        <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24">
-                                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                        </svg>
-                                                                        Deleting...
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                        </svg>
-                                                                        Delete
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Confirmation Modal */}
-                {showConfirmModal && userToDelete && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                            <div className="p-6">
-                                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
-                                    Confirm Deletion
-                                </h3>
-                                <p className="mt-2 text-sm text-gray-600 text-center">
-                                    Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{selectedMandalName}</span>?
-                                </p>
-                                <p className="mt-2 text-xs text-gray-500 text-center">
-                                    This action will unassign the user from this mandal.
-                                </p>
-                            </div>
-                            <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
-                                <button
-                                    onClick={handleCancelDelete}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    disabled={isDeleting}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {isDeleting ? 'Deleting...' : 'Delete'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Polling Centers Section */}
-                {pollingCenters.length > 0 && (
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
-                        <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 text-white">
-                            <h2 className="text-xl font-bold">Polling Centers</h2>
-                        </div>
-                        {loadingPollingCenters ? (
-                            <div className="text-center py-12">
-                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                                <p className="mt-4 text-gray-600">Loading polling centers...</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gradient-to-r from-green-50 to-green-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Type</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Users</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {pollingCenters.map((pc, index) => (
-                                            <tr key={pc.id} className="hover:bg-green-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{pc.displayName}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        {pc.levelName || "Polling Center"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        {pc.user_count || 0} users
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${pc.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                        {pc.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button
-                                                        onClick={() => fetchBooths(pc.id)}
-                                                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                        </svg>
-                                                        View Booths
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Booths Section */}
-                {booths.length > 0 && (
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden mt-6">
-                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4 text-white">
-                            <h2 className="text-xl font-bold">Booths</h2>
-                        </div>
-                        {loadingBooths ? (
-                            <div className="text-center py-12">
-                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                                <p className="mt-4 text-gray-600">Loading booths...</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gradient-to-r from-purple-50 to-purple-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Type</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Users</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Created Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {booths.map((booth, index) => (
-                                            <tr key={booth.id} className="hover:bg-purple-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{booth.displayName}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                        {booth.levelName || "Booth"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                        {booth.user_count || 0} users
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                        {booth.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {booth.created_at ? new Date(booth.created_at).toLocaleDateString() : "N/A"}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-                )}
             </div>
 
             <style>{`

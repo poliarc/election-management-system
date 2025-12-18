@@ -1,0 +1,295 @@
+/* Simple and performant drag and drop styles */
+
+.drag-container {
+    position: relative;
+    isolation: isolate;
+    /* Create stacking context */
+}
+
+/* Ensure higher level nodes are more accessible for drops */
+.draggable-node[data-level="0"] {
+    z-index: 20;
+    position: relative;
+}
+
+.draggable-node[data-level="1"] {
+    z-index: 15;
+    position: relative;
+}
+
+.draggable-node[data-level="2"] {
+    z-index: 10;
+    position: relative;
+}
+
+.draggable-node[data-level="3"] {
+    z-index: 5;
+    position: relative;
+}
+
+/* Add margin to prevent overlap */
+.draggable-node[data-level="0"] {
+    margin-bottom: 8px;
+}
+
+.draggable-node[data-level="1"] {
+    margin-bottom: 6px;
+}
+
+.draggable-node[data-level="2"] {
+    margin-bottom: 4px;
+}
+
+/* When dragging, increase z-index significantly */
+.draggable-node.dragging {
+    z-index: 1000 !important;
+}
+
+/* Ensure proper pointer events */
+.draggable-node {
+    pointer-events: auto;
+    isolation: isolate;
+}
+
+.draggable-node {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    cursor: grab;
+}
+
+.draggable-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.draggable-node:active {
+    cursor: grabbing;
+}
+
+/* Drop target styling */
+.draggable-node.drop-target {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+    background-color: rgba(34, 197, 94, 0.05);
+    border-color: #22c55e;
+    border-width: 2px;
+}
+
+.draggable-node.drop-target::before {
+    content: '↓ Drop Here';
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #22c55e;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    z-index: 10;
+}
+
+/* Assembly drop zone styling */
+.assembly-container {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    z-index: 1;
+    /* Ensure assemblies are above nodes */
+}
+
+.assembly-drop-zone {
+    position: relative;
+    z-index: 5;
+    /* Higher than regular nodes */
+}
+
+.assembly-container.assembly-drop-target {
+    transform: scale(1.03) translateY(-4px);
+    box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+    z-index: 100;
+}
+
+.assembly-container.assembly-drop-target .assembly-drop-zone {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%) !important;
+    border: 3px dashed #16a34a !important;
+    border-color: #15803d !important;
+}
+
+.assembly-container.assembly-drop-target::before {
+    content: '🏛️ Drop here to make Assembly child';
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6);
+    z-index: 200;
+    animation: assemblyDropBounce 0.8s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+@keyframes assemblyDropBounce {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0px);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-3px);
+    }
+}
+
+/* Level badge */
+.level-badge {
+    transition: transform 0.15s ease;
+}
+
+.level-badge:hover {
+    transform: scale(1.05);
+}
+
+/* Hierarchy item */
+.hierarchy-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@key frames assemblyDropBounce {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0px) scale(1);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-5px) scale(1.05);
+    }
+}
+
+/* Ensure assembly drop zones are more prominent during drag */
+body.dragging .assembly-drop-zone {
+    border-style: dashed !important;
+    border-width: 2px !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dragging .assembly-drop-zone:hover {
+    border-color: rgba(34, 197, 94, 0.6) !important;
+    background: rgba(34, 197, 94, 0.05) !important;
+}
+
+/* Dr
+ag target highlighting */
+.drag-target-highlight {
+    outline: 3px solid #f59e0b !important;
+    outline-offset: 2px !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
+    transform: scale(1.02) !important;
+    transition: all 0.2s ease !important;
+}
+
+.drag-target-highlight::after {
+    content: '🎯 TARGET';
+    position: absolute;
+    top: -25px;
+    right: 10px;
+    background: #f59e0b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    z-index: 1000;
+    animation: targetPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes targetPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Bo
+ttom assembly drop zone styling */
+.assembly-drop-zone-bottom {
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+/* Make bottom drop zones more prominent during drag */
+body.dragging .assembly-drop-zone-bottom {
+    opacity: 1;
+    border-width: 3px !important;
+    min-height: 60px !important;
+    font-weight: 600;
+}
+
+body.dragging .assembly-drop-zone-bottom:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Green feedback for bottom drop zones */
+.assembly-drop-zone-bottom.drop-target {
+    border-color: #16a34a !important;
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    color: #15803d !important;
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+}
+
+/* Ensure bottom drop zones are always visible */
+.assembly-drop-zone-bottom {
+    z-index: 15;
+    position: relative;
+}
+
+/* Scroll p
+erformance optimizations */
+body.dragging {
+    scroll-behavior: auto !important;
+    /* Disable smooth scrolling during drag */
+}
+
+/* Optimize scroll container */
+.max-w-7xl {
+    will-change: scroll-position;
+}
+
+/* Reduce repaints during scroll */
+body.dragging * {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Fast scroll for drag operations */
+body.dragging .space-y-6 {
+    contain: layout style paint;
+}
+
+/* Optimize assembly containers during drag */
+body.dragging .assembly-container {
+    contain: layout style;
+    transform: translateZ(0);
+    /* Force hardware acceleration */
+}
+
+/* Reduce visual complexity during fast scroll */
+body.dragging .draggable-node:not(.dragging):not(.drag-target-highlight) {
+    will-change: auto;
+    transform: none;
+}

@@ -40,6 +40,7 @@ export interface UpdateAfterAssemblyDataPayload {
     displayName?: string;
     partyLevelId?: number;
     parentId?: number | null;
+    parentAssemblyId?: number | null;
 }
 
 export interface AssignUserPayload {
@@ -369,6 +370,56 @@ export async function fetchAfterAssemblyChildrenByParent(
     parentId: number
 ): Promise<{ success: boolean; message: string; data: AfterAssemblyData[] }> {
     return fetchChildLevelsByParent(parentId);
+}
+
+// Fetch hierarchical after assembly data
+export interface HierarchyNode {
+    id: number;
+    levelName: string;
+    displayName: string;
+    parentId: number | null;
+    parentAssemblyId: number | null;
+    partyLevelId: number;
+    isActive: boolean;
+    assemblyName: string | null;
+    partyLevelName: string;
+    children: HierarchyNode[];
+}
+
+export interface AssemblyHierarchy {
+    assembly: {
+        id: number;
+        levelName: string;
+        levelType: string;
+        ParentId: number;
+        isActive: boolean;
+    };
+    afterAssemblyHierarchy: HierarchyNode[];
+}
+
+export async function fetchAfterAssemblyHierarchy(
+    stateId: number,
+    partyId: number
+): Promise<{ success: boolean; message: string; data: AssemblyHierarchy[] }> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const url = `${API_CONFIG.BASE_URL}/api/after-assembly-data/hierarchy?stateId=${stateId}&partyId=${partyId}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch hierarchy data");
+    }
+
+    return response.json();
 }
 // Fetch booth level data with smart level ID handling for Booth levels
 export async function fetchBoothsByLevelSmart(

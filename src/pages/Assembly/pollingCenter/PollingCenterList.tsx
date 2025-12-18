@@ -3,8 +3,8 @@ import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
-import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
+import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 
 export default function PollingCenterList() {
@@ -14,11 +14,16 @@ export default function PollingCenterList() {
     const [selectedPollingCenterFilter, setSelectedPollingCenterFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number | null>(null);
-    const [selectedPollingCenterName, setSelectedPollingCenterName] = useState<string>("");
-    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedPollingCenterForVoters, setSelectedPollingCenterForVoters] = useState<{ id: number; name: string } | null>(null);
+    
+    // State for inline user display
+    const [expandedPollingCenterId, setExpandedPollingCenterId] = useState<number | null>(null);
+    const [pollingCenterUsers, setPollingCenterUsers] = useState<Record<number, any[]>>({});
+    
+    // State for filtering polling centers without users
+    const [showPollingCentersWithoutUsers, setShowPollingCentersWithoutUsers] = useState(false);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -89,74 +94,152 @@ export default function PollingCenterList() {
 
     const mandals = mandalHierarchyData?.children || [];
 
-    // Fetch polling centers for selected mandal
-    const { data: hierarchyData, isLoading: loadingPollingCenters, error } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
+    // State for all polling centers in the mandal
+    const [allPollingCenters, setAllPollingCenters] = useState<any[]>([]);
+    const [loadingPollingCenters, setLoadingPollingCenters] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-    const pollingCenters = hierarchyData?.children || [];
+    // Fetch all polling centers for selected mandal (filter out booths)
+    useEffect(() => {
+        const fetchAllPollingCenters = async () => {
+            if (!selectedMandalId) {
+                setAllPollingCenters([]);
+                return;
+            }
+
+            setLoadingPollingCenters(true);
+            setError(null);
+
+            try {
+                const token = localStorage.getItem("auth_access_token");
+                
+                // First get direct children of mandal
+                const mandalChildrenRes = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const mandalChildrenData = await mandalChildrenRes.json();
+                const mandalChildren = mandalChildrenData.children || [];
+
+                let actualPollingCenters: any[] = [];
+
+                // Check each child to determine if it's a polling center or booth
+                for (const child of mandalChildren) {
+                    // Try to fetch children first to determine the structure
+                    try {
+                        const childrenRes = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${child.id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        const childrenData = await childrenRes.json();
+                        const children = childrenData.children || [];
+                        
+                        if (children.length > 0) {
+                            // This child has children, so it's likely a polling center
+                            actualPollingCenters.push(child);
+                        } else {
+                            // This child has no children
+                            // Check if it's a polling center by examining its levelName or other properties
+                            const isActualPollingCenter = child.levelName === 'PollingCenter' || 
+                                                        child.levelName === 'Polling Center' ||
+                                                        child.displayName?.toLowerCase().includes('polling') ||
+                                                        // If it doesn't have children and is not explicitly a booth, might be polling center
+                                                        (child.levelName !== 'Booth' && child.levelName !== 'booth');
+                            
+                            if (isActualPollingCenter) {
+                                actualPollingCenters.push(child);
+                            }
+                            // If it's not a polling center, we ignore it (it might be a direct booth)
+                        }
+                    } catch (childError) {
+                        // If we can't fetch children, check if it looks like a polling center
+                        console.log(`Error fetching children for ${child.displayName}:`, childError);
+                        const isLikelyPollingCenter = child.levelName === 'PollingCenter' || 
+                                                    child.levelName === 'Polling Center' ||
+                                                    child.displayName?.toLowerCase().includes('polling');
+                        
+                        if (isLikelyPollingCenter) {
+                            actualPollingCenters.push(child);
+                        }
+                    }
+                }
+
+                setAllPollingCenters(actualPollingCenters);
+            } catch (err) {
+                console.error("Error fetching polling centers:", err);
+                setError(err);
+            } finally {
+                setLoadingPollingCenters(false);
+            }
+        };
+
+        fetchAllPollingCenters();
+    }, [selectedMandalId]);
+
+    const pollingCenters = allPollingCenters;
+
+    // Handle polling centers without users filter
+    const handlePollingCentersWithoutUsersClick = () => {
+        const pollingCentersWithoutUsersCount = pollingCenters.filter(pc => (pc.user_count || 0) === 0).length;
+        
+        if (pollingCentersWithoutUsersCount > 0) {
+            setShowPollingCentersWithoutUsers(!showPollingCentersWithoutUsers);
+            setCurrentPage(1); // Reset to page 1
+        }
+    };
 
     const filteredPollingCenters = pollingCenters.filter((pc) => {
         const matchesSearch = pc.displayName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = selectedPollingCenterFilter === "" || pc.id.toString() === selectedPollingCenterFilter;
-        return matchesSearch && matchesFilter;
+        
+        // Apply polling centers without users filter
+        const matchesWithoutUsersFilter = showPollingCentersWithoutUsers 
+            ? (pc.user_count || 0) === 0 
+            : true;
+        
+        return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
     });
 
-    const handleViewUsers = (pollingCenterId: number, pollingCenterName: string) => {
-        setSelectedPollingCenterId(pollingCenterId);
-        setSelectedPollingCenterName(pollingCenterName);
-    };
+    const handleViewUsers = async (pollingCenterId: number) => {
+        // If already expanded, collapse it
+        if (expandedPollingCenterId === pollingCenterId) {
+            setExpandedPollingCenterId(null);
+            return;
+        }
 
-    const handleCloseModal = () => {
-        setSelectedPollingCenterId(null);
-        setSelectedPollingCenterName("");
-    };
-
-    // Delete mutation
-    const [deleteAssignedLevels, { isLoading: isDeleting }] = useDeleteAssignedLevelsMutation();
-    const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [userToDelete, setUserToDelete] = useState<any | null>(null);
-
-    const handleDeleteClick = (user: any) => {
-        setUserToDelete(user);
-        setShowConfirmModal(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!userToDelete || !selectedPollingCenterId) return;
+        // If users already loaded, just expand
+        if (pollingCenterUsers[pollingCenterId]) {
+            setExpandedPollingCenterId(pollingCenterId);
+            return;
+        }
 
         try {
-            setDeletingUserId(userToDelete.user_id);
-            setShowConfirmModal(false);
-
-            const response = await deleteAssignedLevels({
-                user_id: userToDelete.user_id,
-                afterAssemblyData_ids: [selectedPollingCenterId]
-            }).unwrap();
-
-            if (response.success && response.deleted.length > 0) {
-                window.location.reload();
-            } else if (response.errors && response.errors.length > 0) {
-                alert(`Error: ${response.errors[0].error || 'Failed to delete user assignment'}`);
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${pollingCenterId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.users) {
+                // Store users data
+                setPollingCenterUsers(prev => ({
+                    ...prev,
+                    [pollingCenterId]: data.data.users
+                }));
+                setExpandedPollingCenterId(pollingCenterId);
+            } else {
+                console.log('Polling Center API Error or No Users:', data);
             }
-        } catch (error: any) {
-            console.error("Delete error:", error);
-            alert(error?.data?.message || "Failed to delete user assignment. Please try again.");
-        } finally {
-            setDeletingUserId(null);
-            setUserToDelete(null);
+        } catch (error) {
+            console.error(`Error fetching users for polling center ${pollingCenterId}:`, error);
         }
     };
 
-    const handleCancelDelete = () => {
-        setShowConfirmModal(false);
-        setUserToDelete(null);
-    };
 
-    const selectedPollingCenter = pollingCenters.find(pc => pc.id === selectedPollingCenterId);
-    const users = selectedPollingCenter?.assigned_users || [];
 
     const totalPages = Math.ceil(filteredPollingCenters.length / itemsPerPage);
     const paginatedPollingCenters = filteredPollingCenters.slice(
@@ -226,10 +309,27 @@ export default function PollingCenterList() {
                                 </div>
                             </div>
 
-                            {/* Polling Centers Without Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            {/* Polling Centers Without Users Card - Clickable */}
+                            <div 
+                                onClick={handlePollingCentersWithoutUsersClick}
+                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                    pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0
+                                        ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
+                                        : 'cursor-default'
+                                } ${
+                                    showPollingCentersWithoutUsers 
+                                        ? 'ring-2 ring-red-500 bg-red-50' 
+                                        : ''
+                                }`}
+                                title={pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? "Click to view polling centers without users" : "No polling centers without users"}
+                            >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Polling Centers Without Users</p>
+                                    <p className="text-xs font-medium text-gray-600">
+                                        Polling Centers Without Users
+                                        {showPollingCentersWithoutUsers && (
+                                            <span className="ml-2 text-red-600 font-semibold"></span>
+                                        )}
+                                    </p>
                                     <p className={`text-xl sm:text-2xl font-semibold mt-1 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                                         {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length}
                                     </p>
@@ -385,7 +485,12 @@ export default function PollingCenterList() {
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No polling centers found</p>
+                            <p className="mt-2 text-gray-500 font-medium">No polling centers found in this mandal</p>
+                            <p className="mt-1 text-xs text-gray-400">
+                                This mandal may contain only direct booths. 
+                                <br />
+                                Please check the <span className="font-semibold">Booth</span> section to view booths.
+                            </p>
                         </div>
                     ) : (
                         <>
@@ -397,20 +502,21 @@ export default function PollingCenterList() {
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Mandal</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Total Users</th>
+                                            
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Booth</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {paginatedPollingCenters.map((pc, index) => (
-                                            <tr key={pc.id} className="hover:bg-green-50 transition-colors">
+                                            <>
+                                                <tr key={pc.id} className="hover:bg-green-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                        {hierarchyData?.parent.displayName}
+                                                        {mandals.find(m => m.id === selectedMandalId)?.displayName || "Mandal"}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -434,9 +540,13 @@ export default function PollingCenterList() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
                                                     <div className="flex items-center justify-center">
                                                         <button
-                                                            onClick={() => handleViewUsers(pc.id, pc.displayName)}
-                                                            className="inline-flex items-center p-1 rounded-md text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors mr-2"
-                                                            title="View Users"
+                                                            onClick={() => handleViewUsers(pc.id)}
+                                                            className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
+                                                                expandedPollingCenterId === pc.id
+                                                                    ? "text-green-700 bg-green-100"
+                                                                    : "text-green-600 hover:bg-green-50 hover:text-green-700"
+                                                            }`}
+                                                            title={expandedPollingCenterId === pc.id ? "Hide Users" : "View Users"}
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -448,69 +558,47 @@ export default function PollingCenterList() {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${pc.isActive === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                        {pc.isActive === 1 ? "Active" : "Inactive"}
-                                                    </span>
-                                                </td>
+                                              
                                                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div className="relative inline-block">
-                                                        <button
-                                                            onClick={() => setOpenDropdownId(openDropdownId === pc.id ? null : pc.id)}
-                                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                                        >
-                                                            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                            </svg>
-                                                        </button>
-
-                                                        {openDropdownId === pc.id && (
-                                                            <>
-                                                                <div
-                                                                    className="fixed inset-0 z-10"
-                                                                    onClick={() => setOpenDropdownId(null)}
-                                                                />
-                                                                <div
-                                                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${index >= paginatedPollingCenters.length - 2 && paginatedPollingCenters.length >= 5 ? 'bottom-full mb-2' : 'top-full mt-2'}`}
-                                                                >
-                                                                    <div className="py-1">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                handleViewUsers(pc.id, pc.displayName);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">View Users</span>
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setSelectedPollingCenterForVoters({ id: pc.id, name: pc.displayName });
-                                                                                setShowAssignVotersModal(true);
-                                                                                setOpenDropdownId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
-                                                                        >
-                                                                            <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                                                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                                </svg>
-                                                                            </div>
-                                                                            <span className="font-medium">Assign Booth Voters</span>
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedPollingCenterForVoters({ id: pc.id, name: pc.displayName });
+                                                            setShowAssignVotersModal(true);
+                                                        }}
+                                                        className="p-2 hover:bg-indigo-50 rounded-lg transition-colors group"
+                                                        title="Assign Booth Voters"
+                                                    >
+                                                        <svg className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                        </svg>
+                                                    </button>
                                                 </td>
                                             </tr>
+                                            
+                                            {/* Inline User Display */}
+                                            {expandedPollingCenterId === pc.id && pollingCenterUsers[pc.id] && (
+                                                <InlineUserDisplay
+                                                    users={pollingCenterUsers[pc.id]}
+                                                    locationName={pc.displayName}
+                                                    locationId={pc.id}
+                                                    locationType="PollingCenter"
+                                                    parentLocationName={mandals.find(m => m.id === selectedMandalId)?.displayName || "Mandal"}
+                                                    parentLocationType="Mandal"
+                                                    onUserDeleted={() => {
+                                                        // Refresh user counts after deletion
+                                                        setExpandedPollingCenterId(null);
+                                                        setPollingCenterUsers(prev => {
+                                                            const updated = { ...prev };
+                                                            delete updated[pc.id];
+                                                            return updated;
+                                                        });
+                                                        window.location.reload();
+                                                    }}
+                                                    onClose={() => setExpandedPollingCenterId(null)}
+                                                    colSpan={7}
+                                                />
+                                            )}
+                                        </>
                                         ))}
                                     </tbody>
                                 </table>
@@ -548,141 +636,7 @@ export default function PollingCenterList() {
                     )}
                 </div>
 
-                {/* View Users Modal */}
-                {selectedPollingCenterId && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
-                            <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white flex justify-between items-center">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Users in {selectedPollingCenterName}</h2>
-                                    <p className="text-green-100 text-sm mt-1">Total Users: {users.length}</p>
-                                </div>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
 
-                            <div className="flex-1 overflow-y-auto p-6">
-                                {users.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this polling center</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Date</th>
-                                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {users.map((user: any, index: number) => (
-                                                    <tr key={user.user_id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
-                                                            <div className="text-xs text-gray-500">{user.username}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email || "N/A"}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.contact_no || "N/A"}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                {user.partyName || "N/A"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.user_active === 1 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                                {user.user_active === 1 ? "Active" : "Inactive"}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                            {user.assigned_at ? new Date(user.assigned_at).toLocaleDateString() : "N/A"}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                            <button
-                                                                onClick={() => handleDeleteClick(user)}
-                                                                disabled={deletingUserId === user.user_id}
-                                                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                                                title="Remove user from this polling center"
-                                                            >
-                                                                {deletingUserId === user.user_id ? (
-                                                                    <>
-                                                                        <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24">
-                                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                                        </svg>
-                                                                        Deleting...
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                        </svg>
-                                                                        Delete
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Confirmation Modal */}
-                {showConfirmModal && userToDelete && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                            <div className="p-6">
-                                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">Confirm Deletion</h3>
-                                <p className="mt-2 text-sm text-gray-600 text-center">
-                                    Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{selectedPollingCenterName}</span>?
-                                </p>
-                                <p className="mt-2 text-xs text-gray-500 text-center">This action will unassign the user from this polling center.</p>
-                            </div>
-                            <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
-                                <button
-                                    onClick={handleCancelDelete}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    disabled={isDeleting}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {isDeleting ? 'Deleting...' : 'Delete'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
             <style>{`

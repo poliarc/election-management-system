@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { HierarchyUser } from "../../../types/hierarchy";
 import { API_CONFIG } from "../../../config/api";
 import { getSelectedState } from "../../../services/hierarchyApi";
+import toast from "react-hot-toast";
 
 interface StateTeamResponse {
   success: boolean;
@@ -33,6 +34,8 @@ export default function StateTeamListing() {
   >("all");
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [toggleLoading, setToggleLoading] = useState<number | null>(null);
 
   // Get selected state id from localStorage (mirrors DistrictTeam pattern)
   useEffect(() => {
@@ -126,6 +129,78 @@ export default function StateTeamListing() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+    
+    if (openDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown]);
+
+  // Toggle user status function
+  const toggleUserStatus = async (userId: number, currentStatus: boolean) => {
+    setToggleLoading(userId);
+    setOpenDropdown(null);
+
+    try {
+      const authState = localStorage.getItem("auth_state");
+      const token = authState ? JSON.parse(authState).accessToken : null;
+      if (!token) throw new Error("Authentication required");
+
+      // Use the same API pattern as InlineUserDisplay component
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/users/${userId}/toggle-status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isActive: !currentStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Update the user status in local state
+        setStateData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            users: prev.users.map(user => 
+              user.user_id === userId 
+                ? { ...user, is_active: !currentStatus }
+                : user
+            ),
+            active_users: currentStatus ? prev.active_users - 1 : prev.active_users + 1,
+            inactive_users: currentStatus ? prev.inactive_users + 1 : prev.inactive_users - 1,
+          };
+        });
+        
+        toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+      } else {
+        throw new Error(result.message || "Failed to toggle user status");
+      }
+    } catch (err) {
+      console.error("Toggle status error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to toggle user status");
+    } finally {
+      setToggleLoading(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -258,18 +333,17 @@ export default function StateTeamListing() {
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="w-full min-w-max divide-y divide-gray-200">
+            <thead className="bg-gray-50 sticky top-0">
               <tr>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
-                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden lg:table-cell">State</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden lg:table-cell">Designation</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell">Email</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Phone Number</th>
-               
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                {/* <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden xl:table-cell">Assigned Date</th> */}
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">S.No</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">State</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Designation</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Name</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Email</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Phone Number</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Status</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -285,24 +359,67 @@ export default function StateTeamListing() {
               ) : (
                 paginatedUsers.map((user, index) => (
                   <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900">{startIndex + index + 1}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden lg:table-cell">{stateData.location.location_name}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden lg:table-cell">{user.role_name || user.role || user.designation || "N/A"}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
-                      <div>{user.first_name} {user.last_name}</div>
-                      <div className="md:hidden text-xs text-gray-500 mt-1">{user.email}</div>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{startIndex + index + 1}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{stateData.location.location_name}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role||user.role_name || user.role || user.designation || "N/A"}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                      {user.first_name} {user.last_name}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">{user.email}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600">{user.mobile_number}</td>
-                    
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.mobile_number}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                         {user.is_active ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    {/* <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden xl:table-cell">
-                      {new Date(user.assigned_at).toLocaleDateString()}
-                    </td> */}
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
+                      <div className="relative dropdown-container">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdown(openDropdown === user.user_id ? null : user.user_id);
+                          }}
+                          disabled={toggleLoading === user.user_id}
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                        >
+                          {toggleLoading === user.user_id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          ) : (
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {openDropdown === user.user_id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleUserStatus(user.user_id, user.is_active);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            >
+                              {user.is_active ? (
+                                <>
+                                  <svg className="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Inactive 
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Active
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
