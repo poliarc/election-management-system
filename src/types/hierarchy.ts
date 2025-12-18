@@ -1,17 +1,18 @@
 // Hierarchy API Types
 
 export interface HierarchyUser {
-  assignment_id: number;
-  user_id: number;
-  user_name: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  mobile_number: string;
-  party?: {
-    party_name: string;
-    party_code: string;
-  };
+    user_role: string | undefined;
+    assignment_id: number;
+    user_id: number;
+    user_name: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    mobile_number: string;
+    party?: {
+        party_name: string;
+        party_code: string;
+    };
   party_name: string;
   user_state: string;
   user_district: string;
@@ -24,8 +25,6 @@ export interface HierarchyUser {
   user_created_at: string;
   role?: string; // Designation/Role field
   role_name?: string; // Role name from API
-
-  // Additional optional fields for flexibility
   contact_no?: string;
   phone?: string;
   designation?: string;

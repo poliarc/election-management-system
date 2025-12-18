@@ -437,17 +437,9 @@ export default function AssignAssembly() {
                                 {user.first_name} {user.last_name}
                               </p>
                               <p className="text-sm text-gray-600">{user.email}</p>
-                              <p className="text-xs text-gray-500">
-                                {user.role_name || user.role || user.designation || 'N/A'} | {user.mobile_number}
-                              </p>
+                              
                               <div className="mt-1 flex items-center gap-2">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  user.is_active 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {user.is_active ? 'Active' : 'Inactive'}
-                                </span>
+                                
                                 <span className="text-xs text-gray-400">
                                   Assigned: {new Date(user.assigned_at).toLocaleDateString()}
                                 </span>

@@ -32,6 +32,9 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
     // Check if this is a Booth level panel
     const isBoothLevel = selectedPanel.name?.toLowerCase() === "booth";
 
+    // Check if this is an Assembly level panel
+    const isAssemblyLevel = selectedPanel.name?.toLowerCase() === "assembly";
+
     const navItems = [
         {
             to: `${baseUrl}/dashboard`,
@@ -91,6 +94,16 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: "Create User",
         },
+        // Add "Assembly Hierarchy" only for Assembly level panels
+        ...(isAssemblyLevel ? [{
+            to: `${baseUrl}/assembly-hierarchy`,
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7v2a2 2 0 01-2 2H7a2 2 0 01-2-2V4m14 7v2a2 2 0 01-2 2H7a2 2 0 01-2-2v-2m14 7v2a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" />
+                </svg>
+            ),
+            label: "Assembly Hierarchy",
+        }] : []),
     ];
 
     return (
