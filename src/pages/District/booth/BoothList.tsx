@@ -205,18 +205,16 @@ export default function DistrictBoothList() {
                           .then((response) => response.json())
                           .then((boothData) => {
                             if (boothData.success && boothData.children) {
-                              return boothData.children.map(
-                                (booth: unknown) => ({
-                                  ...booth,
-                                  hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
-                                  sourceLevel: "Polling Center",
-                                  districtName: districtInfo.districtName,
-                                  assemblyName: assembly.location_name,
-                                  blockName: block.displayName,
-                                  mandalName: mandal.displayName,
-                                  pollingCenterName: pollingCenter.displayName,
-                                })
-                              );
+                              return boothData.children.map((booth: any) => ({
+                                ...booth,
+                                hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
+                                sourceLevel: "Polling Center",
+                                districtName: districtInfo.districtName,
+                                assemblyName: assembly.location_name,
+                                blockName: block.displayName,
+                                mandalName: mandal.displayName,
+                                pollingCenterName: pollingCenter.displayName,
+                              }));
                             }
                             return [];
                           })
@@ -293,14 +291,12 @@ export default function DistrictBoothList() {
         );
         const data = await response.json();
         if (data.success && data.data) {
-          const mappedAssemblies = data.data.children.map(
-            (assembly: unknown) => ({
-              id: assembly.location_id || assembly.id,
-              displayName: assembly.location_name,
-              levelName: "Assembly",
-              location_id: assembly.location_id,
-            })
-          );
+          const mappedAssemblies = data.data.children.map((assembly: any) => ({
+            id: assembly.location_id || assembly.id,
+            displayName: assembly.location_name,
+            levelName: "Assembly",
+            location_id: assembly.location_id,
+          }));
           setAssemblies(mappedAssemblies);
         }
       } catch (error) {

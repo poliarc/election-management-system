@@ -160,7 +160,7 @@ export default function DistrictPollingCenterList() {
       // Step 4: Fetch all polling centers in parallel (simplified approach like State implementation)
       const pollingCenterPromises: Promise<any>[] = [];
       mandalResults.forEach(({ assembly, block, mandals }) => {
-        mandals.forEach((mandal: unknown) => {
+        mandals.forEach((mandal: any) => {
           pollingCenterPromises.push(
             fetch(
               `${
@@ -181,14 +181,14 @@ export default function DistrictPollingCenterList() {
                   // Simplified approach: treat all children as potential polling centers
                   // Filter out direct booths but include everything else
                   return data.children
-                    .filter((child: unknown) => {
+                    .filter((child: any) => {
                       // Skip direct booths under mandals
                       return (
                         child.levelName !== "Booth" &&
                         child.levelName !== "booth"
                       );
                     })
-                    .map((pollingCenter: unknown) => ({
+                    .map((pollingCenter: any) => ({
                       ...pollingCenter,
                       hierarchyPath: `${districtInfo.districtName} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName}`,
                       districtName: districtInfo.districtName,
@@ -265,14 +265,12 @@ export default function DistrictPollingCenterList() {
         console.log("Assemblies API response:", data);
         if (data.success && data.data) {
           // Map the response to match expected format
-          const mappedAssemblies = data.data.children.map(
-            (assembly: unknown) => ({
-              id: assembly.location_id || assembly.id,
-              displayName: assembly.location_name,
-              levelName: "Assembly",
-              location_id: assembly.location_id,
-            })
-          );
+          const mappedAssemblies = data.data.children.map((assembly: any) => ({
+            id: assembly.location_id || assembly.id,
+            displayName: assembly.location_name,
+            levelName: "Assembly",
+            location_id: assembly.location_id,
+          }));
           setAssemblies(mappedAssemblies);
         }
       } catch (error) {
