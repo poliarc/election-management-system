@@ -119,6 +119,7 @@ import {
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
 import SubLevelBoothVoters from "./pages/SubLevelPanel/BoothVoters";
+import SubLevelAssignUser from "./pages/SubLevelPanel/AssignUser";
 import {
   BoothManagementDashboard,
   AllAgentsPage,
@@ -399,6 +400,7 @@ export default function App() {
               path="child-hierarchy"
               element={<SubLevelChildHierarchy />}
             />
+            <Route path="assign-user" element={<SubLevelAssignUser />} />
             <Route path="booths" element={<SubLevelBooths />} />
             <Route path="booth-voters" element={<SubLevelBoothVoters />} />
             <Route path="profile" element={<Profile />} />
