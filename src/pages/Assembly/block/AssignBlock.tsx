@@ -6,7 +6,8 @@ import {
 } from "../../../store/api/blockApi";
 import { useGetUsersWithFilterQuery } from "../../../store/api/blockApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
-import { useGetAllStateMasterDataQuery, useDeleteAssignedLocationsMutation } from "../../../store/api/stateMasterApi";
+import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
 import type { HierarchyUser } from "../../../types/hierarchy";
@@ -241,7 +242,7 @@ export default function AssignBlock() {
     const [createAssignment, { isLoading: isAssigning }] =
         useCreateBlockAssignmentMutation();
     
-    const [deleteAssignedLocations] = useDeleteAssignedLocationsMutation();
+    const [deleteAssignedLevels] = useDeleteAssignedLevelsMutation();
 
     // Filter only active users (search is handled by API)
     const filteredUsers = users.filter(
@@ -298,17 +299,24 @@ export default function AssignBlock() {
         
         try {
             setUnassigningUserId(userId);
-            const response = await deleteAssignedLocations({
-                userId: userId,
-                stateMasterData_id: Number(blockId)
+            const response = await deleteAssignedLevels({
+                user_id: userId,
+                afterAssemblyData_ids: [Number(blockId)]
             }).unwrap();
 
-            if (response.success) {
+            if (response.success && response.summary.success > 0) {
                 toast.success(`Unassigned ${userName} from block`);
-                // Refresh assigned users list
-                fetchAssignedUsers();
+                
+                // Update local state immediately - user will disappear from list instantly
+                setAssignedUsers(prev => prev.filter(user => user.user_id !== userId));
+                setAssignedUserIds(prev => prev.filter(id => id !== userId));
+                setSelectedUsers(prev => prev.filter(id => id !== userId));
+                
+                // Note: Removed fetchAssignedUsers() call as it was overwriting our immediate state updates
+                // The RTK Query cache invalidation will handle background data refresh
             } else {
-                toast.error("Failed to unassign user");
+                const errorMessage = response.errors?.[0]?.error || "Failed to unassign user";
+                toast.error(errorMessage);
             }
         } catch (e: any) {
             toast.error(e?.data?.message || "Failed to unassign user");
