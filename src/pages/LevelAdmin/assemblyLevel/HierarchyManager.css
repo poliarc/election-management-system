@@ -52,13 +52,13 @@
 }
 
 .draggable-node {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out, background-color 0.05s ease-out;
     cursor: grab;
 }
 
 .draggable-node:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .draggable-node:active {
@@ -292,4 +292,355 @@ body.dragging .assembly-container {
 body.dragging .draggable-node:not(.dragging):not(.drag-target-highlight) {
     will-change: auto;
     transform: none;
+}
+
+/* Ultra-
+fast drag animations */
+.draggable-node:active {
+    transition: none !important;
+    transform: scale(1.02) !important;
+}
+
+/* Instant drag feedback */
+.draggable-node.dragging {
+    transition: none !important;
+    transform: scale(1.05) rotate(2deg) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Fast level badge animations */
+.level-badge {
+    transition: transform 0.05s ease-out;
+}
+
+/* Fast assembly container animations */
+.assembly-container {
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+}
+
+/* Instant hierarchy item feedback */
+.hierarchy-item {
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+}
+
+/* Remove all slow animations during drag */
+body.dragging * {
+    transition-duration: 0.05s !important;
+}
+
+/* Instant drag target highlighting */
+.drag-target-highlight {
+    transition: all 0.05s ease-out !important;
+}
+
+/* ==
+=== RESPONSIVE DESIGN ===== */
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    .draggable-node {
+        font-size: 0.875rem;
+        padding: 0.5rem !important;
+    }
+
+    .level-badge {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.375rem;
+    }
+
+    .assembly-drop-zone {
+        padding: 0.75rem !important;
+        min-height: 50px !important;
+    }
+
+    .assembly-drop-zone-bottom {
+        min-height: 40px !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Reduce indentation on mobile */
+    .drag-container {
+        margin-left: 0 !important;
+    }
+
+    /* Smaller icons on mobile */
+    .w-4.h-4 {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .draggable-node {
+        padding: 0.625rem !important;
+    }
+}
+
+/* ===== INSTANT DRAG ANIMATIONS ===== */
+
+/* Remove ALL transitions during drag for instant response */
+.draggable-node {
+    transition: none !important;
+}
+
+.draggable-node:not(.dragging) {
+    transition: box-shadow 0.1s ease-out, background-color 0.1s ease-out !important;
+}
+
+/* Instant drag start */
+.draggable-node:active {
+    transition: none !important;
+    transform: scale(1.01) !important;
+}
+
+/* No animation delay */
+* {
+    transition-delay: 0s !important;
+}
+
+/* Instant hover feedback */
+.draggable-node:hover {
+    transition: none !important;
+}
+
+/* Fast drop target feedback */
+.drop-target {
+    transition: none !important;
+}
+
+/* Instant assembly drop zone feedback */
+.assembly-drop-zone,
+.assembly-drop-zone-bottom {
+    transition: none !important;
+}
+
+/* Remove animation delays globally during drag */
+body.dragging * {
+    transition: none !important;
+    animation-duration: 0s !important;
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .draggable-node {
+        min-height: 44px;
+        /* Touch target size */
+        touch-action: none;
+    }
+
+    .draggable-node:active {
+        transform: scale(1.02) !important;
+        background-color: rgba(59, 130, 246, 0.05) !important;
+    }
+}
+
+/*
+ Fix for deeply nested drag operations */
+
+/* Ensure all draggable nodes have proper pointer events */
+.draggable-node {
+    pointer-events: auto !important;
+    position: relative;
+}
+
+/* Prevent child elements from blocking drag events */
+.draggable-node * {
+    pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive elements */
+.draggable-node button,
+.draggable-node input,
+.draggable-node select {
+    pointer-events: auto;
+}
+
+/* Ensure assembly drop zones can receive pointer events */
+.assembly-drop-zone,
+.assembly-drop-zone-bottom,
+.assembly-container {
+    pointer-events: auto !important;
+}
+
+.assembly-drop-zone *,
+.assembly-drop-zone-bottom * {
+    pointer-events: auto !important;
+}
+
+/* Make sure assembly container covers the full area */
+.assembly-container {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+}
+
+/* Ensure the assembly drop zone visual area is properly positioned */
+.assembly-drop-zone {
+    position: relative;
+    z-index: 10;
+}
+
+/* Improve z-index stacking for nested elements */
+.draggable-node[data-level="0"] {
+    z-index: 100 !important;
+}
+
+.draggable-node[data-level="1"] {
+    z-index: 90 !important;
+}
+
+.draggable-node[data-level="2"] {
+    z-index: 80 !important;
+}
+
+.draggable-node[data-level="3"] {
+    z-index: 70 !important;
+}
+
+.draggable-node[data-level="4"] {
+    z-index: 60 !important;
+}
+
+/* When dragging, ensure maximum z-index */
+.draggable-node.dragging {
+    z-index: 9999 !important;
+    pointer-events: none !important;
+}
+
+/* Ensure drag overlay doesn't interfere */
+.drag-overlay {
+    pointer-events: none !important;
+    z-index: 10000 !important;
+}
+
+/* Better collision detection for nested elements */
+body.dragging .draggable-node {
+    isolation: isolate;
+}
+
+/* Ensure proper event handling during drag */
+body.dragging .draggable-node:not(.dragging) {
+    pointer-events: auto !important;
+}
+
+/* Fix for touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .draggable-node {
+        touch-action: manipulation;
+    }
+
+    .draggable-node * {
+        touch-action: inherit;
+    }
+}
+
+/*
+ ===== DROP SPACE STYLES ===== */
+
+/* Hide drop spaces by default */
+.drop-space {
+    display: none;
+    margin: 4px 0;
+    border-radius: 8px;
+    border: 2px dashed transparent;
+    background: transparent;
+    position: relative;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center;
+}
+
+/* Show drop spaces only during drag */
+body.dragging .drop-space {
+    display: block;
+    opacity: 1;
+    transform: scaleY(1);
+    transition: all 0.2s ease-out;
+}
+
+/* Inactive drop space styling */
+.drop-space-inactive {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.drop-space-inactive:hover {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.1);
+    transform: scaleY(1.1);
+}
+
+/* Active drop space styling (when hovering during drag) */
+.drop-space-active {
+    border-color: #16a34a !important;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%) !important;
+    transform: scaleY(1.2) !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Drop space content */
+.drop-space-content {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.drop-space-active .drop-space-content {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #15803d !important;
+    font-weight: 600 !important;
+}
+
+/* Drop space icon animation */
+.drop-space-icon {
+    font-size: 16px;
+    animation: dropSpaceIconBounce 1.5s ease-in-out infinite;
+}
+
+.drop-space-active .drop-space-icon {
+    animation: dropSpaceIconBounceActive 0.8s ease-in-out infinite;
+}
+
+@keyframes dropSpaceIconBounce {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes dropSpaceIconBounceActive {
+
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+
+    50% {
+        transform: translateY(-4px) scale(1.2);
+    }
+}
+
+/* Drop space text */
+.drop-space-text {
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.drop-space-active .drop-space-text {
+    color: #15803d !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Highlight entire assembly container during drag */
+body.dragging .assembly-container {
+    outline: 2px dashed rgba(34, 197, 94, 0.5);
+    outline-offset: 4px;
+    border-radius: 12px;
 }
