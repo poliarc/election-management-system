@@ -11,6 +11,10 @@ import AdminLayout from "./layouts/AdminLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
 import AssemblyLayout from "./layouts/AssemblyLayout";
 import BlockLayout from "./layouts/BlockLayout";
+import BlockDashboard from "./pages/Block/Dashboard";
+import BlockTeam from "./pages/Block/BlockTeam";
+import MandalList from "./pages/Block/mandal/MandalList";
+import CreateMandal from "./pages/Block/mandal/CreateMandal";
 import DistrictDashboard from "./pages/District/Dashboard";
 import DistrictTeam from "./pages/District/DistrictTeam";
 import DistrictAssembly from "./pages/District/assembly/Assembly";
@@ -58,15 +62,16 @@ import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachList
 import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
 import SSRFormReportPage from "./pages/Assembly/voterReport/SSRForm";
 import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
-// import {
-//   UserCommunication,
-//   VoterCommunication,
-// } from "./pages/assembly/communication";
-
-import BlockDashboard from "./pages/Block/Dashboard";
-import BlockTeam from "./pages/Block/BlockTeam";
-import MandalList from "./pages/Block/mandal/MandalList";
-import CreateMandal from "./pages/Block/mandal/CreateMandal";
+import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
+import {
+  AfterAssemblyAssignedEvents,
+  AfterAssemblyChildHierarchy,
+  AfterAssemblyPanelDashboard,
+  AfterAssemblyPanelTeam,
+} from "./pages/AfterAssemblyPanel";
+import AfterAssemblyAssignUser from "./pages/AfterAssemblyPanel/AssignUser";
+import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
+import AfterAssemblySearchVoter from "./pages/AfterAssemblyPanel/SearchVoter";
 import AssignMandal from "./pages/Block/mandal/AssignMandal";
 import ViewMandalUsers from "./pages/Block/mandal/ViewMandalUsers";
 import { Profile as BlockProfile } from "./pages/Block/Profile/Profile";
@@ -104,23 +109,14 @@ import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
 import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
 import ChatPage from "./pages/Chat/ChatPage";
-import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
-import {
-  AfterAssemblyPanelDashboard,
-  AfterAssemblyPanelTeam,
-  AfterAssemblyChildHierarchy,
-  AfterAssemblyAssignedEvents,
-} from "./pages/AfterAssemblyPanel";
 import {
   SubLevelPanelDashboard,
   SubLevelPanelTeam,
   SubLevelChildHierarchy,
   SubLevelAssignedEvents,
 } from "./pages/SubLevelPanel";
-import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
-import AfterAssemblySearchVoter from "./pages/AfterAssemblyPanel/SearchVoter";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
 import SubLevelBoothVoters from "./pages/SubLevelPanel/BoothVoters";
 import {
@@ -167,7 +163,10 @@ export default function App() {
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
-            <Route path="assembly-hierarchy" element={<AssemblyHierarchyManager />} />
+            <Route
+              path="assembly-hierarchy"
+              element={<AssemblyHierarchyManager />}
+            />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
@@ -380,6 +379,7 @@ export default function App() {
               path="child-hierarchy"
               element={<AfterAssemblyChildHierarchy />}
             />
+            <Route path="assign-user" element={<AfterAssemblyAssignUser />} />
             <Route path="booths" element={<AfterAssemblyBooths />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat" element={<ChatPage />} />
