@@ -584,7 +584,7 @@ export default function HierarchyManager() {
                 )}
 
                 {/* Modern Responsive Header */}
-                <div className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-40">
+                <div className="bg-white/80 backdrop-blur-md border-b border-white/20 top-0 z-40">
                     <div className="max-w-7xl mx-auto px-4 lg:px-8">
                         {/* Desktop Header */}
                         <div className="hidden lg:flex items-center justify-between h-16">
@@ -822,7 +822,7 @@ export default function HierarchyManager() {
                                                 }`}
                                         >
                                             <span className="hidden sm:inline">{assembly.assembly.levelName}</span>
-                                            <span className="sm:hidden">{assembly.assembly.levelName.substring(0, 3)}</span>
+                                            <span className="sm:hidden">{assembly.assembly.levelName}</span>
                                             <span className="ml-1">({assembly.afterAssemblyHierarchy.length})</span>
                                         </button>
                                     ))}
