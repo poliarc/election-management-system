@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     DndContext,
     DragOverlay,
@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
 import './HierarchyManager.css';
+import './HierarchyManagerNew.css';
 
 import {
     SortableContext,
@@ -17,7 +18,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, Settings, RefreshCw, MapPin } from 'lucide-react';
+import { ChevronDown, ChevronRight, Settings, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -26,78 +27,99 @@ import {
 } from '../../../services/afterAssemblyApi';
 import type { HierarchyNode, AssemblyHierarchy } from '../../../services/afterAssemblyApi';
 
-interface DraggableNodeProps {
-    node: HierarchyNode;
-    level: number;
-    onToggle: (nodeId: number) => void;
-    expandedNodes: Set<number>;
-}
-
-interface AssemblyDropZoneProps {
-    assembly: any;
-    children: React.ReactNode;
-}
-
-interface AssemblyBottomDropZoneProps {
-    assembly: any;
-}
-
-function AssemblyDropZone({ assembly, children }: AssemblyDropZoneProps) {
+// Simplified Drop Zone for Grid View
+function SimpleDropZone({ targetId, targetType, label, className = "" }: {
+    targetId: number | string;
+    targetType: 'assembly' | 'node';
+    label: string;
+    className?: string;
+}) {
     const {
         setNodeRef,
         isOver,
     } = useSortable({
-        id: assembly.id,
-        data: { type: 'assembly', assembly },
+        id: `drop-${targetType}-${targetId}`,
+        data: { type: targetType, targetId },
     });
 
     return (
         <div
             ref={setNodeRef}
-            className={`assembly-container ${isOver ? 'assembly-drop-target' : ''}`}
+            className={`
+                min-h-[40px] border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center
+                ${isOver
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-300 bg-gray-50 text-gray-500 hover:border-blue-400 hover:bg-blue-50'
+                }
+                ${className}
+            `}
         >
-            {children}
-        </div>
-    );
-}
-
-function AssemblyBottomDropZone({ assembly }: AssemblyBottomDropZoneProps) {
-    const {
-        setNodeRef,
-        isOver,
-    } = useSortable({
-        id: `assembly-bottom-${assembly.id}`,
-        data: { type: 'assembly', assembly },
-    });
-
-    return (
-        <div
-            ref={setNodeRef}
-            className={`assembly-drop-zone-bottom mt-4 p-4 border-2 border-dashed rounded-lg text-center cursor-pointer transition-all min-h-[50px] flex items-center justify-center ${isOver
-                ? 'border-green-400 bg-green-100 text-green-700'
-                : 'border-blue-200 bg-blue-50 text-blue-600 hover:border-blue-400 hover:bg-blue-100'
-                }`}
-            title={`Drop items here to make them direct children of ${assembly.levelName} assembly`}
-            data-assembly-id={assembly.id}
-            data-drop-type="assembly"
-        >
-            <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
-                    {isOver ? '🎯 Drop here for Assembly!' : '🏛️ Drop here for Assembly'}
-                </span>
+            <div className="flex items-center gap-2 text-sm font-medium">
+                <span>{isOver ? '🎯' : '📥'}</span>
+                <span>{isOver ? 'Drop Here!' : label}</span>
             </div>
         </div>
     );
 }
 
-function DraggableNode({ node, level, onToggle, expandedNodes }: DraggableNodeProps) {
+// Grid View Component for faster rendering
+function GridHierarchyView({ nodes, assembly, searchTerm }: {
+    nodes: HierarchyNode[];
+    assembly: any;
+    searchTerm: string;
+}) {
+    const filteredNodes = nodes.filter(node =>
+        !searchTerm || node.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const getLevelColor = (levelName: string) => {
+        const colors = {
+            Block: 'from-blue-500 to-blue-600',
+            Mandal: 'from-green-500 to-green-600',
+            Sector: 'from-purple-500 to-purple-600',
+            Zone: 'from-orange-500 to-orange-600',
+            Ward: 'from-pink-500 to-pink-600',
+            PollingCenter: 'from-indigo-500 to-indigo-600',
+            Booth: 'from-red-500 to-red-600',
+        };
+        return colors[levelName as keyof typeof colors] || 'from-gray-500 to-gray-600';
+    };
+
+    return (
+        <div className="space-y-3">
+            {/* Assembly Drop Zone */}
+            <SimpleDropZone
+                targetId={assembly.id}
+                targetType="assembly"
+                label={`Add to ${assembly.levelName}`}
+                className="mb-4"
+            />
+
+            {/* Nodes */}
+            {filteredNodes.map((node) => (
+                <CompactNodeCard key={node.id} node={node} getLevelColor={getLevelColor} />
+            ))}
+
+            {filteredNodes.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                    {searchTerm ? 'No matching items found' : 'No items in this assembly'}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Compact Node Card for Grid View
+function CompactNodeCard({ node, getLevelColor }: {
+    node: HierarchyNode;
+    getLevelColor: (levelName: string) => string;
+}) {
     const {
         attributes,
         listeners,
         setNodeRef,
         transform,
         isDragging,
-        isOver,
     } = useSortable({
         id: node.id,
         data: { type: 'node', node },
@@ -105,54 +127,126 @@ function DraggableNode({ node, level, onToggle, expandedNodes }: DraggableNodePr
 
     const style: React.CSSProperties = {
         transform: CSS.Transform.toString(transform),
-        transition: isDragging ? 'none' : 'transform 200ms ease',
         opacity: isDragging ? 0.5 : 1,
-        marginLeft: `${level * 24}px`,
-        position: 'relative',
-        zIndex: isDragging ? 1000 : level === 0 ? 10 : 5,
-    };
-
-    const isExpanded = expandedNodes.has(node.id);
-    const hasChildren = node.children && node.children.length > 0;
-
-    const getLevelColor = (levelName: string) => {
-        const colors = {
-            Block: 'bg-blue-100 text-blue-800 border-blue-200',
-            Mandal: 'bg-green-100 text-green-800 border-green-200',
-            Sector: 'bg-purple-100 text-purple-800 border-purple-200',
-            Zone: 'bg-orange-100 text-orange-800 border-orange-200',
-            Ward: 'bg-pink-100 text-pink-800 border-pink-200',
-            PollingCenter: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-            Booth: 'bg-red-100 text-red-800 border-red-200',
-        };
-        return colors[levelName as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
     };
 
     return (
-        <div className="drag-container" style={{ position: 'relative' }}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`
+                group relative bg-white rounded-lg border border-gray-200 p-3 cursor-grab active:cursor-grabbing
+                hover:shadow-md hover:border-gray-300 transition-all duration-200
+                ${isDragging ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : ''}
+            `}
+        >
+            <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 bg-gradient-to-r ${getLevelColor(node.levelName)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-white text-xs font-bold">
+                        {node.levelName.charAt(0)}
+                    </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 truncate">{node.displayName}</h4>
+                    <p className="text-sm text-gray-500">{node.levelName}</p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span>ID: {node.id}</span>
+                    {node.children && node.children.length > 0 && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded-full">
+                            {node.children.length}
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Children Preview */}
+            {node.children && node.children.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex flex-wrap gap-1">
+                        {node.children.slice(0, 3).map((child) => (
+                            <span key={child.id} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                {child.displayName}
+                            </span>
+                        ))}
+                        {node.children.length > 3 && (
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                +{node.children.length - 3} more
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Drop Zone for making children */}
+            <div className="mt-3">
+                <SimpleDropZone
+                    targetId={node.id}
+                    targetType="node"
+                    label={`Add child to ${node.displayName}`}
+                    className="min-h-[32px]"
+                />
+            </div>
+        </div>
+    );
+}
+
+// Tree Node View for traditional tree layout
+function TreeNodeView({ node, level, searchTerm }: { node: HierarchyNode; level: number; searchTerm?: string }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        isDragging,
+    } = useSortable({
+        id: node.id,
+        data: { type: 'node', node },
+    });
+
+    const style: React.CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+        marginLeft: `${level * 24}px`,
+    };
+
+    const getLevelColor = (levelName: string) => {
+        const colors = {
+            Block: 'from-blue-500 to-blue-600',
+            Mandal: 'from-green-500 to-green-600',
+            Sector: 'from-purple-500 to-purple-600',
+            Zone: 'from-orange-500 to-orange-600',
+            Ward: 'from-pink-500 to-pink-600',
+            PollingCenter: 'from-indigo-500 to-indigo-600',
+            Booth: 'from-red-500 to-red-600',
+        };
+        return colors[levelName as keyof typeof colors] || 'from-gray-500 to-gray-600';
+    };
+
+    const hasChildren = node.children && node.children.length > 0;
+
+    return (
+        <div className="space-y-2">
             <div
                 ref={setNodeRef}
                 style={style}
                 {...attributes}
                 {...listeners}
-                className={`draggable-node hierarchy-item flex items-center gap-2 p-3 bg-white border rounded-lg shadow-sm cursor-grab active:cursor-grabbing ${isDragging
-                    ? 'opacity-50'
-                    : isOver
-                        ? 'drop-target ring-2 ring-green-400 bg-green-50 border-green-300'
-                        : 'hover:bg-gray-50 hover:shadow-md'
-                    }`}
-                data-node-id={node.id}
-                data-level={level}
-                data-level-name={node.levelName}
+                className={`
+                    group flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing
+                    hover:shadow-md hover:border-gray-300 transition-all duration-200
+                    ${isDragging ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : ''}
+                `}
             >
                 {hasChildren && (
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggle(node.id);
-                        }}
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
                         onMouseDown={(e) => e.stopPropagation()}
-                        className="p-1 hover:bg-gray-100 rounded z-10 relative"
                     >
                         {isExpanded ? (
                             <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -161,55 +255,49 @@ function DraggableNode({ node, level, onToggle, expandedNodes }: DraggableNodePr
                         )}
                     </button>
                 )}
-
                 {!hasChildren && <div className="w-6" />}
 
-                <div className="flex items-center gap-3 flex-1">
-                    <span className={`level-badge px-2 py-1 text-xs font-medium rounded-full border ${getLevelColor(node.levelName)}`}>
-                        {node.levelName}
+                <div className={`w-10 h-10 bg-gradient-to-r ${getLevelColor(node.levelName)} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-white text-sm font-bold">
+                        {node.levelName.charAt(0)}
                     </span>
-
-                    <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{node.displayName}</h3>
-                        <p className="text-sm text-gray-500">{node.partyLevelName}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <MapPin className="w-4 h-4" />
-                        <span>ID: {node.id}</span>
-                        <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                            Level {level}
-                        </span>
-                        {hasChildren && (
-                            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                {node.children.length} child{node.children.length !== 1 ? 'ren' : ''}
-                            </span>
-                        )}
-                    </div>
                 </div>
+
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900">{node.displayName}</h4>
+                    <p className="text-sm text-gray-500">{node.levelName} • ID: {node.id}</p>
+                </div>
+
+                {hasChildren && (
+                    <div className="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
+                        {node.children.length} child{node.children.length !== 1 ? 'ren' : ''}
+                    </div>
+                )}
             </div>
 
             {hasChildren && isExpanded && (
-                <div className="mt-2 space-y-2 relative">
-                    <div
-                        className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 to-transparent opacity-50"
-                        style={{ marginLeft: `${level * 24}px` }}
-                    ></div>
-                    {node.children.map((child) => (
-                        <div key={child.id} className="relative">
-                            <div
-                                className="absolute w-6 h-0.5 bg-blue-300 opacity-50 top-1/2 transform -translate-y-1/2"
-                                style={{ left: `${(level + 1) * 24 - 18}px` }}
-                            ></div>
-                            <DraggableNode
-                                node={child}
-                                level={level + 1}
-                                onToggle={onToggle}
-                                expandedNodes={expandedNodes}
-                            />
-                        </div>
-                    ))}
+                <div className="space-y-2">
+                    <SimpleDropZone
+                        targetId={node.id}
+                        targetType="node"
+                        label={`Add child to ${node.displayName}`}
+                        className="ml-9"
+                    />
+                    {node.children
+                        .filter(child => !searchTerm || child.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map((child) => (
+                            <TreeNodeView key={child.id} node={child} level={level + 1} searchTerm={searchTerm} />
+                        ))}
                 </div>
+            )}
+
+            {!hasChildren && (
+                <SimpleDropZone
+                    targetId={node.id}
+                    targetType="node"
+                    label={`Add child to ${node.displayName}`}
+                    className="ml-9"
+                />
             )}
         </div>
     );
@@ -219,12 +307,12 @@ export default function HierarchyManager() {
     const { user } = useAppSelector((state) => state.auth);
     const [hierarchyData, setHierarchyData] = useState<AssemblyHierarchy[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set());
-    const [selectedState, setSelectedState] = useState<number>(1);
-    const [selectedParty, setSelectedParty] = useState<number>(1);
-    const [showFilters, setShowFilters] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedAssembly, setSelectedAssembly] = useState<number | null>(null);
     const [activeId, setActiveId] = useState<number | null>(null);
     const [draggedNode, setDraggedNode] = useState<HierarchyNode | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [viewMode, setViewMode] = useState<'tree' | 'grid'>('grid');
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -234,7 +322,7 @@ export default function HierarchyManager() {
         })
     );
 
-    // Advanced collision detection that properly handles nested elements
+    // Simplified collision detection
     const customCollisionDetection = (args: any) => {
         const { pointerCoordinates } = args;
 
@@ -242,129 +330,46 @@ export default function HierarchyManager() {
             return rectIntersection(args);
         }
 
-        // Get all potential collisions
         const pointerCollisions = pointerWithin(args);
 
         if (pointerCollisions.length === 0) {
             return rectIntersection(args);
         }
 
-        console.log('🎯 All collisions:', pointerCollisions.map(c => c.id));
-
-        // Separate assembly collisions from node collisions
-        const assemblyCollisions = pointerCollisions.filter(collision => {
-            // Check if it's an assembly ID
-            const isAssembly = hierarchyData.some(assembly => assembly.assembly.id === collision.id);
-
-            // Also check if it's an assembly drop zone element
-            const element = document.querySelector(`[data-assembly-id="${collision.id}"]`);
-            const isAssemblyDropZone = element && element.getAttribute('data-drop-type') === 'assembly';
-
-            return isAssembly || isAssemblyDropZone;
+        // Prioritize drop zones
+        const dropZoneCollisions = pointerCollisions.filter(collision => {
+            return typeof collision.id === 'string' && collision.id.startsWith('drop-');
         });
 
-        const nodeCollisions = pointerCollisions.filter(collision => {
-            return !hierarchyData.some(assembly => assembly.assembly.id === collision.id);
-        });
-
-        // Always prioritize assembly collisions
-        if (assemblyCollisions.length > 0) {
-            console.log('🏛️ Assembly collision detected:', assemblyCollisions[0].id);
-            return assemblyCollisions;
+        if (dropZoneCollisions.length > 0) {
+            return [dropZoneCollisions[0]];
         }
 
-        // For node collisions, use a more sophisticated approach
-        if (nodeCollisions.length > 0) {
-            // Get the actual DOM elements and their positions
-            const collisionDetails = nodeCollisions.map(collision => {
-                const element = document.querySelector(`[data-node-id="${collision.id}"]`);
-                const level = element?.getAttribute('data-level') || '999';
-                const levelName = element?.getAttribute('data-level-name') || '';
-
-                // Get element bounds
-                const rect = element?.getBoundingClientRect();
-
-                return {
-                    id: collision.id,
-                    level: parseInt(level),
-                    levelName,
-                    element,
-                    rect,
-                    // Calculate distance from pointer to element center
-                    distanceFromCenter: rect ? Math.sqrt(
-                        Math.pow(pointerCoordinates.x - (rect.left + rect.width / 2), 2) +
-                        Math.pow(pointerCoordinates.y - (rect.top + rect.height / 2), 2)
-                    ) : Infinity
-                };
-            });
-
-            // Sort by level first (higher level = lower number = higher priority)
-            // Then by distance from center (closer = higher priority)
-            const sortedCollisions = collisionDetails.sort((a, b) => {
-                // First priority: level (Block = 0, Mandal = 1, etc.)
-                if (a.level !== b.level) {
-                    return a.level - b.level;
-                }
-                // Second priority: distance from pointer (closer wins)
-                return a.distanceFromCenter - b.distanceFromCenter;
-            });
-
-            console.log('📦 Sorted collisions:', sortedCollisions.map(c => ({
-                id: c.id,
-                level: c.level,
-                levelName: c.levelName,
-                distance: Math.round(c.distanceFromCenter)
-            })));
-
-            // Return the best match
-            const bestMatch = sortedCollisions[0];
-            console.log('🎯 Selected target:', bestMatch.id, bestMatch.levelName);
-
-            return [{ id: bestMatch.id }];
-        }
-
-        return rectIntersection(args);
+        return [pointerCollisions[0]];
     };
-
-    useEffect(() => {
-        if (user?.state_id) setSelectedState(user.state_id);
-        if (user?.partyId) setSelectedParty(user.partyId);
-    }, [user]);
 
     useEffect(() => {
         loadHierarchyData();
-    }, [selectedState, selectedParty]);
+    }, [user]);
 
-    const loadHierarchyData = async () => {
+    const loadHierarchyData = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetchAfterAssemblyHierarchy(selectedState, selectedParty);
+            const stateId = user?.state_id || 1;
+            const partyId = user?.partyId || 1;
+            const response = await fetchAfterAssemblyHierarchy(stateId, partyId);
             if (response.success) {
                 setHierarchyData(response.data);
-                const firstLevelIds = response.data.flatMap(assembly =>
-                    assembly.afterAssemblyHierarchy.map(node => node.id)
-                );
-                setExpandedNodes(new Set(firstLevelIds));
+            } else {
+                toast.error(response.message || 'Failed to load hierarchy data');
             }
         } catch (error) {
             console.error('Failed to load hierarchy data:', error);
-            toast.error('Failed to load hierarchy data');
+            toast.error('Failed to load hierarchy data. Please try again.');
         } finally {
             setLoading(false);
         }
-    };
-
-    const toggleNode = (nodeId: number) => {
-        setExpandedNodes(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(nodeId)) {
-                newSet.delete(nodeId);
-            } else {
-                newSet.add(nodeId);
-            }
-            return newSet;
-        });
-    };
+    }, [user?.state_id, user?.partyId]);
 
     const findNodeById = (nodes: HierarchyNode[], id: number): HierarchyNode | null => {
         for (const node of nodes) {
@@ -391,38 +396,11 @@ export default function HierarchyManager() {
         setActiveId(id);
         const node = findNodeInHierarchy(id);
         setDraggedNode(node);
-
-        // Add body class for drag state
         document.body.classList.add('dragging');
-
-        // Optimize scroll performance
-        document.documentElement.style.scrollBehavior = 'auto';
-
-        console.log('🚀 Drag started:', { id, node: node?.displayName });
     };
 
-    const handleDragOver = (event: DragOverEvent) => {
-        const { over } = event;
-        if (over) {
-            // Clear previous highlights
-            document.querySelectorAll('.drag-target-highlight').forEach(el => {
-                el.classList.remove('drag-target-highlight');
-            });
-
-            // Highlight current target
-            const targetElement = document.querySelector(`[data-node-id="${over.id}"]`);
-            if (targetElement) {
-                targetElement.classList.add('drag-target-highlight');
-
-                const levelName = targetElement.getAttribute('data-level-name');
-                const level = targetElement.getAttribute('data-level');
-                console.log('📍 Dragging over:', {
-                    id: over.id,
-                    levelName,
-                    level
-                });
-            }
-        }
+    const handleDragOver = (_event: DragOverEvent) => {
+        // Visual feedback can be added here if needed
     };
 
     const handleDragEnd = async (event: DragEndEvent) => {
@@ -430,17 +408,7 @@ export default function HierarchyManager() {
 
         setActiveId(null);
         setDraggedNode(null);
-
-        // Remove body class for drag state
         document.body.classList.remove('dragging');
-
-        // Restore scroll behavior
-        document.documentElement.style.scrollBehavior = '';
-
-        // Clear any remaining highlights
-        document.querySelectorAll('.drag-target-highlight').forEach(el => {
-            el.classList.remove('drag-target-highlight');
-        });
 
         if (!over || active.id === over.id) {
             return;
@@ -451,80 +419,57 @@ export default function HierarchyManager() {
             return;
         }
 
-        const targetId = over.id; // Keep as UniqueIdentifier (string | number)
+        const targetId = over.id;
 
-        console.log('🎯 Drop detected:', {
-            draggedNode: draggedNodeFromHierarchy.displayName,
-            targetId: targetId,
-            draggedLevel: draggedNodeFromHierarchy.levelName
-        });
+        // Check if we're dropping on a simplified drop zone
+        if (typeof targetId === 'string' && targetId.startsWith('drop-')) {
+            const dropData = over.data?.current;
+            if (dropData) {
+                const { type, targetId: dropTargetId } = dropData;
 
-        // Check if we're dropping on an assembly first (highest priority)
-        let targetAssembly = hierarchyData.find(assembly => assembly.assembly.id === targetId);
+                if (type === 'assembly') {
+                    const targetAssembly = hierarchyData.find(a => a.assembly.id === dropTargetId);
+                    if (targetAssembly) {
+                        toast.success(`🏛️ Making child of ${targetAssembly.assembly.levelName} Assembly`);
+                        await performMove(draggedNodeFromHierarchy, {
+                            type: 'assembly',
+                            id: targetAssembly.assembly.id,
+                            assembly: targetAssembly
+                        });
+                        return;
+                    }
+                } else if (type === 'node') {
+                    const targetNode = findNodeInHierarchy(dropTargetId);
+                    if (targetNode) {
+                        // Prevent dropping a parent onto its own child
+                        if (isParentOfTarget(draggedNodeFromHierarchy, targetNode.id)) {
+                            toast.error('Cannot move parent into its own child');
+                            return;
+                        }
 
-        // Also check for bottom drop zone format: "assembly-bottom-{id}"
-        if (!targetAssembly && typeof targetId === 'string' && targetId.startsWith('assembly-bottom-')) {
-            const assemblyId = parseInt(targetId.replace('assembly-bottom-', ''));
-            targetAssembly = hierarchyData.find(assembly => assembly.assembly.id === assemblyId);
-            if (targetAssembly) {
-                console.log('🏛️ Dropping on assembly bottom zone:', targetAssembly.assembly.levelName);
-                await performMove(draggedNodeFromHierarchy, { type: 'assembly', id: assemblyId, assembly: targetAssembly });
-                return;
+                        toast.success(`📦 Making child of ${targetNode.displayName}`);
+                        await performMove(draggedNodeFromHierarchy, {
+                            type: 'node',
+                            id: targetNode.id,
+                            node: targetNode
+                        });
+                        return;
+                    }
+                }
             }
         }
 
-        if (targetAssembly) {
-            console.log('🏛️ Dropping on assembly:', targetAssembly.assembly.levelName);
-            await performMove(draggedNodeFromHierarchy, { type: 'assembly', id: targetAssembly.assembly.id, assembly: targetAssembly });
-            return;
-        }
-
-        // Check if we're dropping on a node (only for numeric IDs)
+        // Direct node drop
         const targetNode = typeof targetId === 'number' ? findNodeInHierarchy(targetId) : null;
         if (targetNode) {
-            console.log('📦 Dropping on node:', {
-                targetName: targetNode.displayName,
-                targetLevel: targetNode.levelName,
-                targetParentId: targetNode.parentId,
-                targetParentAssemblyId: targetNode.parentAssemblyId
-            });
-
-            // Prevent dropping a parent onto its own child
             if (isParentOfTarget(draggedNodeFromHierarchy, targetNode.id)) {
                 toast.error('Cannot move parent into its own child');
                 return;
             }
 
-            // Special handling: If dragging to a higher level node (like Block when current is in Mandal)
-            // Make sure we're actually targeting the intended node
-            const draggedLevel = getLevelHierarchy(draggedNodeFromHierarchy.levelName);
-            const targetLevel = getLevelHierarchy(targetNode.levelName);
-
-            console.log('📊 Level comparison:', {
-                draggedLevel,
-                targetLevel,
-                isMovingToHigherLevel: targetLevel < draggedLevel
-            });
-
             await performMove(draggedNodeFromHierarchy, { type: 'node', id: targetNode.id, node: targetNode });
             return;
         }
-
-        console.log('❌ No valid drop target found for ID:', targetId);
-    };
-
-    // Helper function to get level hierarchy order (lower number = higher in hierarchy)
-    const getLevelHierarchy = (levelName: string): number => {
-        const hierarchy = {
-            'Block': 1,
-            'Mandal': 2,
-            'Sector': 3,
-            'Zone': 4,
-            'Ward': 5,
-            'PollingCenter': 6,
-            'Booth': 7
-        };
-        return hierarchy[levelName as keyof typeof hierarchy] || 999;
     };
 
     const isParentOfTarget = (node: HierarchyNode, targetId: number): boolean => {
@@ -533,37 +478,26 @@ export default function HierarchyManager() {
     };
 
     const performMove = async (draggedNode: HierarchyNode, target: { type: 'assembly' | 'node', id: number, assembly?: any, node?: HierarchyNode }) => {
+        if (isUpdating) return;
+
         try {
+            setIsUpdating(true);
             let updatePayload: any = {};
 
             if (target.type === 'assembly') {
-                // Moving to assembly - make it a direct assembly child
-                // parentId = null (no parent node), parentAssemblyId = assembly.id
                 updatePayload = {
                     parentId: null,
                     parentAssemblyId: target.id
                 };
             } else {
-                // Moving to node - make it a child of that node  
-                // Only send parentId, don't send parentAssemblyId to avoid validation error
                 updatePayload = {
                     parentId: target.id
                 };
 
-                // Only include parentAssemblyId if the dragged node currently has one
-                // (to clear it when moving from assembly child to node child)
                 if (draggedNode.parentAssemblyId !== null) {
                     updatePayload.parentAssemblyId = null;
                 }
             }
-
-            console.log('Update payload:', updatePayload);
-            console.log('Current node state:', {
-                id: draggedNode.id,
-                displayName: draggedNode.displayName,
-                parentId: draggedNode.parentId,
-                parentAssemblyId: draggedNode.parentAssemblyId
-            });
 
             const response = await updateAfterAssemblyData(draggedNode.id, updatePayload);
 
@@ -575,29 +509,14 @@ export default function HierarchyManager() {
                 toast.success(`✅ Moved ${draggedNode.displayName} to ${targetName}`);
                 await loadHierarchyData();
             } else {
-                console.error('API Error Response:', response);
                 toast.error('❌ Failed to update: ' + (response.message || 'Unknown error'));
             }
         } catch (error: any) {
             console.error('Move failed:', error);
-
-            // Try to parse the error message for better user feedback
-            let errorMessage = 'Failed to update hierarchy';
-            if (error.message) {
-                try {
-                    const errorData = JSON.parse(error.message);
-                    if (errorData.error && errorData.error.details) {
-                        const validationErrors = errorData.error.details.map((d: any) => `${d.path}: ${d.message}`).join(', ');
-                        errorMessage = `Validation Error: ${validationErrors}`;
-                    } else if (errorData.error && errorData.error.message) {
-                        errorMessage = errorData.error.message;
-                    }
-                } catch {
-                    errorMessage = error.message;
-                }
-            }
-
-            toast.error(`❌ ${errorMessage}`);
+            toast.error(`❌ Failed to update hierarchy`);
+            await loadHierarchyData();
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -612,232 +531,450 @@ export default function HierarchyManager() {
         return ids;
     };
 
-    const allNodeIds = [
-        ...hierarchyData.flatMap(assembly => getAllNodeIds(assembly.afterAssemblyHierarchy)),
-        ...hierarchyData.map(assembly => assembly.assembly.id),
-        // Add assembly drop zone IDs with a prefix to avoid conflicts
-        ...hierarchyData.map(assembly => `assembly-bottom-${assembly.assembly.id}`)
-    ];
+    const allNodeIds = useMemo(() => {
+        const nodeIds = hierarchyData.flatMap(assembly => getAllNodeIds(assembly.afterAssemblyHierarchy));
+        const assemblyIds = hierarchyData.map(assembly => assembly.assembly.id);
+
+        // Add simplified drop zone IDs
+        const dropZoneIds: string[] = [];
+        hierarchyData.forEach(assembly => {
+            dropZoneIds.push(`drop-assembly-${assembly.assembly.id}`);
+            const addNodeDropZones = (nodes: HierarchyNode[]) => {
+                nodes.forEach(node => {
+                    dropZoneIds.push(`drop-node-${node.id}`);
+                    if (node.children) {
+                        addNodeDropZones(node.children);
+                    }
+                });
+            };
+            addNodeDropZones(assembly.afterAssemblyHierarchy);
+        });
+
+        return [...nodeIds, ...assemblyIds, ...dropZoneIds];
+    }, [hierarchyData]);
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+                <div className="bg-white rounded-xl p-8 shadow-lg flex items-center gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+                    <span className="text-gray-900 font-medium">Loading hierarchy...</span>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center gap-4">
-                            <Settings className="w-6 h-6 text-blue-600" />
-                            <h1 className="text-xl font-semibold text-gray-900">
-                                Assembly Hierarchy Management
-                            </h1>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                            >
-                                <Settings className="w-4 h-4" />
-                                Filters
-                                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                            </button>
-
-                            <button
-                                onClick={loadHierarchyData}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                            >
-                                <RefreshCw className="w-4 h-4" />
-                                Refresh
-                            </button>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={customCollisionDetection}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+                {/* Global loading overlay for updates */}
+                {isUpdating && (
+                    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl p-6 shadow-2xl flex items-center gap-3 border">
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                            <span className="text-gray-900 font-medium">Updating hierarchy...</span>
                         </div>
                     </div>
-                </div>
-            </div>
+                )}
 
-            {/* Filters Panel */}
-            {showFilters && (
-                <div className="bg-white border-b shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                                    State
-                                </label>
-                                <select
-                                    id="state"
-                                    value={selectedState}
-                                    onChange={(e) => setSelectedState(Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    <option value={1}>State 1</option>
-                                    <option value={2}>State 2</option>
-                                    <option value={3}>State 3</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label htmlFor="party" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Party
-                                </label>
-                                <select
-                                    id="party"
-                                    value={selectedParty}
-                                    onChange={(e) => setSelectedParty(Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    <option value={1}>Party 1</option>
-                                    <option value={2}>Party 2</option>
-                                    <option value={3}>Party 3</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="space-y-6">
-                    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
-                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Assembly Hierarchy Manager</h2>
-
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 flex items-center justify-center">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                    </svg>
+                {/* Modern Responsive Header */}
+                <div className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-40">
+                    <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                        {/* Desktop Header */}
+                        <div className="hidden lg:flex items-center justify-between h-16">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                                    <Settings className="w-4 h-4 text-white" />
                                 </div>
-                                <span>Drag cards to reorganize hierarchy</span>
+                                <div>
+                                    <h1 className="text-lg font-bold text-gray-900">Hierarchy Manager</h1>
+                                    <p className="text-xs text-gray-500">Drag & drop to reorganize</p>
+                                </div>
                             </div>
+
+                            <div className="flex items-center gap-3">
+                                {/* View Mode Toggle */}
+                                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('tree')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'tree'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        🌳 Tree
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('grid')}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'grid'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        ⚡ Grid
+                                    </button>
+                                </div>
+
+                                {/* Search */}
+                                {/* <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Quick search..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-64 pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                                    />
+                                    <div className="absolute left-3 top-2.5">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={loadHierarchyData}
+                                    disabled={loading || isUpdating}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                    Refresh
+                                </button> */}
+                            </div>
+                        </div>
+
+                        {/* Tablet Header */}
+                        <div className="hidden md:flex lg:hidden items-center justify-between h-16">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                                    <Settings className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-base font-bold text-gray-900">Hierarchy Manager</h1>
+                                    <p className="text-xs text-gray-500">Drag & drop to reorganize</p>
+                                </div>
+                            </div>
+
                             <div className="flex items-center gap-2">
-                                <ChevronRight className="w-4 h-4" />
-                                <span>Click to expand/collapse</span>
+                                {/* View Mode Toggle */}
+                                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('tree')}
+                                        className={`px-2 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'tree'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        🌳
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('grid')}
+                                        className={`px-2 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'grid'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        ⚡
+                                    </button>
+                                </div>
+
+                                {/* Search */}
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-40 pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                                    />
+                                    <div className="absolute left-2.5 top-2.5">
+                                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={loadHierarchyData}
+                                    disabled={loading || isUpdating}
+                                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Header */}
+                        <div className="md:hidden py-3 space-y-3">
+                            {/* Top Row - Title and Refresh */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                                        <Settings className="w-3 h-3 text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-sm font-bold text-gray-900">Hierarchy Manager</h1>
+                                        <p className="text-xs text-gray-500">Drag & drop to reorganize</p>
+                                    </div>
+                                </div>
+                                {/* <button
+                                    onClick={loadHierarchyData}
+                                    disabled={loading || isUpdating}
+                                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                                >
+                                    <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                                </button> */}
+
+                                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('tree')}
+                                        className={`px-2 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === 'tree'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        🌳
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('grid')}
+                                        className={`px-2 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === 'grid'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        ⚡
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Second Row - Search and View Toggle */}
+                            <div className="flex items-center gap-2">
+                                {/* Search - Full width on mobile */}
+                                {/* <div className="relative flex-1">
+                                    <input
+                                        type="text"
+                                        placeholder="Search items..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                                    />
+                                    <div className="absolute left-2.5 top-2.5">
+                                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div> */}
+
+                                {/* View Mode Toggle - Compact on mobile */}
+                                {/* <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('tree')}
+                                        className={`px-2 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === 'tree'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        🌳
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('grid')}
+                                        className={`px-2 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === 'grid'
+                                            ? 'bg-white text-gray-900 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        ⚡
+                                    </button>
+                                </div> */}
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={customCollisionDetection}
-                        onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
-                        onDragEnd={handleDragEnd}
-                        autoScroll={{
-                            enabled: true,
-                            threshold: {
-                                x: 0.2,
-                                y: 0.2,
-                            },
-                            acceleration: 10,
-                            interval: 5,
-                        }}
-                    >
-                        <SortableContext items={allNodeIds} strategy={verticalListSortingStrategy}>
-                            <div className="space-y-6">
-                                {hierarchyData.map((assembly) => (
-                                    <AssemblyDropZone key={assembly.assembly.id} assembly={assembly.assembly}>
-                                        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border relative">
-                                            {/* Top Assembly Drop Zone */}
-                                            <div
-                                                className="flex items-center gap-3 mb-4 pb-4 border-b assembly-drop-zone bg-blue-50 rounded-lg p-4 border-2 border-dashed border-blue-200 hover:border-blue-400 hover:bg-blue-100 transition-all cursor-pointer min-h-[60px]"
-                                                title={`Drop items here to make them direct children of ${assembly.assembly.levelName} assembly`}
-                                                data-assembly-id={assembly.assembly.id}
-                                                data-drop-type="assembly"
-                                            >
-                                                <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
-                                                    <span className="text-white text-xs">🏛️</span>
-                                                </div>
-                                                <h3 className="text-lg font-semibold text-gray-900">
-                                                    {assembly.assembly.levelName}
-                                                </h3>
-                                                <span className="px-3 py-1 text-xs font-medium bg-blue-200 text-blue-900 rounded-full">
-                                                    Assembly (ID: {assembly.assembly.id})
-                                                </span>
-                                                <div className="ml-auto flex items-center gap-2">
-                                                    <div className="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center">
-                                                        <span className="text-blue-800 text-xs">⬇️</span>
+                {/* Assembly Selector */}
+                <div className="bg-white/60 backdrop-blur-sm border-b border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="flex items-center gap-4 overflow-x-auto w-full">
+                                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Assemblies:</span>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setSelectedAssembly(null)}
+                                        className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap ${selectedAssembly === null
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                            }`}
+                                    >
+                                        All ({hierarchyData.length})
+                                    </button>
+                                    {hierarchyData.map((assembly) => (
+                                        <button
+                                            key={assembly.assembly.id}
+                                            onClick={() => setSelectedAssembly(assembly.assembly.id)}
+                                            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap ${selectedAssembly === assembly.assembly.id
+                                                ? 'bg-blue-600 text-white shadow-sm'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                }`}
+                                        >
+                                            <span className="hidden sm:inline">{assembly.assembly.levelName}</span>
+                                            <span className="sm:hidden">{assembly.assembly.levelName.substring(0, 3)}</span>
+                                            <span className="ml-1">({assembly.afterAssemblyHierarchy.length})</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Search Results Indicator */}
+                            {searchTerm && (
+                                <div className="flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium whitespace-nowrap">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <span>Searching: "{searchTerm}"</span>
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="ml-1 hover:bg-yellow-200 rounded-full p-0.5"
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+                    <SortableContext items={allNodeIds} strategy={verticalListSortingStrategy}>
+                        {viewMode === 'grid' ? (
+                            /* Grid View - Fast and Modern */
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {(selectedAssembly ? hierarchyData.filter(a => a.assembly.id === selectedAssembly) : hierarchyData)
+                                    .map((assembly) => (
+                                        <div key={assembly.assembly.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all">
+                                            <div className="p-4 border-b border-gray-100">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white font-bold text-sm">🏛️</span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-900">{assembly.assembly.levelName}</h3>
+                                                        <p className="text-sm text-gray-500">Assembly ID: {assembly.assembly.id}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-lg font-bold text-blue-600">{assembly.afterAssemblyHierarchy.length}</div>
+                                                        <div className="text-xs text-gray-500">items</div>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div className="space-y-2 relative">
-                                                {assembly.afterAssemblyHierarchy.map((node) => (
-                                                    <DraggableNode
-                                                        key={node.id}
-                                                        node={node}
-                                                        level={0}
-                                                        onToggle={toggleNode}
-                                                        expandedNodes={expandedNodes}
-                                                    />
-                                                ))}
+                                            <div className="p-4 max-h-96 overflow-y-auto">
+                                                <GridHierarchyView
+                                                    nodes={assembly.afterAssemblyHierarchy}
+                                                    assembly={assembly.assembly}
+                                                    searchTerm={searchTerm}
+                                                />
                                             </div>
-
-                                            {/* Bottom Assembly Drop Zone - More prominent when dragging */}
-                                            <AssemblyBottomDropZone assembly={assembly.assembly} />
-
-                                            {assembly.afterAssemblyHierarchy.length === 0 && (
-                                                <div className="text-center py-8 text-gray-500">
-                                                    No hierarchy data available for this assembly
-                                                </div>
-                                            )}
                                         </div>
-                                    </AssemblyDropZone>
-                                ))}
+                                    ))}
                             </div>
-                        </SortableContext>
+                        ) : (
+                            /* Tree View - Traditional but Optimized */
+                            <div className="space-y-6">
+                                {(selectedAssembly ? hierarchyData.filter(a => a.assembly.id === selectedAssembly) : hierarchyData)
+                                    .map((assembly) => (
+                                        <div key={assembly.assembly.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                                            <div className="p-6">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                                                        <span className="text-white font-bold">🏛️</span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h2 className="text-xl font-bold text-gray-900">{assembly.assembly.levelName}</h2>
+                                                        <p className="text-gray-500">Assembly ID: {assembly.assembly.id} • {assembly.afterAssemblyHierarchy.length} items</p>
+                                                    </div>
+                                                </div>
 
-                        <DragOverlay dropAnimation={null}>
-                            {activeId && draggedNode ? (
-                                <div className="bg-white border-2 border-blue-500 rounded-lg p-4 shadow-2xl transform rotate-3 scale-105"
-                                    style={{
-                                        zIndex: 9999,
-                                        boxShadow: '0 25px 50px rgba(0,0,0,0.25), 0 10px 20px rgba(59,130,246,0.4)'
-                                    }}>
-                                    <div className="flex items-center gap-3">
-                                        <div className="animate-pulse">
-                                            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                            </svg>
+                                                <SimpleDropZone
+                                                    targetId={assembly.assembly.id}
+                                                    targetType="assembly"
+                                                    label={`Drop here to add to ${assembly.assembly.levelName} Assembly`}
+                                                    className="mb-6"
+                                                />
+
+                                                <div className="space-y-3">
+                                                    {assembly.afterAssemblyHierarchy
+                                                        .filter(node => !searchTerm || node.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
+                                                        .map((node) => (
+                                                            <TreeNodeView key={node.id} node={node} level={0} searchTerm={searchTerm} />
+                                                        ))}
+                                                </div>
+
+                                                {assembly.afterAssemblyHierarchy.length === 0 && (
+                                                    <div className="text-center py-12 text-gray-500">
+                                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                            <span className="text-2xl">📭</span>
+                                                        </div>
+                                                        <p>No items in this assembly</p>
+                                                        <p className="text-sm mt-1">Drag items here to get started</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <span className="px-3 py-1 text-xs font-bold rounded-full border bg-blue-100 text-blue-800 border-blue-300 animate-pulse">
-                                            {draggedNode.levelName}
-                                        </span>
-                                        <span className="font-bold text-gray-900">{draggedNode.displayName}</span>
-                                        <div className="ml-2 w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-                                    </div>
-                                    <div className="mt-2 text-xs text-gray-500">
-                                        ID: {draggedNode.id} • Parent: {draggedNode.parentId || draggedNode.parentAssemblyId || 'None'}
-                                    </div>
-                                </div>
-                            ) : activeId ? (
-                                <div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-xl opacity-75">
-                                    <div className="flex items-center gap-3">
-                                        <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                                        <span className="font-medium text-gray-600">Dragging item...</span>
-                                    </div>
-                                </div>
-                            ) : null}
-                        </DragOverlay>
-                    </DndContext>
+                                    ))}
+                            </div>
+                        )}
+                    </SortableContext>
 
                     {hierarchyData.length === 0 && (
-                        <div className="text-center py-12 bg-white rounded-lg shadow-sm border">
-                            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Hierarchy Data</h3>
+                        <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-2xl">🏛️</span>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Assemblies Found</h3>
                             <p className="text-gray-500">No assembly hierarchy data found for the selected state and party.</p>
                         </div>
                     )}
                 </div>
+
+                <DragOverlay dropAnimation={null}>
+                    {activeId && draggedNode ? (
+                        <div className="bg-white border-2 border-blue-500 rounded-lg p-2 shadow-xl transform rotate-2 scale-90 max-w-xs"
+                            style={{
+                                zIndex: 9999,
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 5px 10px rgba(59,130,246,0.3)'
+                            }}>
+                            <div className="flex items-center gap-2">
+                                <div className="animate-pulse">
+                                    <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                    </svg>
+                                </div>
+                                <span className="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-300">
+                                    {draggedNode.levelName}
+                                </span>
+                                <span className="font-semibold text-gray-900 text-sm truncate flex-1">
+                                    {draggedNode.displayName}
+                                </span>
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></div>
+                            </div>
+                        </div>
+                    ) : activeId ? (
+                        <div className="bg-white border-2 border-gray-300 rounded-lg p-2 shadow-lg opacity-75 max-w-xs">
+                            <div className="flex items-center gap-2">
+                                <div className="animate-spin w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                                <span className="font-medium text-gray-600 text-sm">Dragging...</span>
+                            </div>
+                        </div>
+                    ) : null}
+                </DragOverlay>
             </div>
-        </div>
+        </DndContext>
     );
 }
