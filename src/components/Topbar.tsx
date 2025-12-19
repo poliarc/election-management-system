@@ -772,8 +772,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0" ref={menuRef}>
-          {/* Google Translate */}
-          <GoogleTranslate />
+          {/* Google Translate - Hidden on mobile, shown on desktop */}
+          <div className="hidden md:block">
+            <GoogleTranslate />
+          </div>
 
           {user && (
             <div className="relative">
@@ -812,6 +814,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   role="menu"
                   className="absolute right-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl z-50"
                 >
+                  {/* Google Translate - Mobile only */}
+                  <div className="md:hidden px-2 sm:px-3 py-2">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                      Language
+                    </div>
+                    <GoogleTranslate />
+                  </div>
+
+                  {/* Divider between language and profile options on mobile */}
+                  <div className="my-2 border-t border-gray-200 md:hidden" />
+
                   {/* Only show profile link if not in admin panels */}
                   {!shouldHideProfile && (
                     <NavLink
@@ -888,6 +901,9 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       <div className="my-2 border-t border-gray-200 md:hidden" />
                     </>
                   )} */}
+
+                  {/* Divider before logout */}
+                  <div className="my-2 border-t border-gray-200" />
 
                   <button
                     onClick={() => {
