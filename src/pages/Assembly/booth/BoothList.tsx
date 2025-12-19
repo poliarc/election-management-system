@@ -172,7 +172,7 @@ export default function BoothList() {
                                 allBooths.push({
                                     ...child,
                                     pollingCenterId: null,
-                                    pollingCenterName: "Direct under Mandal",
+                                    pollingCenterName: null,
                                 });
                             }
                             // If it's not a booth, we ignore it (it might be an empty polling center)
@@ -189,7 +189,7 @@ export default function BoothList() {
                             allBooths.push({
                                 ...child,
                                 pollingCenterId: null,
-                                pollingCenterName: "Direct under Mandal",
+                                pollingCenterName: null,
                             });
                         }
                     }
@@ -591,11 +591,8 @@ export default function BoothList() {
                                     <thead className="bg-gradient-to-r from-purple-50 to-purple-100 sticky top-0">
                                         <tr>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
-                                            {hasPollingCentersWithBooths && (
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Polling Center</th>
-                                            )}
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                {hasPollingCentersWithBooths ? "Mandal / Polling Center" : "Mandal"}
+                                                {hasPollingCentersWithBooths ? "Polling Center" : "Mandal"}
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
@@ -611,15 +608,6 @@ export default function BoothList() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
-                                                {hasPollingCentersWithBooths && (
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                            booth.pollingCenterId ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                                                        }`}>
-                                                            {booth.pollingCenterName || "Direct under Mandal"}
-                                                        </span>
-                                                    </td>
-                                                )}
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                         booth.pollingCenterId ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'
@@ -690,7 +678,7 @@ export default function BoothList() {
                                                     locationName={booth.displayName}
                                                     locationId={booth.id}
                                                     locationType="Booth"
-                                                    parentLocationName={booth.pollingCenterName || "Mandal"}
+                                                    parentLocationName={booth.pollingCenterName || mandals.find(m => m.id === selectedMandalId)?.displayName || "Mandal"}
                                                     parentLocationType={booth.pollingCenterId ? "PollingCenter" : "Mandal"}
                                                     onUserDeleted={() => {
                                                         // Refresh user counts after deletion
@@ -703,7 +691,7 @@ export default function BoothList() {
                                                         window.location.reload();
                                                     }}
                                                     onClose={() => setExpandedBoothId(null)}
-                                                    colSpan={hasPollingCentersWithBooths ? 8 : 7}
+                                                    colSpan={7}
                                                 />
                                             )}
                                         </>

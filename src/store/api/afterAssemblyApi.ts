@@ -35,7 +35,7 @@ export const afterAssemblyApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ["AfterAssemblyHierarchy"],
+    tagTypes: ["AfterAssemblyHierarchy", "BlockAssignment"],
     endpoints: (builder) => ({
         deleteAssignedLevels: builder.mutation<
             DeleteAssignedLevelsResponse,
@@ -46,7 +46,7 @@ export const afterAssemblyApi = createApi({
                 method: "DELETE",
                 body,
             }),
-            invalidatesTags: ["AfterAssemblyHierarchy"],
+            invalidatesTags: ["AfterAssemblyHierarchy", "BlockAssignment"],
         }),
     }),
 });
