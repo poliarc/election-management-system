@@ -54,7 +54,7 @@ export interface VoterListCandidate {
     profession_sub_catg?: string;
     physical_verified?: string;
     married?: string;
-    voter_preference_rank?: string;
+    voter_preference_rank?: number;
     politcal_party?: string;
     relative_in_part_no?: string;
     relative_sl_in_part?: string;
@@ -78,10 +78,6 @@ export interface VoterListCandidate {
     approach_reason?: string;
     assembly_id?: number;
     eu_ssr_form_submitted?: string; // 'yes' or 'no'
-    influencer?: string; // 'yes' or 'no'
-    voter_mobilization_capacity?: number;
-    labarthi_scheme?: string;
-    outside_country?: string;
 }
 
 export interface VoterList extends VoterListCandidate {

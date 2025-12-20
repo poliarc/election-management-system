@@ -10,7 +10,6 @@ export default function SubLevelPanelDashboard() {
     const [stats, setStats] = useState({
         totalUsers: 0,
         activeUsers: 0,
-        inactiveUsers: 0,
         childLevels: 0,
     });
     const [loading, setLoading] = useState(true);
@@ -33,39 +32,10 @@ export default function SubLevelPanelDashboard() {
                 // Fetch users for this level
                 const usersResponse = await fetchAssignedUsersForLevel(Number(levelId));
                 if (usersResponse.success && usersResponse.users) {
-                    // Enhanced status checking function (same as Team.tsx and InlineUserDisplay)
-                    const checkActiveStatus = (value: any): boolean => {
-                        if (value === undefined || value === null) return false;
-                        if (typeof value === 'boolean') return value;
-                        if (typeof value === 'number') return value === 1;
-                        if (typeof value === 'string') return value === 'active' || value === '1' || value === 'true';
-                        return false;
-                    };
-
-                    const getUserActiveStatus = (user: any): boolean => {
-                        if (user.is_active !== undefined && user.is_active !== null) {
-                            return checkActiveStatus(user.is_active);
-                        } else if (user.user_active !== undefined && user.user_active !== null) {
-                            return checkActiveStatus(user.user_active);
-                        } else if (user.active !== undefined && user.active !== null) {
-                            return checkActiveStatus(user.active);
-                        } else if (user.status !== undefined && user.status !== null) {
-                            return checkActiveStatus(user.status);
-                        } else if (user.isActive !== undefined && user.isActive !== null) {
-                            return checkActiveStatus(user.isActive);
-                        }
-                        return false; // Default to inactive if no status field found
-                    };
-
-                    const activeUsersCount = usersResponse.users.filter((u: any) => getUserActiveStatus(u)).length;
-                    const totalUsersCount = usersResponse.users.length;
-                    const inactiveUsersCount = totalUsersCount - activeUsersCount;
-
                     setStats(prev => ({
                         ...prev,
-                        totalUsers: totalUsersCount,
-                        activeUsers: activeUsersCount,
-                        inactiveUsers: inactiveUsersCount,
+                        totalUsers: usersResponse.users.length,
+                        activeUsers: usersResponse.users.filter((u: any) => u.isActive).length,
                     }));
                 }
 
@@ -118,58 +88,44 @@ export default function SubLevelPanelDashboard() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
-                                <p className="text-xl sm:text-2xl font-semibold mt-1">
+                                <p className="text-2xl sm:text-3xl font-semibold mt-1">
                                     {loading ? "..." : stats.totalUsers}
                                 </p>
                             </div>
                             <div className="bg-blue-50 rounded-full p-2">
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-gray-600">Active Users</p>
-                                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                                <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                                     {loading ? "..." : stats.activeUsers}
                                 </p>
                             </div>
                             <div className="bg-green-50 rounded-full p-2">
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive Users</p>
-                                <p className="text-xl sm:text-2xl font-semibold text-red-600 mt-1">
-                                    {loading ? "..." : stats.inactiveUsers}
-                                </p>
-                            </div>
-                            <div className="bg-red-50 rounded-full p-2">
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-gray-600">Sub Levels</p>
-                                <p className="text-xl sm:text-2xl font-semibold text-teal-600 mt-1">
+                                <p className="text-2xl sm:text-3xl font-semibold text-teal-600 mt-1">
                                     {loading ? "..." : stats.childLevels}
                                 </p>
                             </div>
                             <div className="bg-teal-50 rounded-full p-2">
-                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                 </svg>
                             </div>
