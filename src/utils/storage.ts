@@ -23,6 +23,7 @@ export const storage = {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 
+
   setUser: (user: unknown) =>
     localStorage.setItem(USER_KEY, JSON.stringify(user)),
   getUser: <T>() => {
