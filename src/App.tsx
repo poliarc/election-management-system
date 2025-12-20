@@ -131,6 +131,13 @@ import {
   UserCommunication,
   VoterCommunication,
 } from "./pages/Assembly/communication";
+import {
+  SendReport,
+  MyReports,
+  AssignedReports,
+  UnderHierarchyReports,
+  ReportDetails,
+} from "./pages/VIC";
 
 export default function App() {
   return (
@@ -389,6 +396,12 @@ export default function App() {
               path="assigned-events"
               element={<AfterAssemblyAssignedEvents />}
             />
+            {/* VIC Routes */}
+            <Route path="vic/send-report" element={<SendReport />} />
+            <Route path="vic/my-reports" element={<MyReports />} />
+            <Route path="vic/assigned-reports" element={<AssignedReports />} />
+            <Route path="vic/under-hierarchy-reports" element={<UnderHierarchyReports />} />
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
           </Route>
 
           {/* Sub Level Panel Routes */}
@@ -410,6 +423,12 @@ export default function App() {
               path="assigned-events"
               element={<SubLevelAssignedEvents />}
             />
+            {/* VIC Routes */}
+            <Route path="vic/send-report" element={<SendReport />} />
+            <Route path="vic/my-reports" element={<MyReports />} />
+            <Route path="vic/assigned-reports" element={<AssignedReports />} />
+            <Route path="vic/under-hierarchy-reports" element={<UnderHierarchyReports />} />
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

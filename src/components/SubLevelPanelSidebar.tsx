@@ -114,6 +114,21 @@ const Icons = {
       />
     </svg>
   ),
+  vic: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   campaigns: (
     <svg
       className={iconClass}
@@ -145,6 +160,7 @@ export default function SubLevelPanelSidebar({
   const [levelInfo, setLevelInfo] = useState<any>(null);
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
   const [childLevelLabel, setChildLevelLabel] = useState("Below");
+  const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (selectedAssignment) {
@@ -251,8 +267,7 @@ export default function SubLevelPanelSidebar({
 
     // Navigate to the new assignment
     navigate(
-      `/sublevel/${
-        assignment.afterAssemblyData_id || assignment.stateMasterData_id
+      `/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id
       }/dashboard`
     );
   };
@@ -267,12 +282,12 @@ export default function SubLevelPanelSidebar({
     // Only show Child Levels if not a Booth
     ...(!isBooth
       ? [
-          {
-            to: "child-hierarchy",
-            label: childLevelNavLabel,
-            icon: Icons.hierarchy,
-          },
-        ]
+        {
+          to: "child-hierarchy",
+          label: childLevelNavLabel,
+          icon: Icons.hierarchy,
+        },
+      ]
       : []),
     { to: "booths", label: "Booths", icon: Icons.booths },
 
@@ -281,14 +296,21 @@ export default function SubLevelPanelSidebar({
     // Only show Booth Voters if it's a Booth level
     ...(isBooth
       ? [
-          {
-            to: "booth-voters",
-            label: "Another Booth Voters",
-            icon: Icons.voters,
-          },
-        ]
+        {
+          to: "booth-voters",
+          label: "Another Booth Voters",
+          icon: Icons.voters,
+        },
+      ]
       : []),
     // { to: "chat", label: "Chat", icon: Icons.chat },
+  ];
+
+  const vicMenuItems = [
+    { to: "vic/send-report", label: "Send Report" },
+    { to: "vic/my-reports", label: "My Reports" },
+    { to: "vic/assigned-reports", label: "Assigned Reports" },
+    { to: "vic/under-hierarchy-reports", label: "Under Hierarchy Reports" },
   ];
 
   return (
@@ -339,9 +361,8 @@ export default function SubLevelPanelSidebar({
                 </span>
               </div>
               <svg
-                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${
-                  switchDropdownOpen ? "rotate-180" : "rotate-0"
-                }`}
+                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"
+                  }`}
                 viewBox="0 0 20 20"
                 fill="none"
               >
@@ -370,7 +391,7 @@ export default function SubLevelPanelSidebar({
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===
-                      assignment.assignment_id
+                        assignment.assignment_id
                         ? "bg-teal-50 text-teal-900"
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")}
@@ -400,18 +421,18 @@ export default function SubLevelPanelSidebar({
                     </div>
                     {selectedAssignment.assignment_id ===
                       assignment.assignment_id && (
-                      <svg
-                        className="h-4 w-4 shrink-0"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
+                        <svg
+                          className="h-4 w-4 shrink-0"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                   </button>
                 ))}
               </div>
@@ -443,6 +464,58 @@ export default function SubLevelPanelSidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-teal-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
+        {/* VIC Dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setVicDropdownOpen(!vicDropdownOpen)}
+            className="group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm w-full text-left text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 border border-transparent hover:border-gray-200"
+          >
+            <span className="text-teal-600 shrink-0">{Icons.vic}</span>
+            <span className="truncate flex-1">VIC</span>
+            <svg
+              className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${vicDropdownOpen ? "rotate-180" : "rotate-0"
+                }`}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-teal-500/0 group-hover:bg-teal-500/30" />
+          </button>
+
+          {vicDropdownOpen && (
+            <div className="mt-2 ml-4 space-y-1">
+              {vicMenuItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={`${base}/${item.to}`}
+                  onClick={() => {
+                    onNavigate?.();
+                    setVicDropdownOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    [
+                      "block px-3 py-2 text-sm rounded-lg transition no-underline",
+                      isActive
+                        ? "bg-teal-50 text-teal-700 font-medium"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                    ].join(" ")
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Account section */}
