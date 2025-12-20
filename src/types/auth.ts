@@ -13,8 +13,11 @@ export interface User {
   isSuperAdmin: boolean;
   partyName: string;
   role: string;
-  userType: 'superadmin' | 'partyadmin' | 'leveladmin' | 'user';
+  userType: "superadmin" | "partyadmin" | "leveladmin" | "user";
   state_id?: number; // Optional state_id for level admins
+  stateName?: string; // Optional state name from login payload
+  district_id?: number;
+  districtName?: string;
 }
 
 // Panel assignment types
@@ -22,7 +25,7 @@ export interface PanelAssignment {
   id: number;
   name: string;
   displayName: string;
-  type: 'party' | 'level' | 'state';
+  type: "party" | "level" | "state";
   redirectUrl: string;
   metadata?: Record<string, any>;
 }
