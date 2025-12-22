@@ -37,6 +37,7 @@ export default function BoothList() {
   const [assemblyInfo, setAssemblyInfo] = useState({
     assemblyName: "",
     districtName: "",
+    stateName: "",
     assemblyId: 0,
     stateId: 0,
     districtId: 0,
@@ -47,6 +48,10 @@ export default function BoothList() {
       setAssemblyInfo({
         assemblyName: selectedAssignment.levelName || "",
         districtName: selectedAssignment.parentLevelName || "",
+        stateName:
+          (selectedAssignment as any).stateName ||
+          (selectedAssignment as any).state_name ||
+          "",
         assemblyId: selectedAssignment.stateMasterData_id || 0,
         stateId: (selectedAssignment as any).state_id || 0,
         districtId:
@@ -87,6 +92,11 @@ export default function BoothList() {
             ...prev,
             stateId: data.data.state_id || 0,
             districtId: data.data.district_id || data.data.parent_id || 0,
+            stateName:
+              data.data.state_name ||
+              data.data.stateName ||
+              prev.stateName ||
+              "",
           }));
         }
       } catch (error) {
@@ -336,10 +346,23 @@ export default function BoothList() {
     const rawUser = localStorage.getItem("auth_user");
     const parsedUser = rawUser ? JSON.parse(rawUser) : {};
 
+    const stateNameFromAssignment =
+      (selectedAssignment as any)?.stateName ||
+      (selectedAssignment as any)?.state_name ||
+      "";
+
+    const stateName =
+      assemblyInfo.stateName ||
+      stateNameFromAssignment ||
+      parsedUser.state_name ||
+      parsedUser.stateName ||
+      parsedUser.state?.name ||
+      "";
+
     return {
       stateId:
         assemblyInfo.stateId || parsedUser.state_id || parsedUser.stateId || 0,
-      stateName: parsedUser.state_name || parsedUser.stateName || "",
+      stateName: stateName || "Unknown",
     };
   };
 
@@ -385,7 +408,7 @@ export default function BoothList() {
     const formData = new FormData();
     formData.append("voterFile", file);
     formData.append("stateId", String(stateId));
-    if (stateName) formData.append("stateName", stateName);
+    formData.append("stateName", stateName);
     if (assemblyInfo.districtName)
       formData.append("districtName", assemblyInfo.districtName);
     if (assemblyInfo.assemblyName)
