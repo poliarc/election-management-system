@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleTokenExpiration } from '../utils/tokenValidator';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
@@ -15,6 +16,18 @@ axiosInstance.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Handle response errors
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized access - token expired or invalid
+            handleTokenExpiration();
+        }
+        return Promise.reject(error);
+    }
+);
 
 export interface BoothLevelData {
     id: number;

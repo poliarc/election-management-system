@@ -39,27 +39,30 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [previousAccessToken, setPreviousAccessToken] = useState<string | null>(null);
 
-  // Check for force logout parameter
-  const searchParams = new URLSearchParams(location.search);
-  const forceLogout = searchParams.get('logout') === 'true';
+  // Handle logout parameter on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const forceLogout = searchParams.get('logout') === 'true';
 
-  // Force logout if parameter is present
-  if (forceLogout && accessToken) {
-    dispatch(logout());
-    // Remove the logout parameter from URL
-    window.history.replaceState({}, '', '/login');
-  }
+    if (forceLogout) {
+      // Dispatch logout immediately
+      dispatch(logout());
+      // Clean URL immediately without waiting
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location.search, dispatch]);
 
   // Show success toast when login is successful
   useEffect(() => {
-    if (accessToken && accessToken !== previousAccessToken && !forceLogout) {
+    if (accessToken && accessToken !== previousAccessToken) {
       toast.success("Login successful");
       setPreviousAccessToken(accessToken);
     }
-  }, [accessToken, previousAccessToken, forceLogout]);
+  }, [accessToken, previousAccessToken]);
 
-  if (accessToken && !forceLogout) {
-    // If already logged in, redirect to role dashboard
+  // Redirect if already logged in
+  if (accessToken) {
     return <RoleRedirect />;
   }
 
@@ -127,9 +130,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md animate-fade-in-up">
           {/* Brand */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
               <span className="text-2xl font-bold text-white">P</span>
-            </div>
+            </div> */}
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome back
             </h1>

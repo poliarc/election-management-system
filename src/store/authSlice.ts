@@ -6,26 +6,39 @@ import type {
 } from "../types/auth";
 import type { LoginResponseData, StateAssignment } from "../types/api";
 import { storage } from "../utils/storage";
+import { isTokenValid } from "../utils/tokenValidator";
 import * as authApi from "../services/authApi";
 
 // Try to restore auth state from localStorage
 const savedAuthState = storage.getAuthState<Partial<AuthState>>();
+const savedAccessToken = savedAuthState?.accessToken || localStorage.getItem('auth_access_token');
+
+// Validate token before restoring state
+const isValidToken = isTokenValid(savedAccessToken);
 
 const initialState: AuthState = {
-  user: savedAuthState?.user || storage.getUser(),
-  accessToken: savedAuthState?.accessToken || storage.getToken('access'),
-  refreshToken: savedAuthState?.refreshToken || storage.getToken('refresh'),
+  user: isValidToken ? (savedAuthState?.user || storage.getUser()) : null,
+  accessToken: isValidToken ? savedAccessToken : null,
+  refreshToken: isValidToken ? (savedAuthState?.refreshToken || localStorage.getItem('auth_refresh_token')) : null,
   loading: false,
   error: null,
-  isPartyAdmin: savedAuthState?.isPartyAdmin || false,
-  isLevelAdmin: savedAuthState?.isLevelAdmin || false,
-  hasStateAssignments: savedAuthState?.hasStateAssignments || false,
-  partyAdminPanels: savedAuthState?.partyAdminPanels || [],
-  levelAdminPanels: savedAuthState?.levelAdminPanels || [],
-  stateAssignments: savedAuthState?.stateAssignments || [],
-  permissions: savedAuthState?.permissions || null,
-  selectedAssignment: savedAuthState?.selectedAssignment || null,
+  isPartyAdmin: isValidToken ? (savedAuthState?.isPartyAdmin || false) : false,
+  isLevelAdmin: isValidToken ? (savedAuthState?.isLevelAdmin || false) : false,
+  hasStateAssignments: isValidToken ? (savedAuthState?.hasStateAssignments || false) : false,
+  partyAdminPanels: isValidToken ? (savedAuthState?.partyAdminPanels || []) : [],
+  levelAdminPanels: isValidToken ? (savedAuthState?.levelAdminPanels || []) : [],
+  stateAssignments: isValidToken ? (savedAuthState?.stateAssignments || []) : [],
+  permissions: isValidToken ? (savedAuthState?.permissions || null) : null,
+  selectedAssignment: isValidToken ? (savedAuthState?.selectedAssignment || null) : null,
 };
+
+// Clear invalid tokens from storage
+if (!isValidToken && savedAccessToken) {
+  localStorage.removeItem('auth_access_token');
+  localStorage.removeItem('auth_refresh_token');
+  localStorage.removeItem('auth_user');
+  localStorage.removeItem('auth_state');
+}
 
 export const login = createAsyncThunk<LoginResponseData, LoginPayload>(
   "auth/login",

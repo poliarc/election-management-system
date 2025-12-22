@@ -168,13 +168,13 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md animate-fade-in-up">
           {/* Brand */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
               <span className="text-2xl font-bold text-white">P</span>
-            </div>
+            </div> */}
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Reset your password
             </h1>
-            
+
           </div>
 
           {/* Card */}
