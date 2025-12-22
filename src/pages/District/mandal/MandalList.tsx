@@ -12,6 +12,7 @@ export default function DistrictMandalList() {
   const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showMandalsWithoutUsers, setShowMandalsWithoutUsers] = useState(false);
   // State for inline user display
   const [expandedMandalId, setExpandedMandalId] = useState<number | null>(null);
   const [mandalUsers, setMandalUsers] = useState<
@@ -149,6 +150,10 @@ export default function DistrictMandalList() {
 
   const mandals = hierarchyData?.children || [];
 
+  const mandalsWithoutUsersCount = mandals.filter(
+    (mandal) => (mandal.user_count || 0) === 0
+  ).length;
+
   const filteredMandals = mandals.filter((mandal) => {
     const matchesSearch = mandal.displayName
       .toLowerCase()
@@ -156,8 +161,19 @@ export default function DistrictMandalList() {
     const matchesFilter =
       selectedMandalFilter === "" ||
       mandal.id.toString() === selectedMandalFilter;
-    return matchesSearch && matchesFilter;
+    const matchesWithoutUsersFilter = showMandalsWithoutUsers
+      ? (mandal.user_count || 0) === 0
+      : true;
+
+    return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
   });
+
+  const handleMandalsWithoutUsersClick = () => {
+    if (mandalsWithoutUsersCount > 0) {
+      setShowMandalsWithoutUsers((prev) => !prev);
+      setCurrentPage(1);
+    }
+  };
 
   const handleViewUsers = async (mandalId: number) => {
     // If already expanded, collapse it
@@ -271,35 +287,41 @@ export default function DistrictMandalList() {
               </div>
 
               {/* Mandals Without Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div
+                onClick={handleMandalsWithoutUsersClick}
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  mandalsWithoutUsersCount > 0
+                    ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                    : "cursor-default"
+                } ${
+                  showMandalsWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
+                }`}
+                title={
+                  mandalsWithoutUsersCount > 0
+                    ? "Click to view mandals without users"
+                    : "No mandals without users"
+                }
+              >
                 <div>
                   <p className="text-xs font-medium text-gray-600">
                     Mandals Without Users
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                        .length > 0
+                      mandalsWithoutUsersCount > 0
                         ? "text-red-600"
                         : "text-gray-400"
                     }`}
                   >
-                    {
-                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                        .length
-                    }
+                    {mandalsWithoutUsersCount}
                   </p>
                 </div>
                 <div
                   className={`rounded-full p-1.5 ${
-                    mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                      .length > 0
-                      ? "bg-red-50"
-                      : "bg-gray-50"
+                    mandalsWithoutUsersCount > 0 ? "bg-red-50" : "bg-gray-50"
                   }`}
                 >
-                  {mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                    .length > 0 ? (
+                  {mandalsWithoutUsersCount > 0 ? (
                     <svg
                       className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
                       fill="none"
