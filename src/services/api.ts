@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleTokenExpiration } from '../utils/tokenValidator';
 
 const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
@@ -22,11 +23,8 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Handle unauthorized access
-            localStorage.removeItem('auth_access_token');
-            localStorage.removeItem('auth_refresh_token');
-            localStorage.removeItem('auth_state');
-            window.location.href = '/login';
+            // Handle unauthorized access - token expired or invalid
+            handleTokenExpiration();
         }
         return Promise.reject(error);
     }
