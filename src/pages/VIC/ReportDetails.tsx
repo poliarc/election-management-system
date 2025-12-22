@@ -333,34 +333,6 @@ export default function ReportDetails() {
                             </div>
                         )}
 
-
-
-                        {/* Debug Info (remove in production) */}
-                        {process.env.NODE_ENV === 'development' && (
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Debug Info</h3>
-                                <div className="text-xs space-y-1">
-                                    <p><strong>Report Status:</strong> {report?.status}</p>
-                                    <p><strong>Current Level:</strong> {report?.current_level_display_name}</p>
-                                    <p><strong>Can Take Action:</strong> {canTakeAction() ? 'Yes' : 'No'}</p>
-                                    <p><strong>Can Forward:</strong> {canForward() ? 'Yes' : 'No'}</p>
-                                    <p><strong>Can Resolve:</strong> {canResolve() ? 'Yes' : 'No'}</p>
-                                    <p><strong>User Levels:</strong> {hierarchy.map(h => h.displayName).join(', ')}</p>
-                                    <p><strong>Available Forward Levels:</strong> {getAvailableForwardLevels().map(h => h.displayName).join(', ') || 'None (at highest level)'}</p>
-                                    {report.hierarchy && (
-                                        <div>
-                                            <p><strong>Hierarchy Status (Upward Flow):</strong></p>
-                                            {report.hierarchy.map(h => (
-                                                <p key={h.id} className="ml-2">
-                                                    {h.level_display_name}: {h.status}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
                         {/* Report Info */}
                         <div className="bg-white border border-gray-200 rounded-lg p-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Report Information</h3>
