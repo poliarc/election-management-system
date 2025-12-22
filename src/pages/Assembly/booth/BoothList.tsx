@@ -26,6 +26,15 @@ export default function BoothList() {
   // State for inline user display
   const [expandedBoothId, setExpandedBoothId] = useState<number | null>(null);
   const [boothUsers, setBoothUsers] = useState<Record<number, any[]>>({});
+  const [boothFiles, setBoothFiles] = useState<
+    Record<
+      number,
+      { loading: boolean; error: string | null; data: any[]; fetched: boolean }
+    >
+  >({});
+  const [expandedFilesBoothId, setExpandedFilesBoothId] = useState<
+    number | null
+  >(null);
 
   // State for filtering booths without users
   const [showBoothsWithoutUsers, setShowBoothsWithoutUsers] = useState(false);
@@ -339,6 +348,71 @@ export default function BoothList() {
       }
     } catch (error) {
       console.error(`Error fetching users for booth ${boothId}:`, error);
+    }
+  };
+
+  const handleViewFiles = async (boothId: number) => {
+    if (expandedFilesBoothId === boothId) {
+      setExpandedFilesBoothId(null);
+      return;
+    }
+
+    const entry = boothFiles[boothId];
+    if (entry?.fetched && !entry.loading) {
+      setExpandedFilesBoothId(boothId);
+      return;
+    }
+
+    setBoothFiles((prev) => ({
+      ...prev,
+      [boothId]: { loading: true, error: null, data: [], fetched: false },
+    }));
+
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/booth-deleted-voter-files/booth/${boothId}?page=1&limit=20`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${localStorage.getItem("auth_access_token")}` || "",
+          },
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Failed to fetch files");
+      }
+
+      setBoothFiles((prev) => ({
+        ...prev,
+        [boothId]: {
+          loading: false,
+          error: null,
+          data: data.data || [],
+          fetched: true,
+        },
+      }));
+      setExpandedFilesBoothId(boothId);
+    } catch (fileError) {
+      console.error(`Error fetching files for booth ${boothId}:`, fileError);
+      setBoothFiles((prev) => ({
+        ...prev,
+        [boothId]: {
+          loading: false,
+          error:
+            fileError instanceof Error
+              ? fileError.message
+              : "Unable to load files",
+          data: [],
+          fetched: true,
+        },
+      }));
+      toast.error(
+        fileError instanceof Error ? fileError.message : "Unable to load files"
+      );
     }
   };
 
@@ -907,6 +981,9 @@ export default function BoothList() {
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Upload Deleted Voters
                       </th>
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Uploaded Files
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1081,6 +1158,38 @@ export default function BoothList() {
                               )}
                             </label>
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => handleViewFiles(booth.id)}
+                              className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                                expandedFilesBoothId === booth.id
+                                  ? "bg-purple-600 text-white border-purple-600"
+                                  : "text-purple-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50"
+                              }`}
+                              title="View uploaded deleted voter files"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                              Files
+                            </button>
+                          </td>
                         </tr>
 
                         {/* Inline User Display */}
@@ -1113,9 +1222,91 @@ export default function BoothList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedBoothId(null)}
-                              colSpan={7}
+                              colSpan={8}
                             />
                           )}
+
+                        {expandedFilesBoothId === booth.id && (
+                          <tr>
+                            <td colSpan={8} className="bg-purple-50 px-6 py-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <h4 className="text-sm font-semibold text-purple-800 mb-2">
+                                    Uploaded Deleted Voter Files
+                                  </h4>
+                                  {boothFiles[booth.id]?.loading && (
+                                    <p className="text-sm text-gray-600">
+                                      Loading files...
+                                    </p>
+                                  )}
+                                  {boothFiles[booth.id]?.error && (
+                                    <p className="text-sm text-red-600">
+                                      {boothFiles[booth.id]?.error}
+                                    </p>
+                                  )}
+                                  {!boothFiles[booth.id]?.loading &&
+                                    !boothFiles[booth.id]?.error && (
+                                      <ul className="space-y-2">
+                                        {(boothFiles[booth.id]?.data || [])
+                                          .length === 0 && (
+                                          <li className="text-sm text-gray-600">
+                                            No files uploaded for this booth
+                                            yet.
+                                          </li>
+                                        )}
+                                        {(boothFiles[booth.id]?.data || []).map(
+                                          (file) => (
+                                            <li
+                                              key={file.id}
+                                              className="text-sm text-gray-800 bg-white border border-purple-100 rounded-md px-3 py-2 shadow-sm"
+                                            >
+                                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                                <span className="font-medium truncate">
+                                                  {file.filePath || "File"}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                  {file.created_at
+                                                    ? new Date(
+                                                        file.created_at
+                                                      ).toLocaleString()
+                                                    : ""}
+                                                </span>
+                                              </div>
+                                              <div className="text-xs text-gray-600 mt-1">
+                                                State: {file.stateName || ""} |
+                                                District:{" "}
+                                                {file.districtName || ""} |
+                                                Assembly:{" "}
+                                                {file.assemblyName || ""}
+                                              </div>
+                                              {file.filePath && (
+                                                <div className="mt-2">
+                                                  <a
+                                                    href={file.filePath}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-purple-700 hover:text-purple-900 text-xs font-medium"
+                                                  >
+                                                    Open file
+                                                  </a>
+                                                </div>
+                                              )}
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    )}
+                                </div>
+                                <button
+                                  onClick={() => setExpandedFilesBoothId(null)}
+                                  className="text-purple-700 hover:text-purple-900 text-sm font-medium"
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                       </Fragment>
                     ))}
                   </tbody>
