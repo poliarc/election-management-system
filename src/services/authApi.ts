@@ -1,11 +1,17 @@
 import type { LoginPayload } from "../types/auth";
-import type { LoginRequest, LoginResponse, ApiUser, PartyAdminDetail, LevelAdminDetail } from "../types/api";
+import type {
+  LoginRequest,
+  LoginResponse,
+  ApiUser,
+  PartyAdminDetail,
+  LevelAdminDetail,
+} from "../types/api";
 import type { User, PanelAssignment } from "../types/auth";
 import { API_CONFIG, getApiUrl } from "../config/api";
 
 // Determine if identifier is email or phone
 function isEmail(identifier: string): boolean {
-  return identifier.includes('@');
+  return identifier.includes("@");
 }
 
 // Build login request payload
@@ -25,9 +31,9 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.LOGIN), {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(request),
       signal: controller.signal,
@@ -36,21 +42,26 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `HTTP ${response.status}` }));
       // Handle nested error structure: { success: false, error: { message, code, timestamp } }
-      const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+      const errorMessage =
+        errorData.error?.message ||
+        errorData.message ||
+        `HTTP ${response.status}`;
       throw new Error(errorMessage);
     }
 
     return response.json();
   } catch (error) {
     if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out. Please try again.');
+      if (error.name === "AbortError") {
+        throw new Error("Request timed out. Please try again.");
       }
       throw error;
     }
-    throw new Error('An unexpected error occurred');
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -70,6 +81,9 @@ export function transformApiUser(apiUser: ApiUser, userType: string): User {
     role: apiUser.role,
     userType: userType as any,
     state_id: apiUser.state_id, // Include state_id if available
+    stateName: apiUser.stateName,
+    district_id: apiUser.district_id,
+    districtName: apiUser.districtName,
   };
 }
 
@@ -79,11 +93,11 @@ export function transformPartyAdminPanels(
 ): PanelAssignment[] {
   if (!details) return [];
 
-  return details.map(detail => ({
+  return details.map((detail) => ({
     id: detail.party_id,
     name: detail.partyName,
     displayName: detail.partyName,
-    type: 'party' as const,
+    type: "party" as const,
     redirectUrl: detail.redirectUrl,
     metadata: {
       partyCode: detail.partyCode,
@@ -99,11 +113,11 @@ export function transformLevelAdminPanels(
 ): PanelAssignment[] {
   if (!details) return [];
 
-  return details.map(detail => ({
+  return details.map((detail) => ({
     id: detail.party_wise_id,
     name: detail.level_name,
     displayName: detail.display_level_name,
-    type: 'level' as const,
+    type: "level" as const,
     redirectUrl: detail.redirectUrl,
     metadata: {
       parentLevel: detail.parent_level,

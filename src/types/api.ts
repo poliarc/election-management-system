@@ -1,6 +1,6 @@
 // Login Request
 export interface LoginRequest {
-  email?: string;      // for email
+  email?: string; // for email
   contact_no?: string; // for phone number
   password: string;
 }
@@ -18,6 +18,9 @@ export interface ApiUser {
   party_id: number;
   role_id: number;
   state_id?: number; // Optional state_id field
+  stateName?: string; // Optional state name
+  district_id?: number; // Optional district id
+  districtName?: string; // Optional district name
   modules: string | null;
   profileImage: string | null;
   isActive: number;
@@ -127,7 +130,7 @@ export interface LoginResponseData {
   accessToken: string;
   refreshToken: string;
   user: ApiUser;
-  userType: 'superadmin' | 'partyadmin' | 'leveladmin' | 'user';
+  userType: "superadmin" | "partyadmin" | "leveladmin" | "user";
   isSuperAdmin: boolean;
   isPartyAdmin: boolean;
   isLevelAdmin: boolean;
