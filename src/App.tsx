@@ -115,6 +115,7 @@ import {
   SubLevelPanelTeam,
   SubLevelChildHierarchy,
   SubLevelAssignedEvents,
+  SubLevelDeletedVoters,
 } from "./pages/SubLevelPanel";
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
@@ -397,11 +398,14 @@ export default function App() {
               element={<AfterAssemblyAssignedEvents />}
             />
             {/* VIC Routes */}
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
             <Route path="vic/send-report" element={<SendReport />} />
             <Route path="vic/my-reports" element={<MyReports />} />
             <Route path="vic/assigned-reports" element={<AssignedReports />} />
-            <Route path="vic/under-hierarchy-reports" element={<UnderHierarchyReports />} />
-            <Route path="vic/report-details/:id" element={<ReportDetails />} />
+            <Route
+              path="vic/under-hierarchy-reports"
+              element={<UnderHierarchyReports />}
+            />
           </Route>
 
           {/* Sub Level Panel Routes */}
@@ -424,10 +428,17 @@ export default function App() {
               element={<SubLevelAssignedEvents />}
             />
             {/* VIC Routes */}
+            <Route
+              path="vic/deleted-voters"
+              element={<SubLevelDeletedVoters />}
+            />
             <Route path="vic/send-report" element={<SendReport />} />
             <Route path="vic/my-reports" element={<MyReports />} />
             <Route path="vic/assigned-reports" element={<AssignedReports />} />
-            <Route path="vic/under-hierarchy-reports" element={<UnderHierarchyReports />} />
+            <Route
+              path="vic/under-hierarchy-reports"
+              element={<UnderHierarchyReports />}
+            />
             <Route path="vic/report-details/:id" element={<ReportDetails />} />
           </Route>
         </Route>
