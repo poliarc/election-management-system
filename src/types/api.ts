@@ -106,6 +106,8 @@ export interface StateAssignment {
   // Booth range fields
   boothFrom?: number;
   boothTo?: number;
+  stateName?: string;
+  districtName?: string;
 }
 
 // Permissions

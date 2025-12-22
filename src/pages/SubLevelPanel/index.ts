@@ -1,3 +1,4 @@
+export { default as SubLevelDeletedVoters } from "./DeletedVoters";
 export { default as SubLevelPanelDashboard } from "./Dashboard";
 export { default as SubLevelPanelTeam } from "./Team";
 export { default as SubLevelChildHierarchy } from "./ChildHierarchy";
