@@ -67,10 +67,8 @@ export default function StatePollingCenterList() {
       try {
         console.log("Fetching districts for state ID:", stateInfo.stateId);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
           }?page=1&limit=100`,
           {
             headers: {
@@ -109,8 +107,7 @@ export default function StatePollingCenterList() {
       try {
         console.log("Fetching assemblies for district ID:", selectedDistrictId);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
           {
             headers: {
@@ -148,8 +145,7 @@ export default function StatePollingCenterList() {
       }
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/after-assembly-data/assembly/${selectedAssemblyId}`,
           {
             headers: {
@@ -178,10 +174,8 @@ export default function StatePollingCenterList() {
         const token = localStorage.getItem("auth_access_token");
         // Fetch all districts
         const districtRes = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
           }?page=1&limit=100`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -193,10 +187,8 @@ export default function StatePollingCenterList() {
           await Promise.all(
             districts.map(async (district: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-state-hierarchies/hierarchy/children/${
-                  district.location_id || district.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id
                 }?page=1&limit=100`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -215,10 +207,8 @@ export default function StatePollingCenterList() {
           await Promise.all(
             assemblies.map(async (assembly: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/after-assembly-data/assembly/${
-                  assembly.location_id || assembly.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/after-assembly-data/assembly/${assembly.location_id || assembly.id
                 }`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -239,10 +229,8 @@ export default function StatePollingCenterList() {
           await Promise.all(
             blocks.map(async (block: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  block.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-after-assembly-hierarchy/hierarchy/children/${block.id
                 }`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -265,10 +253,8 @@ export default function StatePollingCenterList() {
           await Promise.all(
             mandals.map(async (mandal: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  mandal.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id
                 }`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -279,8 +265,7 @@ export default function StatePollingCenterList() {
               );
 
               console.log(
-                `Mandal ${mandal.displayName}: Total children: ${
-                  data.children?.length || 0
+                `Mandal ${mandal.displayName}: Total children: ${data.children?.length || 0
                 }, Polling Centers: ${filteredChildren.length}`
               );
 
@@ -322,12 +307,31 @@ export default function StatePollingCenterList() {
     error,
   } = useGetBlockHierarchyQuery(selectedMandalId, { skip: !selectedMandalId });
 
-  // Show all polling centers if no mandal is selected, otherwise show filtered polling centers
-  const pollingCenters = selectedMandalId
-    ? (hierarchyData?.children || []).filter(
+  // Show all polling centers if no district is selected,
+  // or show polling centers from all mandals in all blocks in all assemblies within selected district if district is selected,
+  // or show polling centers from all mandals in all blocks in selected assembly if assembly is selected,
+  // or show polling centers from all mandals in selected block if block is selected,
+  // or show polling centers from specific mandal if mandal is selected
+  const pollingCenters = (() => {
+    if (selectedMandalId) {
+      // Show polling centers from specific mandal
+      return (hierarchyData?.children || []).filter(
         (item: any) => item.levelName !== "Booth"
-      )
-    : allPollingCenters;
+      );
+    } else if (selectedBlockId) {
+      // Show polling centers from all mandals in selected block
+      return allPollingCenters.filter(pc => pc.blockId === selectedBlockId);
+    } else if (selectedAssemblyId) {
+      // Show polling centers from all mandals in all blocks in selected assembly
+      return allPollingCenters.filter(pc => pc.assemblyId === selectedAssemblyId);
+    } else if (selectedDistrictId) {
+      // Show polling centers from all mandals in all blocks in all assemblies within selected district
+      return allPollingCenters.filter(pc => pc.districtId === selectedDistrictId);
+    } else {
+      // Show all polling centers from all districts
+      return allPollingCenters;
+    }
+  })();
 
   // Fetch Booths for selected Polling Center
   const fetchBooths = async (pollingCenterId: number) => {
@@ -335,8 +339,7 @@ export default function StatePollingCenterList() {
     try {
       const token = localStorage.getItem("auth_access_token");
       const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}`,
         {
           headers: {
@@ -398,8 +401,7 @@ export default function StatePollingCenterList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${pollingCenterId}`,
         {
           headers: {
@@ -583,16 +585,14 @@ export default function StatePollingCenterList() {
               {/* Polling Centers Without Users Card - Clickable */}
               <div
                 onClick={handlePollingCentersWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-2 flex items-center justify-between transition-all duration-200 ${
-                  pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
+                className={`bg-white text-gray-900 rounded-md shadow-md p-2 flex items-center justify-between transition-all duration-200 ${pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                     : "cursor-default"
-                } ${
-                  showPollingCentersWithoutUsers
+                  } ${showPollingCentersWithoutUsers
                     ? "ring-2 ring-red-500 bg-red-50"
                     : ""
-                }`}
+                  }`}
                 title={
                   pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                     .length > 0
@@ -610,12 +610,11 @@ export default function StatePollingCenterList() {
                     )}
                   </p>
                   <p
-                    className={`text-lg sm:text-xl font-semibold mt-1 ${
-                      pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
+                    className={`text-lg sm:text-xl font-semibold mt-1 ${pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                         .length > 0
                         ? "text-red-600"
                         : "text-gray-400"
-                    }`}
+                      }`}
                   >
                     {
                       pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
@@ -624,12 +623,11 @@ export default function StatePollingCenterList() {
                   </p>
                 </div>
                 <div
-                  className={`rounded-full p-1 ${
-                    pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
+                  className={`rounded-full p-1 ${pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                       .length > 0
                       ? "bg-red-50"
                       : "bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                     .length > 0 ? (
@@ -710,7 +708,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly <span className="text-red-500">*</span>
+                Assembly
               </label>
               <select
                 value={selectedAssemblyId}
@@ -724,7 +722,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -737,7 +735,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block <span className="text-red-500">*</span>
+                Block
               </label>
               <select
                 value={selectedBlockId}
@@ -750,7 +748,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Block</option>
+                <option value={0}>All Blocks in Assembly</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -760,7 +758,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Mandal <span className="text-red-500">*</span>
+                Mandal
               </label>
               <select
                 value={selectedMandalId}
@@ -772,7 +770,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedBlockId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Mandal</option>
+                <option value={0}>All Mandals in Block</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -803,7 +801,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Polling Centers
+                Search
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -829,8 +827,7 @@ export default function StatePollingCenterList() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  disabled={!selectedMandalId}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -860,7 +857,7 @@ export default function StatePollingCenterList() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  d="M20 13V6a.2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
               <p className="mt-2 text-gray-500 font-medium">
@@ -949,11 +946,10 @@ export default function StatePollingCenterList() {
                                 onClick={() =>
                                   handleViewUsers(pollingCenter.id)
                                 }
-                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
-                                  expandedPollingCenterId === pollingCenter.id
+                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${expandedPollingCenterId === pollingCenter.id
                                     ? "text-blue-700 bg-blue-100"
                                     : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                }`}
+                                  }`}
                                 title={
                                   expandedPollingCenterId === pollingCenter.id
                                     ? "Hide Users"
@@ -1029,13 +1025,12 @@ export default function StatePollingCenterList() {
                                     onClick={() => setOpenDropdownId(null)}
                                   />
                                   <div
-                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${
-                                      index >=
+                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${index >=
                                         paginatedPollingCenters.length - 2 &&
-                                      paginatedPollingCenters.length >= 5
+                                        paginatedPollingCenters.length >= 5
                                         ? "bottom-full mb-2"
                                         : "top-full mt-2"
-                                    }`}
+                                      }`}
                                     style={{
                                       scrollbarWidth: "thin",
                                       scrollbarColor: "#9ca3af #f3f4f6",
@@ -1192,11 +1187,10 @@ export default function StatePollingCenterList() {
                                 <button
                                   key={pageNum}
                                   onClick={() => setCurrentPage(pageNum)}
-                                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                    currentPage === pageNum
+                                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                       ? "bg-blue-600 text-white"
                                       : "text-gray-700 hover:bg-gray-100"
-                                  }`}
+                                    }`}
                                 >
                                   {pageNum}
                                 </button>
@@ -1347,11 +1341,10 @@ export default function StatePollingCenterList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                                booth.isActive === 1
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${booth.isActive === 1
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
+                                }`}
                             >
                               {booth.isActive === 1 ? "Active" : "Inactive"}
                             </span>

@@ -66,10 +66,8 @@ export default function StateBoothList() {
     try {
       // Step 1: Fetch all districts in parallel with higher limit
       const districtsResponse = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-state-hierarchies/hierarchy/children/${
-          stateInfo.stateId
+        `${import.meta.env.VITE_API_BASE_URL
+        }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
         }?page=1&limit=500`,
         {
           headers: {
@@ -90,10 +88,8 @@ export default function StateBoothList() {
         async (district: any) => {
           try {
             const response = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-state-hierarchies/hierarchy/children/${
-                district.location_id
+              `${import.meta.env.VITE_API_BASE_URL
+              }/api/user-state-hierarchies/hierarchy/children/${district.location_id
               }?page=1&limit=500`,
               {
                 headers: {
@@ -126,8 +122,7 @@ export default function StateBoothList() {
         assemblies.forEach((assembly: any) => {
           blockPromises.push(
             fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
+              `${import.meta.env.VITE_API_BASE_URL
               }/api/after-assembly-data/assembly/${assembly.location_id}`,
               {
                 headers: {
@@ -162,10 +157,8 @@ export default function StateBoothList() {
         blocks.forEach((block: any) => {
           mandalPromises.push(
             fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                block.id
+              `${import.meta.env.VITE_API_BASE_URL
+              }/api/user-after-assembly-hierarchy/hierarchy/children/${block.id
               }`,
               {
                 headers: {
@@ -201,10 +194,8 @@ export default function StateBoothList() {
         mandals.forEach((mandal: any) => {
           boothPromises.push(
             fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                mandal.id
+              `${import.meta.env.VITE_API_BASE_URL
+              }/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id
               }`,
               {
                 headers: {
@@ -235,10 +226,8 @@ export default function StateBoothList() {
                     const pollingCenterPromises = data.children.map(
                       (pollingCenter: any) =>
                         fetch(
-                          `${
-                            import.meta.env.VITE_API_BASE_URL
-                          }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                            pollingCenter.id
+                          `${import.meta.env.VITE_API_BASE_URL
+                          }/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenter.id
                           }`,
                           {
                             headers: {
@@ -318,10 +307,8 @@ export default function StateBoothList() {
     try {
       // Check a sample path to determine hierarchy structure
       const districtsResponse = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-state-hierarchies/hierarchy/children/${
-          stateInfo.stateId
+        `${import.meta.env.VITE_API_BASE_URL
+        }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
         }?page=1&limit=1`,
         {
           headers: {
@@ -338,10 +325,8 @@ export default function StateBoothList() {
 
         // Check assemblies
         const assembliesResponse = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            sampleDistrict.location_id
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${sampleDistrict.location_id
           }?page=1&limit=1`,
           {
             headers: {
@@ -361,8 +346,7 @@ export default function StateBoothList() {
 
           // Check blocks
           const blocksResponse = await fetch(
-            `${
-              import.meta.env.VITE_API_BASE_URL
+            `${import.meta.env.VITE_API_BASE_URL
             }/api/after-assembly-data/assembly/${sampleAssembly.location_id}`,
             {
               headers: {
@@ -379,10 +363,8 @@ export default function StateBoothList() {
 
             // Check mandals
             const mandalsResponse = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                sampleBlock.id
+              `${import.meta.env.VITE_API_BASE_URL
+              }/api/user-after-assembly-hierarchy/hierarchy/children/${sampleBlock.id
               }`,
               {
                 headers: {
@@ -399,10 +381,8 @@ export default function StateBoothList() {
 
               // Check what's under mandal
               const childrenResponse = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  sampleMandal.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-after-assembly-hierarchy/hierarchy/children/${sampleMandal.id
                 }`,
                 {
                   headers: {
@@ -464,10 +444,8 @@ export default function StateBoothList() {
       if (!stateInfo.stateId) return;
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
           }?page=1&limit=100`,
           {
             headers: {
@@ -505,8 +483,7 @@ export default function StateBoothList() {
       }
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
           {
             headers: {
@@ -544,8 +521,7 @@ export default function StateBoothList() {
       }
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/after-assembly-data/assembly/${selectedAssemblyId}`,
           {
             headers: {
@@ -716,8 +692,7 @@ export default function StateBoothList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${boothId}`,
         {
           headers: {
@@ -809,8 +784,7 @@ export default function StateBoothList() {
         window.location.reload();
       } else if (response.errors && response.errors.length > 0) {
         alert(
-          `Error: ${
-            response.errors[0].error || "Failed to delete user assignment"
+          `Error: ${response.errors[0].error || "Failed to delete user assignment"
           }`
         );
       }
@@ -818,7 +792,7 @@ export default function StateBoothList() {
       console.error("Delete error:", error);
       alert(
         error?.data?.message ||
-          "Failed to delete user assignment. Please try again."
+        "Failed to delete user assignment. Please try again."
       );
     } finally {
       setUserToDelete(null);
@@ -957,14 +931,12 @@ export default function StateBoothList() {
               {/* Booths Without Users Card - Clickable */}
               <div
                 onClick={handleBoothsWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                  booths.filter((booth) => (booth.user_count || 0) === 0)
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                     : "cursor-default"
-                } ${
-                  showBoothsWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
-                }`}
+                  } ${showBoothsWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
+                  }`}
                 title={
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
@@ -982,12 +954,11 @@ export default function StateBoothList() {
                     )}
                   </p>
                   <p
-                    className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                      booths.filter((booth) => (booth.user_count || 0) === 0)
+                    className={`text-xl sm:text-2xl font-semibold mt-1 ${booths.filter((booth) => (booth.user_count || 0) === 0)
                         .length > 0
                         ? "text-red-600"
                         : "text-gray-400"
-                    }`}
+                      }`}
                   >
                     {
                       booths.filter((booth) => (booth.user_count || 0) === 0)
@@ -996,12 +967,11 @@ export default function StateBoothList() {
                   </p>
                 </div>
                 <div
-                  className={`rounded-full p-1.5 ${
-                    booths.filter((booth) => (booth.user_count || 0) === 0)
+                  className={`rounded-full p-1.5 ${booths.filter((booth) => (booth.user_count || 0) === 0)
                       .length > 0
                       ? "bg-red-50"
                       : "bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0 ? (
@@ -1044,11 +1014,10 @@ export default function StateBoothList() {
           {/* Hierarchy Info */}
 
           <div
-            className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${
-              availableLevels.hasPollingCenters
+            className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${availableLevels.hasPollingCenters
                 ? "lg:grid-cols-6"
                 : "lg:grid-cols-5"
-            }`}
+              }`}
           >
             {/* State - Always visible */}
             <div>
@@ -1096,6 +1065,7 @@ export default function StateBoothList() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Assembly <span className="text-red-500">*</span>
+                Assembly (Optional)
               </label>
               <select
                 value={selectedAssemblyId}
@@ -1109,7 +1079,7 @@ export default function StateBoothList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -1125,7 +1095,7 @@ export default function StateBoothList() {
             {availableLevels.hasBlocks && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Block <span className="text-red-500">*</span>
+                  Block (Optional)
                 </label>
                 <select
                   value={selectedBlockId}
@@ -1138,7 +1108,7 @@ export default function StateBoothList() {
                   disabled={!selectedAssemblyId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Block</option>
+                  <option value={0}>All Blocks in Assembly</option>
                   {blocks.map((block) => (
                     <option key={block.id} value={block.id}>
                       {block.displayName}
@@ -1152,7 +1122,7 @@ export default function StateBoothList() {
             {availableLevels.hasMandals && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Mandal <span className="text-red-500">*</span>
+                  Mandal (Optional)
                 </label>
                 <select
                   value={selectedMandalId}
@@ -1164,7 +1134,7 @@ export default function StateBoothList() {
                   disabled={!selectedBlockId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Mandal</option>
+                  <option value={0}>All Mandals in Block</option>
                   {mandals.map((mandal) => (
                     <option key={mandal.id} value={mandal.id}>
                       {mandal.displayName}
@@ -1178,7 +1148,7 @@ export default function StateBoothList() {
             {availableLevels.hasPollingCenters && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Polling Center <span className="text-red-500">*</span>
+                  Polling Center (Optional)
                 </label>
                 <select
                   value={selectedPollingCenterId}
@@ -1189,7 +1159,7 @@ export default function StateBoothList() {
                   disabled={!selectedMandalId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Polling Center</option>
+                  <option value={0}>All Polling Centers in Mandal</option>
                   {pollingCenters.map((pc) => (
                     <option key={pc.id} value={pc.id}>
                       {pc.displayName}
@@ -1339,11 +1309,10 @@ export default function StateBoothList() {
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => handleViewUsers(booth.id)}
-                                className={`inline-flex items-center p-1 rounded-md transition-colors ${
-                                  expandedBoothId === booth.id
+                                className={`inline-flex items-center p-1 rounded-md transition-colors ${expandedBoothId === booth.id
                                     ? "text-purple-700 bg-purple-100"
                                     : "text-purple-600 hover:bg-purple-50 hover:text-purple-700"
-                                }`}
+                                  }`}
                                 title={
                                   expandedBoothId === booth.id
                                     ? "Hide Users"

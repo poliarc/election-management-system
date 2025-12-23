@@ -53,10 +53,8 @@ export default function StateMandalList() {
       try {
         console.log("Fetching districts for state ID:", stateInfo.stateId);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
           }?page=1&limit=100`,
           {
             headers: {
@@ -95,8 +93,7 @@ export default function StateMandalList() {
       try {
         console.log("Fetching assemblies for district ID:", selectedDistrictId);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
           {
             headers: {
@@ -134,8 +131,7 @@ export default function StateMandalList() {
       }
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/after-assembly-data/assembly/${selectedAssemblyId}`,
           {
             headers: {
@@ -164,10 +160,8 @@ export default function StateMandalList() {
         const token = localStorage.getItem("auth_access_token");
         // Fetch all districts
         const districtRes = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId
           }?page=1&limit=100`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -179,10 +173,8 @@ export default function StateMandalList() {
           await Promise.all(
             districts.map(async (district: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-state-hierarchies/hierarchy/children/${
-                  district.location_id || district.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id
                 }?page=1&limit=100`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -201,10 +193,8 @@ export default function StateMandalList() {
           await Promise.all(
             assemblies.map(async (assembly: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/after-assembly-data/assembly/${
-                  assembly.location_id || assembly.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/after-assembly-data/assembly/${assembly.location_id || assembly.id
                 }`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -225,10 +215,8 @@ export default function StateMandalList() {
           await Promise.all(
             blocks.map(async (block: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  block.id
+                `${import.meta.env.VITE_API_BASE_URL
+                }/api/user-after-assembly-hierarchy/hierarchy/children/${block.id
                 }`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -261,8 +249,25 @@ export default function StateMandalList() {
     error,
   } = useGetBlockHierarchyQuery(selectedBlockId, { skip: !selectedBlockId });
 
-  // Show all mandals if no block is selected, otherwise show filtered mandals
-  const mandals = selectedBlockId ? hierarchyData?.children || [] : allMandals;
+  // Show all mandals if no district is selected,
+  // or show mandals from all blocks in all assemblies within selected district if district is selected,
+  // or show mandals from all blocks in selected assembly if assembly is selected,
+  // or show mandals from specific block if block is selected
+  const mandals = (() => {
+    if (selectedBlockId) {
+      // Show mandals from specific block
+      return hierarchyData?.children || [];
+    } else if (selectedAssemblyId) {
+      // Show mandals from all blocks in selected assembly
+      return allMandals.filter(mandal => mandal.assemblyId === selectedAssemblyId);
+    } else if (selectedDistrictId) {
+      // Show mandals from all blocks in all assemblies within selected district
+      return allMandals.filter(mandal => mandal.districtId === selectedDistrictId);
+    } else {
+      // Show all mandals from all districts
+      return allMandals;
+    }
+  })();
 
   // Handle mandals without users filter
   const handleMandalsWithoutUsersClick = () => {
@@ -307,8 +312,7 @@ export default function StateMandalList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${mandalId}`,
         {
           headers: {
@@ -484,16 +488,14 @@ export default function StateMandalList() {
                 {/* Mandals Without Users Card - Clickable */}
                 <div
                   onClick={handleMandalsWithoutUsersClick}
-                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                    mandals.filter((mandal) => (mandal.user_count || 0) === 0)
+                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                       .length > 0
                       ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                       : "cursor-default"
-                  } ${
-                    showMandalsWithoutUsers
+                    } ${showMandalsWithoutUsers
                       ? "ring-2 ring-red-500 bg-red-50"
                       : ""
-                  }`}
+                    }`}
                   title={
                     mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                       .length > 0
@@ -511,13 +513,12 @@ export default function StateMandalList() {
                       )}
                     </p>
                     <p
-                      className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                        mandals.filter(
-                          (mandal) => (mandal.user_count || 0) === 0
-                        ).length > 0
+                      className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(
+                        (mandal) => (mandal.user_count || 0) === 0
+                      ).length > 0
                           ? "text-red-600"
                           : "text-gray-400"
-                      }`}
+                        }`}
                     >
                       {
                         mandals.filter(
@@ -527,12 +528,11 @@ export default function StateMandalList() {
                     </p>
                   </div>
                   <div
-                    className={`rounded-full p-1.5 ${
-                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
+                    className={`rounded-full p-1.5 ${mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                         .length > 0
                         ? "bg-red-50"
                         : "bg-gray-50"
-                    }`}
+                      }`}
                   >
                     {mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                       .length > 0 ? (
@@ -613,7 +613,7 @@ export default function StateMandalList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly <span className="text-red-500">*</span>
+                Assembly (Optional)
               </label>
               <select
                 value={selectedAssemblyId}
@@ -626,7 +626,7 @@ export default function StateMandalList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -639,7 +639,7 @@ export default function StateMandalList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block <span className="text-red-500">*</span>
+                Block (Optional)
               </label>
               <select
                 value={selectedBlockId}
@@ -651,7 +651,7 @@ export default function StateMandalList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Block</option>
+                <option value={0}>All Blocks in Assembly</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -669,8 +669,7 @@ export default function StateMandalList() {
                   setSelectedMandalFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                disabled={!selectedBlockId}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Mandals</option>
                 {mandals.map((mandal) => (
@@ -708,8 +707,7 @@ export default function StateMandalList() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  disabled={!selectedBlockId}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -718,7 +716,7 @@ export default function StateMandalList() {
 
         {/* Mandal List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {loadingMandals && selectedBlockId ? (
+          {(loadingMandals && selectedBlockId) || (selectedDistrictId && mandals.length === 0 && allMandals.length > 0) ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">Loading mandals...</p>
@@ -821,11 +819,10 @@ export default function StateMandalList() {
                             <div className="flex items-center justify-center">
                               <button
                                 onClick={() => handleViewUsers(mandal.id)}
-                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
-                                  expandedMandalId === mandal.id
+                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${expandedMandalId === mandal.id
                                     ? "text-blue-700 bg-blue-100"
                                     : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                }`}
+                                  }`}
                                 title={
                                   expandedMandalId === mandal.id
                                     ? "Hide Users"
@@ -883,7 +880,7 @@ export default function StateMandalList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedMandalId(null)}
-                              colSpan={6}
+                              colSpan={8}
                             />
                           )}
                       </>
@@ -943,11 +940,10 @@ export default function StateMandalList() {
                                 <button
                                   key={pageNum}
                                   onClick={() => setCurrentPage(pageNum)}
-                                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                    currentPage === pageNum
+                                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                       ? "bg-blue-600 text-white"
                                       : "text-gray-700 hover:bg-gray-100"
-                                  }`}
+                                    }`}
                                 >
                                   {pageNum}
                                 </button>
