@@ -1,4 +1,5 @@
 import axios from "axios";
+import { handleTokenExpiration } from "../../../../utils/tokenValidator";
 import type {
   BoothAgent,
   BoothAgentFormData,
@@ -12,26 +13,7 @@ const BASE_PATH = "/api/booth-agents";
 
 // Get auth token from localStorage
 const getAuthToken = () => {
-  // Try to get token from localStorage (same key as other APIs in the app)
-  let token = localStorage.getItem("auth_access_token");
-
-  // If no token, try alternative keys
-  if (!token) {
-    token = localStorage.getItem("token");
-  }
-
-  // If still no token, try to get from user object
-  if (!token) {
-    try {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        token = user.token || user.accessToken;
-      }
-    } catch (e) {
-      console.error("Error parsing user from localStorage:", e);
-    }
-  }
+  const token = localStorage.getItem('auth_access_token');
 
   // Return token with Bearer prefix if exists
   if (token) {
@@ -61,6 +43,18 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Handle response errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access - token expired or invalid
+      handleTokenExpiration();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const boothAgentApi = {
   // Create booth agent (JSON only - no files)

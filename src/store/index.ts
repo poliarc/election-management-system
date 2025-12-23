@@ -15,6 +15,7 @@ import { afterAssemblyApi } from "./api/afterAssemblyApi";
 import { partyWiseLevelApi } from "./api/partyWiseLevelApi";
 import { partyUserApi } from "./api/partyUserApi";
 import { votersApi } from "./api/votersApi";
+import { vicReportsApi } from "./api/vicReportsApi";
 import { chatApi } from "../services/chatApi";
 import { myCampaignsApi } from "./api/myCampaignsApi";
 
@@ -36,6 +37,7 @@ export const store = configureStore({
     [partyWiseLevelApi.reducerPath]: partyWiseLevelApi.reducer,
     [partyUserApi.reducerPath]: partyUserApi.reducer,
     [votersApi.reducerPath]: votersApi.reducer,
+    [vicReportsApi.reducerPath]: vicReportsApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
     [myCampaignsApi.reducerPath]: myCampaignsApi.reducer,
   },
@@ -53,6 +55,7 @@ export const store = configureStore({
       .concat(partyWiseLevelApi.middleware)
       .concat(partyUserApi.middleware)
       .concat(votersApi.middleware)
+      .concat(vicReportsApi.middleware)
       .concat(chatApi.middleware)
       .concat(myCampaignsApi.middleware),
 });

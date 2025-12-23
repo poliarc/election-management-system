@@ -117,6 +117,7 @@ import {
   SubLevelPanelTeam,
   SubLevelChildHierarchy,
   SubLevelAssignedEvents,
+  SubLevelDeletedVoters,
 } from "./pages/SubLevelPanel";
 import AfterAssemblyBooths from "./pages/AfterAssemblyPanel/Booths";
 import SubLevelBooths from "./pages/SubLevelPanel/Booths";
@@ -134,6 +135,11 @@ import {
   UserCommunication,
   VoterCommunication,
 } from "./pages/Assembly/communication";
+import ReportDetails from "./pages/VIC/ReportDetails";
+import SendReport from "./pages/VIC/SendReport";
+import MyReports from "./pages/VIC/MyReports";
+import AssignedReports from "./pages/VIC/AssignedReports";
+import UnderHierarchyReports from "./pages/VIC/UnderHierarchyReports";
 
 export default function App() {
   return (
@@ -388,6 +394,15 @@ export default function App() {
               path="assigned-events"
               element={<AfterAssemblyAssignedEvents />}
             />
+            {/* VIC Routes */}
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
+            <Route path="vic/send-report" element={<SendReport />} />
+            <Route path="vic/my-reports" element={<MyReports />} />
+            <Route path="vic/assigned-reports" element={<AssignedReports />} />
+            <Route
+              path="vic/under-hierarchy-reports"
+              element={<UnderHierarchyReports />}
+            />
           </Route>
 
           {/* Sub Level Panel Routes */}
@@ -408,6 +423,19 @@ export default function App() {
               path="assigned-events"
               element={<SubLevelAssignedEvents />}
             />
+            {/* VIC Routes */}
+            <Route
+              path="vic/deleted-voters"
+              element={<SubLevelDeletedVoters />}
+            />
+            <Route path="vic/send-report" element={<SendReport />} />
+            <Route path="vic/my-reports" element={<MyReports />} />
+            <Route path="vic/assigned-reports" element={<AssignedReports />} />
+            <Route
+              path="vic/under-hierarchy-reports"
+              element={<UnderHierarchyReports />}
+            />
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

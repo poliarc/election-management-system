@@ -21,6 +21,8 @@ interface SelectedContact {
   contactField: ContactField;
 }
 
+type ContactTab = "all" | "contact1" | "contact2" | "contact3" | "contact4";
+
 export default function VoterCommunication() {
   const { selectedAssignment } = useAppSelector((s) => s.auth);
   const assemblyId = selectedAssignment?.stateMasterData_id;
@@ -52,6 +54,9 @@ export default function VoterCommunication() {
     Map<string, SelectedContact>
   >(new Map());
 
+  const [activeContactTab, setActiveContactTab] = useState<ContactTab>("all");
+  const [allVotersData, setAllVotersData] = useState<VoterList[]>([]);
+
   const {
     data,
     isLoading,
@@ -75,6 +80,36 @@ export default function VoterCommunication() {
     totalPages: 1,
   };
 
+  // Fetch all voters data for "Select All Contacts" functionality
+  const fetchAllVoters = async () => {
+    if (!assemblyId) return;
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/voters/assembly/${assemblyId}?limit=10000${debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : ''}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setAllVotersData(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching all voters:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllVoters();
+  }, [assemblyId, debouncedSearch]);
+
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
@@ -87,6 +122,26 @@ export default function VoterCommunication() {
       voter.contact_number4,
     ].filter((c): c is string => Boolean(c && c.trim()));
     return Array.from(new Set(contacts));
+  };
+
+  const getContactsByField = (voter: VoterList, contactField: ContactField) => {
+    const contact = voter[contactField];
+    return contact && contact.trim() ? [contact.trim()] : [];
+  };
+
+  const getFilteredContacts = (voter: VoterList) => {
+    switch (activeContactTab) {
+      case "contact1":
+        return getContactsByField(voter, "contact_number1");
+      case "contact2":
+        return getContactsByField(voter, "contact_number2");
+      case "contact3":
+        return getContactsByField(voter, "contact_number3");
+      case "contact4":
+        return getContactsByField(voter, "contact_number4");
+      default:
+        return getContacts(voter);
+    }
   };
 
   const resolveContactField = (
@@ -129,9 +184,44 @@ export default function VoterCommunication() {
     });
   };
 
+  const toggleAllContacts = () => {
+    // Use all voters data instead of just current page
+    const allContactsData: SelectedContact[] = allVotersData.flatMap((voter) => {
+      const contacts = getFilteredContacts(voter);
+      return contacts.map((contact) => ({
+        key: `${voter.id}-${contact}`,
+        voterId: voter.id,
+        contact,
+        name:
+          `${voter.voter_first_name_en || ""} ${
+            voter.voter_last_name_en || ""
+          }`.trim() || "Voter",
+        partNo: voter.part_no,
+        epic: voter.voter_id_epic_no,
+        contactField: resolveContactField(voter, contact),
+      }));
+    });
+
+    const allSelected =
+      allContactsData.length > 0 &&
+      allContactsData.every(({ key }) => selectedContacts.has(key));
+
+    setSelectedContacts((prev) => {
+      const next = new Map(prev);
+      if (allSelected) {
+        // Deselect all contacts from current filter
+        allContactsData.forEach(({ key }) => next.delete(key));
+      } else {
+        // Select all contacts from current filter
+        allContactsData.forEach((item) => next.set(item.key, item));
+      }
+      return next;
+    });
+  };
+
   const toggleAllOnPage = () => {
     const pageKeys: SelectedContact[] = voters.flatMap((voter) => {
-      const contacts = getContacts(voter);
+      const contacts = getFilteredContacts(voter);
       return contacts.map((contact) => ({
         key: `${voter.id}-${contact}`,
         voterId: voter.id,
@@ -165,12 +255,45 @@ export default function VoterCommunication() {
   const allPageContactsSelected = useMemo(() => {
     if (!voters.length) return false;
     const pageKeys = voters.flatMap((v) =>
-      getContacts(v).map((c) => `${v.id}-${c}`)
+      getFilteredContacts(v).map((c) => `${v.id}-${c}`)
     );
     return (
       pageKeys.length > 0 && pageKeys.every((key) => selectedContacts.has(key))
     );
-  }, [voters, selectedContacts]);
+  }, [voters, selectedContacts, activeContactTab]);
+
+  const allContactsSelected = useMemo(() => {
+    if (!allVotersData.length) return false;
+    const allKeys = allVotersData.flatMap((v) =>
+      getFilteredContacts(v).map((c) => `${v.id}-${c}`)
+    );
+    return (
+      allKeys.length > 0 && allKeys.every((key) => selectedContacts.has(key))
+    );
+  }, [allVotersData, selectedContacts, activeContactTab]);
+
+  // Count contacts by tab for display
+  const contactCounts = useMemo(() => {
+    const counts = {
+      all: 0,
+      contact1: 0,
+      contact2: 0,
+      contact3: 0,
+      contact4: 0,
+    };
+
+    allVotersData.forEach((voter) => {
+      const allContacts = getContacts(voter);
+      counts.all += allContacts.length;
+      
+      if (voter.contact_number1?.trim()) counts.contact1++;
+      if (voter.contact_number2?.trim()) counts.contact2++;
+      if (voter.contact_number3?.trim()) counts.contact3++;
+      if (voter.contact_number4?.trim()) counts.contact4++;
+    });
+
+    return counts;
+  }, [allVotersData]);
 
   const handleSendMessage = async () => {
     if (!messageType || !message.trim() || selectedContacts.size === 0) return;
@@ -353,10 +476,80 @@ export default function VoterCommunication() {
                 ? "Deselect page contacts"
                 : "Select page contacts"}
             </button>
+            <button
+              onClick={toggleAllContacts}
+              className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-medium"
+            >
+              {allContactsSelected
+                ? "Deselect all contacts"
+                : "Select all contacts"}
+            </button>
             <div className="hidden sm:block text-gray-500">
               {pagination.total.toLocaleString()} total voters
             </div>
           </div>
+        </div>
+
+        {/* Contact Tabs */}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setActiveContactTab("all")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeContactTab === "all"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              }`}
+            >
+              All Contacts ({contactCounts.all})
+            </button>
+            <button
+              onClick={() => setActiveContactTab("contact1")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeContactTab === "contact1"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              }`}
+            >
+              Contact 1 ({contactCounts.contact1})
+            </button>
+            <button
+              onClick={() => setActiveContactTab("contact2")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeContactTab === "contact2"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              }`}
+            >
+              Contact 2 ({contactCounts.contact2})
+            </button>
+            <button
+              onClick={() => setActiveContactTab("contact3")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeContactTab === "contact3"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              }`}
+            >
+              Contact 3 ({contactCounts.contact3})
+            </button>
+            <button
+              onClick={() => setActiveContactTab("contact4")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeContactTab === "contact4"
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              }`}
+            >
+              Contact 4 ({contactCounts.contact4})
+            </button>
+          </div>
+          <p className="text-sm text-gray-600 mt-2">
+            {activeContactTab === "all" 
+              ? "Showing all available contact numbers for each voter"
+              : `Showing only ${activeContactTab.replace('contact', 'Contact ')} for voters who have this contact number`
+            }
+          </p>
         </div>
 
         <div className="p-0">
@@ -397,7 +590,6 @@ export default function VoterCommunication() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {voters.map((voter) => {
-                    const contacts = getContacts(voter);
                     return (
                       <tr key={voter.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">
@@ -422,36 +614,44 @@ export default function VoterCommunication() {
                           {voter.voter_id_epic_no || "-"}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {contacts.length === 0 ? (
-                            <span className="text-gray-500">No contacts</span>
-                          ) : (
-                            <div className="flex flex-wrap gap-2">
-                              {contacts.map((contact) => {
-                                const checked = isContactSelected(
-                                  voter.id,
-                                  contact
-                                );
-                                return (
-                                  <label
-                                    key={`${voter.id}-${contact}`}
-                                    className="inline-flex items-center gap-2 px-2 py-1 border rounded-lg text-sm bg-gray-50 hover:bg-gray-100"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() =>
-                                        toggleContact(voter, contact)
-                                      }
-                                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                                    />
-                                    <span className="font-mono text-gray-800">
-                                      {contact}
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          )}
+                          {(() => {
+                            const contacts = getFilteredContacts(voter);
+                            if (contacts.length === 0) {
+                              return (
+                                <span className="text-gray-500">
+                                  {activeContactTab === "all" ? "No contacts" : `No ${activeContactTab.replace('contact', 'Contact ')}`}
+                                </span>
+                              );
+                            }
+                            return (
+                              <div className="flex flex-wrap gap-2">
+                                {contacts.map((contact) => {
+                                  const checked = isContactSelected(
+                                    voter.id,
+                                    contact
+                                  );
+                                  return (
+                                    <label
+                                      key={`${voter.id}-${contact}`}
+                                      className="inline-flex items-center gap-2 px-2 py-1 border rounded-lg text-sm bg-gray-50 hover:bg-gray-100"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() =>
+                                          toggleContact(voter, contact)
+                                        }
+                                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                      />
+                                      <span className="font-mono text-gray-800">
+                                        {contact}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </td>
                       </tr>
                     );
