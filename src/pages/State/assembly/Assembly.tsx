@@ -3,6 +3,7 @@ import { useHierarchyData, useAllDistrictsAssemblyData } from "../../../hooks/us
 import HierarchyTable from "../../../components/HierarchyTable";
 import UploadVotersModal from "../../../components/UploadVotersModal";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
+import * as XLSX from 'xlsx';
 import type { HierarchyChild, EnhancedHierarchyChild } from "../../../types/hierarchy";
 
 export default function StateAssembly() {
@@ -203,6 +204,45 @@ export default function StateAssembly() {
     setSelectedAssembly(null);
   };
 
+  // Excel export function
+  const exportToExcel = () => {
+    // Use allAssembliesData for export to get all assemblies with district information
+    const dataToExport = showAllDistricts ? allAssembliesData : data;
+    
+    // Prepare data for Excel export
+    const excelData = dataToExport.map((assembly, index) => ({
+      'S.No': index + 1,
+      'State Name': stateName || '',
+      'District Name': showAllDistricts && 'district_name' in assembly 
+        ? (assembly as EnhancedHierarchyChild).district_name 
+        : selectedDistrictName || '',
+      'Assembly Name': assembly.location_name || ''
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths
+    const colWidths = [
+      { wch: 8 },   // S.No
+      { wch: 20 },  // State Name
+      { wch: 25 },  // District Name
+      { wch: 30 }   // Assembly Name
+    ];
+    ws['!cols'] = colWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Assemblies');
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Assembly_List_${stateName.replace(/\s+/g, '_')}_${currentDate}.xlsx`;
+
+    // Save file
+    XLSX.writeFile(wb, filename);
+  };
+
   // Use different hooks based on whether showing all districts or specific district
   const {
     data: singleDistrictData,
@@ -279,6 +319,21 @@ export default function StateAssembly() {
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Assembly List</h1>
             <p className="text-sky-100 mt-1 text-xs sm:text-sm">{selectedDistrictName || stateName || parentName}</p>
+          </div>
+
+          {/* Excel Export Button */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={exportToExcel}
+              disabled={statsData.length === 0}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
+              title="Export all assemblies to Excel"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export Excel ({statsData.length})
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">

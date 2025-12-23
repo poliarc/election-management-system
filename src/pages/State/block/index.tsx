@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-  useGetBlocksByAssemblyQuery,
-} from "../../../store/api/blockApi";
+import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
+import * as XLSX from "xlsx";
 
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
@@ -25,7 +24,7 @@ export default function StateBlock() {
   // State for inline user display
   const [expandedBlockId, setExpandedBlockId] = useState<number | null>(null);
   const [blockUsers, setBlockUsers] = useState<Record<number, any[]>>({});
-  
+
   // State for filtering blocks without users
   const [showBlocksWithoutUsers, setShowBlocksWithoutUsers] = useState(false);
 
@@ -170,15 +169,26 @@ export default function StateBlock() {
     skip: !selectedAssemblyId,
   });
 
-  // Show all blocks if no assembly is selected, otherwise show filtered blocks
-  const blocks = selectedAssemblyId ? blocksFromApi : allBlocks;
+  // Show all blocks if no district is selected, 
+  // or show blocks from all assemblies in selected district if district is selected,
+  // or show blocks from specific assembly if assembly is selected
+  const blocks = (() => {
+    if (selectedAssemblyId) {
+      // Show blocks from specific assembly
+      return blocksFromApi;
+    } else if (selectedDistrictId) {
+      // Show blocks from all assemblies in selected district
+      return allBlocks.filter(block => block.districtId === selectedDistrictId);
+    } else {
+      // Show all blocks from all districts
+      return allBlocks;
+    }
+  })();
 
   // Fetch user counts for all blocks
   const [blockUserCounts, setBlockUserCounts] = useState<
     Record<number, number>
   >({});
-
-
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -228,38 +238,40 @@ export default function StateBlock() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${blockId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/user-after-assembly-hierarchy/after-assembly/${blockId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+            Authorization: `Bearer ${localStorage.getItem(
+              "auth_access_token"
+            )}`,
           },
         }
       );
       const data = await response.json();
-      
+
       if (data.success && data.data?.users) {
         // Store users data
-        setBlockUsers(prev => ({
+        setBlockUsers((prev) => ({
           ...prev,
-          [blockId]: data.data.users
+          [blockId]: data.data.users,
         }));
         setExpandedBlockId(blockId);
       } else {
-        console.log('Block API Error or No Users:', data);
+        console.log("Block API Error or No Users:", data);
       }
     } catch (error) {
       console.error(`Error fetching users for block ${blockId}:`, error);
     }
   };
 
-
-
   // Handle blocks without users filter
   const handleBlocksWithoutUsersClick = () => {
     const blocksWithoutUsersCount = Object.entries(blockUserCounts).filter(
       ([_, count]) => count === 0
     ).length;
-    
+
     if (blocksWithoutUsersCount > 0) {
       setShowBlocksWithoutUsers(!showBlocksWithoutUsers);
       setCurrentPage(1); // Reset to page 1
@@ -267,14 +279,16 @@ export default function StateBlock() {
   };
 
   const filteredBlocks = blocks.filter((block) => {
-    const matchesSearch = block.displayName.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = block.displayName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
     if (showBlocksWithoutUsers) {
       // When filtering blocks without users, only show blocks with 0 users
       const hasNoUsers = blockUserCounts[block.id] === 0;
       return matchesSearch && hasNoUsers;
     }
-    
+
     return matchesSearch;
   });
 
@@ -283,6 +297,39 @@ export default function StateBlock() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Export to Excel function
+  const handleExportToExcel = () => {
+    // Prepare data for export
+    const exportData = allBlocks.map((block, index) => ({
+      "S.No": index + 1,
+      "District Name": block.districtName || "N/A",
+      "Assembly Name": block.assemblyName || "N/A",
+      "Block Name": block.displayName || "N/A",
+    }));
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 8 }, // S.No
+      { wch: 25 }, // District Name
+      { wch: 25 }, // Assembly Name
+      { wch: 30 }, // Block Name
+    ];
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Blocks");
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split("T")[0];
+    const filename = `Block_List_${stateInfo.stateName}_${timestamp}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+  };
 
   return (
     <div className="p-1 bg-gray-50 min-h-screen">
@@ -299,20 +346,17 @@ export default function StateBlock() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-              {/* Total Blocks Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Blocks
-                  </p>
-                  <p className="text-xl sm:text-2xl font-semibold mt-1">
-                    {blocks.length}
-                  </p>
-                </div>
-                <div className="bg-blue-50 rounded-full p-1.5">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+              {/* Export Button */}
+              <div className="flex justify-end lg:justify-start">
+                <button
+                  onClick={handleExportToExcel}
+                  disabled={allBlocks.length === 0}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200"
+                  title={`Export all ${allBlocks.length} blocks to Excel`}
+                >
                   <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                    className="w-4 h-4 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -321,122 +365,159 @@ export default function StateBlock() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                </div>
+                  Export Excel ({allBlocks.length})
+                </button>
               </div>
 
-              {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
-                  </p>
-                  <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                    {Object.values(blockUserCounts).reduce(
-                      (sum, count) => sum + count,
-                      0
-                    )}
-                  </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                {/* Total Blocks Card */}
+                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Total Blocks
+                    </p>
+                    <p className="text-xl sm:text-2xl font-semibold mt-1">
+                      {blocks.length}
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 rounded-full p-1.5">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </div>
                 </div>
-                <div className="bg-green-50 rounded-full p-1.5">
-                  <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
 
-              {/* Blocks Without Users Card - Clickable */}
-              <div 
-                onClick={handleBlocksWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                  Object.values(blockUserCounts).filter(
-                    (count) => count === 0
-                  ).length > 0
-                    ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
-                    : 'cursor-default'
-                } ${
-                  showBlocksWithoutUsers 
-                    ? 'ring-2 ring-red-500 bg-red-50' 
-                    : ''
-                }`}
-                title={Object.values(blockUserCounts).filter(
-                  (count) => count === 0
-                ).length > 0 ? "Click to view blocks without users" : "No blocks without users"}
-              >
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Blocks Without Users
-                    {showBlocksWithoutUsers && (
-                      <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
-                    )}
-                  </p>
-                  <p
-                    className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                      Object.values(blockUserCounts).filter(
-                        (count) => count === 0
-                      ).length > 0
-                        ? "text-red-600"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {
-                      Object.values(blockUserCounts).filter(
-                        (count) => count === 0
-                      ).length
-                    }
-                  </p>
+                {/* Total Users Card */}
+                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Total Users
+                    </p>
+                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                      {Object.values(blockUserCounts).reduce(
+                        (sum, count) => sum + count,
+                        0
+                      )}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 rounded-full p-1.5">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                      />
+                    </svg>
+                  </div>
                 </div>
+
+                {/* Blocks Without Users Card - Clickable */}
                 <div
-                  className={`rounded-full p-1.5 ${
+                  onClick={handleBlocksWithoutUsersClick}
+                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                     Object.values(blockUserCounts).filter(
                       (count) => count === 0
                     ).length > 0
-                      ? "bg-red-50"
-                      : "bg-gray-50"
+                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                      : "cursor-default"
+                  } ${
+                    showBlocksWithoutUsers
+                      ? "ring-2 ring-red-500 bg-red-50"
+                      : ""
                   }`}
+                  title={
+                    Object.values(blockUserCounts).filter(
+                      (count) => count === 0
+                    ).length > 0
+                      ? "Click to view blocks without users"
+                      : "No blocks without users"
+                  }
                 >
-                  {Object.values(blockUserCounts).filter((count) => count === 0)
-                    .length > 0 ? (
-                    <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Blocks Without Users
+                      {showBlocksWithoutUsers && (
+                        <span className="ml-2 text-red-600 font-semibold">
+                          (Filtered)
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                        Object.values(blockUserCounts).filter(
+                          (count) => count === 0
+                        ).length > 0
+                          ? "text-red-600"
+                          : "text-gray-400"
+                      }`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                      {
+                        Object.values(blockUserCounts).filter(
+                          (count) => count === 0
+                        ).length
+                      }
+                    </p>
+                  </div>
+                  <div
+                    className={`rounded-full p-1.5 ${
+                      Object.values(blockUserCounts).filter(
+                        (count) => count === 0
+                      ).length > 0
+                        ? "bg-red-50"
+                        : "bg-gray-50"
+                    }`}
+                  >
+                    {Object.values(blockUserCounts).filter(
+                      (count) => count === 0
+                    ).length > 0 ? (
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -482,7 +563,7 @@ export default function StateBlock() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly <span className="text-red-500">*</span>
+                Assembly (Optional)
               </label>
               <select
                 value={selectedAssemblyId || ""}
@@ -493,7 +574,7 @@ export default function StateBlock() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">Select Assembly</option>
+                <option value="">All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -532,8 +613,7 @@ export default function StateBlock() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  disabled={!selectedAssemblyId}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -542,7 +622,7 @@ export default function StateBlock() {
 
         {/* Block List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {isLoading && selectedAssemblyId ? (
+          {(isLoading && selectedAssemblyId) || (selectedDistrictId && blocks.length === 0 && allBlocks.length > 0) ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">Loading blocks...</p>
@@ -576,13 +656,13 @@ export default function StateBlock() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       S.No
                     </th>
+                    
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Assembly
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Block Name
                     </th>
-
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Total Users
                     </th>
@@ -598,9 +678,10 @@ export default function StateBlock() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
+                        
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {block.assemblyName}
+                            {block.assemblyName || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -612,15 +693,17 @@ export default function StateBlock() {
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center">
                             <button
-                              onClick={() =>
-                                handleViewUsers(block.id)
-                              }
+                              onClick={() => handleViewUsers(block.id)}
                               className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
                                 expandedBlockId === block.id
                                   ? "text-blue-700 bg-blue-100"
                                   : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                               }`}
-                              title={expandedBlockId === block.id ? "Hide Users" : "View Users"}
+                              title={
+                                expandedBlockId === block.id
+                                  ? "Hide Users"
+                                  : "View Users"
+                              }
                             >
                               <svg
                                 className="w-4 h-4"
@@ -654,7 +737,7 @@ export default function StateBlock() {
                           </div>
                         </td>
                       </tr>
-                      
+
                       {/* Inline User Display */}
                       {expandedBlockId === block.id && blockUsers[block.id] && (
                         <InlineUserDisplay
@@ -667,7 +750,7 @@ export default function StateBlock() {
                           onUserDeleted={() => {
                             // Refresh user counts after deletion
                             setExpandedBlockId(null);
-                            setBlockUsers(prev => {
+                            setBlockUsers((prev) => {
                               const updated = { ...prev };
                               delete updated[block.id];
                               return updated;
@@ -675,7 +758,7 @@ export default function StateBlock() {
                             window.location.reload();
                           }}
                           onClose={() => setExpandedBlockId(null)}
-                          colSpan={4}
+                          colSpan={6}
                         />
                       )}
                     </>
@@ -751,11 +834,7 @@ export default function StateBlock() {
             )}
           </div>
         )}
-
-
       </div>
-
-
     </div>
   );
 }
