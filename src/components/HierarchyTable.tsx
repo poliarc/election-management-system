@@ -40,6 +40,8 @@ interface HierarchyTableProps {
   showAssignButton?: boolean;
   onUploadVoters?: (assemblyId: number, assemblyName: string) => void;
   showUploadVotersButton?: boolean;
+  onUploadDraftVoters?: (assemblyId: number, assemblyName: string) => void;
+  showUploadDraftVotersButton?: boolean;
   hideHeader?: boolean;
   // New props for enhanced filtering
   showAllDistricts?: boolean;
@@ -82,6 +84,8 @@ export default function HierarchyTable({
   showAssignButton = false,
   onUploadVoters,
   showUploadVotersButton = false,
+  onUploadDraftVoters,
+  showUploadDraftVotersButton = false,
   hideHeader = false,
   // New props for enhanced filtering
   showAllDistricts = false,
@@ -569,6 +573,13 @@ export default function HierarchyTable({
                     </div>
                   </th>
                 )}
+                {showUploadDraftVotersButton && (
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <div className="flex items-center justify-center space-x-2">
+                      <span>Draft Voters</span>
+                    </div>
+                  </th>
+                )}
                 {showAssignButton && (
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
@@ -586,6 +597,7 @@ export default function HierarchyTable({
                       5 +
                       (!hideActiveUsersColumn ? 1 : 0) +
                       (showUploadVotersButton ? 1 : 0) +
+                      (showUploadDraftVotersButton ? 1 : 0) +
                       (showAssignButton ? 1 : 0)
                     }
                     className="px-6 py-12 text-center"
@@ -614,6 +626,7 @@ export default function HierarchyTable({
                     5 +
                     (!hideActiveUsersColumn ? 1 : 0) +
                     (showUploadVotersButton ? 1 : 0) +
+                    (showUploadDraftVotersButton ? 1 : 0) +
                     (showAssignButton ? 1 : 0);
 
                   const rows = [
@@ -762,6 +775,36 @@ export default function HierarchyTable({
                                   strokeLinejoin="round"
                                   strokeWidth={2}
                                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </td>
+                      )}
+                      {showUploadDraftVotersButton && (
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {onUploadDraftVoters && (
+                            <button
+                              onClick={() =>
+                                onUploadDraftVoters(
+                                  item.location_id,
+                                  item.location_name
+                                )
+                              }
+                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-indigo-50 hover:to-indigo-100 transition-all duration-200 group"
+                              title="Upload Draft Voters"
+                            >
+                              <svg
+                                className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"
                                 />
                               </svg>
                             </button>
