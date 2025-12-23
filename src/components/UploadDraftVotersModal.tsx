@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { DragEvent, ChangeEvent } from "react";
 import { useUploadDraftVotersMutation } from "../store/api/votersApi";
+import { toast } from "react-hot-toast";
 
 interface UploadDraftVotersModalProps {
   isOpen: boolean;
@@ -92,12 +93,15 @@ export default function UploadDraftVotersModal({
         party_id: partyId,
         file: selectedFile,
       }).unwrap();
+
+      toast.success("Draft voters uploaded successfully.");
       setTimeout(() => {
         setSelectedFile(null);
         onClose();
       }, 1500);
     } catch (err) {
       console.error("Draft upload failed", err);
+      toast.error("Draft upload failed. Please try again.");
     }
   };
 
