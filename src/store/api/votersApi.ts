@@ -47,6 +47,84 @@ interface UpdateVoterRequest extends Partial<VoterListCandidate> {
   id: number;
 }
 
+interface DraftCompareSummaryPayload {
+  summary: {
+    total_master_voters: number;
+    total_draft_voters: number;
+    matched_voters: number;
+    new_in_draft: number;
+    missing_in_draft: number;
+    modified_voters: number;
+  };
+  // Details are intentionally empty in summary response; specific endpoints provide records.
+  details: {
+    matched: unknown[];
+    new_in_draft: unknown[];
+    missing_in_draft: unknown[];
+    modified: unknown[];
+  };
+}
+
+interface DraftCompareListBase {
+  voter_id_epic_no: string;
+  part_no?: string;
+  assembly_id: number;
+}
+
+interface DraftCompareNew extends DraftCompareListBase {
+  draft_id: number;
+  draft_name?: string;
+  draft_contact?: string;
+  draft_house?: string;
+  upload_batch_id?: string;
+  status: "new_voter";
+  uploaded_by?: number;
+  created_at?: string;
+}
+
+interface DraftCompareMissing extends DraftCompareListBase {
+  master_id: number;
+  master_name?: string;
+  master_contact?: string;
+  master_house?: string;
+  status: "missing_voter";
+  last_updated?: string;
+}
+
+interface DraftCompareModified extends DraftCompareListBase {
+  master_id: number;
+  draft_id: number;
+  master_name?: string;
+  draft_name?: string;
+  master_contact?: string;
+  draft_contact?: string;
+  master_house?: string;
+  draft_house?: string;
+  status: "modified_voter";
+  differences?: string[];
+}
+
+interface DraftCompareMatched extends DraftCompareListBase {
+  master_id: number;
+  draft_id: number;
+  voter_name?: string;
+  contact?: string;
+  house_no?: string;
+  match_type?: string;
+}
+
+interface DraftCompareListResponse<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export const votersApi = createApi({
   reducerPath: "votersApi",
   baseQuery: fetchBaseQuery({
@@ -147,6 +225,86 @@ export const votersApi = createApi({
       },
       providesTags: ["Voters"],
     }),
+    getDraftCompareSummary: builder.query<
+      DraftCompareSummaryPayload,
+      { assembly_id: number; party_id?: number; upload_batch_id?: string }
+    >({
+      query: ({ assembly_id, party_id, upload_batch_id }) => {
+        const params = new URLSearchParams();
+        if (party_id) params.append("party_id", party_id.toString());
+        if (upload_batch_id) params.append("upload_batch_id", upload_batch_id);
+
+        const queryString = params.toString();
+        const suffix = queryString ? `?${queryString}` : "";
+        return {
+          url: `/draft-voters/assembly/${assembly_id}/compare${suffix}`,
+          method: "GET",
+        };
+      },
+      transformResponse: (response: ApiResponse<DraftCompareSummaryPayload>) =>
+        response.data,
+    }),
+    getDraftCompareNew: builder.query<
+      DraftCompareListResponse<DraftCompareNew>,
+      { assembly_id: number; page: number; limit: number; party_id?: number }
+    >({
+      query: ({ assembly_id, page, limit, party_id }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        if (party_id) params.append("party_id", party_id.toString());
+        return {
+          url: `/draft-voters/assembly/${assembly_id}/compare/new_in_draft?${params.toString()}`,
+          method: "GET",
+        };
+      },
+    }),
+    getDraftCompareMissing: builder.query<
+      DraftCompareListResponse<DraftCompareMissing>,
+      { assembly_id: number; page: number; limit: number }
+    >({
+      query: ({ assembly_id, page, limit }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        return {
+          url: `/draft-voters/assembly/${assembly_id}/compare/missing_in_draft?${params.toString()}`,
+          method: "GET",
+        };
+      },
+    }),
+    getDraftCompareModified: builder.query<
+      DraftCompareListResponse<DraftCompareModified>,
+      { assembly_id: number; page: number; limit: number }
+    >({
+      query: ({ assembly_id, page, limit }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        return {
+          url: `/draft-voters/assembly/${assembly_id}/compare/modified?${params.toString()}`,
+          method: "GET",
+        };
+      },
+    }),
+    getDraftCompareMatched: builder.query<
+      DraftCompareListResponse<DraftCompareMatched>,
+      { assembly_id: number; page: number; limit: number }
+    >({
+      query: ({ assembly_id, page, limit }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        return {
+          url: `/draft-voters/assembly/${assembly_id}/compare/matched?${params.toString()}`,
+          method: "GET",
+        };
+      },
+    }),
     updateVoter: builder.mutation<VoterList, UpdateVoterRequest>({
       query: ({ id, ...data }) => ({
         url: `/voters/update/${id}`,
@@ -163,4 +321,9 @@ export const {
   useUploadDraftVotersMutation,
   useGetVotersByAssemblyPaginatedQuery,
   useUpdateVoterMutation,
+  useGetDraftCompareSummaryQuery,
+  useGetDraftCompareNewQuery,
+  useGetDraftCompareMissingQuery,
+  useGetDraftCompareModifiedQuery,
+  useGetDraftCompareMatchedQuery,
 } = votersApi;
