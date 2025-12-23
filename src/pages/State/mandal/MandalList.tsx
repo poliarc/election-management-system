@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
+import * as XLSX from "xlsx";
 
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
@@ -23,7 +24,7 @@ export default function StateMandalList() {
   // State for inline user display
   const [expandedMandalId, setExpandedMandalId] = useState<number | null>(null);
   const [mandalUsers, setMandalUsers] = useState<Record<number, any[]>>({});
-  
+
   // State for filtering mandals without users
   const [showMandalsWithoutUsers, setShowMandalsWithoutUsers] = useState(false);
 
@@ -265,8 +266,10 @@ export default function StateMandalList() {
 
   // Handle mandals without users filter
   const handleMandalsWithoutUsersClick = () => {
-    const mandalsWithoutUsersCount = mandals.filter((mandal) => (mandal.user_count || 0) === 0).length;
-    
+    const mandalsWithoutUsersCount = mandals.filter(
+      (mandal) => (mandal.user_count || 0) === 0
+    ).length;
+
     if (mandalsWithoutUsersCount > 0) {
       setShowMandalsWithoutUsers(!showMandalsWithoutUsers);
       setCurrentPage(1); // Reset to page 1
@@ -280,12 +283,12 @@ export default function StateMandalList() {
     const matchesFilter =
       selectedMandalFilter === "" ||
       mandal.id.toString() === selectedMandalFilter;
-    
+
     // Apply mandals without users filter
-    const matchesWithoutUsersFilter = showMandalsWithoutUsers 
-      ? (mandal.user_count || 0) === 0 
+    const matchesWithoutUsersFilter = showMandalsWithoutUsers
+      ? (mandal.user_count || 0) === 0
       : true;
-    
+
     return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
   });
 
@@ -304,31 +307,33 @@ export default function StateMandalList() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${mandalId}`,
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/user-after-assembly-hierarchy/after-assembly/${mandalId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+            Authorization: `Bearer ${localStorage.getItem(
+              "auth_access_token"
+            )}`,
           },
         }
       );
       const data = await response.json();
-      
+
       if (data.success && data.data?.users) {
         // Store users data
-        setMandalUsers(prev => ({
+        setMandalUsers((prev) => ({
           ...prev,
-          [mandalId]: data.data.users
+          [mandalId]: data.data.users,
         }));
         setExpandedMandalId(mandalId);
       } else {
-        console.log('Mandal API Error or No Users:', data);
+        console.log("Mandal API Error or No Users:", data);
       }
     } catch (error) {
       console.error(`Error fetching users for mandal ${mandalId}:`, error);
     }
   };
-
-
 
   const totalPages = Math.ceil(filteredMandals.length / itemsPerPage);
   const paginatedMandals = filteredMandals.slice(
@@ -341,6 +346,41 @@ export default function StateMandalList() {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
+
+  // Export to Excel function
+  const handleExportToExcel = () => {
+    // Prepare data for export
+    const exportData = allMandals.map((mandal, index) => ({
+      "S.No": index + 1,
+      "District Name": mandal.districtName || "N/A",
+      "Assembly Name": mandal.assemblyName || "N/A",
+      "Block Name": mandal.blockName || "N/A",
+      "Mandal Name": mandal.displayName || "N/A",
+    }));
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Set column widths
+    worksheet["!cols"] = [
+      { wch: 8 }, // S.No
+      { wch: 25 }, // District Name
+      { wch: 25 }, // Assembly Name
+      { wch: 25 }, // Block Name
+      { wch: 30 }, // Mandal Name
+    ];
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Mandals");
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split("T")[0];
+    const filename = `Mandal_List_${stateInfo.stateName}_${timestamp}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(workbook, filename);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -357,20 +397,17 @@ export default function StateMandalList() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-              {/* Total Mandals Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Mandals
-                  </p>
-                  <p className="text-xl sm:text-2xl font-semibold mt-1">
-                    {mandals.length}
-                  </p>
-                </div>
-                <div className="bg-blue-50 rounded-full p-1.5">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+              {/* Export Button */}
+              <div className="flex justify-end lg:justify-start">
+                <button
+                  onClick={handleExportToExcel}
+                  disabled={allMandals.length === 0}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200"
+                  title={`Export all ${allMandals.length} mandals to Excel`}
+                >
                   <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                    className="w-4 h-4 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -379,115 +416,155 @@ export default function StateMandalList() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 3L3 9l9 6 9-6-9-6zm0 6v12"
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                </div>
+                  Export Excel ({allMandals.length})
+                </button>
               </div>
 
-              {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
-                  </p>
-                  <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                    {mandals.reduce(
-                      (sum, mandal) => sum + (mandal.user_count || 0),
-                      0
-                    )}
-                  </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
+                {/* Total Mandals Card */}
+                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Total Mandals
+                    </p>
+                    <p className="text-xl sm:text-2xl font-semibold mt-1">
+                      {mandals.length}
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 rounded-full p-1.5">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 3L3 9l9 6 9-6-9-6zm0 6v12"
+                      />
+                    </svg>
+                  </div>
                 </div>
-                <div className="bg-green-50 rounded-full p-1.5">
-                  <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
 
-              {/* Mandals Without Users Card - Clickable */}
-              <div 
-                onClick={handleMandalsWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                  mandals.filter((mandal) => (mandal.user_count || 0) === 0).length > 0
-                    ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
-                    : 'cursor-default'
-                } ${
-                  showMandalsWithoutUsers 
-                    ? 'ring-2 ring-red-500 bg-red-50' 
-                    : ''
-                }`}
-                title={mandals.filter((mandal) => (mandal.user_count || 0) === 0).length > 0 ? "Click to view mandals without users" : "No mandals without users"}
-              >
-                <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Mandals Without Users
-                    {showMandalsWithoutUsers && (
-                      <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
-                    )}
-                  </p>
-                  <p
-                    className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                        .length > 0
-                        ? "text-red-600"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {
-                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                        .length
-                    }
-                  </p>
+                {/* Total Users Card */}
+                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Total Users
+                    </p>
+                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                      {mandals.reduce(
+                        (sum, mandal) => sum + (mandal.user_count || 0),
+                        0
+                      )}
+                    </p>
+                  </div>
+                  <div className="bg-green-50 rounded-full p-1.5">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                      />
+                    </svg>
+                  </div>
                 </div>
+
+                {/* Mandals Without Users Card - Clickable */}
                 <div
-                  className={`rounded-full p-1.5 ${
+                  onClick={handleMandalsWithoutUsersClick}
+                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                     mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                       .length > 0
-                      ? "bg-red-50"
-                      : "bg-gray-50"
+                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                      : "cursor-default"
+                  } ${
+                    showMandalsWithoutUsers
+                      ? "ring-2 ring-red-500 bg-red-50"
+                      : ""
                   }`}
+                  title={
+                    mandals.filter((mandal) => (mandal.user_count || 0) === 0)
+                      .length > 0
+                      ? "Click to view mandals without users"
+                      : "No mandals without users"
+                  }
                 >
-                  {mandals.filter((mandal) => (mandal.user_count || 0) === 0)
-                    .length > 0 ? (
-                    <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">
+                      Mandals Without Users
+                      {showMandalsWithoutUsers && (
+                        <span className="ml-2 text-red-600 font-semibold">
+                          (Filtered)
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                        mandals.filter(
+                          (mandal) => (mandal.user_count || 0) === 0
+                        ).length > 0
+                          ? "text-red-600"
+                          : "text-gray-400"
+                      }`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                      {
+                        mandals.filter(
+                          (mandal) => (mandal.user_count || 0) === 0
+                        ).length
+                      }
+                    </p>
+                  </div>
+                  <div
+                    className={`rounded-full p-1.5 ${
+                      mandals.filter((mandal) => (mandal.user_count || 0) === 0)
+                        .length > 0
+                        ? "bg-red-50"
+                        : "bg-gray-50"
+                    }`}
+                  >
+                    {mandals.filter((mandal) => (mandal.user_count || 0) === 0)
+                      .length > 0 ? (
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -676,6 +753,7 @@ export default function StateMandalList() {
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         S.No
                       </th>
+
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Block
                       </th>
@@ -683,10 +761,10 @@ export default function StateMandalList() {
                         Level Type
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Display Name
+                        Mandal Name
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                       Total Users
+                        Total Users
                       </th>
                     </tr>
                   </thead>
@@ -700,6 +778,7 @@ export default function StateMandalList() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
+
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
                               {mandal.blockName ||
@@ -741,15 +820,17 @@ export default function StateMandalList() {
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <div className="flex items-center justify-center">
                               <button
-                                onClick={() =>
-                                  handleViewUsers(mandal.id)
-                                }
+                                onClick={() => handleViewUsers(mandal.id)}
                                 className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
                                   expandedMandalId === mandal.id
                                     ? "text-blue-700 bg-blue-100"
                                     : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                                 }`}
-                                title={expandedMandalId === mandal.id ? "Hide Users" : "View Users"}
+                                title={
+                                  expandedMandalId === mandal.id
+                                    ? "Hide Users"
+                                    : "View Users"
+                                }
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -777,30 +858,34 @@ export default function StateMandalList() {
                             </div>
                           </td>
                         </tr>
-                        
+
                         {/* Inline User Display */}
-                        {expandedMandalId === mandal.id && mandalUsers[mandal.id] && (
-                          <InlineUserDisplay
-                            users={mandalUsers[mandal.id]}
-                            locationName={mandal.displayName}
-                            locationId={mandal.id}
-                            locationType="Mandal"
-                            parentLocationName={mandal.blockName || hierarchyData?.parent.displayName}
-                            parentLocationType="Block"
-                            onUserDeleted={() => {
-                              // Refresh user counts after deletion
-                              setExpandedMandalId(null);
-                              setMandalUsers(prev => {
-                                const updated = { ...prev };
-                                delete updated[mandal.id];
-                                return updated;
-                              });
-                              window.location.reload();
-                            }}
-                            onClose={() => setExpandedMandalId(null)}
-                            colSpan={5}
-                          />
-                        )}
+                        {expandedMandalId === mandal.id &&
+                          mandalUsers[mandal.id] && (
+                            <InlineUserDisplay
+                              users={mandalUsers[mandal.id]}
+                              locationName={mandal.displayName}
+                              locationId={mandal.id}
+                              locationType="Mandal"
+                              parentLocationName={
+                                mandal.blockName ||
+                                hierarchyData?.parent.displayName
+                              }
+                              parentLocationType="Block"
+                              onUserDeleted={() => {
+                                // Refresh user counts after deletion
+                                setExpandedMandalId(null);
+                                setMandalUsers((prev) => {
+                                  const updated = { ...prev };
+                                  delete updated[mandal.id];
+                                  return updated;
+                                });
+                                window.location.reload();
+                              }}
+                              onClose={() => setExpandedMandalId(null)}
+                              colSpan={6}
+                            />
+                          )}
                       </>
                     ))}
                   </tbody>
@@ -885,8 +970,6 @@ export default function StateMandalList() {
             </>
           )}
         </div>
-
-
       </div>
 
       <style>{`
@@ -906,8 +989,6 @@ export default function StateMandalList() {
                     background: #2563eb;
                 }
             `}</style>
-
-
     </div>
   );
 }
