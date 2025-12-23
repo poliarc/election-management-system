@@ -322,12 +322,31 @@ export default function StatePollingCenterList() {
     error,
   } = useGetBlockHierarchyQuery(selectedMandalId, { skip: !selectedMandalId });
 
-  // Show all polling centers if no mandal is selected, otherwise show filtered polling centers
-  const pollingCenters = selectedMandalId
-    ? (hierarchyData?.children || []).filter(
+  // Show all polling centers if no district is selected,
+  // or show polling centers from all mandals in all blocks in all assemblies within selected district if district is selected,
+  // or show polling centers from all mandals in all blocks in selected assembly if assembly is selected,
+  // or show polling centers from all mandals in selected block if block is selected,
+  // or show polling centers from specific mandal if mandal is selected
+  const pollingCenters = (() => {
+    if (selectedMandalId) {
+      // Show polling centers from specific mandal
+      return (hierarchyData?.children || []).filter(
         (item: any) => item.levelName !== "Booth"
-      )
-    : allPollingCenters;
+      );
+    } else if (selectedBlockId) {
+      // Show polling centers from all mandals in selected block
+      return allPollingCenters.filter(pc => pc.blockId === selectedBlockId);
+    } else if (selectedAssemblyId) {
+      // Show polling centers from all mandals in all blocks in selected assembly
+      return allPollingCenters.filter(pc => pc.assemblyId === selectedAssemblyId);
+    } else if (selectedDistrictId) {
+      // Show polling centers from all mandals in all blocks in all assemblies within selected district
+      return allPollingCenters.filter(pc => pc.districtId === selectedDistrictId);
+    } else {
+      // Show all polling centers from all districts
+      return allPollingCenters;
+    }
+  })();
 
   // Fetch Booths for selected Polling Center
   const fetchBooths = async (pollingCenterId: number) => {
@@ -710,7 +729,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly <span className="text-red-500">*</span>
+                Assembly
               </label>
               <select
                 value={selectedAssemblyId}
@@ -724,7 +743,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -737,7 +756,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block <span className="text-red-500">*</span>
+                Block
               </label>
               <select
                 value={selectedBlockId}
@@ -750,7 +769,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Block</option>
+                <option value={0}>All Blocks in Assembly</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -760,7 +779,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Mandal <span className="text-red-500">*</span>
+                Mandal
               </label>
               <select
                 value={selectedMandalId}
@@ -772,7 +791,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedBlockId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Mandal</option>
+                <option value={0}>All Mandals in Block</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -803,7 +822,7 @@ export default function StatePollingCenterList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Polling Centers
+                Search
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -829,8 +848,7 @@ export default function StatePollingCenterList() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  disabled={!selectedMandalId}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -860,7 +878,7 @@ export default function StatePollingCenterList() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  d="M20 13V6a.2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
               <p className="mt-2 text-gray-500 font-medium">

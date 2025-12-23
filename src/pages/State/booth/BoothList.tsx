@@ -1095,7 +1095,7 @@ export default function StateBoothList() {
             {/* Assembly - Always visible */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly <span className="text-red-500">*</span>
+                Assembly (Optional)
               </label>
               <select
                 value={selectedAssemblyId}
@@ -1109,7 +1109,7 @@ export default function StateBoothList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -1125,7 +1125,7 @@ export default function StateBoothList() {
             {availableLevels.hasBlocks && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Block <span className="text-red-500">*</span>
+                  Block (Optional)
                 </label>
                 <select
                   value={selectedBlockId}
@@ -1138,7 +1138,7 @@ export default function StateBoothList() {
                   disabled={!selectedAssemblyId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Block</option>
+                  <option value={0}>All Blocks in Assembly</option>
                   {blocks.map((block) => (
                     <option key={block.id} value={block.id}>
                       {block.displayName}
@@ -1152,7 +1152,7 @@ export default function StateBoothList() {
             {availableLevels.hasMandals && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Mandal <span className="text-red-500">*</span>
+                  Mandal (Optional)
                 </label>
                 <select
                   value={selectedMandalId}
@@ -1164,7 +1164,7 @@ export default function StateBoothList() {
                   disabled={!selectedBlockId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Mandal</option>
+                  <option value={0}>All Mandals in Block</option>
                   {mandals.map((mandal) => (
                     <option key={mandal.id} value={mandal.id}>
                       {mandal.displayName}
@@ -1178,7 +1178,7 @@ export default function StateBoothList() {
             {availableLevels.hasPollingCenters && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Polling Center <span className="text-red-500">*</span>
+                  Polling Center (Optional)
                 </label>
                 <select
                   value={selectedPollingCenterId}
@@ -1189,7 +1189,7 @@ export default function StateBoothList() {
                   disabled={!selectedMandalId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>Select Polling Center</option>
+                  <option value={0}>All Polling Centers in Mandal</option>
                   {pollingCenters.map((pc) => (
                     <option key={pc.id} value={pc.id}>
                       {pc.displayName}
