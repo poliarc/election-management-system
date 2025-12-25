@@ -953,15 +953,15 @@ export default function DistrictBoothList() {
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Users
                       </th>
-                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Status
-                      </th> */}
+                      </th>
                       {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                 Created Date
                                             </th>*/}
-                      {/* <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Actions
-                      </th> */}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1058,7 +1058,7 @@ export default function DistrictBoothList() {
                               </span>
                             </div>
                           </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                 booth.isActive === 1
@@ -1068,8 +1068,8 @@ export default function DistrictBoothList() {
                             >
                               {booth.isActive === 1 ? "Active" : "Inactive"}
                             </span>
-                          </td> */}
-                          {/* <td className="px-6 py-4 whitespace-nowrap text-center">
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleViewUsers(booth.id)}
                               className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all bg-purple-600 text-white hover:bg-purple-700 hover:shadow-md"
@@ -1095,7 +1095,7 @@ export default function DistrictBoothList() {
                               </svg>
                               View
                             </button>
-                          </td> */}
+                          </td>
                         </tr>
 
                         {/* Inline User Display */}

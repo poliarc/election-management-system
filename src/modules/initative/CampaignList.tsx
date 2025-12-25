@@ -231,7 +231,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
-      year: "2-digit", // Use 2-digit year for mobile
+      year: "numeric",
     });
   };
 
@@ -274,14 +274,14 @@ export const CampaignList: React.FC<CampaignListProps> = ({
         <div
           key={notification.id}
           onClick={() => onEventClick(notification)}
-          className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+          className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
             selectedNotification?.id === notification.id
               ? "ring-2 ring-blue-500 shadow-lg"
               : ""
           }`}
         >
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="w-full sm:w-40 h-32 sm:h-24 md:w-56 md:h-32 rounded-2xl overflow-hidden shrink-0">
+          <div className="flex gap-4">
+            <div className="w-40 h-24 sm:w-56 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0">
               <CampaignImageSlider
                 images={
                   Array.isArray(notification.image)
@@ -294,61 +294,58 @@ export const CampaignList: React.FC<CampaignListProps> = ({
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-2">
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-1">
                   {notification.title}
                 </h3>
-                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
-                  <span className="text-lg">
-                    {getCategoryIcon(notification.category)}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium border whitespace-nowrap ${getStatusColor(
-                      notification.acceptance_status
-                    )}`}
-                  >
-                    {notification.acceptance_status.charAt(0).toUpperCase() +
-                      notification.acceptance_status.slice(1)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-2">
-                <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-wrap">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
-                  <div className="flex flex-wrap items-center gap-1 min-w-0">
-                    <span className="text-xs sm:text-sm whitespace-nowrap">
-                      {formatDate(notification.startDate)}
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">
+                      {getCategoryIcon(notification.category)}
                     </span>
-                    <span className="text-xs sm:text-sm">to</span>
-                    <span className="text-xs sm:text-sm whitespace-nowrap">
-                      {formatDate(notification.endDate)}
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(
+                        notification.acceptance_status
+                      )}`}
+                    >
+                      {notification.acceptance_status.charAt(0).toUpperCase() +
+                        notification.acceptance_status.slice(1)}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0" />
-                  <span className="text-xs sm:text-sm">
-                    {notification.time}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-gray-600 mt-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" />
+                  <span className="truncate">
+                    {formatDate(notification.startDate)}
+                  </span>
+                  <span>to</span>
+                  <span className="truncate">
+                    {formatDate(notification.endDate)}
                   </span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                  <span>{notification.time}</span>
+                </div>
                 {notification.acceptance_status === "accepted" && (
-                  <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-auto w-full sm:w-auto">
+                  <div className="ml-auto flex gap-2">
                     <button
                       type="button"
-                      className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-green-600 text-white rounded-md text-xs font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-1"
+                      className="px-3 py-1 bg-green-600 text-white rounded-md text-xs font-semibold hover:bg-green-700 transition-all flex items-center gap-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewReportsClick(notification);
                       }}
                     >
                       <Eye className="w-3 h-3" />
-                      <span className="hidden sm:inline">My Reports</span>
-                      <span className="sm:hidden">Reports</span>
+                      My Reports
                     </button>
                     <button
                       type="button"
-                      className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-all"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleReportClick(notification);
@@ -360,7 +357,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                 )}
               </div>
 
-              <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2 sm:line-clamp-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-1">
                 {notification.description}
               </p>
             </div>
@@ -370,14 +367,15 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
       {showReportModal && activeCampaign && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4"
+          className="fixed inset-0 z- flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4"
+          style={{ left: "263px", width: "calc(100% - 258px)" }}
           onClick={() => {
             setShowReportModal(false);
             setActiveCampaign(null);
           }}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-y-auto max-h-[90vh] relative"
+            className="bg-white rounded-2xl w-full shadow-xl overflow-y-auto max-h-[90vh] p-6 sm:p-8 relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -389,12 +387,10 @@ export const CampaignList: React.FC<CampaignListProps> = ({
             >
               <span className="text-xl text-gray-700">&times;</span>
             </button>
-            <div className="p-4 sm:p-6 lg:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
+            <div className="p-4 sm:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Report Event for{" "}
-                <span className="text-blue-600 block sm:inline mt-1 sm:mt-0">
-                  {activeCampaign.title}
-                </span>
+                <span className="text-blue-600">{activeCampaign.title}</span>
               </h2>
 
               <form onSubmit={handleReportSubmit} className="space-y-4">

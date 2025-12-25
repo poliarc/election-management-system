@@ -52,48 +52,28 @@ export default function AfterAssemblyAssignUser() {
   const resolvedLevelId = Number(levelId) || 0;
 
   const getStateId = () => {
-    // First priority: Get state_id from auth_user in localStorage
-    try {
-      const authUser = localStorage.getItem("auth_user");
-      if (authUser) {
-        const parsed = JSON.parse(authUser);
-        if (parsed?.state_id) {
-          console.log("Using state_id from auth_user:", parsed.state_id);
-          return parsed.state_id;
-        }
-      }
-    } catch (error) {
-      console.error("Failed to parse auth_user:", error);
-    }
-
-    // Second priority: Check selectedAssignment
     let stateId = selectedAssignment?.stateMasterData_id;
-    if (stateId) {
-      console.log("Using state_id from selectedAssignment:", stateId);
-      return stateId;
-    }
 
-    // Fallback: Try auth_state
-    try {
-      const authState = localStorage.getItem("auth_state");
-      if (authState) {
-        const parsed = JSON.parse(authState);
-        if (parsed.stateAssignments && parsed.stateAssignments.length > 0) {
-          const stateAssignment = parsed.stateAssignments.find(
-            (a: any) => a.levelType === "State"
-          );
-          if (stateAssignment) {
-            console.log("Using state_id from auth_state:", stateAssignment.stateMasterData_id);
-            return stateAssignment.stateMasterData_id;
+    if (!stateId) {
+      try {
+        const authState = localStorage.getItem("auth_state");
+        if (authState) {
+          const parsed = JSON.parse(authState);
+          if (parsed.stateAssignments && parsed.stateAssignments.length > 0) {
+            const stateAssignment = parsed.stateAssignments.find(
+              (a: any) => a.levelType === "State"
+            );
+            if (stateAssignment) {
+              stateId = stateAssignment.stateMasterData_id;
+            }
           }
         }
+      } catch (error) {
+        console.error("Failed to get state_id:", error);
       }
-    } catch (error) {
-      console.error("Failed to get state_id from auth_state:", error);
     }
 
-    console.error("No state_id found in any source");
-    return null;
+    return stateId;
   };
 
   const loadAvailableUsers = async (page: number = 1, search: string = "") => {
@@ -103,8 +83,6 @@ export default function AfterAssemblyAssignUser() {
     }
 
     const stateId = getStateId();
-    console.log("loadAvailableUsers - partyId:", user.partyId, "stateId:", stateId);
-
     if (!stateId) {
       toast.error("Missing state information");
       return;
@@ -330,21 +308,23 @@ export default function AfterAssemblyAssignUser() {
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab("assign")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "assign"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "assign"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                 >
                   Assign Users
                 </button>
                 <button
                   onClick={() => setActiveTab("assigned")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "assigned"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === "assigned"
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
                 >
-                  Available Users ({assignedUsers.length})
+                  Assigned Users ({assignedUsers.length})
                 </button>
               </nav>
             </div>
@@ -401,14 +381,16 @@ export default function AfterAssemblyAssignUser() {
                         return (
                           <div
                             key={u.user_id}
-                            className={`p-4 hover:bg-blue-50 ${isAlreadyAssigned ? "bg-blue-50" : ""
-                              }`}
+                            className={`p-4 hover:bg-blue-50 ${
+                              isAlreadyAssigned ? "bg-blue-50" : ""
+                            }`}
                           >
                             <label
-                              className={`flex items-center ${isAlreadyAssigned
-                                ? "cursor-not-allowed opacity-70"
-                                : "cursor-pointer"
-                                }`}
+                              className={`flex items-center ${
+                                isAlreadyAssigned
+                                  ? "cursor-not-allowed opacity-70"
+                                  : "cursor-pointer"
+                              }`}
                             >
                               <input
                                 type="checkbox"
@@ -445,15 +427,12 @@ export default function AfterAssemblyAssignUser() {
                   </div>
 
                   {userTotalPages > 1 && (
-                    <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-                      {/* Results info - hidden on mobile, shown on larger screens */}
-                      <div className="hidden sm:block text-sm text-gray-700 order-1 sm:order-none">
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="text-sm text-gray-700">
                         Showing {paginationTextStart} to {paginationTextEnd} of{" "}
                         {userTotalCount} results
                       </div>
-
-                      {/* Pagination controls - centered */}
-                      <div className="flex items-center gap-1 sm:gap-2 order-2 sm:order-none">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => {
                             const next = Math.max(currentPage - 1, 1);
@@ -461,38 +440,33 @@ export default function AfterAssemblyAssignUser() {
                             loadAvailableUsers(next, searchTerm);
                           }}
                           disabled={currentPage === 1}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Prev
+                          Previous
                         </button>
-
-                        {/* Page numbers - responsive display */}
-                        <div className="flex gap-1">
-                          {Array.from({
-                            length: Math.min(3, userTotalPages),
-                          }).map((_, i) => {
-                            const pageNum = currentPage <= 2
-                              ? i + 1
-                              : currentPage - 1 + i;
-                            if (pageNum > userTotalPages) return null;
-                            return (
-                              <button
-                                key={pageNum}
-                                onClick={() => {
-                                  setCurrentPage(pageNum);
-                                  loadAvailableUsers(pageNum, searchTerm);
-                                }}
-                                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded-md min-w-[32px] ${currentPage === pageNum
+                        {Array.from({
+                          length: Math.min(5, userTotalPages),
+                        }).map((_, i) => {
+                          const pageNum =
+                            currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                          if (pageNum > userTotalPages) return null;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => {
+                                setCurrentPage(pageNum);
+                                loadAvailableUsers(pageNum, searchTerm);
+                              }}
+                              className={`px-3 py-1 text-sm border rounded-md ${
+                                currentPage === pageNum
                                   ? "bg-blue-600 text-white border-blue-600"
                                   : "border-gray-300 hover:bg-gray-50"
-                                  }`}
-                              >
-                                {pageNum}
-                              </button>
-                            );
-                          })}
-                        </div>
-
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
                         <button
                           onClick={() => {
                             const next = Math.min(
@@ -503,15 +477,10 @@ export default function AfterAssemblyAssignUser() {
                             loadAvailableUsers(next, searchTerm);
                           }}
                           disabled={currentPage === userTotalPages}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Next
                         </button>
-                      </div>
-
-                      {/* Results info for mobile - shown below pagination */}
-                      <div className="sm:hidden text-xs text-gray-600 text-center order-3">
-                        {paginationTextStart}-{paginationTextEnd} of {userTotalCount}
                       </div>
                     </div>
                   )}
@@ -602,8 +571,9 @@ export default function AfterAssemblyAssignUser() {
                               onClick={() =>
                                 handleUnassign(
                                   u.user_id,
-                                  `${u.first_name || ""} ${u.last_name || ""
-                                    }`.trim()
+                                  `${u.first_name || ""} ${
+                                    u.last_name || ""
+                                  }`.trim()
                                 )
                               }
                               disabled={unassigningId === u.user_id}

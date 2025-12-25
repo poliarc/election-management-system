@@ -383,36 +383,32 @@ export default function DistrictTeam() {
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Mobile scroll hint */}
-        {/* <div className="block sm:hidden bg-gray-50 px-4 py-2 text-xs text-gray-600 border-b">
-          ← Scroll horizontally to view all columns →
-        </div> */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   S.No
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   State Name
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   District Name
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   Designation
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   Phone Number
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell min-w-[150px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell">
                   Email
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[80px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   Status
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[80px]">
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden xl:table-cell">
                   Action
                 </th>
               </tr>
@@ -420,7 +416,7 @@ export default function DistrictTeam() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <svg
                       className="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
@@ -448,26 +444,26 @@ export default function DistrictTeam() {
 
                   return (
                     <tr key={rowKey} className="hover:bg-gray-50">
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900">
                         {startIndex + index + 1}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
                         {user.user_state}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
                         {user.user_district}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
                         {user.user_role || "N/A"}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600">
                         {user.mobile_number}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
                         {user.email}
                       </td>
 
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
                             isActive
@@ -478,7 +474,7 @@ export default function DistrictTeam() {
                           {isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden xl:table-cell">
                         <div className="relative inline-block text-left">
                           <button
                             type="button"
@@ -487,7 +483,7 @@ export default function DistrictTeam() {
                                 prev === rowKey ? null : rowKey
                               )
                             }
-                            className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
                             aria-haspopup="true"
                             aria-expanded={openMenuId === rowKey}
                             title="More actions"

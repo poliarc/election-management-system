@@ -543,9 +543,9 @@ export default function DistrictMandalList() {
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Users
                       </th>
-                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Status
-                      </th> */}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -635,7 +635,7 @@ export default function DistrictMandalList() {
                               </span>
                             </div>
                           </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                 mandal.isActive === 1
@@ -645,7 +645,7 @@ export default function DistrictMandalList() {
                             >
                               {mandal.isActive === 1 ? "Active" : "Inactive"}
                             </span>
-                          </td> */}
+                          </td>
                         </tr>
 
                         {/* Inline User Display */}

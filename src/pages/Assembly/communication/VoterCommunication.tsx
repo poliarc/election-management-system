@@ -663,7 +663,7 @@ export default function VoterCommunication() {
         </div>
 
         {pagination.totalPages > 1 && (
-          <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200">
+          <div className="px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-gray-200">
             <div className="text-sm text-gray-700 order-2 sm:order-1">
               Showing {(page - 1) * limit + 1} to{" "}
               {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
@@ -672,64 +672,50 @@ export default function VoterCommunication() {
                 <span className="ml-2 text-gray-500">(updating...)</span>
               )}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 order-1 sm:order-2">
+            <div className="flex flex-wrap items-center gap-2 order-1 sm:order-2">
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
-                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="hidden sm:inline">Previous</span>
-                <span className="sm:hidden">‹</span>
+                Previous
               </button>
-
-              {/* Mobile: Show only current page and total */}
-              <div className="sm:hidden px-3 py-1 text-sm text-gray-600">
-                {page} / {pagination.totalPages}
-              </div>
-
-              {/* Desktop: Show page numbers */}
-              <div className="hidden sm:flex gap-1">
+              <div className="flex gap-1">
                 {Array.from(
                   { length: Math.min(5, pagination.totalPages) },
                   (_, i) => {
-                    let pageNum;
-                    if (pagination.totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (page <= 3) {
-                      pageNum = i + 1;
-                    } else if (page >= pagination.totalPages - 2) {
-                      pageNum = pagination.totalPages - 4 + i;
-                    } else {
-                      pageNum = page - 2 + i;
+                    let pageNumber = i + 1;
+                    if (pagination.totalPages > 5) {
+                      const start = Math.max(1, page - 2);
+                      pageNumber = start + i;
+                      if (pageNumber > pagination.totalPages) {
+                        pageNumber = pagination.totalPages - (4 - i);
+                      }
                     }
-
-                    if (pageNum < 1 || pageNum > pagination.totalPages)
+                    if (pageNumber < 1 || pageNumber > pagination.totalPages)
                       return null;
-
                     return (
                       <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-1 text-sm border rounded-md ${
-                          page === pageNum
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "border-gray-300 hover:bg-gray-50"
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          pageNumber === page
+                            ? "bg-indigo-600 text-white"
+                            : "border border-gray-300 hover:bg-gray-50"
                         }`}
                       >
-                        {pageNum}
+                        {pageNumber}
                       </button>
                     );
                   }
                 )}
               </div>
-
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === pagination.totalPages}
-                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="hidden sm:inline">Next</span>
-                <span className="sm:hidden">›</span>
+                Next
               </button>
             </div>
           </div>

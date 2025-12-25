@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
@@ -161,8 +161,6 @@ export default function SubLevelPanelSidebar({
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
   const [childLevelLabel, setChildLevelLabel] = useState("Below");
   const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
-  const switchDropdownRef = useRef<HTMLDivElement>(null);
-  const vicDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedAssignment) {
@@ -260,33 +258,9 @@ export default function SubLevelPanelSidebar({
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
-  // Auto-scroll to selected item when dropdown opens
-  useEffect(() => {
-    if (switchDropdownOpen && switchDropdownRef.current) {
-      const selectedButton = switchDropdownRef.current.querySelector('.bg-teal-50');
-      if (selectedButton) {
-        selectedButton.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest'
-        });
-      }
-    }
-  }, [switchDropdownOpen]);
-
-  // Auto-scroll to VIC dropdown when it opens
-  useEffect(() => {
-    if (vicDropdownOpen && vicDropdownRef.current) {
-      vicDropdownRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest'
-      });
-    }
-  }, [vicDropdownOpen]);
-
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
-    // Don't close dropdown - let user select multiple items if needed
-    // setSwitchDropdownOpen(false);
+    setSwitchDropdownOpen(false);
 
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event("assignmentChanged"));
@@ -406,10 +380,7 @@ export default function SubLevelPanelSidebar({
             </button>
 
             {switchDropdownOpen && (
-              <div 
-                ref={switchDropdownRef}
-                className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto"
-              >
+              <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto">
                 <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   Switch{" "}
                   {selectedAssignment?.partyLevelDisplayName ||
@@ -479,10 +450,7 @@ export default function SubLevelPanelSidebar({
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
-            onClick={() => {
-              onNavigate?.();
-              setVicDropdownOpen(false); // Close VIC dropdown when clicking other nav items
-            }}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
@@ -501,29 +469,18 @@ export default function SubLevelPanelSidebar({
         ))}
 
         {/* VIC Dropdown */}
-        <div ref={vicDropdownRef}>
+        <div className="relative">
           <button
             type="button"
-            aria-haspopup="true"
-            aria-expanded={vicDropdownOpen}
             onClick={() => setVicDropdownOpen(!vicDropdownOpen)}
-            className={[
-              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400",
-              vicDropdownOpen
-                ? "bg-gray-50 ring-1 ring-teal-200"
-                : "border border-transparent hover:border-gray-200",
-            ].join(" ")}
+            className="group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm w-full text-left text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 border border-transparent hover:border-gray-200"
           >
-            <span className="flex items-center gap-3 text-teal-600">
-              {Icons.vic}
-              <span className="text-black">VIC</span>
-            </span>
+            <span className="text-teal-600 shrink-0">{Icons.vic}</span>
+            <span className="truncate flex-1">VIC</span>
             <svg
-              className={[
-                "h-4 w-4 text-teal-600 transition-transform",
-                vicDropdownOpen ? "rotate-180" : "rotate-0",
-              ].join(" ")}
+              className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${
+                vicDropdownOpen ? "rotate-180" : "rotate-0"
+              }`}
               viewBox="0 0 20 20"
               fill="none"
             >
@@ -535,30 +492,29 @@ export default function SubLevelPanelSidebar({
                 strokeLinejoin="round"
               />
             </svg>
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-teal-500/0 group-hover:bg-teal-500/30" />
           </button>
+
           {vicDropdownOpen && (
-            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+            <div className="mt-2 ml-4 space-y-1">
               {vicMenuItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={`${base}/${item.to}`}
                   onClick={() => {
                     onNavigate?.();
-                    // Don't close VIC dropdown - let user browse multiple items
-                    // setVicDropdownOpen(false);
+                    setVicDropdownOpen(false);
                   }}
                   className={({ isActive }) =>
                     [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400",
+                      "block px-3 py-2 text-sm rounded-lg transition no-underline",
                       isActive
-                        ? "bg-teal-50 ring-1 ring-teal-200"
-                        : "border border-transparent hover:border-gray-200",
+                        ? "bg-teal-50 text-teal-700 font-medium"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")
                   }
                 >
-                  <span className="text-teal-600">{Icons.vic}</span>
-                  <span className="truncate">{item.label}</span>
+                  {item.label}
                 </NavLink>
               ))}
             </div>
@@ -574,10 +530,7 @@ export default function SubLevelPanelSidebar({
         <div className="px-4 space-y-2">
           <NavLink
             to={`${base}/profile`}
-            onClick={() => {
-              onNavigate?.();
-              setVicDropdownOpen(false); // Close VIC dropdown when clicking Profile
-            }}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",
@@ -604,7 +557,6 @@ export default function SubLevelPanelSidebar({
           </NavLink>
           <button
             onClick={() => {
-              setVicDropdownOpen(false); // Close VIC dropdown when logging out
               dispatch(logout());
               navigate("/login");
             }}

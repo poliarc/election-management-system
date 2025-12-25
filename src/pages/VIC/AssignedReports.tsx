@@ -160,9 +160,9 @@ export default function AssignedReports() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             >
                                 <option value="">All Types</option>
-                                <option value="Wrong Deleted">Wrong Deleted</option>
-                                <option value="Wrong Added">Wrong Added</option>
-                                <option value="New Voter F6">New Voter F6</option>
+                                <option value="Issue">Issue</option>
+                                <option value="Complaint">Complaint</option>
+                                <option value="Feedback">Feedback</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -225,47 +225,6 @@ export default function AssignedReports() {
                                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                                             {report.report_content}
                                         </p>
-
-                                        {/* Attachments */}
-                                        {(() => {
-                                            let attachments = [];
-                                            if (report.attachments) {
-                                                if (Array.isArray(report.attachments)) {
-                                                    attachments = report.attachments;
-                                                } else if (typeof report.attachments === 'string') {
-                                                    try {
-                                                        const parsed = JSON.parse(report.attachments);
-                                                        attachments = Array.isArray(parsed) ? parsed : [];
-                                                    } catch (error) {
-                                                        console.error('Failed to parse attachments JSON:', error);
-                                                        attachments = [];
-                                                    }
-                                                }
-                                            }
-
-                                            return attachments.length > 0 && (
-                                                <div className="mb-3">
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                                        </svg>
-                                                        <span>{attachments.length} attachment{attachments.length > 1 ? 's' : ''}</span>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {attachments.slice(0, 3).map((attachment, idx) => (
-                                                            <span key={idx} className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-50 text-blue-700">
-                                                                {attachment?.originalName || 'Attachment'}
-                                                            </span>
-                                                        ))}
-                                                        {attachments.length > 3 && (
-                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-50 text-gray-700">
-                                                                +{attachments.length - 3} more
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
 
                                         <div className="flex items-center gap-4 text-xs text-gray-500">
                                             <span>

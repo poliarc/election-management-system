@@ -228,9 +228,9 @@ const UnderHierarchyReports: React.FC = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">All Types</option>
-                                <option value="Wrong Deleted">Wrong Deleted</option>
-                                <option value="Wrong Added">Wrong Added</option>
-                                <option value="New Voter F6">New Voter F6</option>
+                                <option value="Complaint">Complaint</option>
+                                <option value="Feedback">Feedback</option>
+                                <option value="Issue">Issue</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -306,29 +306,6 @@ const UnderHierarchyReports: React.FC = () => {
                                                     <div className="text-sm text-gray-900 max-w-xs truncate">
                                                         {report.report_content}
                                                     </div>
-                                                    {/* Attachments */}
-                                                    {(() => {
-                                                        let attachments = [];
-                                                        if (report.attachments) {
-                                                            if (Array.isArray(report.attachments)) {
-                                                                attachments = report.attachments;
-                                                            } else if (typeof report.attachments === 'string') {
-                                                                try {
-                                                                    const parsed = JSON.parse(report.attachments);
-                                                                    attachments = Array.isArray(parsed) ? parsed : [];
-                                                                } catch (error) {
-                                                                    console.error('Failed to parse attachments JSON:', error);
-                                                                    attachments = [];
-                                                                }
-                                                            }
-                                                        }
-
-                                                        return attachments.length > 0 && (
-                                                            <div className="text-xs text-blue-600 mt-1">
-                                                                📎 {attachments.length} attachment{attachments.length > 1 ? 's' : ''}
-                                                            </div>
-                                                        );
-                                                    })()}
                                                     <div className="text-xs text-gray-500 mt-1">
                                                         {formatDistanceToNow(new Date(report.submitted_at), { addSuffix: true })}
                                                     </div>

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useGetVICReportByIdQuery, useTakeActionOnReportMutation, useGetUserHierarchyQuery, useGetForwardLevelsQuery } from "../../store/api/vicReportsApi";
 import { formatDistanceToNow, format } from "date-fns";
-import { Eye, Download, FileText, Image, File, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ReportDetails() {
@@ -38,68 +37,6 @@ export default function ReportDetails() {
     const forwardLevels = forwardLevelsData?.data || [];
 
     const [showActionModal, setShowActionModal] = useState(false);
-    const [previewAttachment, setPreviewAttachment] = useState<any>(null);
-
-    // Parse attachments from JSON string if needed
-    const getAttachments = () => {
-        if (!report?.attachments) return [];
-
-        // If it's already an array, return it
-        if (Array.isArray(report.attachments)) {
-            return report.attachments;
-        }
-
-        // If it's a string, try to parse it as JSON
-        if (typeof report.attachments === 'string') {
-            try {
-                const parsed = JSON.parse(report.attachments);
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (error) {
-                console.error('Failed to parse attachments JSON:', error);
-                return [];
-            }
-        }
-
-        return [];
-    };
-
-    const attachments = getAttachments();
-
-    // Get file icon based on mimetype
-    const getFileIcon = (mimetype: string) => {
-        if (mimetype.startsWith('image/')) {
-            return <Image className="w-8 h-8 text-blue-500" />;
-        } else if (mimetype === 'application/pdf') {
-            return <FileText className="w-8 h-8 text-red-500" />;
-        } else {
-            return <File className="w-8 h-8 text-gray-500" />;
-        }
-    };
-
-    // Format file size
-    const formatFileSize = (bytes: number) => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
-    // Handle file preview
-    const handlePreview = (attachment: any) => {
-        setPreviewAttachment(attachment);
-    };
-
-    // Handle file download
-    const handleDownload = (attachment: any) => {
-        const link = document.createElement('a');
-        link.href = attachment.url;
-        link.download = attachment.originalName || 'attachment';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
     // Check if current user can take action on this report
     const canTakeAction = () => {
@@ -264,20 +201,20 @@ export default function ReportDetails() {
     }
 
     return (
-        <div className="p-3 sm:p-6 max-w-6xl mx-auto">
+        <div className="p-6 max-w-6xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-gray-900">
                                 Report #{report.id}
                             </h1>
                             <p className="text-sm text-gray-600 mt-1">
                                 Submitted {formatDistanceToNow(new Date(report.submitted_at))} ago
                             </p>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-3">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(report.status)}`}>
                                 {report.status.replace("_", " ")}
                             </span>
@@ -288,20 +225,20 @@ export default function ReportDetails() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
                     {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                    <div className="lg:col-span-2 space-y-6">
                         {/* Voter Information */}
                         <div className="bg-gray-50 rounded-lg p-4">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Voter Information</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Name</label>
                                     <p className="text-sm text-gray-900">{report.voter_first_name} {report.voter_last_name || ''}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">EPIC Number</label>
-                                    <p className="text-sm text-gray-900 break-all">{report.voter_id_epic_no}</p>
+                                    <p className="text-sm text-gray-900">{report.voter_id_epic_no}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Part Number</label>
@@ -330,59 +267,6 @@ export default function ReportDetails() {
                             </div>
                         </div>
 
-                        {/* Attachments */}
-                        {attachments.length > 0 && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Attachments</h2>
-                                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {attachments.map((attachment, index) => (
-                                            <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                                <div className="flex-shrink-0">
-                                                    {getFileIcon(attachment.mimetype || 'application/octet-stream')}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900 truncate" title={attachment.originalName}>
-                                                        {attachment.originalName || 'Attachment'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        {attachment.size ? formatFileSize(attachment.size) : 'Unknown size'} • {attachment.mimetype || 'Unknown type'}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {attachment.mimetype?.startsWith('image/') && (
-                                                        <button
-                                                            onClick={() => handlePreview(attachment)}
-                                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                            Preview
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleDownload(attachment)}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                        Download
-                                                    </button>
-                                                    <a
-                                                        href={attachment.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 transition-colors"
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                        View
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Resolution */}
                         {report.resolution_notes && (
                             <div>
@@ -405,14 +289,14 @@ export default function ReportDetails() {
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-6">
                         {/* Actions */}
                         {canTakeAction() && (
                             <div className="bg-white border border-gray-200 rounded-lg p-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
                                 <button
                                     onClick={() => setShowActionModal(true)}
-                                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition text-sm"
+                                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition"
                                 >
                                     Take Action
                                 </button>
@@ -526,134 +410,86 @@ export default function ReportDetails() {
             {/* Action Modal */}
             {showActionModal && (
                 <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <div className="px-4 sm:px-6 py-4">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Take Action on Report</h2>
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Take Action on Report</h2>
 
-                            <form onSubmit={handleActionSubmit} className="space-y-4">
+                        <form onSubmit={handleActionSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                                <select
+                                    value={actionForm.action}
+                                    onChange={(e) => setActionForm(prev => ({ ...prev, action: e.target.value as any }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option value="approve">Approve</option>
+                                    <option value="reject">Reject</option>
+                                    {canForward() && (
+                                        <option value="forward">Forward to Higher Level</option>
+                                    )}
+                                    {canResolve() && (
+                                        <option value="resolve">Resolve</option>
+                                    )}
+                                </select>
+                            </div>
+
+                            {actionForm.action === "forward" && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Forward To Higher Level</label>
                                     <select
-                                        value={actionForm.action}
-                                        onChange={(e) => setActionForm(prev => ({ ...prev, action: e.target.value as any }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        value={actionForm.forward_to_level_id}
+                                        onChange={(e) => setActionForm(prev => ({ ...prev, forward_to_level_id: e.target.value }))}
+                                        required
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     >
-                                        <option value="approve">Approve</option>
-                                        <option value="reject">Reject</option>
-                                        {canForward() && (
-                                            <option value="forward">Forward to Higher Level</option>
-                                        )}
-                                        {canResolve() && (
-                                            <option value="resolve">Resolve</option>
+                                        <option value="">Select Higher Level</option>
+                                        {getAvailableForwardLevels().map((level) => (
+                                            <option key={level.level_id} value={level.level_id}>
+                                                {level.displayName}
+                                            </option>
+                                        ))}
+                                        {getAvailableForwardLevels().length === 0 && (
+                                            <option value="" disabled>No higher levels available</option>
                                         )}
                                     </select>
-                                </div>
-
-                                {actionForm.action === "forward" && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Forward To Higher Level</label>
-                                        <select
-                                            value={actionForm.forward_to_level_id}
-                                            onChange={(e) => setActionForm(prev => ({ ...prev, forward_to_level_id: e.target.value }))}
-                                            required
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        >
-                                            <option value="">Select Higher Level</option>
-                                            {getAvailableForwardLevels().map((level) => (
-                                                <option key={level.level_id} value={level.level_id}>
-                                                    {level.displayName}
-                                                </option>
-                                            ))}
-                                            {getAvailableForwardLevels().length === 0 && (
-                                                <option value="" disabled>No higher levels available</option>
-                                            )}
-                                        </select>
-                                        {getAvailableForwardLevels().length === 0 && (
-                                            <p className="text-xs text-amber-600 mt-1">
-                                                This report is already at the highest level you have access to.
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Action Notes <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={actionForm.action_notes}
-                                        onChange={(e) => setActionForm(prev => ({ ...prev, action_notes: e.target.value }))}
-                                        required
-                                        rows={4}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                        placeholder="Provide notes for your action..."
-                                    />
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                    <button
-                                        type="submit"
-                                        disabled={isActionLoading}
-                                        className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition text-sm"
-                                    >
-                                        {isActionLoading ? "Processing..." : `${actionForm.action.charAt(0).toUpperCase() + actionForm.action.slice(1)} Report`}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowActionModal(false)}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition text-sm"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* File Preview Modal */}
-            {previewAttachment && (
-                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{previewAttachment.originalName}</h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    {previewAttachment.size ? formatFileSize(previewAttachment.size) : 'Unknown size'} • {previewAttachment.mimetype}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => handleDownload(previewAttachment)}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    Download
-                                </button>
-                                <button
-                                    onClick={() => setPreviewAttachment(null)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                                >
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-                        </div>
-                        <div className="p-6 max-h-[calc(90vh-120px)] overflow-auto">
-                            {previewAttachment.mimetype?.startsWith('image/') ? (
-                                <img
-                                    src={previewAttachment.url}
-                                    alt={previewAttachment.originalName}
-                                    className="max-w-full max-h-full object-contain mx-auto rounded-lg"
-                                />
-                            ) : (
-                                <div className="text-center py-12">
-                                    <FileText className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-600 text-lg">Preview not available for this file type</p>
-                                    <p className="text-gray-500 text-sm mt-2">Click download to view the file</p>
+                                    {getAvailableForwardLevels().length === 0 && (
+                                        <p className="text-xs text-amber-600 mt-1">
+                                            This report is already at the highest level you have access to.
+                                        </p>
+                                    )}
                                 </div>
                             )}
-                        </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Action Notes <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    value={actionForm.action_notes}
+                                    onChange={(e) => setActionForm(prev => ({ ...prev, action_notes: e.target.value }))}
+                                    required
+                                    rows={4}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Provide notes for your action..."
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    disabled={isActionLoading}
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition"
+                                >
+                                    {isActionLoading ? "Processing..." : `${actionForm.action.charAt(0).toUpperCase() + actionForm.action.slice(1)} Report`}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowActionModal(false)}
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

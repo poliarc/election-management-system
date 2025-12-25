@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -7,27 +7,7 @@ import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
 
-// Custom hook for responsive design
-const useResponsive = () => {
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-
-    useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
-        };
-
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-        return () => window.removeEventListener('resize', checkScreenSize);
-    }, []);
-
-    return { isMobile, isTablet };
-};
-
 const ApproachListPage: React.FC = () => {
-    const { isMobile, isTablet } = useResponsive();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -38,28 +18,17 @@ const ApproachListPage: React.FC = () => {
     const [selectedReason, setSelectedReason] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
+    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
-    const [itemsPerPage, setItemsPerPage] = useState(isMobile ? 25 : isTablet ? 40 : 50);
-
-    // Update items per page when screen size changes
-    useEffect(() => {
-        const newItemsPerPage = isMobile ? 25 : isTablet ? 40 : 50;
-        if (newItemsPerPage !== itemsPerPage) {
-            setItemsPerPage(newItemsPerPage);
-            // Recalculate current page to maintain position
-            const firstVisibleItem = (currentPage - 1) * itemsPerPage + 1;
-            const newPage = Math.ceil(firstVisibleItem / newItemsPerPage);
-            setCurrentPage(newPage);
-        }
-    }, [isMobile, isTablet, itemsPerPage, currentPage]);
+    const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
     const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page: currentPage,
+            page,
             limit: itemsPerPage,
             partFrom,
             partTo,
@@ -109,14 +78,20 @@ const ApproachListPage: React.FC = () => {
         });
     }, [votersData, selectedCount, selectedReason]);
 
-    const totalPages = votersData?.pagination?.totalPages || 1;
-    const totalVoters = votersData?.pagination?.total || 0;
+    const paginatedVoters = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredVoters.slice(startIndex, endIndex);
+    }, [filteredVoters, currentPage]);
+
+    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedCount("");
         setSelectedReason("");
         setPartFrom(undefined);
         setPartTo(undefined);
+        setPage(1);
         setCurrentPage(1);
     };
 
@@ -138,11 +113,6 @@ const ApproachListPage: React.FC = () => {
 
     const handleCancel = () => {
         setSelectedVoter(null);
-    };
-
-    const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage);
-        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     if (!assembly_id) {
@@ -287,7 +257,7 @@ const ApproachListPage: React.FC = () => {
                     ) : (
                         <>
                             <div className="mb-4 text-sm text-gray-600 bg-sky-50 p-3 rounded-lg border border-sky-200">
-                                Found {totalVoters} voters
+                                Found {filteredVoters.length} voters
                                 {selectedCount && <span> • Count: {selectedCount}</span>}
                                 {selectedReason && <span> • Reason: {selectedReason}</span>}
                                 {(partFrom || partTo) && (
@@ -295,66 +265,31 @@ const ApproachListPage: React.FC = () => {
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={paginatedVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
-                                    {/* Mobile Layout */}
-                                    <div className="block sm:hidden">
-                                        <div className="text-center text-sm text-gray-600 mb-3">
-                                            Page {currentPage} of {totalPages}
-                                        </div>
-                                        <div className="flex justify-center gap-2">
-                                            <button
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                disabled={currentPage === 1}
-                                                className="px-3 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-sm"
-                                            >
-                                                Prev
-                                            </button>
-                                            <span className="px-3 py-2 text-gray-700 bg-gray-100 rounded-lg text-sm min-w-[60px] text-center">
-                                                {currentPage}/{totalPages}
-                                            </span>
-                                            <button
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                disabled={currentPage === totalPages}
-                                                className="px-3 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-sm"
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
-                                        <div className="text-center text-xs text-gray-500 mt-2">
-                                            {totalVoters} total voters
-                                        </div>
+                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
                                     </div>
-
-                                    {/* Desktop Layout */}
-                                    <div className="hidden sm:flex items-center justify-between">
-                                        <div className="text-sm text-gray-600">
-                                            Showing page {currentPage} of {totalPages} • {totalVoters} total voters
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handlePageChange(currentPage - 1)}
-                                                disabled={currentPage === 1}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
-                                            >
-                                                Previous
-                                            </button>
-                                            <span className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg">
-                                                {currentPage} / {totalPages}
-                                            </span>
-                                            <button
-                                                onClick={() => handlePageChange(currentPage + 1)}
-                                                disabled={currentPage === totalPages}
-                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
-                                            >
-                                                Next
-                                            </button>
-                                        </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            Previous
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            Next
+                                        </button>
                                     </div>
                                 </div>
                             )}

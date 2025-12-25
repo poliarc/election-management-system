@@ -23,6 +23,7 @@ export default function DistrictPollingCenterList() {
     useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
   // State for inline user display
   const [expandedPollingCenterId, setExpandedPollingCenterId] = useState<
@@ -921,10 +922,13 @@ export default function DistrictPollingCenterList() {
                         Display Name
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        View Users
+                        Users
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Status
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        View Booths
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -984,7 +988,7 @@ export default function DistrictPollingCenterList() {
                                 onClick={() =>
                                   handleViewUsers(pollingCenter.id)
                                 }
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md transition-colors mr-2 ${
+                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
                                   expandedPollingCenterId === pollingCenter.id
                                     ? "text-blue-700 bg-blue-100"
                                     : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
@@ -1014,13 +1018,13 @@ export default function DistrictPollingCenterList() {
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                   />
                                 </svg>
-                                <span className="text-sm font-medium">
-                                  {pollingCenter.user_count || 0}
-                                </span>
                               </button>
+                              <span className="text-sm font-medium text-gray-900">
+                                {pollingCenter.user_count || 0}
+                              </span>
                             </div>
                           </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                                 pollingCenter.isActive === 1
@@ -1032,30 +1036,111 @@ export default function DistrictPollingCenterList() {
                                 ? "Active"
                                 : "Inactive"}
                             </span>
-                          </td> */}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <button
-                              onClick={() => {
-                                fetchBooths(pollingCenter.id);
-                              }}
-                              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
-                              title="View Booths"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                            <div className="relative inline-block">
+                              <button
+                                onClick={() =>
+                                  setOpenDropdownId(
+                                    openDropdownId === pollingCenter.id
+                                      ? null
+                                      : pollingCenter.id
+                                  )
+                                }
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                />
-                              </svg>
-                              View Booths
-                            </button>
+                                <svg
+                                  className="w-5 h-5 text-gray-600"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                </svg>
+                              </button>
+
+                              {openDropdownId === pollingCenter.id && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setOpenDropdownId(null)}
+                                  />
+                                  <div
+                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${
+                                      index >=
+                                        paginatedPollingCenters.length - 2 &&
+                                      paginatedPollingCenters.length >= 5
+                                        ? "bottom-full mb-2"
+                                        : "top-full mt-2"
+                                    }`}
+                                    style={{
+                                      scrollbarWidth: "thin",
+                                      scrollbarColor: "#9ca3af #f3f4f6",
+                                    }}
+                                  >
+                                    <div className="py-1">
+                                      <button
+                                        onClick={() => {
+                                          handleViewUsers(pollingCenter.id);
+                                          setOpenDropdownId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-colors group"
+                                      >
+                                        <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                          <svg
+                                            className="w-4 h-4 text-blue-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                            />
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                            />
+                                          </svg>
+                                        </div>
+                                        <span className="font-medium">
+                                          View Users
+                                        </span>
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          fetchBooths(pollingCenter.id);
+                                          setOpenDropdownId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
+                                      >
+                                        <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                                          <svg
+                                            className="w-4 h-4 text-green-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                            />
+                                          </svg>
+                                        </div>
+                                        <span className="font-medium">
+                                          View Booths
+                                        </span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
 
@@ -1082,7 +1167,7 @@ export default function DistrictPollingCenterList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedPollingCenterId(null)}
-                              colSpan={6}
+                              colSpan={7}
                             />
                           )}
                       </>

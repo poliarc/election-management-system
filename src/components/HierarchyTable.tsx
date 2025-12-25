@@ -40,8 +40,6 @@ interface HierarchyTableProps {
   showAssignButton?: boolean;
   onUploadVoters?: (assemblyId: number, assemblyName: string) => void;
   showUploadVotersButton?: boolean;
-  onUploadDraftVoters?: (assemblyId: number, assemblyName: string) => void;
-  showUploadDraftVotersButton?: boolean;
   hideHeader?: boolean;
   // New props for enhanced filtering
   showAllDistricts?: boolean;
@@ -84,8 +82,6 @@ export default function HierarchyTable({
   showAssignButton = false,
   onUploadVoters,
   showUploadVotersButton = false,
-  onUploadDraftVoters,
-  showUploadDraftVotersButton = false,
   hideHeader = false,
   // New props for enhanced filtering
   showAllDistricts = false,
@@ -573,13 +569,6 @@ export default function HierarchyTable({
                     </div>
                   </th>
                 )}
-                {showUploadDraftVotersButton && (
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    <div className="flex items-center justify-center space-x-2">
-                      <span>Draft Voters</span>
-                    </div>
-                  </th>
-                )}
                 {showAssignButton && (
                   <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
@@ -597,7 +586,6 @@ export default function HierarchyTable({
                       5 +
                       (!hideActiveUsersColumn ? 1 : 0) +
                       (showUploadVotersButton ? 1 : 0) +
-                      (showUploadDraftVotersButton ? 1 : 0) +
                       (showAssignButton ? 1 : 0)
                     }
                     className="px-6 py-12 text-center"
@@ -626,7 +614,6 @@ export default function HierarchyTable({
                     5 +
                     (!hideActiveUsersColumn ? 1 : 0) +
                     (showUploadVotersButton ? 1 : 0) +
-                    (showUploadDraftVotersButton ? 1 : 0) +
                     (showAssignButton ? 1 : 0);
 
                   const rows = [
@@ -781,36 +768,6 @@ export default function HierarchyTable({
                           )}
                         </td>
                       )}
-                      {showUploadDraftVotersButton && (
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {onUploadDraftVoters && (
-                            <button
-                              onClick={() =>
-                                onUploadDraftVoters(
-                                  item.location_id,
-                                  item.location_name
-                                )
-                              }
-                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg hover:bg-gradient-to-br hover:from-indigo-50 hover:to-indigo-100 transition-all duration-200 group"
-                              title="Upload Draft Voters"
-                            >
-                              <svg
-                                className="w-5 h-5 text-indigo-600 group-hover:text-indigo-700 transition-colors"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"
-                                />
-                              </svg>
-                            </button>
-                          )}
-                        </td>
-                      )}
                       {showAssignButton && (
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {onAssignUsers && (
@@ -878,43 +835,70 @@ export default function HierarchyTable({
 
       {/* Pagination */}
       {totalItems > 0 && (
-        <div className="bg-white rounded-lg shadow-md px-6 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-700">
-              <span>
-                Showing{" "}
-                <span className="font-semibold">
-                  {(currentPage - 1) * itemsPerPage + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-semibold">
-                  {Math.min(currentPage * itemsPerPage, totalItems)}
-                </span>{" "}
-                of <span className="font-semibold">{totalItems}</span> results
-              </span>
-            </div>
-            {totalPages > 1 && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                  Page {currentPage} of {totalPages}
+        <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center text-sm text-gray-700">
+            <span>
+              Showing{" "}
+              <span className="font-semibold">
+                {(currentPage - 1) * itemsPerPage + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-semibold">
+                {Math.min(currentPage * itemsPerPage, totalItems)}
+              </span>{" "}
+              of <span className="font-semibold">{totalItems}</span> results
+              {totalPages === 1 && (
+                <span className="ml-2 text-gray-500">
+                  (Page {currentPage} of {totalPages})
                 </span>
-                <button
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+              )}
+            </span>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => onPageChange(pageNum)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 

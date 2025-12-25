@@ -203,21 +203,6 @@ const Icons = {
       />
     </svg>
   ),
-  compare: (
-    <svg
-      className={iconClass}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-    >
-      <path
-        d="M8 7h11m-3-3 3 3-3 3m-6 7H2m3-3-3 3 3 3"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
 };
 
 // Top-level items
@@ -241,7 +226,6 @@ const otherItemsBefore: NavItem[] = [
   // },
   { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
   { to: "search-voter", label: "Search Voter", icon: Icons.search },
-  { to: "compare-voters", label: "Compare Voters", icon: Icons.compare },
 ];
 
 const otherItemsAfter: NavItem[] = [];
