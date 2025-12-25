@@ -3,11 +3,72 @@ import { useState, useEffect } from "react";
 import { useDashboard } from "../../hooks/useDashboard";
 import { getDashboardNavigation, getDynamicIconType, getIconSvgPath, getDynamicCardColor } from "../../utils/dashboardNavigation";
 
+interface UserStats {
+  totalUsers: number;
+  loading: boolean;
+  error: string | null;
+}
+
 export default function StateOverview() {
   const navigate = useNavigate();
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateName, setStateName] = useState("");
   const [partyId, setPartyId] = useState<number | null>(null);
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalUsers: 0,
+    loading: false,
+    error: null
+  });
+
+  // Fetch total user count using the same API as UserCommunication.tsx
+  const fetchUserStats = async () => {
+    if (!stateId || !partyId) return;
+
+    setUserStats(prev => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const token = localStorage.getItem("auth_access_token");
+      if (!token) throw new Error("Authentication required");
+
+      // Use the same API endpoint as UserCommunication.tsx
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/users/filter?party_id=${partyId}&state_id=${stateId}&page=1&limit=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Use pagination.total like UserCommunication.tsx does
+      setUserStats({
+        totalUsers: data.pagination?.total || 0,
+        loading: false,
+        error: null
+      });
+    } catch (err) {
+      console.error("Error fetching user stats:", err);
+      setUserStats({
+        totalUsers: 0,
+        loading: false,
+        error: err instanceof Error ? err.message : "Failed to fetch user stats"
+      });
+    }
+  };
+
+  // Fetch user stats when state/party info is available
+  useEffect(() => {
+    if (stateId && partyId) {
+      fetchUserStats();
+    }
+  }, [stateId, partyId]);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -161,61 +222,174 @@ export default function StateOverview() {
 
           {/* Analytics Dashboard */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* User Distribution Pie Chart */}
+            {/* User Distribution Pie Charts */}
             <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center group-hover:text-blue-600 transition-colors duration-300">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 group-hover:animate-pulse"></div>
                 User Distribution by Level
               </h3>
-              <div className="flex items-center justify-center">
-                <div className="relative w-48 h-48">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    {cards.map((card, index) => {
-                      const total = cards.reduce((sum, c) => sum + c.userCount, 0);
-                      const percentage = total > 0 ? (card.userCount / total) * 100 : 0;
-                      const strokeDasharray = `${percentage * 2.51} 251.2`;
-                      const strokeDashoffset = index > 0 ? 
-                        -cards.slice(0, index).reduce((sum, c) => sum + (c.userCount / total) * 251.2, 0) : 0;
-                      
-                      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-                      
-                      return (
-                        <circle
-                          key={index}
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke={colors[index % colors.length]}
-                          strokeWidth="8"
-                          strokeDasharray={strokeDasharray}
-                          strokeDashoffset={strokeDashoffset}
-                          className="transition-all duration-1000 ease-out hover:stroke-[10] cursor-pointer"
-                          style={{ animationDelay: `${index * 200}ms` }}
-                        />
-                      );
-                    })}
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800">
-                        {cards.reduce((sum, c) => sum + c.userCount, 0)}
+              
+              {/* Two Smaller Pie Charts Side by Side */}
+              <div className="grid grid-cols-2 gap-4">
+                
+                {/* First Pie Chart - Assigned Users by Level */}
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">By Level</h4>
+                  <div className="flex items-center justify-center">
+                    <div className="relative w-32 h-32">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        {cards.map((card, index) => {
+                          const total = cards.reduce((sum, c) => sum + c.userCount, 0);
+                          const percentage = total > 0 ? (card.userCount / total) * 100 : 0;
+                          const strokeDasharray = `${percentage * 2.51} 251.2`;
+                          const strokeDashoffset = index > 0 ? 
+                            -cards.slice(0, index).reduce((sum, c) => sum + (c.userCount / total) * 251.2, 0) : 0;
+                          
+                          const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
+                          
+                          return (
+                            <circle
+                              key={index}
+                              cx="50"
+                              cy="50"
+                              r="40"
+                              fill="none"
+                              stroke={colors[index % colors.length]}
+                              strokeWidth="8"
+                              strokeDasharray={strokeDasharray}
+                              strokeDashoffset={strokeDashoffset}
+                              className="transition-all duration-1000 ease-out hover:stroke-[10] cursor-pointer"
+                              style={{ animationDelay: `${index * 200}ms` }}
+                            />
+                          );
+                        })}
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-gray-800">
+                            {cards.reduce((sum, c) => sum + c.userCount, 0)}
+                          </div>
+                          <div className="text-xs text-gray-500">Assign Users</div>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500">Total Users</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Second Pie Chart - Total Users */}
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Total Overview</h4>
+                  <div className="flex items-center justify-center">
+                    <div className="relative w-32 h-32">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        {/* Total Users Pie Chart */}
+                        {(() => {
+                          const assignedUsers = cards.reduce((sum, c) => sum + c.userCount, 0);
+                          const totalUsers = userStats.totalUsers;
+                          const unassignedUsers = Math.max(0, totalUsers - assignedUsers);
+                          
+                          if (totalUsers === 0) {
+                            return (
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                fill="none"
+                                stroke="#E5E7EB"
+                                strokeWidth="8"
+                              />
+                            );
+                          }
+                          
+                          const assignedPercentage = (assignedUsers / totalUsers) * 100;
+                          const unassignedPercentage = (unassignedUsers / totalUsers) * 100;
+                          
+                          const assignedDasharray = `${assignedPercentage * 2.51} 251.2`;
+                          const unassignedDasharray = `${unassignedPercentage * 2.51} 251.2`;
+                          const unassignedOffset = -assignedPercentage * 2.51;
+                          
+                          return (
+                            <>
+                              {/* Assigned Users Segment */}
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                fill="none"
+                                stroke="#10B981"
+                                strokeWidth="8"
+                                strokeDasharray={assignedDasharray}
+                                strokeDashoffset="0"
+                                className="transition-all duration-1000 ease-out hover:stroke-[10] cursor-pointer"
+                              />
+                              {/* Unassigned Users Segment */}
+                              {unassignedUsers > 0 && (
+                                <circle
+                                  cx="50"
+                                  cy="50"
+                                  r="40"
+                                  fill="none"
+                                  stroke="#F59E0B"
+                                  strokeWidth="8"
+                                  strokeDasharray={unassignedDasharray}
+                                  strokeDashoffset={unassignedOffset}
+                                  className="transition-all duration-1000 ease-out hover:stroke-[10] cursor-pointer"
+                                  style={{ animationDelay: '200ms' }}
+                                />
+                              )}
+                            </>
+                          );
+                        })()}
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-gray-800">
+                            {userStats.loading ? (
+                              <div className="animate-pulse bg-gray-200 h-4 w-8 rounded mx-auto"></div>
+                            ) : userStats.error ? (
+                              <span className="text-red-500 text-xs">Error</span>
+                            ) : (
+                              userStats.totalUsers.toLocaleString()
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">Total Users</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              
+              {/* Combined Legend Below Charts */}
               <div className="mt-4 grid grid-cols-2 gap-2">
-                {cards.slice(0, 6).map((card, index) => {
-                  const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-cyan-500'];
-                  return (
-                    <div key={index} className="flex items-center text-sm hover:bg-gray-50 p-2 rounded-lg transition-all duration-200 cursor-pointer group">
-                      <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]} mr-2 group-hover:scale-125 transition-transform duration-200`}></div>
-                      <span className="text-gray-600 truncate group-hover:text-gray-800 group-hover:font-medium transition-all duration-200">{card.title} Users: {card.userCount}</span>
-                    </div>
-                  );
-                })}
+                {/* Level Legend */}
+                <div className="space-y-1">
+                  {cards.slice(0, 6).map((card, index) => {
+                    const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-cyan-500'];
+                    return (
+                      <div key={index} className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group">
+                        <div className={`w-2 h-2 rounded-full ${colors[index % colors.length]} mr-2 group-hover:scale-125 transition-transform duration-200`}></div>
+                        <span className="text-gray-600 truncate group-hover:text-gray-800 transition-all duration-200">{card.title} Users: {card.userCount}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Total Legend */}
+                <div className="space-y-1">
+                  <div className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2 group-hover:scale-125 transition-transform duration-200"></div>
+                    <span className="text-gray-600 group-hover:text-gray-800 transition-all duration-200">
+                      Assigned Users: {cards.reduce((sum, c) => sum + c.userCount, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group">
+                    <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2 group-hover:scale-125 transition-transform duration-200"></div>
+                    <span className="text-gray-600 group-hover:text-gray-800 transition-all duration-200">
+                      Unassigned Users: {userStats.loading ? 'Loading...' : userStats.error ? 'Error' : Math.max(0, userStats.totalUsers - cards.reduce((sum, c) => sum + c.userCount, 0)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 

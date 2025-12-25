@@ -22,6 +22,21 @@ export default function AfterAssemblyPanelTeam() {
     loadUsers();
   }, [levelId]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
+
   const loadUsers = async () => {
     if (!levelId) return;
 
@@ -320,14 +335,15 @@ export default function AfterAssemblyPanelTeam() {
                         );
 
                         return (
-                          <div className="relative inline-block text-left">
+                          <div className="relative inline-block text-left dropdown-container">
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setOpenMenuId((prev) =>
                                   prev === rowKey ? null : rowKey
-                                )
-                              }
+                                );
+                              }}
                               className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
                               aria-haspopup="true"
                               aria-expanded={openMenuId === rowKey}
@@ -365,7 +381,11 @@ export default function AfterAssemblyPanelTeam() {
                             </button>
 
                             {openMenuId === rowKey && (
-                              <div className="absolute right-0 z-10 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
+                              <div 
+                                className={`absolute right-0 z-50 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden ${
+                                  index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
+                                }`}
+                              >
                                 <div className="py-1" role="menu">
                                   <button
                                     type="button"
@@ -375,9 +395,10 @@ export default function AfterAssemblyPanelTeam() {
                                         ? "text-gray-400 cursor-not-allowed"
                                         : "text-green-700 hover:bg-gray-50"
                                     }`}
-                                    onClick={() =>
-                                      handleToggleStatus(user, true, rowKey)
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleStatus(user, true, rowKey);
+                                    }}
                                     role="menuitem"
                                   >
                                     <svg
@@ -403,9 +424,10 @@ export default function AfterAssemblyPanelTeam() {
                                         ? "text-gray-400 cursor-not-allowed"
                                         : "text-orange-700 hover:bg-gray-50"
                                     }`}
-                                    onClick={() =>
-                                      handleToggleStatus(user, false, rowKey)
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleStatus(user, false, rowKey);
+                                    }}
                                     role="menuitem"
                                   >
                                     <svg
