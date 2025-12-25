@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useGetMyReportsQuery, useUpdateVICReportMutation, useDeleteVICReportMutation } from "../../store/api/vicReportsApi";
 import { formatDistanceToNow } from "date-fns";
-import { Edit, Trash2, X, Save } from "lucide-react";
+import { Edit, Trash2, X, Save, Upload, Eye, FileText, Image, File } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function MyReports() {
@@ -21,16 +21,27 @@ export default function MyReports() {
     const [editForm, setEditForm] = useState({
         voter_id_epic_no: "",
         voter_first_name: "",
-        voter_last_name: "",
         part_no: "",
+        sl_no_in_part: "",
         voter_relative_name: "",
         report_content: "",
         priority: "" as "Low" | "Medium" | "High" | "Critical" | "",
-        report_type: "" as "Complaint" | "Feedback" | "Issue" | "Other" | "",
+        report_type: "" as "Wrong Deleted" | "Wrong Added" | "New Voter F6" | "Other" | "",
     });
 
+    // Attachment states for edit modal
+    const [editAttachments, setEditAttachments] = useState<File[]>([]);
+    const [existingAttachments, setExistingAttachments] = useState<Array<{
+        filename: string;
+        originalName: string;
+        mimetype: string;
+        size: number;
+        url: string;
+    }>>([]);
+    const [previewFile, setPreviewFile] = useState<File | { url: string; name: string; type: string } | null>(null);
+
     // API hooks
-    const [updateReport, { isLoading: isUpdating }] = useUpdateVICReportMutation();
+    const [, { isLoading: isUpdating }] = useUpdateVICReportMutation();
     const [deleteReport, { isLoading: isDeleting }] = useDeleteVICReportMutation();
 
     // Determine the base path based on current location
@@ -95,44 +106,146 @@ export default function MyReports() {
         setEditForm({
             voter_id_epic_no: report.voter_id_epic_no || "",
             voter_first_name: report.voter_first_name || "",
-            voter_last_name: report.voter_last_name || "",
             part_no: report.part_no || "",
+            sl_no_in_part: report.sl_no_in_part || "",
             voter_relative_name: report.voter_relative_name || "",
             report_content: report.report_content || "",
             priority: report.priority || "",
             report_type: report.report_type || "",
         });
+
+        // Parse existing attachments - handle both array and JSON string formats
+        let attachments = [];
+        if (report.attachments) {
+            if (Array.isArray(report.attachments)) {
+                attachments = report.attachments;
+            } else if (typeof report.attachments === 'string') {
+                try {
+                    const parsed = JSON.parse(report.attachments);
+                    attachments = Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    console.error('Failed to parse attachments JSON:', error);
+                    attachments = [];
+                }
+            }
+        }
+
+        setExistingAttachments(attachments);
+        setEditAttachments([]);
+    };
+
+    const handleEditFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const validFiles = files.filter(file => {
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error(`${file.name} is too large. Maximum size is 10MB.`);
+                return false;
+            }
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(`${file.name} is not a supported file type.`);
+                return false;
+            }
+            return true;
+        });
+
+        if (validFiles.length > 0) {
+            setEditAttachments(prev => [...prev, ...validFiles]);
+            toast.success(`${validFiles.length} file(s) added`);
+        }
+    };
+
+    const removeEditAttachment = (index: number) => {
+        setEditAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingAttachment = (index: number) => {
+        setExistingAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const previewAttachment = (file: File | { url: string; name: string; type: string }) => {
+        setPreviewFile(file);
+    };
+
+    const getFileIcon = (file: File | { type: string }) => {
+        if (file.type.startsWith('image/')) {
+            return <Image className="w-5 h-5 text-blue-500" />;
+        } else if (file.type === 'application/pdf') {
+            return <FileText className="w-5 h-5 text-red-500" />;
+        } else {
+            return <File className="w-5 h-5 text-gray-500" />;
+        }
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     const handleEditSubmit = async () => {
         if (!editingReport) return;
 
         try {
-            // Filter out empty strings for optional fields
-            const updateData: any = {};
+            // Create FormData for the update request
+            const updateFormData = new FormData();
 
-            if (editForm.voter_id_epic_no) updateData.voter_id_epic_no = editForm.voter_id_epic_no;
-            if (editForm.voter_first_name) updateData.voter_first_name = editForm.voter_first_name;
-            if (editForm.voter_last_name) updateData.voter_last_name = editForm.voter_last_name;
-            if (editForm.part_no) updateData.part_no = editForm.part_no;
-            if (editForm.voter_relative_name) updateData.voter_relative_name = editForm.voter_relative_name;
-            if (editForm.report_content) updateData.report_content = editForm.report_content;
-            // Only include priority if it's not empty
-            if (editForm.priority) updateData.priority = editForm.priority;
-            // Only include report_type if it's not empty
-            if (editForm.report_type) updateData.report_type = editForm.report_type;
+            // Add form fields (only if they have values)
+            if (editForm.voter_id_epic_no) updateFormData.append('voter_id_epic_no', editForm.voter_id_epic_no);
+            if (editForm.voter_first_name) updateFormData.append('voter_first_name', editForm.voter_first_name);
+            if (editForm.part_no) updateFormData.append('part_no', editForm.part_no);
+            if (editForm.sl_no_in_part) updateFormData.append('sl_no_in_part', editForm.sl_no_in_part);
+            if (editForm.voter_relative_name) updateFormData.append('voter_relative_name', editForm.voter_relative_name);
+            if (editForm.report_content) updateFormData.append('report_content', editForm.report_content);
+            if (editForm.priority) updateFormData.append('priority', editForm.priority);
+            if (editForm.report_type) updateFormData.append('report_type', editForm.report_type);
 
-            await updateReport({
-                id: editingReport.id,
-                data: updateData,
-            }).unwrap();
+            // Add existing attachments as JSON
+            if (existingAttachments.length > 0) {
+                updateFormData.append('existing_attachments', JSON.stringify(existingAttachments));
+            }
 
-            toast.success("Report updated successfully!");
+            // Add new attachment files
+            editAttachments.forEach((file) => {
+                updateFormData.append('attachments', file);
+            });
+
+            // Show loading message
+            if (editAttachments.length > 0) {
+                toast.loading("Updating report with new attachments...");
+            } else {
+                toast.loading("Updating report...");
+            }
+
+            // Submit using fetch directly to handle FormData
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/vic-reports/${editingReport.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+                body: updateFormData,
+            });
+
+            toast.dismiss();
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update report');
+            }
+
+            const result = await response.json();
+            toast.success(result.message || "Report updated successfully!");
+
             setEditingReport(null);
+            setEditAttachments([]);
+            setExistingAttachments([]);
             refetch();
         } catch (error: any) {
+            toast.dismiss();
             console.error('Update error:', error);
-            const errorMessage = error?.data?.error?.message || error?.data?.message || error?.message || "Failed to update report";
+            const errorMessage = error.message || "Failed to update report";
             toast.error(errorMessage);
         }
     };
@@ -187,19 +300,19 @@ export default function MyReports() {
     }
 
     return (
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex justify-between items-center">
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">My Reports</h1>
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Reports</h1>
                             <p className="text-sm text-gray-600 mt-1">
                                 Reports submitted by you
                             </p>
                         </div>
                         <Link
                             to={`${basePath}/send-report`}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition"
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition text-center text-sm sm:text-base"
                         >
                             Send New Report
                         </Link>
@@ -207,22 +320,22 @@ export default function MyReports() {
                 </div>
 
                 {/* Filters */}
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div>
                             <input
                                 type="text"
                                 placeholder="Search reports..."
                                 value={filters.search}
                                 onChange={(e) => handleFilterChange("search", e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             />
                         </div>
                         <div>
                             <select
                                 value={filters.status}
                                 onChange={(e) => handleFilterChange("status", e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
                                 <option value="">All Status</option>
                                 <option value="Pending">Pending</option>
@@ -236,7 +349,7 @@ export default function MyReports() {
                             <select
                                 value={filters.priority}
                                 onChange={(e) => handleFilterChange("priority", e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
                                 <option value="">All Priority</option>
                                 <option value="Critical">Critical</option>
@@ -249,12 +362,12 @@ export default function MyReports() {
                             <select
                                 value={filters.report_type}
                                 onChange={(e) => handleFilterChange("report_type", e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
                                 <option value="">All Types</option>
-                                <option value="Issue">Issue</option>
-                                <option value="Complaint">Complaint</option>
-                                <option value="Feedback">Feedback</option>
+                                <option value="Wrong Deleted">Wrong Deleted</option>
+                                <option value="Wrong Added">Wrong Added</option>
+                                <option value="New Voter F6">New Voter F6</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -293,19 +406,19 @@ export default function MyReports() {
                         </div>
                     ) : (
                         reports.map((report) => (
-                            <div key={report.id} className="p-6 hover:bg-gray-50 transition">
-                                <div className="flex items-start justify-between">
+                            <div key={report.id} className="p-4 sm:p-6 hover:bg-gray-50 transition">
+                                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-medium text-gray-900">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                            <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
                                                 {report.voter_first_name} {report.voter_last_name || ''}
                                             </h3>
-                                            <span className="text-sm text-gray-500">
+                                            <span className="text-sm text-gray-500 truncate">
                                                 EPIC: {report.voter_id_epic_no}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-4 mb-3">
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
                                                 {report.status.replace("_", " ")}
                                             </span>
@@ -321,20 +434,62 @@ export default function MyReports() {
                                             {report.report_content}
                                         </p>
 
-                                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                                        {/* Attachments */}
+                                        {(() => {
+                                            let attachments = [];
+                                            if (report.attachments) {
+                                                if (Array.isArray(report.attachments)) {
+                                                    attachments = report.attachments;
+                                                } else if (typeof report.attachments === 'string') {
+                                                    try {
+                                                        const parsed = JSON.parse(report.attachments);
+                                                        attachments = Array.isArray(parsed) ? parsed : [];
+                                                    } catch (error) {
+                                                        console.error('Failed to parse attachments JSON:', error);
+                                                        attachments = [];
+                                                    }
+                                                }
+                                            }
+
+                                            return attachments.length > 0 && (
+                                                <div className="mb-3">
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                        </svg>
+                                                        <span>{attachments.length} attachment{attachments.length > 1 ? 's' : ''}</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {attachments.slice(0, 3).map((attachment, idx) => (
+                                                            <span key={idx} className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-50 text-blue-700">
+                                                                {attachment?.originalName || 'Attachment'}
+                                                            </span>
+                                                        ))}
+                                                        {attachments.length > 3 && (
+                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-50 text-gray-700">
+                                                                +{attachments.length - 3} more
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
                                             <span>
                                                 Submitted {formatDistanceToNow(new Date(report.submitted_at))} ago
                                             </span>
+                                            <span className="hidden sm:inline">•</span>
                                             <span>
                                                 Current Level: {report.current_level_display_name}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="ml-4 shrink-0 flex gap-2">
+                                    <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 lg:shrink-0">
                                         <Link
                                             to={`${basePath}/report-details/${report.id}`}
-                                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                            className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition"
                                         >
                                             View Details
                                         </Link>
@@ -342,17 +497,17 @@ export default function MyReports() {
                                             <>
                                                 <button
                                                     onClick={() => handleEditClick(report)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100"
+                                                    className="inline-flex items-center justify-center gap-1 px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
                                                 >
                                                     <Edit className="w-4 h-4" />
-                                                    Edit
+                                                    <span className="hidden sm:inline">Edit</span>
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(report)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100"
+                                                    className="inline-flex items-center justify-center gap-1 px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                    Delete
+                                                    <span className="hidden sm:inline">Delete</span>
                                                 </button>
                                             </>
                                         )}
@@ -365,8 +520,38 @@ export default function MyReports() {
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                        <div className="flex items-center justify-between">
+                    <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+                        {/* Mobile Layout */}
+                        <div className="block sm:hidden">
+                            <div className="text-center text-sm text-gray-700 mb-3">
+                                Page {pagination.page} of {pagination.totalPages}
+                            </div>
+                            <div className="flex justify-center gap-2">
+                                <button
+                                    onClick={() => setPage(page - 1)}
+                                    disabled={page === 1}
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                >
+                                    Prev
+                                </button>
+                                <span className="px-3 py-1 text-gray-700 bg-gray-100 rounded text-sm min-w-[60px] text-center">
+                                    {pagination.page}/{pagination.totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(page + 1)}
+                                    disabled={page === pagination.totalPages}
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            <div className="text-center text-xs text-gray-500 mt-2">
+                                {pagination.total} total results
+                            </div>
+                        </div>
+
+                        {/* Desktop Layout */}
+                        <div className="hidden sm:flex items-center justify-between">
                             <div className="text-sm text-gray-700">
                                 Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
                                 {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
@@ -376,14 +561,14 @@ export default function MyReports() {
                                 <button
                                     onClick={() => setPage(page - 1)}
                                     disabled={page === 1}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === pagination.totalPages}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
                                 >
                                     Next
                                 </button>
@@ -416,14 +601,26 @@ export default function MyReports() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            EPIC Number
+                                            Voter Name
                                         </label>
                                         <input
                                             type="text"
-                                            value={editForm.voter_id_epic_no}
-                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_id_epic_no: e.target.value }))}
+                                            value={editForm.voter_first_name}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_first_name: e.target.value }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="ABC1234567890"
+                                            placeholder="John Doe"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Relative Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editForm.voter_relative_name}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_relative_name: e.target.value }))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Father/Husband Name"
                                         />
                                     </div>
                                     <div>
@@ -440,36 +637,26 @@ export default function MyReports() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Voter First Name
+                                            Sl Part No
                                         </label>
                                         <input
                                             type="text"
-                                            value={editForm.voter_first_name}
-                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_first_name: e.target.value }))}
+                                            value={editForm.sl_no_in_part}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, sl_no_in_part: e.target.value }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Voter Last Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editForm.voter_last_name}
-                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_last_name: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="456"
                                         />
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Relative Name
+                                            EPIC Number
                                         </label>
                                         <input
                                             type="text"
-                                            value={editForm.voter_relative_name}
-                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_relative_name: e.target.value }))}
+                                            value={editForm.voter_id_epic_no}
+                                            onChange={(e) => setEditForm(prev => ({ ...prev, voter_id_epic_no: e.target.value }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Father/Husband Name"
+                                            placeholder="ABC1234567890"
                                         />
                                     </div>
                                 </div>
@@ -505,9 +692,9 @@ export default function MyReports() {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value="">Select Type</option>
-                                            <option value="Issue">Issue</option>
-                                            <option value="Complaint">Complaint</option>
-                                            <option value="Feedback">Feedback</option>
+                                            <option value="Wrong Deleted">Wrong Deleted</option>
+                                            <option value="Wrong Added">Wrong Added</option>
+                                            <option value="New Voter F6">New Voter F6</option>
                                             <option value="Other">Other</option>
                                         </select>
                                     </div>
@@ -526,19 +713,152 @@ export default function MyReports() {
                                     />
                                 </div>
                             </div>
+
+                            {/* Attachments Section */}
+                            <div>
+                                <h4 className="text-md font-semibold text-gray-900 mb-3">Attachments</h4>
+
+                                {/* Existing Attachments */}
+                                {existingAttachments.length > 0 && (
+                                    <div className="mb-4">
+                                        <h5 className="text-sm font-medium text-gray-700 mb-2">Current Attachments</h5>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {existingAttachments.map((attachment, index) => (
+                                                <div key={index} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        {getFileIcon({ type: attachment.mimetype })}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-gray-900 truncate" title={attachment.originalName}>
+                                                                {attachment.originalName}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {formatFileSize(attachment.size)} • {attachment.mimetype.split('/')[1].toUpperCase()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 ml-2">
+                                                        {attachment.mimetype.startsWith('image/') && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => previewAttachment({ url: attachment.url, name: attachment.originalName, type: attachment.mimetype })}
+                                                                className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded transition-colors"
+                                                                title="Preview"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        <a
+                                                            href={attachment.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-1 text-green-500 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
+                                                            title="Download"
+                                                        >
+                                                            <FileText className="w-4 h-4" />
+                                                        </a>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeExistingAttachment(index)}
+                                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                                            title="Remove"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Add New Attachments */}
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                                    <div className="text-center">
+                                        <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                        <div className="mb-2">
+                                            <label htmlFor="edit-file-upload" className="cursor-pointer">
+                                                <span className="text-sm font-medium text-gray-900">Add new files</span>
+                                                <span className="block text-xs text-gray-500 mt-1">
+                                                    PNG, JPG, PDF, DOC, DOCX up to 10MB each
+                                                </span>
+                                            </label>
+                                            <input
+                                                id="edit-file-upload"
+                                                name="edit-file-upload"
+                                                type="file"
+                                                multiple
+                                                accept=".png,.jpg,.jpeg,.pdf,.doc,.docx"
+                                                onChange={handleEditFileUpload}
+                                                className="sr-only"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => document.getElementById('edit-file-upload')?.click()}
+                                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                                        >
+                                            Browse files
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* New Attachments List */}
+                                {editAttachments.length > 0 && (
+                                    <div className="mt-3">
+                                        <h5 className="text-sm font-medium text-gray-700 mb-2">New Attachments ({editAttachments.length})</h5>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {editAttachments.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        {getFileIcon(file)}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                                                                {file.name}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {formatFileSize(file.size)} • {file.type.split('/')[1].toUpperCase()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 ml-2">
+                                                        {file.type.startsWith('image/') && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => previewAttachment(file)}
+                                                                className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                                                                title="Preview"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeEditAttachment(index)}
+                                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                                            title="Remove"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setEditingReport(null)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleEditSubmit}
                                 disabled={isUpdating}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                             >
                                 {isUpdating ? (
                                     <>
@@ -560,12 +880,12 @@ export default function MyReports() {
             {/* Delete Confirmation Modal */}
             {deletingReport && (
                 <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-                        <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">Delete Report</h3>
                         </div>
 
-                        <div className="px-6 py-4">
+                        <div className="px-4 sm:px-6 py-4">
                             <p className="text-sm text-gray-600">
                                 Are you sure you want to delete this report for{" "}
                                 <span className="font-medium">
@@ -575,17 +895,17 @@ export default function MyReports() {
                             </p>
                         </div>
 
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setDeletingReport(null)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDeleteConfirm}
                                 disabled={isDeleting}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                             >
                                 {isDeleting ? (
                                     <>
@@ -599,6 +919,50 @@ export default function MyReports() {
                                     </>
                                 )}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* File Preview Modal */}
+            {previewFile && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    {'name' in previewFile ? previewFile.name : (previewFile as File).name}
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    {'type' in previewFile ? previewFile.type : (previewFile as File).type}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setPreviewFile(null)}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[calc(90vh-120px)] overflow-auto">
+                            {'url' in previewFile ? (
+                                <img
+                                    src={previewFile.url}
+                                    alt={previewFile.name}
+                                    className="max-w-full max-h-full object-contain mx-auto rounded-lg"
+                                />
+                            ) : previewFile.type.startsWith('image/') ? (
+                                <img
+                                    src={URL.createObjectURL(previewFile)}
+                                    alt={previewFile.name}
+                                    className="max-w-full max-h-full object-contain mx-auto rounded-lg"
+                                />
+                            ) : (
+                                <div className="text-center py-12">
+                                    <FileText className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                                    <p className="text-gray-600 text-lg">Preview not available for this file type</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 // Types
+export interface VICReportAttachment {
+    filename: string;
+    originalName: string;
+    mimetype: string;
+    size: number;
+    url: string;
+}
+
 export interface VICReport {
     id: number;
     voter_id_epic_no: string;
@@ -10,7 +18,7 @@ export interface VICReport {
     voter_relative_name: string;
     user_id: number;
     report_content: string;
-    report_type: "Complaint" | "Feedback" | "Issue" | "Other";
+    report_type: "Wrong Deleted" | "Wrong Added" | "New Voter F6" | "Other";
     priority: "Low" | "Medium" | "High" | "Critical";
     status: "Pending" | "In_Progress" | "Approved" | "Rejected" | "Resolved";
     current_level_id: number;
@@ -30,6 +38,7 @@ export interface VICReport {
     resolved_by_last_name: string | null;
     current_level_name: string;
     current_level_display_name: string;
+    attachments?: VICReportAttachment[];
     hierarchy?: VICReportHierarchy[];
 }
 
@@ -60,8 +69,9 @@ export interface CreateVICReportRequest {
     part_no: string;
     voter_relative_name: string;
     report_content: string;
-    report_type: "Complaint" | "Feedback" | "Issue" | "Other";
+    report_type: "Wrong Deleted" | "Wrong Added" | "New Voter F6" | "Other";
     priority: "Low" | "Medium" | "High" | "Critical";
+    attachments?: VICReportAttachment[];
 }
 
 export interface UpdateVICReportRequest {
@@ -71,8 +81,9 @@ export interface UpdateVICReportRequest {
     part_no?: string;
     voter_relative_name?: string;
     report_content?: string;
-    report_type?: "Complaint" | "Feedback" | "Issue" | "Other";
+    report_type?: "Wrong Deleted" | "Wrong Added" | "New Voter F6" | "Other";
     priority?: "Low" | "Medium" | "High" | "Critical";
+    attachments?: VICReportAttachment[];
 }
 
 export interface VICReportListParams {
