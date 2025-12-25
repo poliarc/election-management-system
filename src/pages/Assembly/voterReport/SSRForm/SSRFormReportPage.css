@@ -1,0 +1,545 @@
+/* SSR Form Report Page Responsive Styles */
+
+/* Mobile-first responsive design */
+.ssr-form-container {
+    padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .ssr-form-container {
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ssr-form-container {
+        padding: 1.5rem;
+    }
+}
+
+/* Responsive stats cards */
+.stats-card {
+    min-width: 0;
+    flex: 1;
+}
+
+@media (max-width: 640px) {
+    .stats-card {
+        min-width: 100px;
+    }
+}
+
+/* Responsive filter grid */
+.filter-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .filter-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Mobile pagination styles */
+.mobile-pagination {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mobile-pagination-info {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #374151;
+}
+
+.mobile-pagination-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mobile-pagination-button {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.mobile-pagination-button:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.mobile-pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Desktop pagination styles */
+.desktop-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+    color: #374151;
+    transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-button.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 0.25rem;
+}
+
+/* Language toggle responsive styles */
+.language-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .language-toggle {
+        width: 100%;
+    }
+
+    .language-toggle button {
+        flex: 1;
+    }
+}
+
+/* Responsive form inputs */
+.form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+@media (min-width: 640px) {
+    .form-input {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive loading and empty states */
+.loading-state {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+    .loading-state {
+        padding: 3rem 1rem;
+    }
+}
+
+.loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #3b82f6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@media (min-width: 640px) {
+    .loading-spinner {
+        width: 3rem;
+        height: 3rem;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive header */
+.header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .header-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.header-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .header-stats {
+        flex-direction: row;
+        gap: 1rem;
+    }
+}
+
+/* Responsive table wrapper */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Touch-friendly buttons */
+@media (hover: none) and (pointer: coarse) {
+    .touch-button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Responsive spacing utilities */
+.responsive-spacing {
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 640px) {
+    .responsive-spacing {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-friendly {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner {
+        animation: none;
+    }
+
+    .pagination-button,
+    .form-input {
+        transition: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .form-input {
+        border-width: 2px;
+    }
+
+    .pagination-button {
+        border-width: 2px;
+    }
+}
+
+/* En
+hanced Pagination Styles */
+
+/* Mobile page selector dropdown */
+.mobile-page-selector {
+    position: relative;
+    display: inline-block;
+}
+
+.mobile-page-selector select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 2rem;
+}
+
+/* Touch-friendly pagination buttons */
+.touch-button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
+@media (hover: none) and (pointer: coarse) {
+
+    .pagination-button,
+    .mobile-pagination-button {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Tablet pagination enhancements */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .pagination-button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .pagination-controls {
+        gap: 0.25rem;
+    }
+}
+
+/* Desktop pagination enhancements */
+@media (min-width: 1024px) {
+    .pagination-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        min-width: 2.5rem;
+    }
+
+    .pagination-numbers {
+        gap: 0.125rem;
+    }
+
+    .pagination-controls {
+        gap: 0.5rem;
+    }
+}
+
+/* Active page styling */
+.pagination-button.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.pagination-button.active:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* Hover effects for non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+    .pagination-button:hover:not(:disabled):not(.active) {
+        background-color: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .mobile-pagination-button:hover:not(:disabled) {
+        background-color: #f3f4f6;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Focus styles for accessibility */
+.pagination-button:focus,
+.mobile-pagination-button:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    ring-offset: 2px;
+}
+
+/* Loading state for pagination */
+.pagination-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Items per page selector */
+.items-per-page-selector {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    background-color: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.items-per-page-selector:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive ellipsis */
+.pagination-ellipsis {
+    padding: 0.5rem;
+    color: #6b7280;
+    user-select: none;
+}
+
+/* Animation for page transitions */
+@keyframes pageTransition {
+    0% {
+        opacity: 0.7;
+        transform: translateY(2px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-transition {
+    animation: pageTransition 0.2s ease-out;
+}
+
+/* Compact mode for very small screens */
+@media (max-width: 480px) {
+    .mobile-pagination-button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .mobile-pagination-info {
+        font-size: 0.7rem;
+    }
+
+    .touch-button {
+        min-height: 40px;
+        min-width: 40px;
+    }
+}
+
+/* Landscape mobile optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+    .mobile-pagination {
+        gap: 0.5rem;
+    }
+
+    .mobile-pagination-info {
+        font-size: 0.7rem;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+
+    .pagination-button,
+    .mobile-pagination-button {
+        border-width: 0.5px;
+    }
+}
+
+/* Dark mode support (if implemented) */
+@media (prefers-color-scheme: dark) {
+
+    .pagination-button,
+    .mobile-pagination-button {
+        background-color: #374151;
+        color: #f9fafb;
+        border-color: #4b5563;
+    }
+
+    .pagination-button:hover:not(:disabled):not(.active),
+    .mobile-pagination-button:hover:not(:disabled) {
+        background-color: #4b5563;
+    }
+
+    .pagination-button.active {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+}
+
+/* RTL support */
+[dir="rtl"] .pagination-controls {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .mobile-pagination-buttons {
+    flex-direction: row-reverse;
+}
+
+/* Keyboard navigation enhancements */
+.pagination-button:focus-visible,
+.mobile-pagination-button:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading skeleton for pagination */
+.pagination-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.375rem;
+    height: 2.5rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
