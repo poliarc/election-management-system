@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
-import { useHierarchyData, useAllDistrictsAssemblyData } from "../../../hooks/useHierarchyData";
+import {
+  useHierarchyData,
+  useAllDistrictsAssemblyData,
+} from "../../../hooks/useHierarchyData";
 import HierarchyTable from "../../../components/HierarchyTable";
 import UploadVotersModal from "../../../components/UploadVotersModal";
+import UploadDraftVotersModal from "../../../components/UploadDraftVotersModal";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
-import * as XLSX from 'xlsx';
-import type { HierarchyChild, EnhancedHierarchyChild } from "../../../types/hierarchy";
+import * as XLSX from "xlsx";
+import type {
+  HierarchyChild,
+  EnhancedHierarchyChild,
+} from "../../../types/hierarchy";
 
 export default function StateAssembly() {
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateName, setStateName] = useState<string>("");
+  const [partyId, setPartyId] = useState<number | null>(null);
   const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>("");
-  const [selectedDistrictParentId, setSelectedDistrictParentId] = useState<number | null>(null);
+  const [selectedDistrictParentId, setSelectedDistrictParentId] = useState<
+    number | null
+  >(null);
   const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<string>("");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -20,30 +30,56 @@ export default function StateAssembly() {
     id: number;
     name: string;
   } | null>(null);
+  const [selectedDraftAssembly, setSelectedDraftAssembly] = useState<{
+    id: number;
+    name: string;
+    districtId: number | null;
+    stateId: number;
+    districtName?: string;
+  } | null>(null);
+  const [draftModalOpen, setDraftModalOpen] = useState(false);
 
   // New state variables for enhanced filtering
   const [showAllDistricts, setShowAllDistricts] = useState<boolean>(true);
   const [searchInput, setSearchInput] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"location_name" | "total_users" | "active_users">("location_name");
+  const [sortBy, setSortBy] = useState<
+    "location_name" | "total_users" | "active_users"
+  >("location_name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  
+
   // State for filtering assemblies without users
-  const [showAssembliesWithoutUsers, setShowAssembliesWithoutUsers] = useState(false);
+  const [showAssembliesWithoutUsers, setShowAssembliesWithoutUsers] =
+    useState(false);
 
   // Get state info from localStorage
   useEffect(() => {
     try {
-      const authState = localStorage.getItem("auth_state");
-      if (authState) {
-        const parsed = JSON.parse(authState);
-        const selectedAssignment = parsed.selectedAssignment;
+      const authStateRaw = localStorage.getItem("auth_state");
+      const authUserRaw = localStorage.getItem("auth_user");
+      const authUser = authUserRaw ? JSON.parse(authUserRaw) : null;
+      const parsed = authStateRaw ? JSON.parse(authStateRaw) : null;
+      const selectedAssignment = parsed?.selectedAssignment;
 
-        if (selectedAssignment && selectedAssignment.levelType === "State") {
-          setStateId(selectedAssignment.stateMasterData_id);
-          setStateName(selectedAssignment.levelName);
-        }
+      if (selectedAssignment && selectedAssignment.levelType === "State") {
+        setStateId(selectedAssignment.stateMasterData_id);
+        setStateName(selectedAssignment.levelName);
       }
+
+      const partyFromAssignment =
+        selectedAssignment?.party_id || selectedAssignment?.partyId;
+      const partyFromState =
+        parsed?.selectedParty?.party_id || parsed?.party_id;
+      const partyFromUser = parsed?.user?.party_id;
+      const partyFromAuthUser = authUser?.partyId || authUser?.party_id;
+
+      setPartyId(
+        partyFromAssignment ||
+          partyFromState ||
+          partyFromUser ||
+          partyFromAuthUser ||
+          null
+      );
     } catch (err) {
       console.error("Error reading state info:", err);
     }
@@ -83,10 +119,13 @@ export default function StateAssembly() {
       }
 
       try {
-        const response = await fetchHierarchyChildren(Number(selectedDistrictId), {
-          page: 1,
-          limit: 1000, // Get all assemblies
-        });
+        const response = await fetchHierarchyChildren(
+          Number(selectedDistrictId),
+          {
+            page: 1,
+            limit: 1000, // Get all assemblies
+          }
+        );
 
         if (response.success) {
           setAssemblies(response.data.children);
@@ -117,7 +156,7 @@ export default function StateAssembly() {
       setSelectedDistrictName(district?.location_name || "");
       setSelectedDistrictParentId(district?.parent_id || null);
     }
-    
+
     setSelectedAssemblyId(""); // Clear assembly selection when district changes
     setCurrentPage(1); // Reset to page 1 when filter changes
 
@@ -156,18 +195,19 @@ export default function StateAssembly() {
   const handleUploadVoters = (assemblyId: number, assemblyName: string) => {
     // Find the assembly in the data to get its parent_id (which is the district)
     const assembly = data.find((item) => item.location_id === assemblyId);
-    
+
     let districtIdFromAssembly: number;
     let actualStateId: number;
 
-    if (showAllDistricts && 'district_id' in assembly!) {
+    if (showAllDistricts && "district_id" in assembly!) {
       // In all-districts mode, use the district_id from enhanced data
       const enhancedAssembly = assembly as EnhancedHierarchyChild;
       districtIdFromAssembly = enhancedAssembly.district_id;
       actualStateId = stateId!;
     } else {
       // In single-district mode, use the existing logic
-      districtIdFromAssembly = assembly?.parent_id || Number(selectedDistrictId);
+      districtIdFromAssembly =
+        assembly?.parent_id || Number(selectedDistrictId);
       actualStateId = selectedDistrictParentId || stateId!;
     }
 
@@ -199,6 +239,47 @@ export default function StateAssembly() {
     setUploadModalOpen(true);
   };
 
+  const handleUploadDraftVoters = (
+    assemblyId: number,
+    assemblyName: string
+  ) => {
+    const assembly = data.find((item) => item.location_id === assemblyId);
+
+    let districtIdFromAssembly: number | null = null;
+    let districtNameFromAssembly: string | undefined;
+    if (showAllDistricts && assembly && "district_id" in assembly) {
+      districtIdFromAssembly = (assembly as EnhancedHierarchyChild).district_id;
+      districtNameFromAssembly = (assembly as EnhancedHierarchyChild)
+        .district_name;
+    } else {
+      districtIdFromAssembly =
+        assembly?.parent_id || Number(selectedDistrictId) || null;
+      districtNameFromAssembly = selectedDistrictName;
+    }
+
+    const resolvedStateId = selectedDistrictParentId || stateId;
+
+    if (!resolvedStateId) {
+      alert("State ID is missing. Please refresh the page.");
+      return;
+    }
+
+    const resolvedPartyId = partyId;
+    if (!resolvedPartyId) {
+      alert("Party ID is missing. Please refresh or select a party.");
+      return;
+    }
+
+    setSelectedDraftAssembly({
+      id: assemblyId,
+      name: assemblyName,
+      districtId: districtIdFromAssembly,
+      stateId: resolvedStateId,
+      districtName: districtNameFromAssembly,
+    });
+    setDraftModalOpen(true);
+  };
+
   const handleCloseUploadModal = () => {
     setUploadModalOpen(false);
     setSelectedAssembly(null);
@@ -208,15 +289,16 @@ export default function StateAssembly() {
   const exportToExcel = () => {
     // Use allAssembliesData for export to get all assemblies with district information
     const dataToExport = showAllDistricts ? allAssembliesData : data;
-    
+
     // Prepare data for Excel export
     const excelData = dataToExport.map((assembly, index) => ({
-      'S.No': index + 1,
-      'State Name': stateName || '',
-      'District Name': showAllDistricts && 'district_name' in assembly 
-        ? (assembly as EnhancedHierarchyChild).district_name 
-        : selectedDistrictName || '',
-      'Assembly Name': assembly.location_name || ''
+      "S.No": index + 1,
+      "State Name": stateName || "",
+      "District Name":
+        showAllDistricts && "district_name" in assembly
+          ? (assembly as EnhancedHierarchyChild).district_name
+          : selectedDistrictName || "",
+      "Assembly Name": assembly.location_name || "",
     }));
 
     // Create workbook and worksheet
@@ -225,19 +307,22 @@ export default function StateAssembly() {
 
     // Set column widths
     const colWidths = [
-      { wch: 8 },   // S.No
-      { wch: 20 },  // State Name
-      { wch: 25 },  // District Name
-      { wch: 30 }   // Assembly Name
+      { wch: 8 }, // S.No
+      { wch: 20 }, // State Name
+      { wch: 25 }, // District Name
+      { wch: 30 }, // Assembly Name
     ];
-    ws['!cols'] = colWidths;
+    ws["!cols"] = colWidths;
 
     // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Assemblies');
+    XLSX.utils.book_append_sheet(wb, ws, "Assemblies");
 
     // Generate filename with current date
-    const currentDate = new Date().toISOString().split('T')[0];
-    const filename = `Assembly_List_${stateName.replace(/\s+/g, '_')}_${currentDate}.xlsx`;
+    const currentDate = new Date().toISOString().split("T")[0];
+    const filename = `Assembly_List_${stateName.replace(
+      /\s+/g,
+      "_"
+    )}_${currentDate}.xlsx`;
 
     // Save file
     XLSX.writeFile(wb, filename);
@@ -264,19 +349,23 @@ export default function StateAssembly() {
     searchInput,
     sortBy,
     sortOrder,
-    'all'
+    "all"
   );
 
   // Determine which data to use based on current mode
   const data = showAllDistricts ? allAssembliesData : singleDistrictData;
-  const loading = showAllDistricts ? allDistrictsLoading : singleDistrictLoading;
+  const loading = showAllDistricts
+    ? allDistrictsLoading
+    : singleDistrictLoading;
   const error = showAllDistricts ? allDistrictsError : singleDistrictError;
 
   // Filter data based on selected assembly and apply pagination for single district view
   let filteredData: (HierarchyChild | EnhancedHierarchyChild)[] = data;
-  
+
   if (selectedAssemblyId) {
-    filteredData = data.filter((item) => item.location_id.toString() === selectedAssemblyId);
+    filteredData = data.filter(
+      (item) => item.location_id.toString() === selectedAssemblyId
+    );
   }
 
   // Apply search filter for single district view (all districts view handles search in the hook)
@@ -291,8 +380,6 @@ export default function StateAssembly() {
     filteredData = filteredData.filter((item) => item.total_users === 0);
   }
 
-
-
   // Calculate pagination for filtered data
   const itemsPerPage = 25;
   const totalFilteredItems = filteredData.length;
@@ -302,8 +389,13 @@ export default function StateAssembly() {
 
   // Calculate summary statistics based on current data source
   const statsData = showAllDistricts ? allAssembliesData : assemblies;
-  const totalUsers = statsData.reduce((sum, assembly) => sum + assembly.total_users, 0);
-  const assembliesWithoutUsers = statsData.filter(assembly => assembly.total_users === 0).length;
+  const totalUsers = statsData.reduce(
+    (sum, assembly) => sum + assembly.total_users,
+    0
+  );
+  const assembliesWithoutUsers = statsData.filter(
+    (assembly) => assembly.total_users === 0
+  ).length;
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -317,8 +409,12 @@ export default function StateAssembly() {
       <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Assembly List</h1>
-            <p className="text-sky-100 mt-1 text-xs sm:text-sm">{selectedDistrictName || stateName || parentName}</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+              Assembly List
+            </h1>
+            <p className="text-sky-100 mt-1 text-xs sm:text-sm">
+              {selectedDistrictName || stateName || parentName}
+            </p>
           </div>
 
           {/* Excel Export Button */}
@@ -329,8 +425,18 @@ export default function StateAssembly() {
               className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
               title="Export all assemblies to Excel"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
               Export Excel ({statsData.length})
             </button>
@@ -340,12 +446,26 @@ export default function StateAssembly() {
             {/* Total Assemblies Card */}
             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-600">Total Assemblies</p>
-                <p className="text-xl sm:text-2xl font-semibold mt-1">{formatNumber(statsData.length)}</p>
+                <p className="text-xs font-medium text-gray-600">
+                  Total Assemblies
+                </p>
+                <p className="text-xl sm:text-2xl font-semibold mt-1">
+                  {formatNumber(statsData.length)}
+                </p>
               </div>
               <div className="bg-blue-50 rounded-full p-1.5">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+                  />
                 </svg>
               </div>
             </div>
@@ -353,49 +473,99 @@ export default function StateAssembly() {
             {/* Total Users Card */}
             <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-600">Assigned Users</p>
-                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">{formatNumber(totalUsers)}</p>
+                <p className="text-xs font-medium text-gray-600">
+                  Assigned Users
+                </p>
+                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                  {formatNumber(totalUsers)}
+                </p>
               </div>
               <div className="bg-green-50 rounded-full p-1.5">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                  />
                 </svg>
               </div>
             </div>
 
             {/* Assemblies Without Users Card - Clickable */}
-            <div 
+            <div
               onClick={handleAssembliesWithoutUsersClick}
               className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                assembliesWithoutUsers > 0 
-                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
-                  : 'cursor-default'
+                assembliesWithoutUsers > 0
+                  ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                  : "cursor-default"
               } ${
-                showAssembliesWithoutUsers 
-                  ? 'ring-2 ring-red-500 bg-red-50' 
-                  : ''
+                showAssembliesWithoutUsers
+                  ? "ring-2 ring-red-500 bg-red-50"
+                  : ""
               }`}
-              title={assembliesWithoutUsers > 0 ? "Click to view assemblies without users" : "No assemblies without users"}
+              title={
+                assembliesWithoutUsers > 0
+                  ? "Click to view assemblies without users"
+                  : "No assemblies without users"
+              }
             >
               <div>
                 <p className="text-xs font-medium text-gray-600">
                   Assemblies Without Users
                   {showAssembliesWithoutUsers && (
-                    <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
+                    <span className="ml-2 text-red-600 font-semibold">
+                      (Filtered)
+                    </span>
                   )}
                 </p>
-                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${assembliesWithoutUsers > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                <p
+                  className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                    assembliesWithoutUsers > 0
+                      ? "text-red-600"
+                      : "text-gray-400"
+                  }`}
+                >
                   {formatNumber(assembliesWithoutUsers)}
                 </p>
               </div>
-              <div className={`rounded-full p-1.5 ${assembliesWithoutUsers > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+              <div
+                className={`rounded-full p-1.5 ${
+                  assembliesWithoutUsers > 0 ? "bg-red-50" : "bg-gray-50"
+                }`}
+              >
                 {assembliesWithoutUsers > 0 ? (
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 )}
               </div>
@@ -432,6 +602,8 @@ export default function StateAssembly() {
         onAssemblyChange={handleAssemblyChange}
         showUploadVotersButton={true}
         onUploadVoters={handleUploadVoters}
+        showUploadDraftVotersButton={true}
+        onUploadDraftVoters={handleUploadDraftVoters}
         hideHeader={true}
         showAllDistricts={showAllDistricts}
         hideActiveUsersColumn={true}
@@ -443,14 +615,29 @@ export default function StateAssembly() {
           onClose={handleCloseUploadModal}
           stateId={stateId || 0}
           districtId={(() => {
-            const assembly = data.find((item) => item.location_id === selectedAssembly.id);
-            if (showAllDistricts && assembly && 'district_id' in assembly) {
+            const assembly = data.find(
+              (item) => item.location_id === selectedAssembly.id
+            );
+            if (showAllDistricts && assembly && "district_id" in assembly) {
               return (assembly as EnhancedHierarchyChild).district_id;
             }
             return Number(selectedDistrictId) || assembly?.parent_id || 0;
           })()}
           assemblyId={selectedAssembly.id}
           assemblyName={selectedAssembly.name}
+        />
+      )}
+
+      {draftModalOpen && selectedDraftAssembly && (
+        <UploadDraftVotersModal
+          isOpen={draftModalOpen}
+          onClose={() => setDraftModalOpen(false)}
+          stateId={selectedDraftAssembly.stateId}
+          districtId={selectedDraftAssembly.districtId}
+          assemblyId={selectedDraftAssembly.id}
+          assemblyName={selectedDraftAssembly.name}
+          districtName={selectedDraftAssembly.districtName}
+          partyId={partyId || 0}
         />
       )}
     </div>

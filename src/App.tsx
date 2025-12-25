@@ -41,6 +41,7 @@ import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import { Profile } from "./pages/Assembly/Profile/Profile";
 import VoterListPage from "./pages/Assembly/voters/VoterListPage";
+import VoterComparePage from "./pages/Assembly/voters/VoterComparePage";
 import AlphabeticalListPage from "./pages/Assembly/voterReport/Alphabetical/AlphabeticalListPage";
 import AgeWiseListPage from "./pages/Assembly/voterReport/AgeWise/AgeWiseListPage";
 import FamilyReportPage from "./pages/Assembly/voterReport/Family/FamilyReportPage";
@@ -237,6 +238,7 @@ export default function App() {
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="compare-voters" element={<VoterComparePage />} />
             <Route
               path="voter-report/alphabetical"
               element={<AlphabeticalListPage />}
