@@ -501,7 +501,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
           {/* Three separate dropdowns: Level Access, Level Admin, Party Admin */}
           {(hasAnyAssignments || hasAnyAdminPanels) && user && (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-1 sm:gap-2 ml-2">
               {/* Level Access dropdown (fixed + dynamic types) */}
               {hasAnyAssignments && (
                 <div className="relative" ref={levelAccessRef}>
@@ -515,11 +515,12 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    title="Team Levels"
                   >
                     <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-xs text-gray-700">Team Levels</span>
+                    <span className="hidden sm:inline text-xs text-gray-700">Team Levels</span>
                     <svg
                       className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAccessOpen ? "rotate-180" : "rotate-0"}`}
                       viewBox="0 0 20 20"
@@ -530,7 +531,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   </button>
 
                   {levelAccessOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-80 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-55 sm:w-55 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Team Levels</div>
 
                       {/* Fixed Level types (State/District/Assembly) */}
@@ -685,18 +686,19 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    title="Role Assign"
                   >
                     <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-xs text-gray-700">Role Assign</span>
+                    <span className="hidden sm:inline text-xs text-gray-700">Role Assign</span>
                     <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAdminPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
                       <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
                   {levelAdminPanelsOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role Assign</div>
                       {levelAdminPanels.map((panel: PanelAssignment) => (
                         <button
@@ -732,18 +734,19 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
                     className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    title="National Levels"
                   >
                     <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-xs text-gray-700">National Levels</span>
+                    <span className="hidden sm:inline text-xs text-gray-700">National Levels</span>
                     <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${partyPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
                       <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
                   {partyPanelsOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">National Levels</div>
                       {partyAdminPanels.map((panel: PanelAssignment) => (
                         <button
@@ -772,7 +775,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0" ref={menuRef}>
-          {/* Google Translate - Hidden on mobile, shown on desktop */}
+          {/* Google Translate - Show on all screens, but smaller on mobile */}
           <div className="hidden md:block">
             <GoogleTranslate />
           </div>
@@ -790,7 +793,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   Hello, <span className="font-medium">{firstName}</span>
                 </span>
                 <svg
-                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform ${open ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform hidden sm:block ${open ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -812,19 +815,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               {open && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-56 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl z-50"
+                  className="absolute right-0 mt-2 w-64 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl z-50"
                 >
-                  {/* Google Translate - Mobile only */}
-                  <div className="md:hidden px-2 sm:px-3 py-2">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                      Language
-                    </div>
-                    <GoogleTranslate />
-                  </div>
-
-                  {/* Divider between language and profile options on mobile */}
-                  <div className="my-2 border-t border-gray-200 md:hidden" />
-
                   {/* Only show profile link if not in admin panels */}
                   {!shouldHideProfile && (
                     <NavLink

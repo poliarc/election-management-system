@@ -280,7 +280,11 @@ export default function SubLevelPanelTeam() {
                                                 </button>
                                                 
                                                 {openDropdown === user.user_id && (
-                                                    <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                                                    <div 
+                                                      className={`absolute right-0 z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg max-h-32 overflow-y-auto ${
+                                                        index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
+                                                      }`}
+                                                    >
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
