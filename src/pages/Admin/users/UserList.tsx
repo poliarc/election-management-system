@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import {
   Edit,
-
   Users,
-  Phone,
-  Mail,
   Shield,
+  Eye,
   //   Calendar,
   ToggleRight,
   ToggleLeft,
@@ -19,6 +17,7 @@ interface UserListProps {
   onEdit: (user: User) => void;
   onDelete: (userId: number) => void;
   onToggleStatus: (userId: number, isActive: boolean) => void;
+  onViewContact?: (user: User) => void;
 }
 
 export const UserList: React.FC<UserListProps> = ({
@@ -27,6 +26,7 @@ export const UserList: React.FC<UserListProps> = ({
   onEdit,
   onDelete,
   onToggleStatus,
+  onViewContact,
 }) => {
   const [openUserId, setOpenUserId] = useState<number | null>(null);
   if (isLoading) {
@@ -40,10 +40,10 @@ export const UserList: React.FC<UserListProps> = ({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User Details
+                  User ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact Info
+                  User Details
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Party & Role
@@ -66,18 +66,14 @@ export const UserList: React.FC<UserListProps> = ({
               {[...Array(5)].map((_, i) => (
                 <tr key={i} className="animate-pulse">
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="shrink-0 h-10 w-10 bg-gray-200 rounded-full"></div>
                       <div className="ml-4 space-y-2">
                         <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-16"></div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-40"></div>
-                      <div className="h-3 bg-gray-200 rounded w-24"></div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -87,10 +83,13 @@ export const UserList: React.FC<UserListProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-20"></div>
+                      <div className="h-3 bg-gray-200 rounded w-24"></div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="h-3 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="flex justify-end gap-2">
@@ -153,10 +152,10 @@ export const UserList: React.FC<UserListProps> = ({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User Details
+                User ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Contact Info
+                User Details
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Party & Role
@@ -178,38 +177,33 @@ export const UserList: React.FC<UserListProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {users.map((user) => (
               <tr key={user.user_id} className="hover:bg-gray-50">
+                {/* User ID */}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">
+                    {user.user_id}
+                  </div>
+                </td>
+
                 {/* User Details */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="shrink-0 h-10 w-10">
                       <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                         <span className="text-sm font-medium text-gray-700">
-                          {user.first_name.charAt(0)}
-                          {user.last_name.charAt(0)}
+                          {(() => {
+                            const firstName = (user.first_name || "").trim();
+                            const lastName = (user.last_name || "").trim();
+                            const firstInitial = firstName.charAt(0).toUpperCase();
+                            const lastInitial = lastName.charAt(0).toUpperCase();
+                            return firstInitial + lastInitial || "U";
+                          })()}
                         </span>
                       </div>
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {user.first_name} {user.last_name}
+                        {user.first_name || ""} {user.last_name || ""}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        ID: {user.user_id}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Contact Info */}
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Mail className="w-3 h-3 text-blue-500" />
-                      <span>{user.email}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-gray-500">
-                      <Phone className="w-3 h-3 text-green-500" />
-                      <span>{user.contact_no || "No contact"}</span>
                     </div>
                   </div>
                 </td>
@@ -311,6 +305,18 @@ export const UserList: React.FC<UserListProps> = ({
                       {/* Dropdown */}
                       {openUserId === user.user_id && (
                         <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg border rounded-md z-10 animate-fadeIn">
+                          {onViewContact && (
+                            <button
+                              onClick={() => {
+                                onViewContact(user);
+                                setOpenUserId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </button>
+                          )}
                           <button
                             onClick={() => onDelete(user.user_id)}
                             className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"

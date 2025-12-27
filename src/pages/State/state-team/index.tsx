@@ -108,7 +108,7 @@ export default function StateTeamListing() {
         user.first_name.toLowerCase().includes(q) ||
         user.last_name.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q) ||
-        user.mobile_number.includes(searchTerm);
+        user.user_id.toString().includes(searchTerm);
 
       const matchesStatus =
         filterStatus === "all" ||
@@ -138,7 +138,7 @@ export default function StateTeamListing() {
         setOpenDropdown(null);
       }
     };
-    
+
     if (openDropdown) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -180,8 +180,8 @@ export default function StateTeamListing() {
           if (!prev) return prev;
           return {
             ...prev,
-            users: prev.users.map(user => 
-              user.user_id === userId 
+            users: prev.users.map(user =>
+              user.user_id === userId
                 ? { ...user, is_active: !currentStatus }
                 : user
             ),
@@ -189,7 +189,7 @@ export default function StateTeamListing() {
             inactive_users: currentStatus ? prev.inactive_users + 1 : prev.inactive_users - 1,
           };
         });
-        
+
         toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
       } else {
         throw new Error(result.message || "Failed to toggle user status");
@@ -338,10 +338,11 @@ export default function StateTeamListing() {
               <tr>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">S.No</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">State</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">District</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Designation</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Name</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Email</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Phone Number</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">User Id</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Status</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Action</th>
               </tr>
@@ -360,13 +361,14 @@ export default function StateTeamListing() {
                 paginatedUsers.map((user, index) => (
                   <tr key={user.assignment_id || index} className="hover:bg-gray-50">
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{startIndex + index + 1}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{stateData.location.location_name}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role||user.role_name || user.role || user.designation || "N/A"}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_state}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_district}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || "N/A"}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                       {user.first_name} {user.last_name}
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.mobile_number}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_id}</td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                         {user.is_active ? "Active" : "Inactive"}
@@ -390,7 +392,7 @@ export default function StateTeamListing() {
                             </svg>
                           )}
                         </button>
-                        
+
                         {openDropdown === user.user_id && (
                           <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                             <button
@@ -405,7 +407,7 @@ export default function StateTeamListing() {
                                   <svg className="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  Inactive 
+                                  Inactive
                                 </>
                               ) : (
                                 <>

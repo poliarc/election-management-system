@@ -652,7 +652,7 @@ export default function UserAssignment() {
                         Email
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                        Mobile
+                         User Id
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                         Actions
@@ -684,9 +684,8 @@ export default function UserAssignment() {
                             {user.email}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">
-                            {user.contact_no ||
-                              user.mobile_number ||
-                              user.mobileNumber ||
+                            {
+                              user.user_id ||
                               "N/A"}
                           </td>
                           <td className="px-6 py-4 text-sm">
@@ -768,7 +767,7 @@ export default function UserAssignment() {
                         Email
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                        Mobile
+                         User Id
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                         Actions
@@ -802,7 +801,7 @@ export default function UserAssignment() {
                             {user.email}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">
-                            {user.contact_no}
+                            {user.user_id}
                           </td>
                           <td className="px-6 py-4 text-sm">
                             <button

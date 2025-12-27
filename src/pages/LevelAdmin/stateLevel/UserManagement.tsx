@@ -442,7 +442,7 @@ export default function UserManagement() {
                     Email
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Mobile
+                    User Id
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                     Assigned Level
@@ -487,7 +487,7 @@ export default function UserManagement() {
                         {user.email}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {user.contact_no || user.mobile_number}
+                        {user.user_id}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -581,7 +581,7 @@ export default function UserManagement() {
                     Email
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Mobile
+                  User Id
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                     District
@@ -620,7 +620,7 @@ export default function UserManagement() {
                         {user.email}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {user.contact_no}
+                        {user.user_id}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {user.districtName || "N/A"}

@@ -98,7 +98,7 @@ export default function DistrictTeam() {
         user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.mobile_number.includes(searchTerm);
+        user.user_id.toString().includes(searchTerm);
 
       const matchesStatus =
         filterStatus === "all" ||
@@ -404,7 +404,7 @@ export default function DistrictTeam() {
                   Designation
                 </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
-                  Phone Number
+                  User ID
                 </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell min-w-[150px]">
                   Email
@@ -461,7 +461,7 @@ export default function DistrictTeam() {
                         {user.user_role || "N/A"}
                       </td>
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
-                        {user.mobile_number}
+                        {user.user_id}
                       </td>
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
                         {user.email}
@@ -469,11 +469,10 @@ export default function DistrictTeam() {
 
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm">
                         <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {isActive ? "Active" : "Inactive"}
                         </span>
@@ -529,11 +528,10 @@ export default function DistrictTeam() {
                                 <button
                                   type="button"
                                   disabled={isActive}
-                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
-                                    isActive
-                                      ? "text-gray-400 cursor-not-allowed"
-                                      : "text-green-700 hover:bg-gray-50"
-                                  }`}
+                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${isActive
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-green-700 hover:bg-gray-50"
+                                    }`}
                                   onClick={() =>
                                     handleToggleStatus(user, true, rowKey)
                                   }
@@ -557,11 +555,10 @@ export default function DistrictTeam() {
                                 <button
                                   type="button"
                                   disabled={!isActive}
-                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
-                                    !isActive
-                                      ? "text-gray-400 cursor-not-allowed"
-                                      : "text-orange-700 hover:bg-gray-50"
-                                  }`}
+                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${!isActive
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-orange-700 hover:bg-gray-50"
+                                    }`}
                                   onClick={() =>
                                     handleToggleStatus(user, false, rowKey)
                                   }

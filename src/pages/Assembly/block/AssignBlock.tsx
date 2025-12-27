@@ -28,7 +28,7 @@ export default function AssignBlock() {
     const [stateId, setStateId] = useState<number | null>(null);
     const [stateIdSource, setStateIdSource] = useState<string>("");
     const [stateIdResolved, setStateIdResolved] = useState<boolean>(false);
-    
+
     // Tab state
     const [activeTab, setActiveTab] = useState<'assign' | 'assigned'>('assign');
     const [assignedUsers, setAssignedUsers] = useState<HierarchyUser[]>([]);
@@ -241,7 +241,7 @@ export default function AssignBlock() {
 
     const [createAssignment, { isLoading: isAssigning }] =
         useCreateBlockAssignmentMutation();
-    
+
     const [deleteAssignedLevels] = useDeleteAssignedLevelsMutation();
 
     // Filter only active users (search is handled by API)
@@ -296,7 +296,7 @@ export default function AssignBlock() {
             toast.error("Block ID not found");
             return;
         }
-        
+
         try {
             setUnassigningUserId(userId);
             const response = await deleteAssignedLevels({
@@ -306,12 +306,12 @@ export default function AssignBlock() {
 
             if (response.success && response.summary.success > 0) {
                 toast.success(`Unassigned ${userName} from block`);
-                
+
                 // Update local state immediately - user will disappear from list instantly
                 setAssignedUsers(prev => prev.filter(user => user.user_id !== userId));
                 setAssignedUserIds(prev => prev.filter(id => id !== userId));
                 setSelectedUsers(prev => prev.filter(id => id !== userId));
-                
+
                 // Note: Removed fetchAssignedUsers() call as it was overwriting our immediate state updates
                 // The RTK Query cache invalidation will handle background data refresh
             } else {
@@ -408,23 +408,21 @@ export default function AssignBlock() {
                             <nav className="-mb-px flex space-x-8">
                                 <button
                                     onClick={() => setActiveTab('assign')}
-                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                        activeTab === 'assign'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assign'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
                                 >
-                                    Assign Users
+                                    Available Users
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('assigned')}
-                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                        activeTab === 'assigned'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                    className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assigned'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
                                 >
-                                    Available Users ({assignedUsers.length})
+                                    Assigned Users ({assignedUsers.length})
                                 </button>
                             </nav>
                         </div>
@@ -434,180 +432,183 @@ export default function AssignBlock() {
                     {activeTab === 'assign' ? (
                         <>
                             <div className="mb-1">
-                        <input
-                            type="text"
-                            placeholder="Search users by name, email, or contact number..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                                <input
+                                    type="text"
+                                    placeholder="Search users by name, email, or contact number..."
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
 
-                    </div>
-
-                    {loadingUsers ? (
-                        <div className="text-center py-8">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="mt-2 text-gray-600">Loading users...</p>
-                        </div>
-                    ) : usersError ? (
-                        <div className="text-center py-8">
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                                <p className="text-red-600 font-medium">Error loading users</p>
-                                <p className="text-red-500 text-sm mt-2">
-                                    {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
-                                </p>
-                                <button
-                                    onClick={() => window.location.reload()}
-                                    className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
-                                >
-                                    Retry
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="mb-1 flex items-center justify-between">
-                                <div className="text-sm text-gray-600">
-                                    {selectedUsers.length} user(s) selected | {pagination.total} total users
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={handleAssign}
-                                        disabled={isAssigning || selectedUsers.length === 0}
-                                        className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
-                                    >
-                                        {isAssigning ? "Assigning..." : "Assign Selected Users"}
-                                    </button>
-                                    
-                                </div>
                             </div>
 
-                            <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
-                                {filteredUsers.length === 0 ? (
-                                    <div className="p-4 text-center text-gray-500">
-                                        <p>No users found</p>
-                                        {/* Debug information */}
-                                        <div className="mt-4 text-xs text-gray-400 space-y-1">
-                                            <p>Debug Info:</p>
-                                            <p>Party ID: {partyId || 'Not set'}</p>
-                                            <p>State ID: {stateId || 'Not set'}</p>
-                                            <p>Total users from API: {users.length}</p>
-                                            <p>Filtered users: {filteredUsers.length}</p>
-                                            <p>Search term: {searchTerm || 'None'}</p>
-                                            <p>State resolved: {stateIdResolved ? 'Yes' : 'No'}</p>
+                            {loadingUsers ? (
+                                <div className="text-center py-8">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className="mt-2 text-gray-600">Loading users...</p>
+                                </div>
+                            ) : usersError ? (
+                                <div className="text-center py-8">
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                                        <p className="text-red-600 font-medium">Error loading users</p>
+                                        <p className="text-red-500 text-sm mt-2">
+                                            {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
+                                        </p>
+                                        <button
+                                            onClick={() => window.location.reload()}
+                                            className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                                        >
+                                            Retry
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mb-1 flex items-center justify-between">
+                                        <div className="text-sm text-gray-600">
+                                            {selectedUsers.length} user(s) selected | {pagination.total} total users
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={handleAssign}
+                                                disabled={isAssigning || selectedUsers.length === 0}
+                                                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                                            >
+                                                {isAssigning ? "Assigning..." : "Assign Selected Users"}
+                                            </button>
+
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="divide-y divide-gray-200">
-                                        {filteredUsers.map((user) => {
-                                            const isSelected = selectedUsers.includes(user.user_id);
-                                            const isAlreadyAssigned = assignedUserIds.includes(user.user_id);
 
-                                            return (
-                                                <div
-                                                    key={user.user_id}
-                                                    className={`p-4 hover:bg-blue-50 ${isAlreadyAssigned ? 'bg-blue-50' : ''}`}
-                                                >
-                                                    <label className="flex items-center cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isSelected}
-                                                            onChange={() => handleUserToggle(user.user_id)}
-                                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                                        />
-                                                        <div className="ml-3 flex-1">
-                                                            <div className="flex items-center justify-between">
-                                                                <div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <p className="font-medium text-gray-900">
-                                                                            {user.first_name} {user.last_name}
-                                                                        </p>
-                                                                        {isAlreadyAssigned && (
-                                                                            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                                Already Assigned
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <p className="text-sm text-gray-600">
-                                                                        {user.email}
-                                                                    </p>
-                                                                    <p className="text-xs text-gray-500">
-                                                                        {user.role} | {user.contact_no}
-                                                                    </p>
-                                                                    
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </label>
+                                    <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                                        {filteredUsers.length === 0 ? (
+                                            <div className="p-4 text-center text-gray-500">
+                                                <p>No users found</p>
+                                                {/* Debug information */}
+                                                <div className="mt-4 text-xs text-gray-400 space-y-1">
+                                                    <p>Debug Info:</p>
+                                                    <p>Party ID: {partyId || 'Not set'}</p>
+                                                    <p>State ID: {stateId || 'Not set'}</p>
+                                                    <p>Total users from API: {users.length}</p>
+                                                    <p>Filtered users: {filteredUsers.length}</p>
+                                                    <p>Search term: {searchTerm || 'None'}</p>
+                                                    <p>State resolved: {stateIdResolved ? 'Yes' : 'No'}</p>
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
+                                            </div>
+                                        ) : (
+                                            <div className="divide-y divide-gray-200">
+                                                {filteredUsers.map((user) => {
+                                                    const isSelected = selectedUsers.includes(user.user_id);
+                                                    const isAlreadyAssigned = assignedUserIds.includes(user.user_id);
 
-                            {/* Pagination */}
-                            {pagination.totalPages > 1 && (
-                                <div className="mt-4 flex items-center justify-between">
-                                    <div className="text-sm text-gray-700">
-                                        Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                                        {Math.min(currentPage * pageSize, pagination.total)} of{" "}
-                                        {pagination.total} results
+                                                    return (
+                                                        <div
+                                                            key={user.user_id}
+                                                            className={`p-4 hover:bg-blue-50 ${isAlreadyAssigned ? 'bg-blue-50' : ''}`}
+                                                        >
+                                                            <label className="flex items-center cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={() => handleUserToggle(user.user_id)}
+                                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                                />
+                                                                <div className="ml-3 flex-1">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <p className="font-medium text-gray-900">
+                                                                                    {user.first_name} {user.last_name}
+                                                                                </p>
+                                                                                {isAlreadyAssigned && (
+                                                                                    <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                                                        Already Assigned
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <p className="text-sm text-gray-600">
+                                                                                {user.districtName}
+                                                                            </p>
+                                                                            <p className="text-sm text-gray-600">
+                                                                                {user.email}
+                                                                            </p>
+                                                                            <p className="text-xs text-gray-500">
+                                                                                {user.role} | ID : {user.user_id}
+                                                                            </p>
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Previous
-                                        </button>
-                                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                                            const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                                            if (pageNum > pagination.totalPages) return null;
-                                            return (
+
+                                    {/* Pagination */}
+                                    {pagination.totalPages > 1 && (
+                                        <div className="mt-4 flex items-center justify-between">
+                                            <div className="text-sm text-gray-700">
+                                                Showing {(currentPage - 1) * pageSize + 1} to{" "}
+                                                {Math.min(currentPage * pageSize, pagination.total)} of{" "}
+                                                {pagination.total} results
+                                            </div>
+                                            <div className="flex gap-2">
                                                 <button
-                                                    key={pageNum}
-                                                    onClick={() => handlePageChange(pageNum)}
-                                                    className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
-                                                        ? "bg-blue-600 text-white border-blue-600"
-                                                        : "border-gray-300 hover:bg-gray-50"
-                                                        }`}
+                                                    onClick={() => handlePageChange(currentPage - 1)}
+                                                    disabled={currentPage === 1}
+                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    {pageNum}
+                                                    Previous
                                                 </button>
-                                            );
-                                        })}
+                                                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                                    const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                                                    if (pageNum > pagination.totalPages) return null;
+                                                    return (
+                                                        <button
+                                                            key={pageNum}
+                                                            onClick={() => handlePageChange(pageNum)}
+                                                            className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
+                                                                ? "bg-blue-600 text-white border-blue-600"
+                                                                : "border-gray-300 hover:bg-gray-50"
+                                                                }`}
+                                                        >
+                                                            {pageNum}
+                                                        </button>
+                                                    );
+                                                })}
+                                                <button
+                                                    onClick={() => handlePageChange(currentPage + 1)}
+                                                    disabled={currentPage === pagination.totalPages}
+                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-4 mt-6">
                                         <button
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={currentPage === pagination.totalPages}
-                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={handleAssign}
+                                            disabled={isAssigning || selectedUsers.length === 0}
+                                            className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
                                         >
-                                            Next
+                                            {isAssigning ? "Assigning..." : "Assign Selected Users"}
+                                        </button>
+                                        <button
+                                            onClick={() => navigate("/assembly/block")}
+                                            className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                                        >
+                                            Cancel
                                         </button>
                                     </div>
-                                </div>
+                                </>
                             )}
-
-                            <div className="flex gap-4 mt-6">
-                                <button
-                                    onClick={handleAssign}
-                                    disabled={isAssigning || selectedUsers.length === 0}
-                                    className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
-                                >
-                                    {isAssigning ? "Assigning..." : "Assign Selected Users"}
-                                </button>
-                                <button
-                                    onClick={() => navigate("/assembly/block")}
-                                    className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
                         </>
-                    )}
-                </>
-            ) : (
+                    ) : (
                         /* Assigned Users Tab */
                         <>
                             {loadingAssignedUsers ? (
@@ -639,7 +640,7 @@ export default function AssignBlock() {
                                                             </p>
                                                             <p className="text-sm text-gray-600">{user.email}</p>
                                                             <p className="text-xs text-gray-500">
-                                                                 {user.mobile_number || user.contact_no}
+                                                                ID : {user.user_id}
                                                             </p>
                                                             <div className="mt-1 flex items-center gap-2">
                                                                 {user.assigned_at && (

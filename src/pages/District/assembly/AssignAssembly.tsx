@@ -25,7 +25,7 @@ export default function AssignAssembly() {
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  
+
   // Tab state
   const [activeTab, setActiveTab] = useState<'assign' | 'assigned'>('assign');
   const [assignedUsers, setAssignedUsers] = useState<HierarchyUser[]>([]);
@@ -85,7 +85,7 @@ export default function AssignAssembly() {
 
   const [createAssignment, { isLoading: isAssigning }] =
     useCreateAssemblyAssignmentMutation();
-  
+
   const [deleteAssignedLocations] = useDeleteAssignedLocationsMutation();
 
   // Fetch already assigned users for this assembly
@@ -110,7 +110,7 @@ export default function AssignAssembly() {
       );
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const json = await resp.json();
-      
+
       if (json?.data?.users && Array.isArray(json.data.users)) {
         setAssignedUsers(json.data.users);
         const ids: number[] = json.data.users
@@ -198,7 +198,7 @@ export default function AssignAssembly() {
       toast.error("Assembly ID not found");
       return;
     }
-    
+
     try {
       setUnassigningUserId(userId);
       const response = await deleteAssignedLocations({
@@ -266,23 +266,21 @@ export default function AssignAssembly() {
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab('assign')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'assign'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assign'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
-                  Assign Users
+                  Available Users
                 </button>
                 <button
                   onClick={() => setActiveTab('assigned')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'assigned'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assigned'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
-                  Available Users ({assignedUsers.length})
+                  Assigned Users ({assignedUsers.length})
                 </button>
               </nav>
             </div>
@@ -351,12 +349,15 @@ export default function AssignAssembly() {
                                         {user.first_name} {user.last_name}
                                       </p>
                                       <p className="text-sm text-gray-600">
+                                        {user.districtName}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
                                         {user.email}
                                       </p>
                                       <p className="text-xs text-gray-500">
-                                        {user.role} | {user.contact_no}
+                                        {user.role} | ID : {user.user_id}
                                       </p>
-                                      
+
                                     </div>
                                     {alreadyAssigned && (
                                       <span className="ml-3 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
@@ -437,9 +438,9 @@ export default function AssignAssembly() {
                                 {user.first_name} {user.last_name}
                               </p>
                               <p className="text-sm text-gray-600">{user.email}</p>
-                              
+
                               <div className="mt-1 flex items-center gap-2">
-                                
+
                                 <span className="text-xs text-gray-400">
                                   Assigned: {new Date(user.assigned_at).toLocaleDateString()}
                                 </span>

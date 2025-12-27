@@ -223,24 +223,24 @@ export default function InlineUserDisplay({
       const newStatus = !currentStatus;
 
       // Update local state immediately for instant UI feedback
-      setLocalUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.user_id === user.user_id 
-            ? { 
-                ...u, 
-                is_active: newStatus,
-                assignment_active: newStatus,
-                user_active: newStatus ? 1 : 0,
-                active: newStatus,
-                status: newStatus ? 1 : 0
-              } as HierarchyUser
+      setLocalUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.user_id === user.user_id
+            ? {
+              ...u,
+              is_active: newStatus,
+              assignment_active: newStatus,
+              user_active: newStatus ? 1 : 0,
+              active: newStatus,
+              status: newStatus ? 1 : 0
+            } as HierarchyUser
             : u
         )
       );
 
-      const response = await toggleUserStatus({ 
-        id: user.user_id, 
-        isActive: newStatus 
+      const response = await toggleUserStatus({
+        id: user.user_id,
+        isActive: newStatus
       }).unwrap();
 
       if (response.success) {
@@ -269,9 +269,7 @@ export default function InlineUserDisplay({
       (user.first_name && user.first_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.last_name && user.last_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.mobile_number && user.mobile_number.includes(searchTerm)) ||
-      (user.contact_no && user.contact_no.includes(searchTerm)) ||
-      (user.phone && user.phone.includes(searchTerm));
+      (user.user_id && user.user_id.toString().includes(searchTerm));
 
     // Enhanced status checking for filtering
     const checkActiveStatus = (value: any): boolean => {
@@ -331,8 +329,8 @@ export default function InlineUserDisplay({
                   <option value="active" className="text-gray-900">Active Only</option>
                   <option value="inactive" className="text-gray-900">Inactive Only</option>
                 </select>
-                
-                
+
+
                 {/* Search Input */}
                 <div className="flex-1 max-w-xs">
                   <input
@@ -343,10 +341,10 @@ export default function InlineUserDisplay({
                     className="w-full px-3 py-1.5 text-sm border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
                   />
                 </div>
-                
-                
-                
-                
+
+
+
+
                 {/* Close Button */}
                 <button
                   onClick={onClose}
@@ -381,7 +379,8 @@ export default function InlineUserDisplay({
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getCurrentLocationColumnHeader()}</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Name</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Designation</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Phone Number</th>
+                        {/* <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Phone Number</th> */}
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">User Id</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Status</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase">Actions</th>
                       </tr>
@@ -407,7 +406,8 @@ export default function InlineUserDisplay({
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{user.role_name || user.role || user.designation || 'N/A'}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">
-                            {user.mobile_number || user.contact_no || user.phone || 'N/A'}
+                            {/* {user.mobile_number || user.contact_no || user.phone || 'N/A'} */}
+                            {user.user_id}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             {(() => {
@@ -490,9 +490,8 @@ export default function InlineUserDisplay({
                                       return (
                                         <button
                                           onClick={() => handleToggleStatus(user)}
-                                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${
-                                            isActive ? 'text-orange-700' : 'text-green-700'
-                                          }`}
+                                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${isActive ? 'text-orange-700' : 'text-green-700'
+                                            }`}
                                           role="menuitem"
                                         >
                                           {isActive ? (
