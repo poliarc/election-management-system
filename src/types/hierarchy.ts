@@ -1,6 +1,7 @@
 // Hierarchy API Types
 
 export interface HierarchyUser {
+  districtName: string;
   user_role?: string;
   assignment_id: number;
   user_id: number;
@@ -37,12 +38,12 @@ export interface HierarchyChild {
   location_id: number;
   location_name: string;
   location_type:
-    | "State"
-    | "District"
-    | "Assembly"
-    | "Block"
-    | "Mandal"
-    | "Booth";
+  | "State"
+  | "District"
+  | "Assembly"
+  | "Block"
+  | "Mandal"
+  | "Booth";
   parent_id: number | null;
   total_users: number;
   active_users: number;
