@@ -40,6 +40,7 @@ import AssemblyPollingCenterPage from "./pages/Assembly/pollingCenter/PollingCen
 import AssemblyBoothPage from "./pages/Assembly/booth/BoothPage";
 import AssemblyKaryakartaPage from "./pages/Assembly/karyakarta/KaryakartaPage";
 import { Profile } from "./pages/Assembly/Profile/Profile";
+import { Profile as GeneralProfile } from "./pages/Profile/Profile";
 import VoterListPage from "./pages/Assembly/voters/VoterListPage";
 import VoterComparePage from "./pages/Assembly/voters/VoterComparePage";
 import AlphabeticalListPage from "./pages/Assembly/voterReport/Alphabetical/AlphabeticalListPage";
@@ -151,6 +152,7 @@ export default function App() {
           <Route index element={<RoleRedirect />} />
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
+          <Route path="profile" element={<GeneralProfile />} />
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
 
           {/* Party Admin Routes */}
