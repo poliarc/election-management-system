@@ -22,7 +22,7 @@ export default function AssignDistrict() {
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  
+
   // Tab state
   const [activeTab, setActiveTab] = useState<'assign' | 'assigned'>('assign');
   const [assignedUsers, setAssignedUsers] = useState<HierarchyUser[]>([]);
@@ -84,7 +84,7 @@ export default function AssignDistrict() {
   }, [users]);
   const [createAssignment, { isLoading: isAssigning }] =
     useCreateUserHierarchyAssignmentMutation();
-  
+
   const [deleteAssignedLocations] = useDeleteAssignedLocationsMutation();
 
   // Fetch already assigned users for this district
@@ -109,7 +109,7 @@ export default function AssignDistrict() {
       );
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const json = await resp.json();
-      
+
       if (json?.data?.users && Array.isArray(json.data.users)) {
         setAssignedUsers(json.data.users);
         const ids: number[] = json.data.users
@@ -205,7 +205,7 @@ export default function AssignDistrict() {
       toast.error("District ID not found");
       return;
     }
-    
+
     try {
       setUnassigningUserId(userId);
       const response = await deleteAssignedLocations({
@@ -273,23 +273,21 @@ export default function AssignDistrict() {
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab('assign')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'assign'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assign'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
-                  Assign Users
+                  Available Users
                 </button>
                 <button
                   onClick={() => setActiveTab('assigned')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'assigned'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assigned'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
-                  Available Users ({assignedUsers.length})
+                  Assigned Users ({assignedUsers.length})
                 </button>
               </nav>
             </div>
@@ -308,139 +306,142 @@ export default function AssignDistrict() {
                 />
               </div>
 
-          {loadingUsers || loadingAssigned ? (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Loading users...</p>
-            </div>
-          ) : usersError ? (
-            <div className="text-center py-8">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                <p className="text-red-600 font-medium">Error loading users</p>
-                <p className="text-red-500 text-sm mt-2">
-                  {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
-                </p>
-                <div className="mt-4 text-xs text-gray-500 space-y-1">
-                  <p>Debug Info:</p>
-                  <p>Party ID: {partyId || 'Not set'}</p>
-                  <p>State ID: {stateId || 'Not set'}</p>
-                  <p>Search term: {debouncedSearchTerm || 'None'}</p>
+              {loadingUsers || loadingAssigned ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">Loading users...</p>
                 </div>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="mb-1 flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  {selectedUsers.length} user(s) selected
-                </div>
-                <button
-                  onClick={handleAssign}
-                  disabled={isAssigning || selectedUsers.length === 0}
-                  className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
-                >
-                  {isAssigning ? "Assigning..." : "Assign Selected Users"}
-                </button>
-              </div>
-              <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
-                {filteredUsers.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">
-                    <p>No users found</p>
-                    {/* Debug information */}
-                    <div className="mt-4 text-xs text-gray-400 space-y-1">
+              ) : usersError ? (
+                <div className="text-center py-8">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <p className="text-red-600 font-medium">Error loading users</p>
+                    <p className="text-red-500 text-sm mt-2">
+                      {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
+                    </p>
+                    <div className="mt-4 text-xs text-gray-500 space-y-1">
                       <p>Debug Info:</p>
                       <p>Party ID: {partyId || 'Not set'}</p>
                       <p>State ID: {stateId || 'Not set'}</p>
-                      <p>Total users from API: {allUsers.length}</p>
-                      <p>Filtered users: {filteredUsers.length}</p>
                       <p>Search term: {debouncedSearchTerm || 'None'}</p>
-                      <p>Current page: {page}</p>
                     </div>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+                    >
+                      Retry
+                    </button>
                   </div>
-                ) : (
-                  <div className="divide-y divide-gray-200">
-                    {filteredUsers.map((user) => {
-                      const checked = selectedUsers.includes(user.user_id);
-                      const alreadyAssigned = assignedSet.has(user.user_id);
-                      return (
-                        <div
-                          key={user.user_id}
-                          className="p-4 hover:bg-gray-50"
-                        >
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => toggleUser(user.user_id)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <div className="ml-3 flex-1">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="font-medium text-gray-900">
-                                    {user.first_name} {user.last_name}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    {user.email}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {user.role} | {user.contact_no}
-                                  </p>
-                                </div>
-                                {alreadyAssigned && (
-                                  <span className="ml-3 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                    Already assigned
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {hasMore && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingUsers}
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {loadingUsers ? "Loading..." : "Load More Users"}
-                  </button>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Showing {allUsers.length} of {pagination?.total || 0} users
-                  </p>
                 </div>
-              )}
+              ) : (
+                <>
+                  <div className="mb-1 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      {selectedUsers.length} user(s) selected
+                    </div>
+                    <button
+                      onClick={handleAssign}
+                      disabled={isAssigning || selectedUsers.length === 0}
+                      className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {isAssigning ? "Assigning..." : "Assign Selected Users"}
+                    </button>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                    {filteredUsers.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500">
+                        <p>No users found</p>
+                        {/* Debug information */}
+                        <div className="mt-4 text-xs text-gray-400 space-y-1">
+                          <p>Debug Info:</p>
+                          <p>Party ID: {partyId || 'Not set'}</p>
+                          <p>State ID: {stateId || 'Not set'}</p>
+                          <p>Total users from API: {allUsers.length}</p>
+                          <p>Filtered users: {filteredUsers.length}</p>
+                          <p>Search term: {debouncedSearchTerm || 'None'}</p>
+                          <p>Current page: {page}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-200">
+                        {filteredUsers.map((user) => {
+                          const checked = selectedUsers.includes(user.user_id);
+                          const alreadyAssigned = assignedSet.has(user.user_id);
+                          return (
+                            <div
+                              key={user.user_id}
+                              className="p-4 hover:bg-gray-50"
+                            >
+                              <label className="flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleUser(user.user_id)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <div className="ml-3 flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-medium text-gray-900">
+                                        {user.first_name} {user.last_name}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {user.districtName}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {user.role} | {user.user_id}
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {user.email}
+                                      </p>
+                                    </div>
+                                    {alreadyAssigned && (
+                                      <span className="ml-3 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                        Already assigned
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
 
-              <div className="flex gap-4 mt-6">
-                <button
-                  onClick={handleAssign}
-                  disabled={isAssigning || selectedUsers.length === 0}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isAssigning ? "Assigning..." : "Assign Selected Users"}
-                </button>
-                <button
-                  onClick={() => navigate("/state/districts")}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+                  {hasMore && (
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={handleLoadMore}
+                        disabled={loadingUsers}
+                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {loadingUsers ? "Loading..." : "Load More Users"}
+                      </button>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Showing {allUsers.length} of {pagination?.total || 0} users
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-4 mt-6">
+                    <button
+                      onClick={handleAssign}
+                      disabled={isAssigning || selectedUsers.length === 0}
+                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isAssigning ? "Assigning..." : "Assign Selected Users"}
+                    </button>
+                    <button
+                      onClick={() => navigate("/state/districts")}
+                      className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
             </>
-          )}
-          </>
           ) : (
             /* Assigned Users Tab */
             <>
@@ -471,12 +472,14 @@ export default function AssignDistrict() {
                               <p className="font-medium text-gray-900">
                                 {user.first_name} {user.last_name}
                               </p>
+
+                              <p className="text-sm text-gray-600">{user.districtName}</p>
                               <p className="text-sm text-gray-600">{user.email}</p>
                               <p className="text-xs text-gray-500">
-                               | {user.mobile_number}
+                                ID : {user.user_id} | {user.role}
                               </p>
                               <div className="mt-1 flex items-center gap-2">
-                                
+
                                 <span className="text-xs text-gray-400">
                                   Assigned: {new Date(user.assigned_at).toLocaleDateString()}
                                 </span>

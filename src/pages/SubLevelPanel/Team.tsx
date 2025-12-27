@@ -13,7 +13,7 @@ export default function SubLevelPanelTeam() {
     const usersPerPage = 10;
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
     const [toggleLoading, setToggleLoading] = useState<number | null>(null);
-    
+
     // RTK Query hook for toggling user status
     const [toggleUserStatusMutation] = useToggleUserStatusMutation();
 
@@ -41,7 +41,8 @@ export default function SubLevelPanelTeam() {
 
     const filteredUsers = users.filter((user) =>
         `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.user_id?.toString().includes(searchTerm.toLowerCase())
     );
 
     // Pagination logic
@@ -63,7 +64,7 @@ export default function SubLevelPanelTeam() {
                 setOpenDropdown(null);
             }
         };
-        
+
         if (openDropdown) {
             document.addEventListener('click', handleClickOutside);
             return () => document.removeEventListener('click', handleClickOutside);
@@ -79,11 +80,11 @@ export default function SubLevelPanelTeam() {
             const newStatus = !currentStatus;
 
             // Update local state immediately for instant UI feedback
-            setUsers(prevUsers => 
-                prevUsers.map(u => 
-                    u.user_id === userId 
-                        ? { 
-                            ...u, 
+            setUsers(prevUsers =>
+                prevUsers.map(u =>
+                    u.user_id === userId
+                        ? {
+                            ...u,
                             isActive: newStatus ? 1 : 0,
                             is_active: newStatus,
                             user_active: newStatus ? 1 : 0,
@@ -94,9 +95,9 @@ export default function SubLevelPanelTeam() {
                 )
             );
 
-            const response = await toggleUserStatusMutation({ 
-                id: userId, 
-                isActive: newStatus 
+            const response = await toggleUserStatusMutation({
+                id: userId,
+                isActive: newStatus
             }).unwrap();
 
             if (response.success) {
@@ -152,13 +153,16 @@ export default function SubLevelPanelTeam() {
                                     S.No
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    State Name
+                                    State
                                 </th>
                                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Assembly Name
                                 </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                   Display Name
+                                    Display Name
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    User ID
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Name
@@ -169,10 +173,8 @@ export default function SubLevelPanelTeam() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Email
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mobile
-                                </th>
-                                
+
+
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
@@ -208,11 +210,16 @@ export default function SubLevelPanelTeam() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-500">
+                                                {user.user_id || "N/A"}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900">
                                                 {user.first_name} {user.last_name}
                                             </div>
                                         </td>
-                                         <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900">
                                                 {user.role_name || user.designation || user.role || "N/A"}
                                             </div>
@@ -220,12 +227,8 @@ export default function SubLevelPanelTeam() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-500">{user.email}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500">
-                                                {user.contact_no || user.mobile_number || "N/A"}
-                                            </div>
-                                        </td>
-                                       
+
+
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {(() => {
                                                 // Enhanced status checking with multiple field variations
@@ -278,12 +281,11 @@ export default function SubLevelPanelTeam() {
                                                         </svg>
                                                     )}
                                                 </button>
-                                                
+
                                                 {openDropdown === user.user_id && (
-                                                    <div 
-                                                      className={`absolute right-0 z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg max-h-32 overflow-y-auto ${
-                                                        index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
-                                                      }`}
+                                                    <div
+                                                        className={`absolute right-0 z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg max-h-32 overflow-y-auto ${index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
+                                                            }`}
                                                     >
                                                         <button
                                                             onClick={(e) => {
@@ -339,12 +341,12 @@ export default function SubLevelPanelTeam() {
 
                                                                 return isActive ? (
                                                                     <>
-                                                                    
+
                                                                         Inactive
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        
+
                                                                         Active
                                                                     </>
                                                                 );

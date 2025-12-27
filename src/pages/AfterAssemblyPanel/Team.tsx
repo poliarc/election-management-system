@@ -30,7 +30,7 @@ export default function AfterAssemblyPanelTeam() {
         setOpenMenuId(null);
       }
     };
-    
+
     if (openMenuId) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
@@ -80,7 +80,8 @@ export default function AfterAssemblyPanelTeam() {
       `${user.first_name} ${user.last_name}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.user_id.toString().includes(searchTerm.toLowerCase())
   );
 
   // Pagination logic
@@ -210,14 +211,21 @@ export default function AfterAssemblyPanelTeam() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   S.No
                 </th>
+
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  State Name
+                  State
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assembly Name
+                  District
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Display Name
+                  Assembly
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Block
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Name
@@ -228,9 +236,7 @@ export default function AfterAssemblyPanelTeam() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mobile
-                </th>
+
 
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -266,6 +272,11 @@ export default function AfterAssemblyPanelTeam() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
+                        {user.districtName || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
                         {user.assemblyName ||
                           user.assembly_name ||
                           user.parentAssemblyName ||
@@ -280,6 +291,11 @@ export default function AfterAssemblyPanelTeam() {
                           user.block_name ||
                           user.levelName ||
                           "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {user.user_id || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -298,11 +314,7 @@ export default function AfterAssemblyPanelTeam() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {user.contact_no || user.mobile_number || "N/A"}
-                      </div>
-                    </td>
+
 
                     <td className="px-6 py-4 whitespace-nowrap">
                       {(() => {
@@ -312,11 +324,10 @@ export default function AfterAssemblyPanelTeam() {
 
                         return (
                           <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isActive
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                              }`}
                           >
                             {isActive ? "Active" : "Inactive"}
                           </span>
@@ -381,20 +392,18 @@ export default function AfterAssemblyPanelTeam() {
                             </button>
 
                             {openMenuId === rowKey && (
-                              <div 
-                                className={`absolute right-0 z-50 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden ${
-                                  index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
-                                }`}
+                              <div
+                                className={`absolute right-0 z-50 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden ${index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
+                                  }`}
                               >
                                 <div className="py-1" role="menu">
                                   <button
                                     type="button"
                                     disabled={isActive}
-                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
-                                      isActive
-                                        ? "text-gray-400 cursor-not-allowed"
-                                        : "text-green-700 hover:bg-gray-50"
-                                    }`}
+                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${isActive
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-green-700 hover:bg-gray-50"
+                                      }`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleToggleStatus(user, true, rowKey);
@@ -419,11 +428,10 @@ export default function AfterAssemblyPanelTeam() {
                                   <button
                                     type="button"
                                     disabled={!isActive}
-                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${
-                                      !isActive
-                                        ? "text-gray-400 cursor-not-allowed"
-                                        : "text-orange-700 hover:bg-gray-50"
-                                    }`}
+                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${!isActive
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-orange-700 hover:bg-gray-50"
+                                      }`}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleToggleStatus(user, false, rowKey);
