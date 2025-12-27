@@ -28,6 +28,6 @@ export default function RoleRedirect() {
     return <Navigate to="/panels" replace />;
   }
 
-  // Fallback: redirect to login if no assignments
-  return <Navigate to="/login" replace />;
+  // Fallback: redirect to profile page if no assignments
+  return <Navigate to="/profile" replace />;
 }

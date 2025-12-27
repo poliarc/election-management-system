@@ -486,6 +486,7 @@ export default function DistrictSidebar({
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
+            onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",

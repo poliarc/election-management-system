@@ -70,7 +70,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Search by name or email..."
+            placeholder="Search by name, or user ID..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

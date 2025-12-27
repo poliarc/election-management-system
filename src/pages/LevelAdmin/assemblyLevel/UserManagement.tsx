@@ -526,7 +526,7 @@ export default function AssemblyUserManagement() {
                           Email
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Mobile
+                          User Id
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                           Status
@@ -561,7 +561,7 @@ export default function AssemblyUserManagement() {
                               {user.email}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              {user.mobile_number}
+                              {user.user_id}
                             </td>
                             <td className="px-6 py-4 text-sm">
                               <span
@@ -642,7 +642,7 @@ export default function AssemblyUserManagement() {
                           Email
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Mobile
+                          User Id
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                           Status
@@ -680,7 +680,7 @@ export default function AssemblyUserManagement() {
                               {user.email}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              {user.contact_no}
+                              {user.user_id}
                             </td>
                             <td className="px-6 py-4 text-sm">
                               <span

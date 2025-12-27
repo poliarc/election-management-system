@@ -6,6 +6,7 @@ import { LevelAdminUserForm } from "./components/LevelAdminUserForm";
 import { UserList } from "../Admin/users/UserList";
 import { UserSearchFilter } from "../Admin/users/UserSearchFilter";
 import { BulkUploadModal } from "../../components/BulkUploadModal";
+import { UserContactModal } from "../../components/UserContactModal";
 import {
   useCreateUserMutation,
   useUpdateUserMutation,
@@ -47,6 +48,8 @@ export const LevelAdminCreateUser: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedUserForContact, setSelectedUserForContact] = useState<User | null>(null);
   const [users, setUsers] = useState<LevelAdminUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
@@ -233,6 +236,16 @@ export const LevelAdminCreateUser: React.FC = () => {
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
+  };
+
+  const handleViewContact = (user: User) => {
+    setSelectedUserForContact(user);
+    setShowContactModal(true);
+  };
+
+  const handleCloseContactModal = () => {
+    setShowContactModal(false);
+    setSelectedUserForContact(null);
   };
 
   const handleDeleteUser = async (userId: number) => {
@@ -423,6 +436,7 @@ export const LevelAdminCreateUser: React.FC = () => {
               onEdit={handleEditUser}
               onDelete={handleDeleteUser}
               onToggleStatus={handleToggleUserStatus}
+              onViewContact={handleViewContact}
             />
 
             {/* Pagination */}
@@ -469,6 +483,13 @@ export const LevelAdminCreateUser: React.FC = () => {
           onClose={() => setShowBulkUpload(false)}
           onUpload={handleBulkUpload}
           isUploading={isUploading}
+        />
+
+        {/* User Contact Modal */}
+        <UserContactModal
+          isOpen={showContactModal}
+          onClose={handleCloseContactModal}
+          user={selectedUserForContact}
         />
 
         {/* Loading Overlay - Only show when not in form mode */}
