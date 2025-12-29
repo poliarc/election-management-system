@@ -394,6 +394,9 @@ export default function DistrictTeam() {
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                   S.No
                 </th>
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
+                  User ID
+                </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
                   State Name
                 </th>
@@ -403,9 +406,7 @@ export default function DistrictTeam() {
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
                   Designation
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
-                  User ID
-                </th>
+                
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell min-w-[150px]">
                   Email
                 </th>
@@ -451,6 +452,9 @@ export default function DistrictTeam() {
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-900">
                         {startIndex + index + 1}
                       </td>
+                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                        {user.user_id}
+                      </td>
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
                         {user.user_state}
                       </td>
@@ -460,9 +464,7 @@ export default function DistrictTeam() {
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
                         {user.user_role || "N/A"}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
-                        {user.user_id}
-                      </td>
+                     
                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
                         {user.email}
                       </td>

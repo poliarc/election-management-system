@@ -314,12 +314,13 @@ export default function AssemblyTeam() {
                         <thead className="bg-gray-50 sticky top-0">
                             <tr>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">S.No</th>
+                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">User ID</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">District</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Assembly</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Designation</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Name</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Email</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">User ID</th>
+                               
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Status</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Action</th>
                             </tr>
@@ -338,6 +339,7 @@ export default function AssemblyTeam() {
                                 paginatedUsers.map((user, index) => (
                                     <tr key={user.assignment_id || index} className="hover:bg-gray-50">
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{startIndex + index + 1}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_id}</td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_district}</td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{assemblyData.location.location_name}</td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || "N/A"}</td>
@@ -345,7 +347,7 @@ export default function AssemblyTeam() {
                                             {user.first_name} {user.last_name}
                                         </td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_id}</td>
+                                        
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
                                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                                 {user.is_active ? "Active" : "Inactive"}
