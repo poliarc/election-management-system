@@ -23,9 +23,25 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Check if search term looks like an email (contains @ symbol)
+      const isEmail = localSearch.includes('@');
+      
+      // Check if search term looks like a phone number (only digits, +, -, spaces, parentheses)
+      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+      const isPhoneNumber = phoneRegex.test(localSearch.trim()) && localSearch.trim().length >= 7;
+      
+      // If it's an email or phone number, don't perform search
+      if (isEmail || isPhoneNumber) {
+        return;
+      }
+      
+      // Check if search term is purely numeric (user ID)
+      const isNumericUserID = /^\d+$/.test(localSearch.trim());
+      
       onSearchChange({
         ...searchParams,
         search: localSearch,
+        exactMatch: isNumericUserID, // Add flag for exact matching
         page: 1, // Reset to first page when searching
       });
     }, 300);
@@ -70,7 +86,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Search by name, or user ID..."
+            placeholder="Search by name or user ID..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
