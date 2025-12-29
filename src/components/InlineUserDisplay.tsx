@@ -387,14 +387,16 @@ export default function InlineUserDisplay({
                     <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">S.No</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">User Id</th>
                         {shouldShowParentColumn() && (
                           <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getParentColumnHeader()}</th>
                         )}
+                         
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getCurrentLocationColumnHeader()}</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Name</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Designation</th>
                         {/* <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Phone Number</th> */}
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">User Id</th>
+                       
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Status</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase">Actions</th>
                       </tr>
@@ -403,6 +405,10 @@ export default function InlineUserDisplay({
                       {filteredUsers.map((user, index) => (
                         <tr key={user.assignment_id || index} className="hover:bg-blue-50 even:bg-gray-50/50">
                           <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {/* {user.mobile_number || user.contact_no || user.phone || 'N/A'} */}
+                            {user.user_id}
+                          </td>
                           {shouldShowParentColumn() && (
                             <td className="px-4 py-3 text-sm text-gray-600">
                               <div className="text-sm font-medium text-gray-900">
@@ -410,19 +416,18 @@ export default function InlineUserDisplay({
                               </div>
                             </td>
                           )}
+                          
                           <td className="px-4 py-3 text-sm text-gray-600">
                             <div className="text-sm font-medium text-gray-900">
                               {getCurrentLocationName()}
                             </div>
                           </td>
+                          
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">
                             {user.first_name} {user.last_name}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{user.role_name || user.role || user.designation || 'N/A'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {/* {user.mobile_number || user.contact_no || user.phone || 'N/A'} */}
-                            {user.user_id}
-                          </td>
+                          
                           <td className="px-4 py-3 text-sm">
                             {(() => {
                               // Enhanced status checking with more field variations

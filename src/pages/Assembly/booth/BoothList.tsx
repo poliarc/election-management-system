@@ -154,15 +154,35 @@ export default function BoothList() {
       try {
         const token = localStorage.getItem("auth_access_token");
 
-        // First get direct children of mandal
-        const mandalChildrenRes = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        // Function to fetch all pages of data
+        const fetchAllPages = async (url: string) => {
+          let allData: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(`${url}?page=${page}&limit=50`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            if (data.children && data.children.length > 0) {
+              allData = allData.concat(data.children);
+              page++;
+              // If we got less than 50 items, we've reached the end
+              hasMore = data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
+          }
+
+          return allData;
+        };
+
+        // First get direct children of mandal with pagination
+        const mandalChildren = await fetchAllPages(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`
         );
-        const mandalChildrenData = await mandalChildrenRes.json();
-        const mandalChildren = mandalChildrenData.children || [];
 
         let allBooths: any[] = [];
         let hasPollingCenters = false;
@@ -172,16 +192,9 @@ export default function BoothList() {
         for (const child of mandalChildren) {
           // Try to fetch children first to determine the structure
           try {
-            const childrenRes = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                child.id
-              }`,
-              { headers: { Authorization: `Bearer ${token}` } }
+            const children = await fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${child.id}`
             );
-            const childrenData = await childrenRes.json();
-            const children = childrenData.children || [];
 
             if (children.length > 0) {
               // This child has children, so it's a polling center
@@ -219,10 +232,6 @@ export default function BoothList() {
             }
           } catch (childError) {
             // If we can't fetch children, check if it looks like a booth
-            console.log(
-              `Error fetching children for ${child.displayName}:`,
-              childError
-            );
             const isLikelyBooth =
               child.levelName === "Booth" ||
               child.levelName === "booth" ||
@@ -344,7 +353,7 @@ export default function BoothList() {
         }));
         setExpandedBoothId(boothId);
       } else {
-        console.log("Booth API Error or No Users:", data);
+        // No users found or API error
       }
     } catch (error) {
       console.error(`Error fetching users for booth ${boothId}:`, error);
