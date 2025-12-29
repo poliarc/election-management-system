@@ -310,14 +310,14 @@ export default function SendReport() {
                                                 EPIC number is optional for New Voter F6 reports
                                             </p>
                                         )}
-                                        {formData.report_type === "" && (
+                                        {/* {formData.report_type === "" && (
                                             <p className="text-sm text-amber-600 mt-2 flex items-center gap-1">
                                                 <span className="w-4 h-4 bg-amber-100 rounded-full flex items-center justify-center">
                                                     <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
                                                 </span>
                                                 Please select a report type first
                                             </p>
-                                        )}
+                                        )} */}
                                     </div>
                                 </div>
                             </div>
