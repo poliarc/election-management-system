@@ -3,6 +3,7 @@ import type { HierarchyUser } from '../types/hierarchy';
 import { useDeleteAssignedLocationsMutation } from '../store/api/stateMasterApi';
 import { useDeleteAssignedLevelsMutation } from '../store/api/afterAssemblyApi';
 import { useToggleUserStatusMutation } from '../store/api/profileApi';
+import { UserContactModal } from './UserContactModal';
 
 interface InlineUserDisplayProps {
   users: HierarchyUser[];
@@ -35,6 +36,8 @@ export default function InlineUserDisplay({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<HierarchyUser | null>(null);
   const [localUsers, setLocalUsers] = useState<HierarchyUser[]>(users);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [selectedUserForContact, setSelectedUserForContact] = useState<HierarchyUser | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Update local users when props change
@@ -147,6 +150,17 @@ export default function InlineUserDisplay({
   const handleDeleteClick = (user: HierarchyUser) => {
     setUserToDelete(user);
     setShowConfirmModal(true);
+  };
+
+  const handleViewContact = (user: HierarchyUser) => {
+    setSelectedUserForContact(user);
+    setShowContactModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleCloseContactModal = () => {
+    setShowContactModal(false);
+    setSelectedUserForContact(null);
   };
 
   const handleConfirmDelete = async () => {
@@ -466,6 +480,17 @@ export default function InlineUserDisplay({
                               {openMenuId === user.user_id && (
                                 <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
                                   <div className="py-1" role="menu">
+                                    <button
+                                      onClick={() => handleViewContact(user)}
+                                      className="w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2 transition-colors"
+                                      role="menuitem"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                      </svg>
+                                      View Contact
+                                    </button>
                                     {(() => {
                                       // Check user status for toggle option
                                       const checkActiveStatus = (value: any): boolean => {
@@ -581,6 +606,18 @@ export default function InlineUserDisplay({
           </div>
         </div>
       )}
+
+      {/* User Contact Modal */}
+      <UserContactModal
+        isOpen={showContactModal}
+        onClose={handleCloseContactModal}
+        user={selectedUserForContact ? {
+          first_name: selectedUserForContact.first_name || '',
+          last_name: selectedUserForContact.last_name || '',
+          email: selectedUserForContact.email || '',
+          contact_no: selectedUserForContact.contact_no || selectedUserForContact.mobile_number || selectedUserForContact.phone || ''
+        } : null}
+      />
     </>
   );
 }
