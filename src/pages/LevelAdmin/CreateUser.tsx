@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Users, AlertTriangle, Upload } from "lucide-react";
+import { Users, AlertTriangle, Upload, Download } from "lucide-react";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
 import { LevelAdminUserForm } from "./components/LevelAdminUserForm";
 import { UserList } from "../Admin/users/UserList";
 import { UserSearchFilter } from "../Admin/users/UserSearchFilter";
@@ -67,6 +68,13 @@ export const LevelAdminCreateUser: React.FC = () => {
   const partyName = currentPanel?.metadata?.partyName || "";
   const stateName = currentPanel?.metadata?.stateName || "";
 
+  // Check if Excel download should be shown (only for State, District, and Assembly levels)
+  const shouldShowExcelDownload = React.useMemo(() => {
+    if (!currentPanel?.name) return false;
+    const panelName = currentPanel.name.toLowerCase();
+    return panelName === "state" || panelName === "district" || panelName === "assembly";
+  }, [currentPanel?.name]);
+
   // API hooks
   const { data: rolesResponse, isLoading: isLoadingRoles } = useGetRolesQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
@@ -81,7 +89,7 @@ export const LevelAdminCreateUser: React.FC = () => {
 
   // Convert LevelAdminUser to User type
   const convertedUsers: User[] = React.useMemo(() => {
-    return users.map((user) => ({
+    let filteredUsers = users.map((user) => ({
       user_id: user.user_id,
       first_name: user.first_name,
       last_name: user.last_name,
@@ -96,7 +104,18 @@ export const LevelAdminCreateUser: React.FC = () => {
       isActive: Boolean(user.isActive),
       created_at: new Date().toISOString(),
     }));
-  }, [users]);
+
+    // If exact match is requested and search term is numeric (user ID)
+    if (searchParams.exactMatch && searchParams.search) {
+      const searchTerm = searchParams.search.trim();
+      if (/^\d+$/.test(searchTerm)) {
+        const searchUserId = parseInt(searchTerm);
+        filteredUsers = filteredUsers.filter(user => user.user_id === searchUserId);
+      }
+    }
+
+    return filteredUsers;
+  }, [users, searchParams.exactMatch, searchParams.search]);
 
   // Load users
   const loadUsers = React.useCallback(async () => {
@@ -338,6 +357,114 @@ export const LevelAdminCreateUser: React.FC = () => {
     }
   };
 
+  const handleExcelDownload = async () => {
+    try {
+      toast.loading("Preparing Excel file...");
+      
+      let allUsers: LevelAdminUser[] = [];
+      let currentPage = 1;
+      const limit = 100; // Maximum allowed by API
+      let hasMorePages = true;
+
+      // Fetch all users by making multiple API calls
+      while (hasMorePages) {
+        const response = await fetchUsersByPartyAndState(
+          partyId!,
+          stateId!,
+          currentPage,
+          limit,
+          searchParams.search // Include current search filter
+        );
+
+        if (!response.success) {
+          toast.dismiss();
+          toast.error("Failed to fetch users for Excel download");
+          return;
+        }
+
+        // Add users from current page
+        allUsers = [...allUsers, ...response.data];
+
+        // Check if there are more pages
+        hasMorePages = currentPage < response.pagination.totalPages;
+        currentPage++;
+      }
+
+      // Filter out super admins
+      const filteredUsers = allUsers.filter((user) => !user.isSuperAdmin);
+
+      if (filteredUsers.length === 0) {
+        toast.dismiss();
+        toast.error("No users found to download");
+        return;
+      }
+
+      // Convert to proper format for Excel
+      const allUsersForExcel = filteredUsers.map((user) => ({
+        user_id: user.user_id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        contact_no: user.contact_no,
+        party_id: user.party_id,
+        state_id: user.state_id,
+        district_id: user.district_id ?? undefined,
+        partyName: user.partyName,
+        stateName: user.stateName,
+        districtName: user.districtName ?? undefined,
+        role: (user as any).role || "N/A",
+        created_at: new Date().toISOString(),
+      }));
+
+      // Prepare data for Excel with specific columns
+      const excelData = allUsersForExcel.map((user, index) => ({
+        "S.No": index + 1,
+        "User ID": user.user_id,
+        "User Name": `${user.first_name || ""} ${user.last_name || ""}`.trim() || "N/A",
+        "Email": user.email || "N/A",
+        "Phone No": user.contact_no || "N/A",
+        "District Name": user.districtName || "N/A",
+        "Party Name": user.partyName || "N/A",
+        "Role": user.role || "N/A",
+      }));
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Set column widths for better formatting
+      const columnWidths = [
+        { wch: 8 },  // S.No
+        { wch: 12 }, // User ID
+        { wch: 25 }, // User Name
+        { wch: 30 }, // Email
+        { wch: 15 }, // Phone No
+        { wch: 20 }, // District Name
+        { wch: 20 }, // Party Name
+        { wch: 15 }, // Role
+        { wch: 10 }  // Status
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+      // Generate filename with current date and total count
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `Users_${partyName}_${stateName}_${allUsersForExcel.length}records_${currentDate}.xlsx`;
+
+      // Download the file
+      XLSX.writeFile(workbook, filename);
+      
+      toast.dismiss();
+      toast.success(`Excel file downloaded: ${allUsersForExcel.length} users exported`);
+    } catch (error) {
+      console.error("Excel download error:", error);
+      toast.dismiss();
+      toast.error("Failed to download Excel file");
+    }
+  };
+
   if (!currentPanel || !partyId || !stateId) {
     return (
       <div className="p-6">
@@ -367,6 +494,18 @@ export const LevelAdminCreateUser: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {shouldShowExcelDownload && (
+                <button
+                  onClick={handleExcelDownload}
+                  disabled={totalUsers === 0}
+                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title={`Download all ${totalUsers} users as Excel`}
+                >
+                  <Download className="w-4 h-4" />
+                  Excel ({totalUsers})
+                </button>
+              )}
+
               <button
                 onClick={() => setShowBulkUpload(true)}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"

@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import {
   Edit,
   Users,
-  Shield,
-  Eye,
   //   Calendar,
   ToggleRight,
   ToggleLeft,
@@ -155,14 +153,15 @@ export const UserList: React.FC<UserListProps> = ({
                 User ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User Details
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Party & Role
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 State & District
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                User Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                 Role
+              </th>
+              
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
@@ -181,6 +180,16 @@ export const UserList: React.FC<UserListProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
                     {user.user_id}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm">
+                    <div className="text-gray-900 font-medium">
+                      {user.stateName || "-"}
+                    </div>
+                    <div className="text-gray-600">
+                      {user.districtName || "-"}
+                    </div>
                   </div>
                 </td>
 
@@ -211,13 +220,7 @@ export const UserList: React.FC<UserListProps> = ({
                 {/* Party & Role */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Shield className="w-3 h-3 text-purple-500" />
-                      <span className="text-gray-900 font-medium">
-                        
-                        {user.partyName || "No party"}
-                      </span>
-                    </div>
+                  
                     <div className="text-blue-600 font-medium">
                       {user.role || "..."}
                     </div>
@@ -225,16 +228,7 @@ export const UserList: React.FC<UserListProps> = ({
                 </td>
 
                 {/* State & District */}
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm">
-                    <div className="text-gray-900 font-medium">
-                      {user.stateName || "-"}
-                    </div>
-                    <div className="text-gray-600">
-                      {user.districtName || "-"}
-                    </div>
-                  </div>
-                </td>
+                
 
                 {/* Status */}
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -313,7 +307,7 @@ export const UserList: React.FC<UserListProps> = ({
                               }}
                               className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                             >
-                              <Eye className="w-4 h-4" />
+                              
                               View
                             </button>
                           )}

@@ -33,6 +33,7 @@ export type UserSearchParams = {
   page?: number;
   limit?: number;
   search?: string;
+  exactMatch?: boolean;
   isActive?: boolean;
   party_id?: number;
   role_id?: number;
