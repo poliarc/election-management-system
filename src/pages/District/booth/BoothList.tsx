@@ -65,30 +65,48 @@ export default function DistrictBoothList() {
     const allBoothsData: any[] = [];
 
     try {
-      // Step 1: Fetch all assemblies in the district
-      const assembliesResponse = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-state-hierarchies/hierarchy/children/${
-          districtInfo.districtId
-        }?page=1&limit=500`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
-          },
-        }
-      );
-      const assembliesData = await assembliesResponse.json();
+      // Function to fetch all pages of data
+      const fetchAllPages = async (url: string) => {
+        let allData: any[] = [];
+        let page = 1;
+        let hasMore = true;
 
-      if (!assembliesData.success || !assembliesData.data?.children) {
+        while (hasMore) {
+          const response = await fetch(`${url}?page=${page}&limit=50`, {
+            headers: { 
+              Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` 
+            }
+          });
+          const data = await response.json();
+          
+          if (data.success && data.children && data.children.length > 0) {
+            allData = allData.concat(data.children);
+            page++;
+            hasMore = data.children.length === 50;
+          } else if (data.success && data.data?.children && data.data.children.length > 0) {
+            allData = allData.concat(data.data.children);
+            page++;
+            hasMore = data.data.children.length === 50;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        return allData;
+      };
+
+      // Step 1: Fetch all assemblies in the district
+      const assemblies = await fetchAllPages(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.districtId}`
+      );
+
+      if (!assemblies || assemblies.length === 0) {
         return;
       }
 
       // Step 2: Fetch all blocks in parallel
       const blockPromises: Promise<BlockResult>[] =
-        assembliesData.data.children.map(
+        assemblies.map(
           async (assembly: HierarchyNode): Promise<BlockResult> => {
             try {
               const response = await fetch(
@@ -125,25 +143,13 @@ export default function DistrictBoothList() {
       blockResults.forEach(({ assembly, blocks }) => {
         blocks.forEach((block: HierarchyNode) => {
           mandalPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                block.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
+            fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}`
             )
-              .then((response) => response.json())
-              .then((data) => ({
+              .then((mandals) => ({
                 assembly,
                 block,
-                mandals: data.success ? data.children || [] : [],
+                mandals: mandals || [],
               }))
               .catch((error) => {
                 console.error(
@@ -165,25 +171,11 @@ export default function DistrictBoothList() {
       mandalResults.forEach(({ assembly, block, mandals }) => {
         (mandals || []).forEach((mandal: HierarchyNode) => {
           boothPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                mandal.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
+            fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
             )
-              .then((response) => response.json())
-              .then((data) => {
-                const children = (data.children || []) as HierarchyNode[];
-
-                if (data.success && children.length > 0) {
+              .then((children) => {
+                if (children && children.length > 0) {
                   const firstChild = children[0];
 
                   if (firstChild.levelName === "Booth") {
@@ -202,26 +194,11 @@ export default function DistrictBoothList() {
                   // These are polling centers - fetch booths from each
                   const pollingCenterPromises: Promise<HierarchyNode[]>[] =
                     children.map((pollingCenter: HierarchyNode) =>
-                      fetch(
-                        `${
-                          import.meta.env.VITE_API_BASE_URL
-                        }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                          pollingCenter.id
-                        }`,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${localStorage.getItem(
-                              "auth_access_token"
-                            )}`,
-                          },
-                        }
+                      fetchAllPages(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenter.id}`
                       )
-                        .then((response) => response.json())
-                        .then((boothData) => {
-                          const boothChildren = (boothData.children ||
-                            []) as HierarchyNode[];
-
-                          if (boothData.success && boothChildren.length > 0) {
+                        .then((boothChildren) => {
+                          if (boothChildren && boothChildren.length > 0) {
                             return boothChildren.map(
                               (booth: HierarchyNode) => ({
                                 ...booth,
@@ -293,30 +270,42 @@ export default function DistrictBoothList() {
         return;
       }
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            districtInfo.districtId
-          }?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of assemblies
+        const fetchAllAssemblyPages = async () => {
+          let allAssemblies: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.districtId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allAssemblies = allAssemblies.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        if (data.success && data.data) {
-          const mappedAssemblies = data.data.children.map((assembly: any) => ({
-            id: assembly.location_id || assembly.id,
-            displayName: assembly.location_name,
-            levelName: "Assembly",
-            location_id: assembly.location_id,
-          }));
-          setAssemblies(mappedAssemblies);
-        }
+          return allAssemblies;
+        };
+
+        const assembliesData = await fetchAllAssemblyPages();
+        const mappedAssemblies = assembliesData.map((assembly: any) => ({
+          id: assembly.location_id || assembly.id,
+          displayName: assembly.location_name,
+          levelName: "Assembly",
+          location_id: assembly.location_id,
+        }));
+        setAssemblies(mappedAssemblies);
       } catch (error) {
         console.error("Error fetching assemblies:", error);
         setAssemblies([]);
