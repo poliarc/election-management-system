@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
@@ -15,7 +15,7 @@ export default function StateBoothList() {
   const [selectedPollingCenterId, setSelectedPollingCenterId] =
     useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(20);
   const [selectedBoothId] = useState<number | null>(null);
   const [allBooths, setAllBooths] = useState<any[]>([]);
 
@@ -64,49 +64,59 @@ export default function StateBoothList() {
     const allBoothsData: any[] = [];
 
     try {
-      // Step 1: Fetch all districts in parallel with higher limit
-      const districtsResponse = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-state-hierarchies/hierarchy/children/${
-          stateInfo.stateId
-        }?page=1&limit=500`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
-          },
-        }
-      );
-      const districtsData = await districtsResponse.json();
+      // Function to fetch all pages of data
+      const fetchAllPages = async (url: string) => {
+        let allData: any[] = [];
+        let page = 1;
+        let hasMore = true;
 
-      if (!districtsData.success || !districtsData.data?.children) {
+        while (hasMore) {
+          const response = await fetch(`${url}?page=${page}&limit=50`, {
+            headers: { 
+              Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` 
+            }
+          });
+          const data = await response.json();
+          
+          let currentPageData: any[] = [];
+          
+          if (data.success && data.data?.children && data.data.children.length > 0) {
+            currentPageData = data.data.children;
+            allData = allData.concat(currentPageData);
+            hasMore = currentPageData.length === 50;
+          } else if (data.success && data.children && data.children.length > 0) {
+            currentPageData = data.children;
+            allData = allData.concat(currentPageData);
+            hasMore = currentPageData.length === 50;
+          } else {
+            hasMore = false;
+          }
+
+          page++;
+        }
+
+        return allData;
+      };
+
+      // Step 1: Fetch all districts with pagination
+      const districts = await fetchAllPages(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
+      );
+
+      if (!districts || districts.length === 0) {
         return;
       }
 
       // Step 2: Fetch all assemblies in parallel
-      const assemblyPromises = districtsData.data.children.map(
+      const assemblyPromises = districts.map(
         async (district: any) => {
           try {
-            const response = await fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-state-hierarchies/hierarchy/children/${
-                district.location_id
-              }?page=1&limit=500`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
+            const assemblies = await fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id}`
             );
-            const data = await response.json();
             return {
               district,
-              assemblies: data.success ? data.data?.children || [] : [],
+              assemblies: assemblies || [],
             };
           } catch (error) {
             console.error(
@@ -161,26 +171,14 @@ export default function StateBoothList() {
       blockResults.forEach(({ district, assembly, blocks }) => {
         blocks.forEach((block: any) => {
           mandalPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                block.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
+            fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}`
             )
-              .then((response) => response.json())
-              .then((data) => ({
+              .then((mandals) => ({
                 district,
                 assembly,
                 block,
-                mandals: data.success ? data.children || [] : [],
+                mandals: mandals || [],
               }))
               .catch((error) => {
                 console.error(
@@ -200,28 +198,16 @@ export default function StateBoothList() {
       mandalResults.forEach(({ district, assembly, block, mandals }) => {
         mandals.forEach((mandal: any) => {
           boothPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                mandal.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "auth_access_token"
-                  )}`,
-                },
-              }
+            fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
             )
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.success && data.children && data.children.length > 0) {
-                  const firstChild = data.children[0];
+              .then((children) => {
+                if (children && children.length > 0) {
+                  const firstChild = children[0];
 
                   if (firstChild.levelName === "Booth") {
                     // Direct booths under mandal
-                    return data.children.map((booth: any) => ({
+                    return children.map((booth: any) => ({
                       ...booth,
                       hierarchyPath: `${stateInfo.stateName} → ${district.location_name} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName}`,
                       sourceLevel: "Mandal",
@@ -232,26 +218,14 @@ export default function StateBoothList() {
                     }));
                   } else {
                     // These are polling centers - fetch booths from each
-                    const pollingCenterPromises = data.children.map(
+                    const pollingCenterPromises = children.map(
                       (pollingCenter: any) =>
-                        fetch(
-                          `${
-                            import.meta.env.VITE_API_BASE_URL
-                          }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                            pollingCenter.id
-                          }`,
-                          {
-                            headers: {
-                              Authorization: `Bearer ${localStorage.getItem(
-                                "auth_access_token"
-                              )}`,
-                            },
-                          }
+                        fetchAllPages(
+                          `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenter.id}`
                         )
-                          .then((response) => response.json())
-                          .then((boothData) => {
-                            if (boothData.success && boothData.children) {
-                              return boothData.children.map((booth: any) => ({
+                          .then((boothChildren) => {
+                            if (boothChildren && boothChildren.length > 0) {
+                              return boothChildren.map((booth: any) => ({
                                 ...booth,
                                 hierarchyPath: `${stateInfo.stateName} → ${district.location_name} → ${assembly.location_name} → ${block.displayName} → ${mandal.displayName} → ${pollingCenter.displayName}`,
                                 sourceLevel: "Polling Center",
@@ -296,7 +270,18 @@ export default function StateBoothList() {
 
       // Flatten all booth results
       const flatBooths = boothResults.flat();
-      allBoothsData.push(...flatBooths);
+      
+      // Remove duplicates based on booth ID
+      const seenIds = new Set();
+      const uniqueBooths = flatBooths.filter((booth) => {
+        if (seenIds.has(booth.id)) {
+          return false;
+        }
+        seenIds.add(booth.id);
+        return true;
+      });
+      
+      allBoothsData.push(...uniqueBooths);
 
       setAllBooths(allBoothsData);
       // Cache the results
@@ -463,30 +448,42 @@ export default function StateBoothList() {
     const fetchDistricts = async () => {
       if (!stateInfo.stateId) return;
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
-          }?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of districts
+        const fetchAllDistrictPages = async () => {
+          let allDistricts: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allDistricts = allDistricts.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        if (data.success && data.data) {
-          const mappedDistricts = data.data.children.map((district: any) => ({
-            id: district.location_id || district.id,
-            displayName: district.location_name,
-            levelName: "District",
-            location_id: district.location_id,
-          }));
-          setDistricts(mappedDistricts);
-        }
+          return allDistricts;
+        };
+
+        const districtsData = await fetchAllDistrictPages();
+        const mappedDistricts = districtsData.map((district: any) => ({
+          id: district.location_id || district.id,
+          displayName: district.location_name,
+          levelName: "District",
+          location_id: district.location_id,
+        }));
+        setDistricts(mappedDistricts);
       } catch (error) {
         console.error("Error fetching districts:", error);
       }
@@ -504,28 +501,42 @@ export default function StateBoothList() {
         return;
       }
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of assemblies
+        const fetchAllAssemblyPages = async () => {
+          let allAssemblies: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allAssemblies = allAssemblies.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        if (data.success && data.data) {
-          const mappedAssemblies = data.data.children.map((assembly: any) => ({
-            id: assembly.location_id || assembly.id,
-            displayName: assembly.location_name,
-            levelName: "Assembly",
-            location_id: assembly.location_id,
-          }));
-          setAssemblies(mappedAssemblies);
-        }
+          return allAssemblies;
+        };
+
+        const assembliesData = await fetchAllAssemblyPages();
+        const mappedAssemblies = assembliesData.map((assembly: any) => ({
+          id: assembly.location_id || assembly.id,
+          displayName: assembly.location_name,
+          levelName: "Assembly",
+          location_id: assembly.location_id,
+        }));
+        setAssemblies(mappedAssemblies);
       } catch (error) {
         console.error("Error fetching assemblies:", error);
       }
@@ -737,7 +748,7 @@ export default function StateBoothList() {
         }));
         setExpandedBoothId(boothId);
       } else {
-        console.log("Booth API Error or No Users:", data);
+        // No users found or API error
       }
     } catch (error) {
       console.error(`Error fetching users for booth ${boothId}:`, error);
@@ -1293,7 +1304,7 @@ export default function StateBoothList() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedBooths.map((booth, index) => (
-                      <>
+                      <React.Fragment key={booth.id}>
                         <tr
                           key={booth.id}
                           className="hover:bg-purple-50 transition-colors"
@@ -1411,7 +1422,7 @@ export default function StateBoothList() {
                               colSpan={9}
                             />
                           )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

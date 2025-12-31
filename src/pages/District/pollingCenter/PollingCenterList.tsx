@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
@@ -78,28 +78,43 @@ export default function DistrictPollingCenterList() {
     try {
       const token = localStorage.getItem("auth_access_token");
 
-      // Step 1: Fetch all assemblies in the district
-      const assembliesResponse = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-state-hierarchies/hierarchy/children/${
-          districtInfo.districtId
-        }?page=1&limit=500`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const assembliesData = await assembliesResponse.json();
+      // Step 1: Fetch all assemblies in the district using pagination
+      const fetchAllAssemblyPages = async () => {
+        let allAssemblies: any[] = [];
+        let page = 1;
+        let hasMore = true;
 
-      if (!assembliesData.success || !assembliesData.data?.children) {
+        while (hasMore) {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.districtId}?page=${page}&limit=50`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+          
+          if (data.success && data.data?.children && data.data.children.length > 0) {
+            allAssemblies = allAssemblies.concat(data.data.children);
+            page++;
+            hasMore = data.data.children.length === 50;
+          } else {
+            hasMore = false;
+          }
+        }
+        return allAssemblies;
+      };
+
+      const assembliesData = await fetchAllAssemblyPages();
+
+      if (assembliesData.length === 0) {
         return;
       }
 
       // Step 2: Fetch all blocks in parallel
       const blockPromises: Promise<BlockResult>[] =
-        assembliesData.data.children.map(
+        assembliesData.map(
           async (assembly: HierarchyNode): Promise<BlockResult> => {
             try {
               const response = await fetch(
@@ -129,36 +144,50 @@ export default function DistrictPollingCenterList() {
 
       const blockResults = await Promise.all(blockPromises);
 
-      // Step 3: Fetch all mandals in parallel
+      // Step 3: Fetch all mandals in parallel with pagination
       const mandalPromises: Promise<MandalResult>[] = [];
       blockResults.forEach(({ assembly, blocks }) => {
         blocks.forEach((block: HierarchyNode) => {
           mandalPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                block.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            )
-              .then((response) => response.json())
-              .then((data) => ({
-                assembly,
-                block,
-                mandals: data.success ? data.children || [] : [],
-              }))
-              .catch((error) => {
+            (async () => {
+              try {
+                let allMandals: any[] = [];
+                let page = 1;
+                let hasMore = true;
+
+                while (hasMore) {
+                  const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}?page=${page}&limit=50`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    }
+                  );
+                  const data = await response.json();
+                  
+                  if (data.success && data.children && data.children.length > 0) {
+                    allMandals = allMandals.concat(data.children);
+                    page++;
+                    hasMore = data.children.length === 50;
+                  } else {
+                    hasMore = false;
+                  }
+                }
+
+                return {
+                  assembly,
+                  block,
+                  mandals: allMandals,
+                };
+              } catch (error) {
                 console.error(
                   `Error fetching mandals for block ${block.id}:`,
                   error
                 );
                 return { assembly, block, mandals: [] };
-              })
+              }
+            })()
           );
         });
       });
@@ -167,32 +196,40 @@ export default function DistrictPollingCenterList() {
         mandalPromises
       )) as MandalResult[];
 
-      // Step 4: Fetch all polling centers in parallel (simplified approach like State implementation)
+      // Step 4: Fetch all polling centers in parallel with pagination
       const pollingCenterPromises: Promise<HierarchyNode[]>[] = [];
       mandalResults.forEach(({ assembly, block, mandals }) => {
         (mandals || []).forEach((mandal: HierarchyNode) => {
           pollingCenterPromises.push(
-            fetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                mandal.id
-              }`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            )
-              .then((response) => response.json())
-              .then((data) => {
-                console.log(`Mandal ${mandal.displayName} children:`, data);
-                const children = (data.children || []) as HierarchyNode[];
+            (async () => {
+              try {
+                let allPollingCenters: any[] = [];
+                let page = 1;
+                let hasMore = true;
 
-                if (data.success && children.length > 0) {
-                  // Simplified approach: treat all children as potential polling centers
+                while (hasMore) {
+                  const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}?page=${page}&limit=50`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    }
+                  );
+                  const data = await response.json();
+                  
+                  if (data.success && data.children && data.children.length > 0) {
+                    allPollingCenters = allPollingCenters.concat(data.children);
+                    page++;
+                    hasMore = data.children.length === 50;
+                  } else {
+                    hasMore = false;
+                  }
+                }
+
+                if (allPollingCenters.length > 0) {
                   // Filter out direct booths but include everything else
-                  return children
+                  return allPollingCenters
                     .filter((child: HierarchyNode) => {
                       // Skip direct booths under mandals
                       return (
@@ -210,14 +247,14 @@ export default function DistrictPollingCenterList() {
                     }));
                 }
                 return [];
-              })
-              .catch((error) => {
+              } catch (error) {
                 console.error(
                   `Error fetching polling centers for mandal ${mandal.id}:`,
                   error
                 );
                 return [];
-              })
+              }
+            })()
           );
         });
       });
@@ -228,9 +265,6 @@ export default function DistrictPollingCenterList() {
       // Flatten all polling center results
       const flatPollingCenters = pollingCenterResults.flat();
       allPollingCentersData.push(...flatPollingCenters);
-
-      console.log("Total polling centers found:", allPollingCentersData.length);
-      console.log("Polling centers data:", allPollingCentersData);
 
       setAllPollingCenters(allPollingCentersData);
     } catch (error) {
@@ -255,36 +289,46 @@ export default function DistrictPollingCenterList() {
         return;
       }
       try {
-        console.log(
-          "Fetching assemblies for district ID:",
-          districtInfo.districtId
-        );
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            districtInfo.districtId
-          }?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        const token = localStorage.getItem("auth_access_token");
+        
+        // Function to fetch all pages of assemblies
+        const fetchAllAssemblyPages = async () => {
+          let allAssemblies: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.districtId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allAssemblies = allAssemblies.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        console.log("Assemblies API response:", data);
-        if (data.success && data.data) {
-          // Map the response to match expected format
-          const mappedAssemblies = data.data.children.map((assembly: any) => ({
-            id: assembly.location_id || assembly.id,
-            displayName: assembly.location_name,
-            levelName: "Assembly",
-            location_id: assembly.location_id,
-          }));
-          setAssemblies(mappedAssemblies);
-        }
+          return allAssemblies;
+        };
+
+        const assembliesData = await fetchAllAssemblyPages();
+        
+        // Map the response to match expected format
+        const mappedAssemblies = assembliesData.map((assembly: any) => ({
+          id: assembly.location_id || assembly.id,
+          displayName: assembly.location_name,
+          levelName: "Assembly",
+          location_id: assembly.location_id,
+        }));
+        setAssemblies(mappedAssemblies);
       } catch (error) {
         console.error("Error fetching assemblies:", error);
         setAssemblies([]);
@@ -303,7 +347,6 @@ export default function DistrictPollingCenterList() {
         return;
       }
       try {
-        console.log("Fetching blocks for assembly ID:", selectedAssemblyId);
         const response = await fetch(
           `${
             import.meta.env.VITE_API_BASE_URL
@@ -317,7 +360,6 @@ export default function DistrictPollingCenterList() {
           }
         );
         const data = await response.json();
-        console.log("Blocks API response:", data);
         if (data.success && data.data) {
           setBlocks(data.data || []);
         }
@@ -393,19 +435,31 @@ export default function DistrictPollingCenterList() {
     setLoadingBooths(true);
     try {
       const token = localStorage.getItem("auth_access_token");
-      const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      
+      let allBooths: any[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}?page=${page}&limit=50`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        if (response.data.success && response.data.children && response.data.children.length > 0) {
+          allBooths = allBooths.concat(response.data.children);
+          page++;
+          hasMore = response.data.children.length === 50;
+        } else {
+          hasMore = false;
         }
-      );
-      if (response.data.success) {
-        setBooths(response.data.children || []);
       }
+      
+      setBooths(allBooths);
     } catch (error) {
       console.error("Error fetching booths:", error);
       setBooths([]);
@@ -479,7 +533,7 @@ export default function DistrictPollingCenterList() {
         }));
         setExpandedPollingCenterId(pollingCenterId);
       } else {
-        console.log("Polling Center API Error or No Users:", data);
+        // No users found or API error
       }
     } catch (error) {
       console.error(
@@ -930,11 +984,8 @@ export default function DistrictPollingCenterList() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedPollingCenters.map((pollingCenter, index) => (
-                      <>
-                        <tr
-                          key={pollingCenter.id}
-                          className="hover:bg-blue-50 transition-colors"
-                        >
+                      <React.Fragment key={pollingCenter.id}>
+                        <tr className="hover:bg-blue-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
@@ -1085,7 +1136,7 @@ export default function DistrictPollingCenterList() {
                               colSpan={6}
                             />
                           )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

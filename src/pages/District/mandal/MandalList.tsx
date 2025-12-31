@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
@@ -11,13 +11,17 @@ export default function DistrictMandalList() {
   const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
   const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(20);
   const [showMandalsWithoutUsers, setShowMandalsWithoutUsers] = useState(false);
   // State for inline user display
   const [expandedMandalId, setExpandedMandalId] = useState<number | null>(null);
   const [mandalUsers, setMandalUsers] = useState<
     Record<number, HierarchyUser[]>
   >({});
+
+  // State for all mandals in the district
+  const [allMandals, setAllMandals] = useState<any[]>([]);
+  const [isLoadingAllMandals, setIsLoadingAllMandals] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [assemblies, setAssemblies] = useState<any[]>([]);
@@ -45,6 +49,98 @@ export default function DistrictMandalList() {
     }
   }, [selectedAssignment]);
 
+  // Fetch all mandals for the district (across all assemblies/blocks)
+  useEffect(() => {
+    const fetchAllMandals = async () => {
+      if (!districtInfo.stateMasterDataId) return;
+      
+      setIsLoadingAllMandals(true);
+      try {
+        const token = localStorage.getItem("auth_access_token");
+        
+        // Function to fetch all pages of data
+        const fetchAllPages = async (url: string) => {
+          let allData: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(`${url}?page=${page}&limit=50`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            let currentPageData: any[] = [];
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              currentPageData = data.data.children;
+              allData = allData.concat(currentPageData);
+              hasMore = currentPageData.length === 50;
+            } else if (data.success && data.children && data.children.length > 0) {
+              currentPageData = data.children;
+              allData = allData.concat(currentPageData);
+              hasMore = currentPageData.length === 50;
+            } else {
+              hasMore = false;
+            }
+
+            page++;
+          }
+
+          return allData;
+        };
+
+        // Fetch all assemblies in the district with pagination
+        const assemblies = await fetchAllPages(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.stateMasterDataId}`
+        );
+
+        // Fetch all blocks for each assembly
+        const blocks = (
+          await Promise.all(
+            assemblies.map(async (assembly: any) => {
+              const res = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id || assembly.id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const data = await res.json();
+              return (data.data || []).map((block: any) => ({
+                ...block,
+                assemblyId: assembly.location_id || assembly.id,
+                assemblyName: assembly.location_name,
+              }));
+            })
+          )
+        ).flat();
+
+        // Fetch all mandals for each block
+        const mandals = (
+          await Promise.all(
+            blocks.map(async (block: any) => {
+              const mandalsData = await fetchAllPages(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}`
+              );
+              return mandalsData.map((mandal: any) => ({
+                ...mandal,
+                blockId: block.id,
+                blockName: block.displayName,
+                assemblyId: block.assemblyId,
+                assemblyName: block.assemblyName,
+              }));
+            })
+          )
+        ).flat();
+
+        setAllMandals(mandals);
+      } catch (err) {
+        console.error("Error fetching all mandals:", err);
+      } finally {
+        setIsLoadingAllMandals(false);
+      }
+    };
+    fetchAllMandals();
+  }, [districtInfo.stateMasterDataId]);
+
   // Fetch assemblies for the district using user-state-hierarchies API
   useEffect(() => {
     const fetchAssemblies = async () => {
@@ -53,37 +149,42 @@ export default function DistrictMandalList() {
         return;
       }
       try {
-        console.log(
-          "Fetching assemblies for district stateMasterData ID:",
-          districtInfo.stateMasterDataId
-        );
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            districtInfo.stateMasterDataId
-          }?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of assemblies
+        const fetchAllAssemblyPages = async () => {
+          let allAssemblies: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${districtInfo.stateMasterDataId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allAssemblies = allAssemblies.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        console.log("Assemblies API response:", data);
-        if (data.success && data.data) {
-          // Map the response to match expected format
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const mappedAssemblies = data.data.children.map((assembly: any) => ({
-            id: assembly.location_id || assembly.id,
-            displayName: assembly.location_name,
-            levelName: "Assembly",
-            location_id: assembly.location_id,
-          }));
-          setAssemblies(mappedAssemblies);
-        }
+          return allAssemblies;
+        };
+
+        const assembliesData = await fetchAllAssemblyPages();
+        const mappedAssemblies = assembliesData.map((assembly: any) => ({
+          id: assembly.location_id || assembly.id,
+          displayName: assembly.location_name,
+          levelName: "Assembly",
+          location_id: assembly.location_id,
+        }));
+        setAssemblies(mappedAssemblies);
       } catch (error) {
         console.error("Error fetching assemblies:", error);
         setAssemblies([]);
@@ -92,13 +193,13 @@ export default function DistrictMandalList() {
     fetchAssemblies();
   }, [districtInfo.stateMasterDataId]);
 
-  // Auto-select first assembly when assemblies load
-  useEffect(() => {
-    if (assemblies.length > 0 && selectedAssemblyId === 0) {
-      const firstAssembly = assemblies[0];
-      setSelectedAssemblyId(firstAssembly.location_id || firstAssembly.id);
-    }
-  }, [assemblies, selectedAssemblyId]);
+  // Auto-select first assembly when assemblies load (commented out to show all mandals by default)
+  // useEffect(() => {
+  //   if (assemblies.length > 0 && selectedAssemblyId === 0) {
+  //     const firstAssembly = assemblies[0];
+  //     setSelectedAssemblyId(firstAssembly.location_id || firstAssembly.id);
+  //   }
+  // }, [assemblies, selectedAssemblyId]);
 
   // Fetch blocks when assembly is selected using after-assembly-data API
   useEffect(() => {
@@ -108,7 +209,6 @@ export default function DistrictMandalList() {
         return;
       }
       try {
-        console.log("Fetching blocks for assembly ID:", selectedAssemblyId);
         const response = await fetch(
           `${
             import.meta.env.VITE_API_BASE_URL
@@ -122,7 +222,6 @@ export default function DistrictMandalList() {
           }
         );
         const data = await response.json();
-        console.log("Blocks API response:", data);
         if (data.success && data.data) {
           setBlocks(data.data || []);
         }
@@ -134,12 +233,12 @@ export default function DistrictMandalList() {
     fetchBlocks();
   }, [selectedAssemblyId]);
 
-  // Auto-select first block when blocks load
-  useEffect(() => {
-    if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
-      setSelectedBlockId(blocks[0].id);
-    }
-  }, [blocks, selectedAssemblyId, selectedBlockId]);
+  // Auto-select first block when blocks load (commented out to show all mandals by default)
+  // useEffect(() => {
+  //   if (blocks.length > 0 && selectedAssemblyId > 0 && selectedBlockId === 0) {
+  //     setSelectedBlockId(blocks[0].id);
+  //   }
+  // }, [blocks, selectedAssemblyId, selectedBlockId]);
 
   // Fetch mandals for selected block
   const {
@@ -148,7 +247,21 @@ export default function DistrictMandalList() {
     error,
   } = useGetBlockHierarchyQuery(selectedBlockId, { skip: !selectedBlockId });
 
-  const mandals = hierarchyData?.children || [];
+  // Show all mandals if no assembly is selected,
+  // or show mandals from all blocks in selected assembly if assembly is selected,
+  // or show mandals from specific block if block is selected
+  const mandals = (() => {
+    if (selectedBlockId) {
+      // Show mandals from specific block
+      return hierarchyData?.children || [];
+    } else if (selectedAssemblyId) {
+      // Show mandals from all blocks in selected assembly
+      return allMandals.filter(mandal => mandal.assemblyId === selectedAssemblyId);
+    } else {
+      // Show all mandals from all assemblies in the district
+      return allMandals;
+    }
+  })();
 
   const mandalsWithoutUsersCount = mandals.filter(
     (mandal) => (mandal.user_count || 0) === 0
@@ -197,7 +310,7 @@ export default function DistrictMandalList() {
       }));
       setExpandedMandalId(mandalId);
     } else {
-      console.log("No users found for mandal:", mandalId);
+      // No users found for mandal
     }
   };
 
@@ -372,7 +485,7 @@ export default function DistrictMandalList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly <span className="text-red-500">*</span>
+                Assembly (Optional)
               </label>
               <select
                 value={selectedAssemblyId}
@@ -385,7 +498,7 @@ export default function DistrictMandalList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={0}>Select Assembly</option>
+                <option value={0}>All Assemblies in District</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -398,7 +511,7 @@ export default function DistrictMandalList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block <span className="text-red-500">*</span>
+                Block (Optional)
               </label>
               <select
                 value={selectedBlockId}
@@ -410,7 +523,7 @@ export default function DistrictMandalList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>Select Block</option>
+                <option value={0}>All Blocks in Assembly</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -428,8 +541,7 @@ export default function DistrictMandalList() {
                   setSelectedMandalFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                disabled={!selectedBlockId}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Mandals</option>
                 {mandals.map((mandal) => (
@@ -467,8 +579,7 @@ export default function DistrictMandalList() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  disabled={!selectedBlockId}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -477,31 +588,12 @@ export default function DistrictMandalList() {
 
         {/* Mandal List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {!selectedBlockId ? (
-            <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="mt-2 text-gray-500 font-medium">
-                Please select Assembly and Block to view mandals
-              </p>
-            </div>
-          ) : loadingMandals ? (
+          {isLoadingAllMandals || (loadingMandals && selectedBlockId) ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">Loading mandals...</p>
             </div>
-          ) : error ? (
+          ) : error && selectedBlockId ? (
             <div className="text-center py-12 text-red-600">
               <p>Error loading mandals</p>
             </div>
@@ -531,6 +623,7 @@ export default function DistrictMandalList() {
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         S.No
                       </th>
+                      
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Block
                       </th>
@@ -543,14 +636,11 @@ export default function DistrictMandalList() {
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Users
                       </th>
-                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Status
-                      </th> */}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedMandals.map((mandal, index) => (
-                      <>
+                      <React.Fragment key={mandal.id}>
                         <tr
                           key={mandal.id}
                           className="hover:bg-blue-50 transition-colors"
@@ -558,9 +648,10 @@ export default function DistrictMandalList() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
+                          
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                              {hierarchyData?.parent.displayName}
+                              {mandal.blockName || hierarchyData?.parent.displayName || "N/A"}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -657,7 +748,7 @@ export default function DistrictMandalList() {
                               locationId={mandal.id}
                               locationType="Mandal"
                               parentLocationName={
-                                hierarchyData?.parent.displayName
+                                mandal.blockName || hierarchyData?.parent.displayName
                               }
                               parentLocationType="Block"
                               onUserDeleted={() => {
@@ -671,10 +762,10 @@ export default function DistrictMandalList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedMandalId(null)}
-                              colSpan={6}
+                              colSpan={7}
                             />
                           )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
