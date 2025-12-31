@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
@@ -16,7 +16,7 @@ export default function StatePollingCenterList() {
   const [selectedPollingCenterFilter, setSelectedPollingCenterFilter] =
     useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(20);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
   // Booth states
@@ -65,33 +65,42 @@ export default function StatePollingCenterList() {
     const fetchDistricts = async () => {
       if (!stateInfo.stateId) return;
       try {
-        console.log("Fetching districts for state ID:", stateInfo.stateId);
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
-          }?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of districts
+        const fetchAllDistrictPages = async () => {
+          let allDistricts: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allDistricts = allDistricts.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        console.log("Districts API response:", data);
-        if (data.success && data.data) {
-          // Map the response to match expected format
-          const mappedDistricts = data.data.children.map((district: any) => ({
-            id: district.location_id || district.id,
-            displayName: district.location_name,
-            levelName: "District",
-            location_id: district.location_id,
-          }));
-          setDistricts(mappedDistricts);
-        }
+          return allDistricts;
+        };
+
+        const districtsData = await fetchAllDistrictPages();
+        const mappedDistricts = districtsData.map((district: any) => ({
+          id: district.location_id || district.id,
+          displayName: district.location_name,
+          levelName: "District",
+          location_id: district.location_id,
+        }));
+        setDistricts(mappedDistricts);
       } catch (error) {
         console.error("Error fetching districts:", error);
       }
@@ -107,31 +116,42 @@ export default function StatePollingCenterList() {
         return;
       }
       try {
-        console.log("Fetching assemblies for district ID:", selectedDistrictId);
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=1&limit=100`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
+        // Function to fetch all pages of assemblies
+        const fetchAllAssemblyPages = async () => {
+          let allAssemblies: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}?page=${page}&limit=50`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                },
+              }
+            );
+            const data = await response.json();
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              allAssemblies = allAssemblies.concat(data.data.children);
+              page++;
+              hasMore = data.data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
           }
-        );
-        const data = await response.json();
-        console.log("Assemblies API response:", data);
-        if (data.success && data.data) {
-          // Map the response to match expected format
-          const mappedAssemblies = data.data.children.map((assembly: any) => ({
-            id: assembly.location_id || assembly.id,
-            displayName: assembly.location_name,
-            levelName: "Assembly",
-            location_id: assembly.location_id,
-          }));
-          setAssemblies(mappedAssemblies);
-        }
+          return allAssemblies;
+        };
+
+        const assembliesData = await fetchAllAssemblyPages();
+        const mappedAssemblies = assembliesData.map((assembly: any) => ({
+          id: assembly.location_id || assembly.id,
+          displayName: assembly.location_name,
+          levelName: "Assembly",
+          location_id: assembly.location_id,
+        }));
+        setAssemblies(mappedAssemblies);
       } catch (error) {
         console.error("Error fetching assemblies:", error);
       }
@@ -176,32 +196,52 @@ export default function StatePollingCenterList() {
       if (!stateInfo.stateId) return;
       try {
         const token = localStorage.getItem("auth_access_token");
-        // Fetch all districts
-        const districtRes = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            stateInfo.stateId
-          }?page=1&limit=100`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        
+        // Function to fetch all pages of data
+        const fetchAllPages = async (url: string) => {
+          let allData: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(`${url}?page=${page}&limit=50`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            let currentPageData: any[] = [];
+            
+            if (data.success && data.data?.children && data.data.children.length > 0) {
+              currentPageData = data.data.children;
+              allData = allData.concat(currentPageData);
+              hasMore = currentPageData.length === 50;
+            } else if (data.success && data.children && data.children.length > 0) {
+              currentPageData = data.children;
+              allData = allData.concat(currentPageData);
+              hasMore = currentPageData.length === 50;
+            } else {
+              hasMore = false;
+            }
+
+            page++;
+          }
+
+          return allData;
+        };
+
+        // Fetch all districts with pagination
+        const districts = await fetchAllPages(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
         );
-        const districtData = await districtRes.json();
-        const districts = districtData.data?.children || [];
 
         // Fetch all assemblies for each district
         const assemblies = (
           await Promise.all(
             districts.map(async (district: any) => {
-              const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-state-hierarchies/hierarchy/children/${
-                  district.location_id || district.id
-                }?page=1&limit=100`,
-                { headers: { Authorization: `Bearer ${token}` } }
+              const assembliesData = await fetchAllPages(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id}`
               );
-              const data = await res.json();
-              return (data.data?.children || []).map((assembly: any) => ({
+              return assembliesData.map((assembly: any) => ({
                 ...assembly,
                 districtId: district.location_id || district.id,
                 districtName: district.location_name,
@@ -215,11 +255,7 @@ export default function StatePollingCenterList() {
           await Promise.all(
             assemblies.map(async (assembly: any) => {
               const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/after-assembly-data/assembly/${
-                  assembly.location_id || assembly.id
-                }`,
+                `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id || assembly.id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
               const data = await res.json();
@@ -238,16 +274,10 @@ export default function StatePollingCenterList() {
         const mandals = (
           await Promise.all(
             blocks.map(async (block: any) => {
-              const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  block.id
-                }`,
-                { headers: { Authorization: `Bearer ${token}` } }
+              const mandalsData = await fetchAllPages(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}`
               );
-              const data = await res.json();
-              return (data.children || []).map((mandal: any) => ({
+              return mandalsData.map((mandal: any) => ({
                 ...mandal,
                 blockId: block.id,
                 blockName: block.displayName,
@@ -264,24 +294,12 @@ export default function StatePollingCenterList() {
         const pollingCenters = (
           await Promise.all(
             mandals.map(async (mandal: any) => {
-              const res = await fetch(
-                `${
-                  import.meta.env.VITE_API_BASE_URL
-                }/api/user-after-assembly-hierarchy/hierarchy/children/${
-                  mandal.id
-                }`,
-                { headers: { Authorization: `Bearer ${token}` } }
+              const pollingCentersData = await fetchAllPages(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
               );
-              const data = await res.json();
               // Filter to only include polling centers (exclude booths)
-              const filteredChildren = (data.children || []).filter(
+              const filteredChildren = pollingCentersData.filter(
                 (item: any) => item.levelName !== "Booth"
-              );
-
-              console.log(
-                `Mandal ${mandal.displayName}: Total children: ${
-                  data.children?.length || 0
-                }, Polling Centers: ${filteredChildren.length}`
               );
 
               return filteredChildren.map((pc: any) => ({
@@ -438,7 +456,7 @@ export default function StatePollingCenterList() {
         }));
         setExpandedPollingCenterId(pollingCenterId);
       } else {
-        console.log("Polling Center API Error or No Users:", data);
+        // No users found or API error
       }
     } catch (error) {
       console.error(
@@ -914,7 +932,7 @@ export default function StatePollingCenterList() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedPollingCenters.map((pollingCenter, index) => (
-                      <>
+                      <React.Fragment key={pollingCenter.id}>
                         <tr
                           key={pollingCenter.id}
                           className="hover:bg-blue-50 transition-colors"
@@ -1153,7 +1171,7 @@ export default function StatePollingCenterList() {
                               colSpan={9}
                             />
                           )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
