@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGetBlocksByAssemblyQuery } from "../../../store/api/blockApi";
+import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
@@ -11,11 +12,7 @@ export default function MandalList() {
     const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
     const [selectedMandalFilter, setSelectedMandalFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(20);
-
-    // State for all mandals in the assembly
-    const [allMandals, setAllMandals] = useState<any[]>([]);
-    const [isLoadingAllMandals, setIsLoadingAllMandals] = useState(false);
+    const [itemsPerPage] = useState(10);
 
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedMandalForVoters, setSelectedMandalForVoters] = useState<{ id: number; name: string } | null>(null);
@@ -59,74 +56,6 @@ export default function MandalList() {
         { skip: !assemblyInfo.assemblyId }
     );
 
-    // Function to fetch all mandals from all blocks in the assembly
-    const fetchAllMandals = async () => {
-        if (!assemblyInfo.assemblyId || blocks.length === 0) return;
-
-        setIsLoadingAllMandals(true);
-        const allMandalsData: any[] = [];
-
-        try {
-            const token = localStorage.getItem("auth_access_token");
-
-            // Fetch mandals from all blocks in parallel
-            const mandalPromises = blocks.map(async (block: any) => {
-                try {
-                    let allBlockMandals: any[] = [];
-                    let page = 1;
-                    let hasMore = true;
-
-                    while (hasMore) {
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}?page=${page}&limit=50`,
-                            {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            }
-                        );
-                        const data = await response.json();
-                        
-                        if (data.success && data.children && data.children.length > 0) {
-                            allBlockMandals = allBlockMandals.concat(data.children);
-                            page++;
-                            hasMore = data.children.length === 50;
-                        } else {
-                            hasMore = false;
-                        }
-                    }
-
-                    // Add block info to each mandal
-                    return allBlockMandals.map((mandal: any) => ({
-                        ...mandal,
-                        blockName: block.displayName,
-                        blockId: block.id,
-                    }));
-                } catch (error) {
-                    console.error(`Error fetching mandals for block ${block.id}:`, error);
-                    return [];
-                }
-            });
-
-            const mandalResults = await Promise.all(mandalPromises);
-            const flatMandals = mandalResults.flat();
-            allMandalsData.push(...flatMandals);
-
-            setAllMandals(allMandalsData);
-        } catch (error) {
-            console.error("Error fetching all mandals:", error);
-        } finally {
-            setIsLoadingAllMandals(false);
-        }
-    };
-
-    // Fetch all mandals when blocks are loaded
-    useEffect(() => {
-        if (blocks.length > 0) {
-            fetchAllMandals();
-        }
-    }, [blocks]); // eslint-disable-line react-hooks/exhaustive-deps
-
     // Fetch assembly hierarchy details to get state_id and district_id
     useEffect(() => {
         const fetchAssemblyDetails = async () => {
@@ -158,15 +87,13 @@ export default function MandalList() {
         fetchAssemblyDetails();
     }, [assemblyInfo.assemblyId]);
 
-    // Use all mandals by default, or filtered mandals based on selected block
-    const mandals = (() => {
-        if (selectedBlockId > 0) {
-            // Filter by selected block
-            return allMandals.filter((mandal) => mandal.blockId === selectedBlockId);
-        }
-        // Return all mandals if no block filter is selected
-        return allMandals;
-    })();
+    // Fetch mandals for selected block
+    const { data: hierarchyData, isLoading: loadingMandals, error } = useGetBlockHierarchyQuery(
+        selectedBlockId,
+        { skip: !selectedBlockId }
+    );
+
+    const mandals = hierarchyData?.children || [];
 
     // Handle mandals without users filter
     const handleMandalsWithoutUsersClick = () => {
@@ -222,7 +149,7 @@ export default function MandalList() {
                 }));
                 setExpandedMandalId(mandalId);
             } else {
-                // No users found or API error
+                console.log('Mandal API Error or No Users:', data);
             }
         } catch (error) {
             console.error(`Error fetching users for mandal ${mandalId}:`, error);
@@ -243,12 +170,12 @@ export default function MandalList() {
         }
     }, [totalPages, currentPage]);
 
-    // Remove auto-selection of first block - let user see all mandals by default
-    // useEffect(() => {
-    //     if (blocks.length > 0 && !selectedBlockId) {
-    //         setSelectedBlockId(blocks[0].id);
-    //     }
-    // }, [blocks, selectedBlockId]);
+    // Auto-select first block if available
+    useEffect(() => {
+        if (blocks.length > 0 && !selectedBlockId) {
+            setSelectedBlockId(blocks[0].id);
+        }
+    }, [blocks, selectedBlockId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -349,7 +276,7 @@ export default function MandalList() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block
+                                Select Block <span className="text-red-500">*</span>
                             </label>
                             <select
                                 value={selectedBlockId}
@@ -360,7 +287,7 @@ export default function MandalList() {
                                 }}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value={0}>All Blocks</option>
+                                <option value={0}>Select a Block</option>
                                 {blocks.map((block) => (
                                     <option key={block.id} value={block.id}>
                                         {block.displayName}
@@ -378,7 +305,8 @@ export default function MandalList() {
                                     setSelectedMandalFilter(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                disabled={!selectedBlockId}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             >
                                 <option value="">All Mandals</option>
                                 {mandals.map((mandal) => (
@@ -406,7 +334,8 @@ export default function MandalList() {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    disabled={!selectedBlockId}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -415,10 +344,21 @@ export default function MandalList() {
 
                 {/* Mandal List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {isLoadingAllMandals ? (
+                    {!selectedBlockId ? (
+                        <div className="text-center py-12">
+                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
+                        </div>
+                    ) : loadingMandals ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                             <p className="mt-4 text-gray-600">Loading mandals...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12 text-red-600">
+                            <p>Error loading mandals</p>
                         </div>
                     ) : filteredMandals.length === 0 ? (
                         <div className="text-center py-12">
@@ -463,7 +403,7 @@ export default function MandalList() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                                                        {mandal.blockName || "N/A"}
+                                                        {hierarchyData?.parent.displayName}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -529,7 +469,7 @@ export default function MandalList() {
                                                     locationName={mandal.displayName}
                                                     locationId={mandal.id}
                                                     locationType="Mandal"
-                                                    parentLocationName={mandal.blockName || "Unknown Block"}
+                                                    parentLocationName={hierarchyData?.parent.displayName}
                                                     parentLocationType="Block"
                                                     onUserDeleted={() => {
                                                         // Refresh user counts after deletion

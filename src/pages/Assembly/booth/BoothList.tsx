@@ -15,11 +15,7 @@ export default function BoothList() {
     useState<number>(0);
   const [selectedBoothFilter, setSelectedBoothFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
-
-  // State for all booths in the assembly
-  const [allBooths, setAllBooths] = useState<any[]>([]);
-  const [isLoadingAllBooths, setIsLoadingAllBooths] = useState(false);
+  const [itemsPerPage] = useState(10);
 
   const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
   const [selectedBoothForVoters, setSelectedBoothForVoters] = useState<{
@@ -81,226 +77,6 @@ export default function BoothList() {
     { skip: !assemblyInfo.assemblyId }
   );
 
-  // Function to fetch all booths from all polling centers in the assembly
-  const fetchAllBooths = async () => {
-    if (!assemblyInfo.assemblyId || blocks.length === 0) return;
-
-    setIsLoadingAllBooths(true);
-    const allBoothsData: any[] = [];
-
-    try {
-      const token = localStorage.getItem("auth_access_token");
-
-      // Step 1: Fetch all mandals from all blocks
-      const mandalPromises = blocks.map(async (block: any) => {
-        try {
-          let allBlockMandals: any[] = [];
-          let page = 1;
-          let hasMore = true;
-
-          while (hasMore) {
-            const response = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}?page=${page}&limit=50`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const data = await response.json();
-            
-            if (data.success && data.children && data.children.length > 0) {
-              allBlockMandals = allBlockMandals.concat(data.children);
-              page++;
-              hasMore = data.children.length === 50;
-            } else {
-              hasMore = false;
-            }
-          }
-
-          return allBlockMandals.map((mandal: any) => ({
-            ...mandal,
-            blockName: block.displayName,
-            blockId: block.id,
-          }));
-        } catch (error) {
-          console.error(`Error fetching mandals for block ${block.id}:`, error);
-          return [];
-        }
-      });
-
-      const mandalResults = await Promise.all(mandalPromises);
-      const allMandals = mandalResults.flat();
-
-      // Step 2: Fetch all polling centers from all mandals
-      const pollingCenterPromises = allMandals.map(async (mandal: any) => {
-        try {
-          let allMandalPollingCenters: any[] = [];
-          let page = 1;
-          let hasMore = true;
-
-          while (hasMore) {
-            const response = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}?page=${page}&limit=50`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const data = await response.json();
-            
-            if (data.success && data.children && data.children.length > 0) {
-              allMandalPollingCenters = allMandalPollingCenters.concat(data.children);
-              page++;
-              hasMore = data.children.length === 50;
-            } else {
-              hasMore = false;
-            }
-          }
-
-          // Filter out booths and add hierarchy info
-          return allMandalPollingCenters
-            .filter((child: any) => {
-              return (
-                child.levelName !== "Booth" &&
-                child.levelName !== "booth"
-              );
-            })
-            .map((pollingCenter: any) => ({
-              ...pollingCenter,
-              blockName: mandal.blockName,
-              blockId: mandal.blockId,
-              mandalName: mandal.displayName,
-              mandalId: mandal.id,
-            }));
-        } catch (error) {
-          console.error(`Error fetching polling centers for mandal ${mandal.id}:`, error);
-          return [];
-        }
-      });
-
-      const pollingCenterResults = await Promise.all(pollingCenterPromises);
-      const allPollingCenters = pollingCenterResults.flat();
-
-      // Step 3: Fetch all booths from all polling centers
-      const boothPromises = allPollingCenters.map(async (pollingCenter: any) => {
-        try {
-          let allPollingCenterBooths: any[] = [];
-          let page = 1;
-          let hasMore = true;
-
-          while (hasMore) {
-            const response = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pollingCenter.id}?page=${page}&limit=50`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const data = await response.json();
-            
-            if (data.success && data.children && data.children.length > 0) {
-              allPollingCenterBooths = allPollingCenterBooths.concat(data.children);
-              page++;
-              hasMore = data.children.length === 50;
-            } else {
-              hasMore = false;
-            }
-          }
-
-          // Add hierarchy info to booths
-          return allPollingCenterBooths.map((booth: any) => ({
-            ...booth,
-            blockName: pollingCenter.blockName,
-            blockId: pollingCenter.blockId,
-            mandalName: pollingCenter.mandalName,
-            mandalId: pollingCenter.mandalId,
-            pollingCenterName: pollingCenter.displayName,
-            pollingCenterId: pollingCenter.id,
-          }));
-        } catch (error) {
-          console.error(`Error fetching booths for polling center ${pollingCenter.id}:`, error);
-          return [];
-        }
-      });
-
-      const boothResults = await Promise.all(boothPromises);
-      const flatBooths = boothResults.flat();
-      allBoothsData.push(...flatBooths);
-
-      // Also check for direct booths under mandals (not under polling centers)
-      const directBoothPromises = allMandals.map(async (mandal: any) => {
-        try {
-          let allMandalChildren: any[] = [];
-          let page = 1;
-          let hasMore = true;
-
-          while (hasMore) {
-            const response = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}?page=${page}&limit=50`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const data = await response.json();
-            
-            if (data.success && data.children && data.children.length > 0) {
-              allMandalChildren = allMandalChildren.concat(data.children);
-              page++;
-              hasMore = data.children.length === 50;
-            } else {
-              hasMore = false;
-            }
-          }
-
-          // Filter for direct booths (not polling centers)
-          const directBooths = allMandalChildren
-            .filter((child: any) => {
-              return (
-                child.levelName === "Booth" ||
-                child.levelName === "booth"
-              );
-            })
-            .map((booth: any) => ({
-              ...booth,
-              blockName: mandal.blockName,
-              blockId: mandal.blockId,
-              mandalName: mandal.displayName,
-              mandalId: mandal.id,
-              pollingCenterName: null,
-              pollingCenterId: null,
-            }));
-
-          return directBooths;
-        } catch (error) {
-          console.error(`Error fetching direct booths for mandal ${mandal.id}:`, error);
-          return [];
-        }
-      });
-
-      const directBoothResults = await Promise.all(directBoothPromises);
-      const flatDirectBooths = directBoothResults.flat();
-      allBoothsData.push(...flatDirectBooths);
-
-      setAllBooths(allBoothsData);
-    } catch (error) {
-      console.error("Error fetching all booths:", error);
-    } finally {
-      setIsLoadingAllBooths(false);
-    }
-  };
-
-  // Fetch all booths when blocks are loaded
-  useEffect(() => {
-    if (blocks.length > 0) {
-      fetchAllBooths();
-    }
-  }, [blocks]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     const fetchAssemblyDetails = async () => {
       if (!assemblyInfo.assemblyId || assemblyInfo.stateId !== 0) return;
@@ -356,31 +132,151 @@ export default function BoothList() {
 
   const pollingCenters = pollingCenterHierarchyData?.children || [];
 
-  // Use all booths by default, or filtered booths based on selected filters
-  const booths = (() => {
-    let filteredBooths = allBooths;
-
-    // Filter by selected block
-    if (selectedBlockId > 0) {
-      filteredBooths = filteredBooths.filter((booth) => booth.blockId === selectedBlockId);
-    }
-
-    // Filter by selected mandal
-    if (selectedMandalId > 0) {
-      filteredBooths = filteredBooths.filter((booth) => booth.mandalId === selectedMandalId);
-    }
-
-    // Filter by selected polling center
-    if (selectedPollingCenterId > 0) {
-      filteredBooths = filteredBooths.filter((booth) => booth.pollingCenterId === selectedPollingCenterId);
-    }
-
-    return filteredBooths;
-  })();
-
-  // State for additional booth functionality
+  // State for all booths in the mandal
+  const [allBooths, setAllBooths] = useState<any[]>([]);
+  const [loadingBooths, setLoadingBooths] = useState(false);
+  const [error, setError] = useState<any>(null);
+  const [hasPollingCentersWithBooths, setHasPollingCentersWithBooths] =
+    useState(false);
   const [uploadingBoothId, setUploadingBoothId] = useState<number | null>(null);
-  const [hasPollingCentersWithBooths, setHasPollingCentersWithBooths] = useState(false);
+
+  // Fetch all booths for selected mandal (handle both direct booths and booths inside polling centers)
+  useEffect(() => {
+    const fetchAllBooths = async () => {
+      if (!selectedMandalId) {
+        setAllBooths([]);
+        return;
+      }
+
+      setLoadingBooths(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("auth_access_token");
+
+        // Function to fetch all pages of data
+        const fetchAllPages = async (url: string) => {
+          let allData: any[] = [];
+          let page = 1;
+          let hasMore = true;
+
+          while (hasMore) {
+            const response = await fetch(`${url}?page=${page}&limit=50`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            if (data.children && data.children.length > 0) {
+              allData = allData.concat(data.children);
+              page++;
+              // If we got less than 50 items, we've reached the end
+              hasMore = data.children.length === 50;
+            } else {
+              hasMore = false;
+            }
+          }
+
+          return allData;
+        };
+
+        // First get direct children of mandal with pagination
+        const mandalChildren = await fetchAllPages(
+          `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`
+        );
+
+        let allBooths: any[] = [];
+        let hasPollingCenters = false;
+        let hasDirectBooths = false;
+
+        // Check each child to determine if it's a booth or polling center
+        for (const child of mandalChildren) {
+          // Try to fetch children first to determine the structure
+          try {
+            const children = await fetchAllPages(
+              `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${child.id}`
+            );
+
+            if (children.length > 0) {
+              // This child has children, so it's a polling center
+              hasPollingCenters = true;
+
+              // Check if the children are actually booths (not more polling centers)
+              // Add these children as booths with polling center info
+              const boothsWithPC = children.map((booth: any) => ({
+                ...booth,
+                pollingCenterId: child.id,
+                pollingCenterName: child.displayName,
+              }));
+
+              allBooths = allBooths.concat(boothsWithPC);
+            } else {
+              // This child has no children
+              // Check if it's a booth by examining its levelName or other properties
+              const isActualBooth =
+                child.levelName === "Booth" ||
+                child.levelName === "booth" ||
+                child.displayName?.toLowerCase().includes("booth") ||
+                // If it doesn't have children and is not explicitly a polling center, treat as booth
+                (child.levelName !== "PollingCenter" &&
+                  child.levelName !== "Polling Center");
+
+              if (isActualBooth) {
+                hasDirectBooths = true;
+                allBooths.push({
+                  ...child,
+                  pollingCenterId: null,
+                  pollingCenterName: null,
+                });
+              }
+              // If it's not a booth, we ignore it (it might be an empty polling center)
+            }
+          } catch (childError) {
+            // If we can't fetch children, check if it looks like a booth
+            const isLikelyBooth =
+              child.levelName === "Booth" ||
+              child.levelName === "booth" ||
+              child.displayName?.toLowerCase().includes("booth");
+
+            if (isLikelyBooth) {
+              hasDirectBooths = true;
+              allBooths.push({
+                ...child,
+                pollingCenterId: null,
+                pollingCenterName: null,
+              });
+            }
+          }
+        }
+
+        // If we only have polling centers (no direct booths) and no booths inside polling centers,
+        // then don't show anything in booth list
+        if (hasPollingCenters && !hasDirectBooths && allBooths.length === 0) {
+          setAllBooths([]);
+          setHasPollingCentersWithBooths(false);
+        } else {
+          setAllBooths(allBooths);
+          setHasPollingCentersWithBooths(
+            hasPollingCenters &&
+              allBooths.some((booth) => booth.pollingCenterId)
+          );
+        }
+
+        // Reset polling center filter if no polling centers with booths
+        if (!hasPollingCenters || allBooths.length === 0) {
+          setSelectedPollingCenterId(0);
+        }
+      } catch (err) {
+        console.error("Error fetching booths:", err);
+        setError(err);
+      } finally {
+        setLoadingBooths(false);
+      }
+    };
+
+    fetchAllBooths();
+  }, [selectedMandalId]);
+
+  const booths = allBooths;
 
   // Handle booths without users filter
   const handleBoothsWithoutUsersClick = () => {
@@ -674,18 +570,19 @@ export default function BoothList() {
     }
   }, [selectedMandalId]);
 
-  // Remove auto-selection - let user see all booths by default
-  // useEffect(() => {
-  //   if (blocks.length > 0 && selectedBlockId === 0) {
-  //     setSelectedBlockId(blocks[0].id);
-  //   }
-  // }, [blocks]);
+  // Auto-select first block if available
+  useEffect(() => {
+    if (blocks.length > 0 && selectedBlockId === 0) {
+      setSelectedBlockId(blocks[0].id);
+    }
+  }, [blocks]);
 
-  // useEffect(() => {
-  //   if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-  //     setSelectedMandalId(mandals[0].id);
-  //   }
-  // }, [mandals, selectedBlockId]);
+  // Auto-select first mandal when mandals load
+  useEffect(() => {
+    if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
+      setSelectedMandalId(mandals[0].id);
+    }
+  }, [mandals, selectedBlockId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -863,7 +760,7 @@ export default function BoothList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block
+                Select Block <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedBlockId}
@@ -876,7 +773,7 @@ export default function BoothList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                <option value={0}>All Blocks</option>
+                <option value={0}>Select a Block</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -886,7 +783,7 @@ export default function BoothList() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Mandal
+                Select Mandal <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedMandalId}
@@ -896,10 +793,10 @@ export default function BoothList() {
                   setSelectedBoothFilter("");
                   setCurrentPage(1);
                 }}
-                disabled={selectedBlockId === 0}
+                disabled={!selectedBlockId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Mandals</option>
+                <option value={0}>Select a Mandal</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -942,7 +839,8 @@ export default function BoothList() {
                   setSelectedBoothFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                disabled={!selectedMandalId}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">All Booths</option>
                 {booths.map((booth) => (
@@ -980,7 +878,8 @@ export default function BoothList() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={!selectedMandalId}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -988,10 +887,52 @@ export default function BoothList() {
         </div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {isLoadingAllBooths ? (
+          {!selectedBlockId ? (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="mt-2 text-gray-500 font-medium">
+                Please select a block to view mandals
+              </p>
+            </div>
+          ) : !selectedMandalId ? (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="mt-2 text-gray-500 font-medium">
+                Please select a mandal to view polling centers
+              </p>
+            </div>
+          ) : loadingBooths ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
               <p className="mt-4 text-gray-600">Loading booths...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-600">
+              <p>Error loading booths</p>
             </div>
           ) : filteredBooths.length === 0 ? (
             <div className="text-center py-12">
@@ -1009,16 +950,14 @@ export default function BoothList() {
                 />
               </svg>
               <p className="mt-2 text-gray-500 font-medium">
-                {allBooths.length === 0 
-                  ? "No booths found in this assembly"
-                  : "No booths match your current filters"
-                }
+                No booths found in this mandal
               </p>
               <p className="mt-1 text-xs text-gray-400">
-                {allBooths.length === 0 
-                  ? "This assembly may contain only polling centers. Please check the Polling Center section."
-                  : "Try adjusting your search or filter criteria."
-                }
+                This mandal may contain only polling centers.
+                <br />
+                Please check the{" "}
+                <span className="font-semibold">Polling Center</span> section to
+                view polling centers.
               </p>
             </div>
           ) : (
@@ -1030,7 +969,6 @@ export default function BoothList() {
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         S.No
                       </th>
-                      
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         {hasPollingCentersWithBooths
                           ? "Polling Center"
@@ -1064,7 +1002,6 @@ export default function BoothList() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -1075,7 +1012,8 @@ export default function BoothList() {
                             >
                               {booth.pollingCenterId
                                 ? booth.pollingCenterName
-                                : booth.mandalName || "Mandal"}
+                                : mandals.find((m) => m.id === selectedMandalId)
+                                    ?.displayName || "Mandal"}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1293,13 +1231,13 @@ export default function BoothList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedBoothId(null)}
-                              colSpan={10}
+                              colSpan={8}
                             />
                           )}
 
                         {expandedFilesBoothId === booth.id && (
                           <tr>
-                            <td colSpan={10} className="bg-purple-50 px-6 py-4">
+                            <td colSpan={8} className="bg-purple-50 px-6 py-4">
                               <div className="flex items-start justify-between gap-4">
                                 <div>
                                   <h4 className="text-sm font-semibold text-purple-800 mb-2">
@@ -1407,7 +1345,7 @@ export default function BoothList() {
                         results
                       </span>
                     </div>
-                    <div className="flex justify-center gap-2">
+                    <div className="flex gap-2">
                       <button
                         onClick={() =>
                           setCurrentPage((prev) => Math.max(1, prev - 1))
@@ -1417,9 +1355,7 @@ export default function BoothList() {
                       >
                         Previous
                       </button>
-                      
-                      {/* Page numbers - hidden on small screens */}
-                      <div className="hidden sm:flex gap-1">
+                      <div className="flex gap-1">
                         {Array.from(
                           { length: Math.min(5, totalPages) },
                           (_, i) => {
@@ -1449,12 +1385,6 @@ export default function BoothList() {
                           }
                         )}
                       </div>
-                      
-                      {/* Current page indicator for small screens */}
-                      <div className="sm:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
-                        {currentPage} / {totalPages}
-                      </div>
-                      
                       <button
                         onClick={() =>
                           setCurrentPage((prev) =>

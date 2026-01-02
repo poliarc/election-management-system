@@ -13,11 +13,7 @@ export default function PollingCenterList() {
     const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
     const [selectedPollingCenterFilter, setSelectedPollingCenterFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(20);
-
-    // State for all polling centers in the assembly
-    const [allPollingCenters, setAllPollingCenters] = useState<any[]>([]);
-    const [isLoadingAllPollingCenters, setIsLoadingAllPollingCenters] = useState(false);
+    const [itemsPerPage] = useState(10);
 
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
     const [selectedPollingCenterForVoters, setSelectedPollingCenterForVoters] = useState<{ id: number; name: string } | null>(null);
@@ -59,124 +55,6 @@ export default function PollingCenterList() {
         { skip: !assemblyInfo.assemblyId }
     );
 
-    // Function to fetch all polling centers from all mandals in the assembly
-    const fetchAllPollingCenters = async () => {
-        if (!assemblyInfo.assemblyId || blocks.length === 0) return;
-
-        setIsLoadingAllPollingCenters(true);
-        const allPollingCentersData: any[] = [];
-
-        try {
-            const token = localStorage.getItem("auth_access_token");
-
-            // Step 1: Fetch all mandals from all blocks
-            const mandalPromises = blocks.map(async (block: any) => {
-                try {
-                    let allBlockMandals: any[] = [];
-                    let page = 1;
-                    let hasMore = true;
-
-                    while (hasMore) {
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${block.id}?page=${page}&limit=50`,
-                            {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            }
-                        );
-                        const data = await response.json();
-                        
-                        if (data.success && data.children && data.children.length > 0) {
-                            allBlockMandals = allBlockMandals.concat(data.children);
-                            page++;
-                            hasMore = data.children.length === 50;
-                        } else {
-                            hasMore = false;
-                        }
-                    }
-
-                    return allBlockMandals.map((mandal: any) => ({
-                        ...mandal,
-                        blockName: block.displayName,
-                        blockId: block.id,
-                    }));
-                } catch (error) {
-                    console.error(`Error fetching mandals for block ${block.id}:`, error);
-                    return [];
-                }
-            });
-
-            const mandalResults = await Promise.all(mandalPromises);
-            const allMandals = mandalResults.flat();
-
-            // Step 2: Fetch all polling centers from all mandals
-            const pollingCenterPromises = allMandals.map(async (mandal: any) => {
-                try {
-                    let allMandalPollingCenters: any[] = [];
-                    let page = 1;
-                    let hasMore = true;
-
-                    while (hasMore) {
-                        const response = await fetch(
-                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}?page=${page}&limit=50`,
-                            {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                },
-                            }
-                        );
-                        const data = await response.json();
-                        
-                        if (data.success && data.children && data.children.length > 0) {
-                            allMandalPollingCenters = allMandalPollingCenters.concat(data.children);
-                            page++;
-                            hasMore = data.children.length === 50;
-                        } else {
-                            hasMore = false;
-                        }
-                    }
-
-                    // Filter out booths and add hierarchy info
-                    return allMandalPollingCenters
-                        .filter((child: any) => {
-                            return (
-                                child.levelName !== "Booth" &&
-                                child.levelName !== "booth"
-                            );
-                        })
-                        .map((pollingCenter: any) => ({
-                            ...pollingCenter,
-                            blockName: mandal.blockName,
-                            blockId: mandal.blockId,
-                            mandalName: mandal.displayName,
-                            mandalId: mandal.id,
-                        }));
-                } catch (error) {
-                    console.error(`Error fetching polling centers for mandal ${mandal.id}:`, error);
-                    return [];
-                }
-            });
-
-            const pollingCenterResults = await Promise.all(pollingCenterPromises);
-            const flatPollingCenters = pollingCenterResults.flat();
-            allPollingCentersData.push(...flatPollingCenters);
-
-            setAllPollingCenters(allPollingCentersData);
-        } catch (error) {
-            console.error("Error fetching all polling centers:", error);
-        } finally {
-            setIsLoadingAllPollingCenters(false);
-        }
-    };
-
-    // Fetch all polling centers when blocks are loaded
-    useEffect(() => {
-        if (blocks.length > 0) {
-            fetchAllPollingCenters();
-        }
-    }, [blocks]); // eslint-disable-line react-hooks/exhaustive-deps
-
     // Fetch assembly hierarchy details to get state_id and district_id
     useEffect(() => {
         const fetchAssemblyDetails = async () => {
@@ -216,22 +94,89 @@ export default function PollingCenterList() {
 
     const mandals = mandalHierarchyData?.children || [];
 
-    // Use all polling centers by default, or filtered polling centers based on selected filters
-    const pollingCenters = (() => {
-        let filteredCenters = allPollingCenters;
+    // State for all polling centers in the mandal
+    const [allPollingCenters, setAllPollingCenters] = useState<any[]>([]);
+    const [loadingPollingCenters, setLoadingPollingCenters] = useState(false);
+    const [error, setError] = useState<any>(null);
 
-        // Filter by selected block
-        if (selectedBlockId > 0) {
-            filteredCenters = filteredCenters.filter((pc) => pc.blockId === selectedBlockId);
-        }
+    // Fetch all polling centers for selected mandal (filter out booths)
+    useEffect(() => {
+        const fetchAllPollingCenters = async () => {
+            if (!selectedMandalId) {
+                setAllPollingCenters([]);
+                return;
+            }
 
-        // Filter by selected mandal
-        if (selectedMandalId > 0) {
-            filteredCenters = filteredCenters.filter((pc) => pc.mandalId === selectedMandalId);
-        }
+            setLoadingPollingCenters(true);
+            setError(null);
 
-        return filteredCenters;
-    })();
+            try {
+                const token = localStorage.getItem("auth_access_token");
+                
+                // First get direct children of mandal
+                const mandalChildrenRes = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedMandalId}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                const mandalChildrenData = await mandalChildrenRes.json();
+                const mandalChildren = mandalChildrenData.children || [];
+
+                let actualPollingCenters: any[] = [];
+
+                // Check each child to determine if it's a polling center or booth
+                for (const child of mandalChildren) {
+                    // Try to fetch children first to determine the structure
+                    try {
+                        const childrenRes = await fetch(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${child.id}`,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        const childrenData = await childrenRes.json();
+                        const children = childrenData.children || [];
+                        
+                        if (children.length > 0) {
+                            // This child has children, so it's likely a polling center
+                            actualPollingCenters.push(child);
+                        } else {
+                            // This child has no children
+                            // Check if it's a polling center by examining its levelName or other properties
+                            const isActualPollingCenter = child.levelName === 'PollingCenter' || 
+                                                        child.levelName === 'Polling Center' ||
+                                                        child.displayName?.toLowerCase().includes('polling') ||
+                                                        // If it doesn't have children and is not explicitly a booth, might be polling center
+                                                        (child.levelName !== 'Booth' && child.levelName !== 'booth');
+                            
+                            if (isActualPollingCenter) {
+                                actualPollingCenters.push(child);
+                            }
+                            // If it's not a polling center, we ignore it (it might be a direct booth)
+                        }
+                    } catch (childError) {
+                        // If we can't fetch children, check if it looks like a polling center
+                        console.log(`Error fetching children for ${child.displayName}:`, childError);
+                        const isLikelyPollingCenter = child.levelName === 'PollingCenter' || 
+                                                    child.levelName === 'Polling Center' ||
+                                                    child.displayName?.toLowerCase().includes('polling');
+                        
+                        if (isLikelyPollingCenter) {
+                            actualPollingCenters.push(child);
+                        }
+                    }
+                }
+
+                setAllPollingCenters(actualPollingCenters);
+            } catch (err) {
+                console.error("Error fetching polling centers:", err);
+                setError(err);
+            } finally {
+                setLoadingPollingCenters(false);
+            }
+        };
+
+        fetchAllPollingCenters();
+    }, [selectedMandalId]);
+
+    const pollingCenters = allPollingCenters;
 
     // Handle polling centers without users filter
     const handlePollingCentersWithoutUsersClick = () => {
@@ -308,18 +253,19 @@ export default function PollingCenterList() {
         }
     }, [totalPages, currentPage]);
 
-    // Remove auto-selection - let user see all polling centers by default
-    // useEffect(() => {
-    //     if (blocks.length > 0 && selectedBlockId === 0) {
-    //         setSelectedBlockId(blocks[0].id);
-    //     }
-    // }, [blocks]);
+    // Auto-select first block if available
+    useEffect(() => {
+        if (blocks.length > 0 && selectedBlockId === 0) {
+            setSelectedBlockId(blocks[0].id);
+        }
+    }, [blocks]);
 
-    // useEffect(() => {
-    //     if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
-    //         setSelectedMandalId(mandals[0].id);
-    //     }
-    // }, [mandals, selectedBlockId]);
+    // Auto-select first mandal when mandals load
+    useEffect(() => {
+        if (mandals.length > 0 && selectedBlockId > 0 && selectedMandalId === 0) {
+            setSelectedMandalId(mandals[0].id);
+        }
+    }, [mandals, selectedBlockId]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -420,7 +366,7 @@ export default function PollingCenterList() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Block
+                                Select Block <span className="text-red-500">*</span>
                             </label>
                             <select
                                 value={selectedBlockId}
@@ -432,7 +378,7 @@ export default function PollingCenterList() {
                                 }}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                             >
-                                <option value={0}>All Blocks</option>
+                                <option value={0}>Select a Block</option>
                                 {blocks.map((block) => (
                                     <option key={block.id} value={block.id}>
                                         {block.displayName}
@@ -451,10 +397,10 @@ export default function PollingCenterList() {
                                     setSelectedPollingCenterFilter("");
                                     setCurrentPage(1);
                                 }}
-                                disabled={selectedBlockId === 0}
+                                disabled={!selectedBlockId}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                             >
-                                <option value={0}>All Mandals</option>
+                                <option value={0}>Select a Mandal</option>
                                 {mandals.map((mandal) => (
                                     <option key={mandal.id} value={mandal.id}>
                                         {mandal.displayName}
@@ -511,24 +457,28 @@ export default function PollingCenterList() {
 
                 {/* Polling Center List */}
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                    {isLoadingAllPollingCenters ? (
+                    {!selectedBlockId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-4 text-gray-600">Loading polling centers...</p>
+                            <p className="mt-2 text-gray-500 font-medium">Please select a block to view mandals</p>
                         </div>
-                    ) : filteredPollingCenters.length === 0 ? (
+                    ) : !selectedMandalId ? (
                         <div className="text-center py-12">
                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
                         </div>
-                    ) : isLoadingAllPollingCenters ? (
+                    ) : loadingPollingCenters ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
                             <p className="mt-4 text-gray-600">Loading polling centers...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12 text-red-600">
+                            <p>Error loading polling centers</p>
                         </div>
                     ) : filteredPollingCenters.length === 0 ? (
                         <div className="text-center py-12">
