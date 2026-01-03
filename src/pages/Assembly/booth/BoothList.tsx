@@ -6,6 +6,7 @@ import type { RootState } from "../../../store";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import toast from "react-hot-toast";
+import { deleteBoothDeletedVoterFile, bulkDeleteBoothDeletedVoterFiles } from "../../../services/boothDeletedVoterFilesApi";
 
 export default function BoothList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +37,7 @@ export default function BoothList() {
       { loading: boolean; error: string | null; data: any[]; fetched: boolean }
     >
   >({});
+  const [boothFileCounts, setBoothFileCounts] = useState<Record<number, number>>({});
   const [expandedFilesBoothId, setExpandedFilesBoothId] = useState<
     number | null
   >(null);
@@ -108,7 +110,7 @@ export default function BoothList() {
               }
             );
             const data = await response.json();
-            
+
             if (data.success && data.children && data.children.length > 0) {
               allBlockMandals = allBlockMandals.concat(data.children);
               page++;
@@ -149,7 +151,7 @@ export default function BoothList() {
               }
             );
             const data = await response.json();
-            
+
             if (data.success && data.children && data.children.length > 0) {
               allMandalPollingCenters = allMandalPollingCenters.concat(data.children);
               page++;
@@ -200,7 +202,7 @@ export default function BoothList() {
               }
             );
             const data = await response.json();
-            
+
             if (data.success && data.children && data.children.length > 0) {
               allPollingCenterBooths = allPollingCenterBooths.concat(data.children);
               page++;
@@ -247,7 +249,7 @@ export default function BoothList() {
               }
             );
             const data = await response.json();
-            
+
             if (data.success && data.children && data.children.length > 0) {
               allMandalChildren = allMandalChildren.concat(data.children);
               page++;
@@ -287,10 +289,55 @@ export default function BoothList() {
       allBoothsData.push(...flatDirectBooths);
 
       setAllBooths(allBoothsData);
+
+      // Fetch file counts for all booths
+      fetchAllBoothFileCounts(allBoothsData);
     } catch (error) {
       console.error("Error fetching all booths:", error);
     } finally {
       setIsLoadingAllBooths(false);
+    }
+  };
+
+  // Function to fetch file counts for all booths
+  const fetchAllBoothFileCounts = async (booths: any[]) => {
+    const token = localStorage.getItem("auth_access_token");
+    if (!token || booths.length === 0) return;
+
+    const counts: Record<number, number> = {};
+
+    // Fetch file counts in batches to avoid overwhelming the server
+    const batchSize = 10;
+    for (let i = 0; i < booths.length; i += batchSize) {
+      const batch = booths.slice(i, i + batchSize);
+
+      const promises = batch.map(async (booth) => {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/booth-deleted-voter-files/booth/${booth.id}?page=1&limit=1`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+
+          if (response.ok && data?.success && data?.pagination) {
+            counts[booth.id] = data.pagination.total || 0;
+          } else {
+            counts[booth.id] = 0;
+          }
+        } catch (error) {
+          console.error(`Error fetching file count for booth ${booth.id}:`, error);
+          counts[booth.id] = 0;
+        }
+      });
+
+      await Promise.all(promises);
+
+      // Update state with current batch results
+      setBoothFileCounts(prev => ({ ...prev, ...counts }));
     }
   };
 
@@ -307,8 +354,7 @@ export default function BoothList() {
 
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${
-            assemblyInfo.assemblyId
+          `${import.meta.env.VITE_API_BASE_URL}/api/state-master-data/${assemblyInfo.assemblyId
           }`,
           {
             headers: {
@@ -380,6 +426,9 @@ export default function BoothList() {
 
   // State for additional booth functionality
   const [uploadingBoothId, setUploadingBoothId] = useState<number | null>(null);
+  const [deletingFileId, setDeletingFileId] = useState<number | null>(null);
+  const [selectedFileIds, setSelectedFileIds] = useState<Record<number, number[]>>({});
+  const [isBulkDeleting, setIsBulkDeleting] = useState<Record<number, boolean>>({});
   const [hasPollingCentersWithBooths, setHasPollingCentersWithBooths] = useState(false);
 
   // Handle booths without users filter
@@ -436,8 +485,7 @@ export default function BoothList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${boothId}`,
         {
           headers: {
@@ -483,8 +531,7 @@ export default function BoothList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/booth-deleted-voter-files/booth/${boothId}?page=1&limit=20`,
         {
           headers: {
@@ -604,15 +651,13 @@ export default function BoothList() {
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/booth-deleted-voter-files/create`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("auth_access_token") || ""
-            }`,
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token") || ""
+              }`,
           },
           body: formData,
         }
@@ -625,6 +670,12 @@ export default function BoothList() {
       }
 
       toast.success(`File uploaded for ${boothName}`);
+
+      // Update file count
+      setBoothFileCounts((prev) => ({
+        ...prev,
+        [boothId]: (prev[boothId] || 0) + 1,
+      }));
     } catch (uploadError) {
       console.error("Error uploading deleted voter file:", uploadError);
       toast.error(
@@ -637,14 +688,136 @@ export default function BoothList() {
 
   const handleFileInputChange =
     (boothId: number, boothName: string) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      event.target.value = "";
+      (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
 
-      if (!file) return;
+        if (!file) return;
 
-      handleFileUpload(boothId, boothName, file);
-    };
+        handleFileUpload(boothId, boothName, file);
+      };
+
+  const handleDeleteFile = async (fileId: number, boothId: number) => {
+    if (!confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+
+    setDeletingFileId(fileId);
+
+    try {
+      const result = await deleteBoothDeletedVoterFile(fileId);
+
+      if (result.success) {
+        toast.success("File deleted successfully");
+
+        // Update file count
+        setBoothFileCounts((prev) => ({
+          ...prev,
+          [boothId]: Math.max(0, (prev[boothId] || 0) - 1),
+        }));
+
+        // Refresh the files for this booth
+        setBoothFiles((prev) => ({
+          ...prev,
+          [boothId]: { loading: false, error: null, data: [], fetched: false },
+        }));
+
+        // Re-fetch the files
+        handleViewFiles(boothId);
+      } else {
+        throw new Error(result.message || "Failed to delete file");
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete file"
+      );
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
+
+  const handleFileSelection = (boothId: number, fileId: number, isSelected: boolean) => {
+    setSelectedFileIds((prev) => {
+      const boothSelections = prev[boothId] || [];
+      if (isSelected) {
+        return {
+          ...prev,
+          [boothId]: [...boothSelections, fileId],
+        };
+      } else {
+        return {
+          ...prev,
+          [boothId]: boothSelections.filter((id) => id !== fileId),
+        };
+      }
+    });
+  };
+
+  const handleSelectAllFiles = (boothId: number, fileIds: number[], selectAll: boolean) => {
+    setSelectedFileIds((prev) => ({
+      ...prev,
+      [boothId]: selectAll ? fileIds : [],
+    }));
+  };
+
+  const handleBulkDelete = async (boothId: number) => {
+    const selectedIds = selectedFileIds[boothId] || [];
+    if (selectedIds.length === 0) {
+      toast.error("Please select files to delete");
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected file(s)?`)) {
+      return;
+    }
+
+    setIsBulkDeleting((prev) => ({ ...prev, [boothId]: true }));
+
+    try {
+      const result = await bulkDeleteBoothDeletedVoterFiles(selectedIds);
+
+      if (result.success) {
+        // Show appropriate success message
+        if (result.deletedCount === selectedIds.length) {
+          toast.success(`${result.deletedCount} file(s) deleted successfully`);
+        } else {
+          toast.success(`${result.deletedCount} out of ${selectedIds.length} file(s) deleted successfully`);
+        }
+
+        // Clear selections for this booth
+        setSelectedFileIds((prev) => ({
+          ...prev,
+          [boothId]: [],
+        }));
+
+        // Update file count with actual deleted count
+        const deletedCount = result.deletedCount || 0;
+        setBoothFileCounts((prev) => ({
+          ...prev,
+          [boothId]: Math.max(0, (prev[boothId] || 0) - deletedCount),
+        }));
+
+        // Refresh the files for this booth
+        setBoothFiles((prev) => ({
+          ...prev,
+          [boothId]: { loading: false, error: null, data: [], fetched: false },
+        }));
+
+        // Re-fetch the files
+        handleViewFiles(boothId);
+      } else {
+        toast.error(result.message || "Failed to delete files");
+      }
+    } catch (error) {
+      console.error("Error bulk deleting files:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete files"
+      );
+    } finally {
+      setIsBulkDeleting((prev) => ({ ...prev, [boothId]: false }));
+    }
+  };
 
   const totalPages = Math.ceil(filteredBooths.length / itemsPerPage);
   const paginatedBooths = filteredBooths.slice(
@@ -764,14 +937,12 @@ export default function BoothList() {
               {/* Booths Without Users Card - Clickable */}
               <div
                 onClick={handleBoothsWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                  booths.filter((booth) => (booth.user_count || 0) === 0)
-                    .length > 0
-                    ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
-                    : "cursor-default"
-                } ${
-                  showBoothsWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
-                }`}
+                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${booths.filter((booth) => (booth.user_count || 0) === 0)
+                  .length > 0
+                  ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                  : "cursor-default"
+                  } ${showBoothsWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
+                  }`}
                 title={
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
@@ -787,12 +958,11 @@ export default function BoothList() {
                     )}
                   </p>
                   <p
-                    className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                      booths.filter((booth) => (booth.user_count || 0) === 0)
-                        .length > 0
-                        ? "text-red-600"
-                        : "text-gray-400"
-                    }`}
+                    className={`text-xl sm:text-2xl font-semibold mt-1 ${booths.filter((booth) => (booth.user_count || 0) === 0)
+                      .length > 0
+                      ? "text-red-600"
+                      : "text-gray-400"
+                      }`}
                   >
                     {
                       booths.filter((booth) => (booth.user_count || 0) === 0)
@@ -801,12 +971,11 @@ export default function BoothList() {
                   </p>
                 </div>
                 <div
-                  className={`rounded-full p-1.5 ${
-                    booths.filter((booth) => (booth.user_count || 0) === 0)
-                      .length > 0
-                      ? "bg-red-50"
-                      : "bg-gray-50"
-                  }`}
+                  className={`rounded-full p-1.5 ${booths.filter((booth) => (booth.user_count || 0) === 0)
+                    .length > 0
+                    ? "bg-red-50"
+                    : "bg-gray-50"
+                    }`}
                 >
                   {booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0 ? (
@@ -846,9 +1015,8 @@ export default function BoothList() {
 
         <div className="bg-white rounded-xl shadow-md p-3 mb-1">
           <div
-            className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${
-              hasPollingCentersWithBooths ? "lg:grid-cols-6" : "lg:grid-cols-5"
-            }`}
+            className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${hasPollingCentersWithBooths ? "lg:grid-cols-6" : "lg:grid-cols-5"
+              }`}
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1009,13 +1177,13 @@ export default function BoothList() {
                 />
               </svg>
               <p className="mt-2 text-gray-500 font-medium">
-                {allBooths.length === 0 
+                {allBooths.length === 0
                   ? "No booths found in this assembly"
                   : "No booths match your current filters"
                 }
               </p>
               <p className="mt-1 text-xs text-gray-400">
-                {allBooths.length === 0 
+                {allBooths.length === 0
                   ? "This assembly may contain only polling centers. Please check the Polling Center section."
                   : "Try adjusting your search or filter criteria."
                 }
@@ -1030,7 +1198,7 @@ export default function BoothList() {
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         S.No
                       </th>
-                      
+
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         {hasPollingCentersWithBooths
                           ? "Polling Center"
@@ -1064,14 +1232,13 @@ export default function BoothList() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                          
+
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                booth.pollingCenterId
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-indigo-100 text-indigo-800"
-                              }`}
+                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${booth.pollingCenterId
+                                ? "bg-green-100 text-green-800"
+                                : "bg-indigo-100 text-indigo-800"
+                                }`}
                             >
                               {booth.pollingCenterId
                                 ? booth.pollingCenterName
@@ -1114,11 +1281,10 @@ export default function BoothList() {
                             <div className="flex items-center justify-center">
                               <button
                                 onClick={() => handleViewUsers(booth.id)}
-                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
-                                  expandedBoothId === booth.id
-                                    ? "text-purple-700 bg-purple-100"
-                                    : "text-purple-600 hover:bg-purple-50 hover:text-purple-700"
-                                }`}
+                                className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${expandedBoothId === booth.id
+                                  ? "text-purple-700 bg-purple-100"
+                                  : "text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                                  }`}
                                 title={
                                   expandedBoothId === booth.id
                                     ? "Hide Users"
@@ -1232,11 +1398,10 @@ export default function BoothList() {
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <button
                               onClick={() => handleViewFiles(booth.id)}
-                              className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                                expandedFilesBoothId === booth.id
-                                  ? "bg-purple-600 text-white border-purple-600"
-                                  : "text-purple-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50"
-                              }`}
+                              className={`inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${expandedFilesBoothId === booth.id
+                                ? "bg-purple-600 text-white border-purple-600"
+                                : "text-purple-700 border-purple-200 hover:border-purple-400 hover:bg-purple-50"
+                                }`}
                               title="View uploaded deleted voter files"
                             >
                               <svg
@@ -1259,6 +1424,11 @@ export default function BoothList() {
                                 />
                               </svg>
                               Files
+                              {boothFileCounts[booth.id] !== undefined && (
+                                <span className="ml-1 bg-white bg-opacity-20 text-xs px-1.5 py-0.5 rounded-full">
+                                  {boothFileCounts[booth.id]}
+                                </span>
+                              )}
                             </button>
                           </td>
                         </tr>
@@ -1317,55 +1487,181 @@ export default function BoothList() {
                                   )}
                                   {!boothFiles[booth.id]?.loading &&
                                     !boothFiles[booth.id]?.error && (
-                                      <ul className="space-y-2">
-                                        {(boothFiles[booth.id]?.data || [])
-                                          .length === 0 && (
-                                          <li className="text-sm text-gray-600">
-                                            No files uploaded for this booth
-                                            yet.
-                                          </li>
+                                      <div>
+                                        {(boothFiles[booth.id]?.data || []).length > 0 && (
+                                          <div className="mb-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <input
+                                                type="checkbox"
+                                                id={`select-all-${booth.id}`}
+                                                checked={
+                                                  (boothFiles[booth.id]?.data || []).length > 0 &&
+                                                  (selectedFileIds[booth.id] || []).length === (boothFiles[booth.id]?.data || []).length
+                                                }
+                                                onChange={(e) =>
+                                                  handleSelectAllFiles(
+                                                    booth.id,
+                                                    (boothFiles[booth.id]?.data || []).map((file) => file.id),
+                                                    e.target.checked
+                                                  )
+                                                }
+                                                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                              />
+                                              <label
+                                                htmlFor={`select-all-${booth.id}`}
+                                                className="text-xs font-medium text-gray-700 cursor-pointer"
+                                              >
+                                                Select All ({(boothFiles[booth.id]?.data || []).length})
+                                              </label>
+                                            </div>
+                                            {(selectedFileIds[booth.id] || []).length > 0 && (
+                                              <button
+                                                onClick={() => handleBulkDelete(booth.id)}
+                                                disabled={isBulkDeleting[booth.id]}
+                                                className="text-xs bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1 rounded-md font-medium flex items-center gap-1"
+                                              >
+                                                {isBulkDeleting[booth.id] ? (
+                                                  <>
+                                                    <svg
+                                                      className="w-3 h-3 animate-spin"
+                                                      fill="none"
+                                                      stroke="currentColor"
+                                                      viewBox="0 0 24 24"
+                                                    >
+                                                      <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                                      />
+                                                    </svg>
+                                                    Deleting...
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <svg
+                                                      className="w-3 h-3"
+                                                      fill="none"
+                                                      stroke="currentColor"
+                                                      viewBox="0 0 24 24"
+                                                    >
+                                                      <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                      />
+                                                    </svg>
+                                                    Delete Selected ({(selectedFileIds[booth.id] || []).length})
+                                                  </>
+                                                )}
+                                              </button>
+                                            )}
+                                          </div>
                                         )}
-                                        {(boothFiles[booth.id]?.data || []).map(
-                                          (file) => (
-                                            <li
-                                              key={file.id}
-                                              className="text-sm text-gray-800 bg-white border border-purple-100 rounded-md px-3 py-2 shadow-sm"
-                                            >
-                                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                                <span className="font-medium truncate">
-                                                  {file.filePath || "File"}
-                                                </span>
-                                                <span className="text-xs text-gray-500">
-                                                  {file.created_at
-                                                    ? new Date(
-                                                        file.created_at
-                                                      ).toLocaleString()
-                                                    : ""}
-                                                </span>
-                                              </div>
-                                              <div className="text-xs text-gray-600 mt-1">
-                                                State: {file.stateName || ""} |
-                                                District:{" "}
-                                                {file.districtName || ""} |
-                                                Assembly:{" "}
-                                                {file.assemblyName || ""}
-                                              </div>
-                                              {file.filePath && (
-                                                <div className="mt-2">
-                                                  <a
-                                                    href={file.filePath}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-purple-700 hover:text-purple-900 text-xs font-medium"
-                                                  >
-                                                    Open file
-                                                  </a>
+                                        <ul className="space-y-2">
+                                          {(boothFiles[booth.id]?.data || [])
+                                            .length === 0 && (
+                                              <li className="text-sm text-gray-600">
+                                                No files uploaded for this booth
+                                                yet.
+                                              </li>
+                                            )}
+                                          {(boothFiles[booth.id]?.data || []).map(
+                                            (file) => (
+                                              <li
+                                                key={file.id}
+                                                className={`text-sm text-gray-800 bg-white border rounded-md px-3 py-2 shadow-sm transition-colors ${(selectedFileIds[booth.id] || []).includes(file.id)
+                                                  ? "border-purple-300 bg-purple-50"
+                                                  : "border-purple-100"
+                                                  }`}
+                                              >
+                                                <div className="flex items-start gap-3">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={(selectedFileIds[booth.id] || []).includes(file.id)}
+                                                    onChange={(e) =>
+                                                      handleFileSelection(booth.id, file.id, e.target.checked)
+                                                    }
+                                                    className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                                  />
+                                                  <div className="flex-1">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                                      <span className="font-medium truncate">
+                                                        {file.filePath || "File"}
+                                                      </span>
+                                                      <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-gray-500">
+                                                          {file.created_at
+                                                            ? new Date(
+                                                              file.created_at
+                                                            ).toLocaleString()
+                                                            : ""}
+                                                        </span>
+                                                        <button
+                                                          onClick={() => handleDeleteFile(file.id, booth.id)}
+                                                          disabled={deletingFileId === file.id}
+                                                          className="text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                                                          title="Delete file"
+                                                        >
+                                                          {deletingFileId === file.id ? (
+                                                            <svg
+                                                              className="w-4 h-4 animate-spin"
+                                                              fill="none"
+                                                              stroke="currentColor"
+                                                              viewBox="0 0 24 24"
+                                                            >
+                                                              <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                                              />
+                                                            </svg>
+                                                          ) : (
+                                                            <svg
+                                                              className="w-4 h-4"
+                                                              fill="none"
+                                                              stroke="currentColor"
+                                                              viewBox="0 0 24 24"
+                                                            >
+                                                              <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                              />
+                                                            </svg>
+                                                          )}
+                                                        </button>
+                                                      </div>
+                                                    </div>
+                                                    <div className="text-xs text-gray-600 mt-1">
+                                                      State: {file.stateName || ""} |
+                                                      District:{" "}
+                                                      {file.districtName || ""} |
+                                                      Assembly:{" "}
+                                                      {file.assemblyName || ""}
+                                                    </div>
+                                                    {file.filePath && (
+                                                      <div className="mt-2">
+                                                        <a
+                                                          href={file.filePath}
+                                                          target="_blank"
+                                                          rel="noreferrer"
+                                                          className="text-purple-700 hover:text-purple-900 text-xs font-medium"
+                                                        >
+                                                          Open file
+                                                        </a>
+                                                      </div>
+                                                    )}
+                                                  </div>
                                                 </div>
-                                              )}
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
                                     )}
                                 </div>
                                 <button
@@ -1417,7 +1713,7 @@ export default function BoothList() {
                       >
                         Previous
                       </button>
-                      
+
                       {/* Page numbers - hidden on small screens */}
                       <div className="hidden sm:flex gap-1">
                         {Array.from(
@@ -1437,11 +1733,10 @@ export default function BoothList() {
                               <button
                                 key={pageNum}
                                 onClick={() => setCurrentPage(pageNum)}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                  currentPage === pageNum
-                                    ? "bg-purple-600 text-white"
-                                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                                }`}
+                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === pageNum
+                                  ? "bg-purple-600 text-white"
+                                  : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                                  }`}
                               >
                                 {pageNum}
                               </button>
@@ -1449,12 +1744,12 @@ export default function BoothList() {
                           }
                         )}
                       </div>
-                      
+
                       {/* Current page indicator for small screens */}
                       <div className="sm:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
                         {currentPage} / {totalPages}
                       </div>
-                      
+
                       <button
                         onClick={() =>
                           setCurrentPage((prev) =>
