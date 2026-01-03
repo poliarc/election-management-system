@@ -138,7 +138,7 @@ export default function AfterAssemblyPanelSidebar({
 }) {
   const { levelId } = useParams<{ levelId: string }>();
   const { user, selectedAssignment, permissions } = useAppSelector(
-    (s) => s.auth
+    (state) => state.auth
   );
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -387,7 +387,7 @@ export default function AfterAssemblyPanelSidebar({
             </button>
 
             {switchDropdownOpen && (
-              <div 
+              <div
                 ref={switchDropdownRef}
                 className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto"
               >
