@@ -178,7 +178,10 @@ export const partyUserApi = createApi({
         }),
 
         getRoles: builder.query<Role[], void>({
-            query: () => "/roles/all",
+            query: () => ({
+                url: "/roles/all",
+                params: { page: 1, limit: 100 }
+            }),
             transformResponse: (response: ApiListResponse<Role[]>) =>
                 response.data || [],
             providesTags: [{ type: "Role", id: "LIST" }],

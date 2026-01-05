@@ -333,7 +333,7 @@ export default function StateBlock() {
 
   return (
     <div className="p-1 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header with Stats Cards */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
