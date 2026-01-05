@@ -862,7 +862,7 @@ export default function BoothList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header with Stats Cards */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl shadow-lg p-3 sm:p-3 mb-1 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
