@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
 
@@ -8,7 +9,12 @@ interface PartyAdminSidebarProps {
     onNavigate?: () => void;
 }
 
-type NavItem = { to: string; label: string; icon: ReactNode };
+type NavItem = {
+    to: string;
+    label: string;
+    icon: ReactNode;
+    children?: { to: string; label: string }[];
+};
 
 const iconClass = "h-5 w-5 stroke-[1.6]";
 
@@ -56,6 +62,42 @@ const Icons = {
             />
         </svg>
     ),
+    link: (
+        <svg
+            className={iconClass}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+        >
+            <path
+                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    ),
+    chevronDown: (
+        <svg
+            className="h-4 w-4 stroke-[1.6]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+        >
+            <path
+                d="M6 9l6 6 6-6"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    ),
     logout: (
         <svg
             className={iconClass}
@@ -80,6 +122,8 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
     const user = useAppSelector((s) => s.auth.user);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [expandedDropdowns, setExpandedDropdowns] = useState<string[]>([]);
 
     const base = `/partyadmin/${partyId}`;
     const firstName = user?.firstName || user?.username || "Admin";
@@ -92,10 +136,27 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
         navigate("/login");
     };
 
+    const toggleDropdown = (itemTo: string) => {
+        setExpandedDropdowns(prev =>
+            prev.includes(itemTo)
+                ? prev.filter(item => item !== itemTo)
+                : [...prev, itemTo]
+        );
+    };
+
+    const isDropdownExpanded = (itemTo: string) => expandedDropdowns.includes(itemTo);
+
+    const isChildActive = (children: { to: string; label: string }[]) => {
+        return children.some(child => location.pathname.includes(`${base}/${child.to}`));
+    };
+
     const navItems: NavItem[] = [
         { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
         { to: "levels", label: "Levels", icon: Icons.levels },
         { to: "users", label: "Users", icon: Icons.users },
+        {
+            to: "registration-links", label: "Manage Links", icon: Icons.link,
+        },
         { to: "roles", label: "Roles", icon: Icons.levels },
     ];
 
@@ -114,9 +175,9 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                             {firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-                            { "National Level"}
+                            {"National Level"}
                         </p>
-                        
+
                     </div>
                 </div>
             </div>
@@ -125,27 +186,84 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             <div>
                 <nav className="px-4 py-5 space-y-2">
                     {navItems.map((item) => (
-                        <NavLink
-                            key={item.to}
-                            to={`${base}/${item.to}`}
-                            onClick={() => onNavigate?.()}
-                            className={({ isActive }) =>
-                                [
-                                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                                    isActive
-                                        ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                                        : "border border-transparent hover:border-gray-200",
-                                ].join(" ")
-                            }
-                        >
-                            <span className="text-indigo-600 shrink-0">{item.icon}</span>
-                            <span className="truncate">{item.label}</span>
-                            {/* Accent bar */}
-                            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-                            {/* Active indicator */}
-                            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-                        </NavLink>
+                        <div key={item.to}>
+                            {item.children ? (
+                                // Dropdown item
+                                <div>
+                                    <button
+                                        onClick={() => toggleDropdown(item.to)}
+                                        className={[
+                                            "w-full group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                                            "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                            isChildActive(item.children) || isDropdownExpanded(item.to)
+                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                                                : "border border-transparent hover:border-gray-200",
+                                        ].join(" ")}
+                                    >
+                                        <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                                        <span className="truncate flex-1 text-left">{item.label}</span>
+                                        <span
+                                            className={`text-indigo-600 shrink-0 transition-transform duration-200 ${isDropdownExpanded(item.to) ? 'rotate-180' : ''
+                                                }`}
+                                        >
+                                            {Icons.chevronDown}
+                                        </span>
+                                        {/* Accent bar */}
+                                        <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                                        {/* Active indicator */}
+                                        <span className={`pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 ${isChildActive(item.children) ? 'opacity-100' : 'opacity-0'
+                                            }`} />
+                                    </button>
+
+                                    {/* Dropdown content */}
+                                    <div className={`overflow-hidden transition-all duration-200 ${isDropdownExpanded(item.to) ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                                        }`}>
+                                        <div className="ml-4 mt-1 space-y-1">
+                                            {item.children.map((child) => (
+                                                <NavLink
+                                                    key={child.to}
+                                                    to={`${base}/${child.to}`}
+                                                    onClick={() => onNavigate?.()}
+                                                    className={({ isActive }) =>
+                                                        [
+                                                            "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                                                            "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                                            isActive
+                                                                ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
+                                                                : "border-l-2 border-transparent hover:border-gray-200",
+                                                        ].join(" ")
+                                                    }
+                                                >
+                                                    <span className="truncate">{child.label}</span>
+                                                </NavLink>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                // Regular nav item
+                                <NavLink
+                                    to={`${base}/${item.to}`}
+                                    onClick={() => onNavigate?.()}
+                                    className={({ isActive }) =>
+                                        [
+                                            "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                                            "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                            isActive
+                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                                                : "border border-transparent hover:border-gray-200",
+                                        ].join(" ")
+                                    }
+                                >
+                                    <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                                    <span className="truncate">{item.label}</span>
+                                    {/* Accent bar */}
+                                    <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                                    {/* Active indicator */}
+                                    <span className={`pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 ${location.pathname.includes(`${base}/${item.to}`) ? 'opacity-100' : 'opacity-0'}`} />
+                                </NavLink>
+                            )}
+                        </div>
                     ))}
                 </nav>
             </div>

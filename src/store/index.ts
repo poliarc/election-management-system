@@ -10,6 +10,7 @@ import { userApi } from "./api/userApi";
 import { assemblyApi } from "./api/assemblyApi";
 import { blockApi } from "./api/blockApi";
 import { stateMasterApi } from "./api/stateMasterApi";
+import { registrationLinksApi } from "./api/registrationLinksApi";
 import { blockTeamApi } from "./api/blockTeamApi";
 import { afterAssemblyApi } from "./api/afterAssemblyApi";
 import { partyWiseLevelApi } from "./api/partyWiseLevelApi";
@@ -32,6 +33,7 @@ export const store = configureStore({
     [assemblyApi.reducerPath]: assemblyApi.reducer,
     [blockApi.reducerPath]: blockApi.reducer,
     [stateMasterApi.reducerPath]: stateMasterApi.reducer,
+    [registrationLinksApi.reducerPath]: registrationLinksApi.reducer,
     [blockTeamApi.reducerPath]: blockTeamApi.reducer,
     [afterAssemblyApi.reducerPath]: afterAssemblyApi.reducer,
     [partyWiseLevelApi.reducerPath]: partyWiseLevelApi.reducer,
@@ -50,6 +52,7 @@ export const store = configureStore({
       .concat(assemblyApi.middleware)
       .concat(blockApi.middleware)
       .concat(stateMasterApi.middleware)
+      .concat(registrationLinksApi.middleware)
       .concat(blockTeamApi.middleware)
       .concat(afterAssemblyApi.middleware)
       .concat(partyWiseLevelApi.middleware)
