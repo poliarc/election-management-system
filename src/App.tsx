@@ -105,7 +105,10 @@ import PartyAdminLayout from "./layouts/PartyAdminLayout";
 import { PartyAdminDashboard } from "./pages/PartyAdmin/Dashboard";
 import { PartyAdminLevels } from "./pages/PartyAdmin/Levels";
 import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
+import { DynamicLinkGenerator } from "./pages/PartyAdmin/DynamicLinkGenerator";
+import { RegistrationLinksManager } from "./pages/PartyAdmin/RegistrationLinksManager";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
+import { PublicRegistration } from "./pages/PublicRegistration";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
@@ -147,6 +150,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<PublicRegistration />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
@@ -162,6 +166,8 @@ export default function App() {
             <Route path="levels" element={<PartyAdminLevels />} />
             <Route path="levels/:stateId" element={<PartyAdminLevels />} />
             <Route path="users" element={<PartyAdminUsers />} />
+            <Route path="dynamic-links" element={<DynamicLinkGenerator />} />
+            <Route path="registration-links" element={<RegistrationLinksManager />} />
             <Route path="roles" element={<PartyAdminRoles />} />
           </Route>
 
