@@ -144,21 +144,21 @@ const Icons = {
       />
     </svg>
   ),
-  karyakarta: (
-    <svg
-      className={iconClass}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-    >
-      <path
-        d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
+  // karyakarta: (
+  //   <svg
+  //     className={iconClass}
+  //     viewBox="0 0 24 24"
+  //     fill="none"
+  //     stroke="currentColor"
+  //   >
+  //     <path
+  //       d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
+  //       strokeWidth={1.4}
+  //       strokeLinecap="round"
+  //       strokeLinejoin="round"
+  //     />
+  //   </svg>
+  // ),
   profile: (
     <svg
       className={iconClass}

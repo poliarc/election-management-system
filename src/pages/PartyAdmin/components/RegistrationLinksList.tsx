@@ -24,6 +24,8 @@ interface RegistrationLinksListProps {
     selectedLinks?: number[];
     onSelectLink?: (linkId: number) => void;
     onSelectAll?: () => void;
+    onBulkDelete?: () => void;
+    onBulkToggleStatus?: (isActive: boolean) => void;
 }
 
 export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
@@ -35,6 +37,8 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
     selectedLinks = [],
     onSelectLink,
     onSelectAll,
+    onBulkDelete,
+    onBulkToggleStatus,
 }) => {
     const [copiedLink, setCopiedLink] = useState<string>("");
 
@@ -119,7 +123,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
             {/* Bulk Selection Header */}
             {onSelectAll && onSelectLink && (
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <input
                                 type="checkbox"
@@ -135,9 +139,27 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                             </span>
                         </div>
 
-                        {selectedLinks.length > 0 && (
-                            <div className="text-sm text-gray-600">
-                                Use bulk actions in the header to manage selected links
+                        {/* Bulk Actions */}
+                        {selectedLinks.length > 0 && onBulkToggleStatus && onBulkDelete && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    onClick={() => onBulkToggleStatus(true)}
+                                    className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                                >
+                                    Activate
+                                </button>
+                                <button
+                                    onClick={() => onBulkToggleStatus(false)}
+                                    className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors"
+                                >
+                                    Deactivate
+                                </button>
+                                <button
+                                    onClick={onBulkDelete}
+                                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                                >
+                                    Delete
+                                </button>
                             </div>
                         )}
                     </div>
@@ -149,10 +171,10 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                     key={link.link_id}
                     className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
                 >
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                         {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-start gap-3">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
+                            <div className="flex items-start gap-3 flex-1">
                                 {/* Selection Checkbox */}
                                 {onSelectLink && (
                                     <input
@@ -163,26 +185,26 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                     />
                                 )}
 
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-lg font-semibold text-gray-900">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                        <h3 className="text-lg font-semibold text-gray-900 truncate">
                                             {link.party_full_name || link.party_name}
                                         </h3>
                                         {getStatusBadge(link)}
                                     </div>
 
-                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
                                         <div className="flex items-center gap-1">
-                                            <MapPin className="w-4 h-4" />
-                                            <span>
+                                            <MapPin className="w-4 h-4 flex-shrink-0" />
+                                            <span className="truncate">
                                                 {link.state_full_name || link.state_name}
                                                 {link.district_name && ` → ${link.district_full_name || link.district_name}`}
                                             </span>
                                         </div>
 
                                         <div className="flex items-center gap-1">
-                                            <Calendar className="w-4 h-4" />
-                                            <span>
+                                            <Calendar className="w-4 h-4 flex-shrink-0" />
+                                            <span className="truncate">
                                                 {link.expires_at ? (
                                                     <>
                                                         Expires: {formatDate(link.expires_at)}
@@ -200,7 +222,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
                                     onClick={() => onToggleStatus(link.link_id, link.isActive === 0)}
                                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
@@ -233,7 +255,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                         {/* Registration URL */}
                         <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-700 mb-1">
                                         Registration URL:
@@ -243,10 +265,10 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => copyToClipboard(link.registration_url)}
-                                        className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                                        className="flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                                         title="Copy to clipboard"
                                     >
                                         {copiedLink === link.registration_url ? (
@@ -264,7 +286,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                                     <button
                                         onClick={() => openInNewTab(link.registration_url)}
-                                        className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                                        className="flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                                         title="Open in new tab"
                                     >
                                         <ExternalLink className="w-4 h-4" />
@@ -275,20 +297,20 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                         </div>
 
                         {/* Metadata */}
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                            <div>
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
+                            <div className="truncate">
                                 <span className="font-medium">Created by:</span>{" "}
                                 {link.first_name && link.last_name
                                     ? `${link.first_name} ${link.last_name}`
                                     : link.created_by_email || `User ${link.created_by}`}
                             </div>
 
-                            <div>
+                            <div className="truncate">
                                 <span className="font-medium">Created:</span>{" "}
                                 {formatDate(link.created_at)}
                             </div>
 
-                            <div>
+                            <div className="truncate">
                                 <span className="font-medium">Last updated:</span>{" "}
                                 {formatDate(link.updated_at)}
                             </div>
@@ -296,7 +318,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                         {/* Token (for debugging - can be removed in production) */}
                         {process.env.NODE_ENV === 'development' && (
-                            <div className="mt-2 text-xs text-gray-500">
+                            <div className="mt-2 text-xs text-gray-500 break-all">
                                 <span className="font-medium">Token:</span> {link.link_token}
                             </div>
                         )}
