@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, Link, Search, Filter } from "lucide-react";
+import { Plus, Link, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { RegistrationLinkForm } from "./components/RegistrationLinkForm";
 import { RegistrationLinksList } from "./components/RegistrationLinksList";
@@ -23,6 +23,7 @@ export const RegistrationLinksManager: React.FC = () => {
     const [showForm, setShowForm] = useState(false);
     const [editingLink, setEditingLink] = useState<RegistrationLink | null>(null);
     const [selectedLinks, setSelectedLinks] = useState<number[]>([]);
+    const [activeTab, setActiveTab] = useState<'all' | 'active' | 'inactive'>('all');
     const [deleteModal, setDeleteModal] = useState<{
         isOpen: boolean;
         linkId: number | null;
@@ -41,6 +42,12 @@ export const RegistrationLinksManager: React.FC = () => {
         order: 'desc',
     });
 
+    // Compute search params based on active tab
+    const computedSearchParams = {
+        ...searchParams,
+        isActive: activeTab === 'all' ? undefined : activeTab === 'active' ? 1 : 0,
+    };
+
     // API hooks
     const {
         data: linksResponse,
@@ -49,10 +56,12 @@ export const RegistrationLinksManager: React.FC = () => {
     } = useGetRegistrationLinksByPartyQuery(
         {
             partyId: Number(partyId),
-            params: searchParams,
+            params: computedSearchParams,
         },
         {
             skip: !partyId || isNaN(Number(partyId)),
+            // Force refetch when tab changes by including activeTab in the key
+            refetchOnMountOrArgChange: true,
         }
     );
 
@@ -72,6 +81,11 @@ export const RegistrationLinksManager: React.FC = () => {
 
     const parties = partiesResponse || [];
     const currentParty = parties.find((p) => p.party_id === Number(partyId));
+
+    // Clear selections when data changes or tab changes
+    useEffect(() => {
+        setSelectedLinks([]);
+    }, [activeTab, linksResponse?.data]);
 
     const handleSaveLink = async (linkData: CreateRegistrationLinkRequest | UpdateRegistrationLinkRequest) => {
         if (editingLink) {
@@ -182,6 +196,15 @@ export const RegistrationLinksManager: React.FC = () => {
         }));
     };
 
+    const handleTabChange = (tab: 'all' | 'active' | 'inactive') => {
+        setActiveTab(tab);
+        setSelectedLinks([]); // Clear selections when changing tabs
+        setSearchParams(prev => ({
+            ...prev,
+            page: 1, // Reset to page 1 when changing tabs
+        }));
+    };
+
     // Bulk actions
     const handleSelectAll = () => {
         if (selectedLinks.length === links.length) {
@@ -240,63 +263,34 @@ export const RegistrationLinksManager: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
                                 <Link className="text-blue-600" />
                                 Registration Links
                             </h1>
-                            <p className="text-gray-600 mt-1">
+                            <p className="text-gray-600 mt-1 text-sm sm:text-base">
                                 Manage registration links for {currentParty?.partyName || "your party"}
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            {/* Bulk Actions */}
-                            {selectedLinks.length > 0 && (
-                                <div className="flex items-center gap-2 mr-4">
-                                    <span className="text-sm text-gray-600">
-                                        {selectedLinks.length} selected:
-                                    </span>
-                                    <button
-                                        onClick={() => handleBulkToggleStatus(true)}
-                                        className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-                                    >
-                                        Activate
-                                    </button>
-                                    <button
-                                        onClick={() => handleBulkToggleStatus(false)}
-                                        className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors"
-                                    >
-                                        Deactivate
-                                    </button>
-                                    <button
-                                        onClick={handleBulkDelete}
-                                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={() => setShowForm(true)}
-                                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Create Link
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Create Link
+                        </button>
                     </div>
                 </div>
 
                 {/* Form Modal */}
                 {showForm && (
-                    <div className="mb-6">
+                    <div className="mb-4 sm:mb-6">
                         <RegistrationLinkForm
                             link={editingLink}
                             onSave={handleSaveLink}
@@ -308,107 +302,104 @@ export const RegistrationLinksManager: React.FC = () => {
                     </div>
                 )}
 
-                {/* Search and Filters */}
+                {/* Tabs and Search */}
                 {!showForm && (
-                    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            {/* Search */}
-                            <div className="flex-1">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search by party, state, or district name..."
-                                        value={searchParams.search || ""}
-                                        onChange={(e) => handleSearchChange({ search: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Filters Row */}
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                {/* Status Filter */}
-                                <div className="flex items-center gap-2">
-                                    <Filter className="text-gray-400 w-4 h-4" />
-                                    <select
-                                        value={searchParams.isActive === undefined ? "all" : searchParams.isActive.toString()}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            handleSearchChange({
-                                                isActive: value === "all" ? undefined : value === "true"
-                                            });
-                                        }}
-                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="all">All Status</option>
-                                        <option value="true">Active</option>
-                                        <option value="false">Inactive</option>
-                                    </select>
-                                </div>
-
-                                {/* Sort */}
-                                <div className="flex items-center gap-2">
-                                    <select
-                                        value={`${searchParams.sort_by}_${searchParams.order}`}
-                                        onChange={(e) => {
-                                            const [sort_by, order] = e.target.value.split('_') as [any, 'asc' | 'desc'];
-                                            handleSearchChange({ sort_by, order });
-                                        }}
-                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="created_at_desc">Newest First</option>
-                                        <option value="created_at_asc">Oldest First</option>
-                                        <option value="expires_at_asc">Expiring Soon</option>
-                                        <option value="expires_at_desc">Expiring Later</option>
-                                        <option value="party_name_asc">Party A-Z</option>
-                                        <option value="state_name_asc">State A-Z</option>
-                                    </select>
-                                </div>
-
-                                {/* Page Size */}
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-600 whitespace-nowrap">Show:</span>
-                                    <select
-                                        value={searchParams.limit || 10}
-                                        onChange={(e) => handleSearchChange({
-                                            limit: Number(e.target.value),
-                                            page: 1 // Reset to first page when changing page size
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value={5}>5</option>
-                                        <option value={10}>10</option>
-                                        <option value={25}>25</option>
-                                        <option value={50}>50</option>
-                                        <option value={100}>100</option>
-                                    </select>
-                                </div>
-                            </div>
+                    <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
+                        {/* Tabs */}
+                        <div className="border-b border-gray-200">
+                            <nav className="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
+                                <button
+                                    onClick={() => handleTabChange('all')}
+                                    disabled={isLoadingLinks}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'all'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    All Links
+                                    {activeTab === 'all' && !isLoadingLinks && (
+                                        <span className="ml-2 bg-blue-100 text-blue-600 py-0.5 px-2 rounded-full text-xs">
+                                            {pagination.total}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => handleTabChange('active')}
+                                    disabled={isLoadingLinks}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'active'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    Active Links
+                                    {activeTab === 'active' && !isLoadingLinks && (
+                                        <span className="ml-2 bg-green-100 text-green-600 py-0.5 px-2 rounded-full text-xs">
+                                            {pagination.total}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => handleTabChange('inactive')}
+                                    disabled={isLoadingLinks}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'inactive'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    Inactive Links
+                                    {activeTab === 'inactive' && !isLoadingLinks && (
+                                        <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
+                                            {pagination.total}
+                                        </span>
+                                    )}
+                                </button>
+                            </nav>
                         </div>
 
-                        {/* Results count and quick actions */}
-                        <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="text-sm text-gray-600">
-                                Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} registration links
+                        {/* Search and Actions */}
+                        <div className="p-3 sm:p-4">
+                            <div className="flex flex-col lg:flex-row gap-4">
+                                {/* Search */}
+                                <div className="flex-1">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by party, state, or district name..."
+                                            value={searchParams.search || ""}
+                                            onChange={(e) => handleSearchChange({ search: e.target.value })}
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Quick Actions */}
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => refetch()}
-                                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                                >
-                                    Refresh
-                                </button>
-                                {searchParams.search && (
+                            {/* Results count and quick actions */}
+                            <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div className="text-sm text-gray-600">
+                                    Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} {
+                                        activeTab === 'all' ? 'registration links' :
+                                            activeTab === 'active' ? 'active links' : 'inactive links'
+                                    }
+                                </div>
+
+                                {/* Quick Actions */}
+                                <div className="flex flex-wrap items-center gap-2">
                                     <button
-                                        onClick={() => handleSearchChange({ search: "" })}
-                                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                                        onClick={() => refetch()}
+                                        className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                                     >
-                                        Clear Search
+                                        Refresh
                                     </button>
-                                )}
+                                    {searchParams.search && (
+                                        <button
+                                            onClick={() => handleSearchChange({ search: "" })}
+                                            className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                                        >
+                                            Clear Search
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -425,95 +416,100 @@ export const RegistrationLinksManager: React.FC = () => {
                         selectedLinks={selectedLinks}
                         onSelectLink={handleSelectLink}
                         onSelectAll={handleSelectAll}
+                        onBulkDelete={handleBulkDelete}
+                        onBulkToggleStatus={handleBulkToggleStatus}
                     />
                 )}
 
                 {/* Enhanced Pagination */}
                 {!showForm && pagination.totalPages > 1 && (
                     <div className="mt-6 flex justify-center">
-                        <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
-                            {/* Previous Button */}
-                            <button
-                                onClick={() => handleSearchChange({ page: pagination.page - 1 })}
-                                disabled={pagination.page === 1}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                Previous
-                            </button>
+                        <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-md">
+                            {/* Pagination Controls */}
+                            <div className="flex items-center gap-2">
+                                {/* Previous Button */}
+                                <button
+                                    onClick={() => handleSearchChange({ page: pagination.page - 1 })}
+                                    disabled={pagination.page === 1}
+                                    className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                >
+                                    Prev
+                                </button>
 
-                            {/* Page Numbers */}
-                            <div className="flex items-center gap-1">
-                                {/* First page */}
-                                {pagination.page > 3 && (
-                                    <>
-                                        <button
-                                            onClick={() => handleSearchChange({ page: 1 })}
-                                            className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            1
-                                        </button>
-                                        {pagination.page > 4 && (
-                                            <span className="px-2 text-gray-500">...</span>
-                                        )}
-                                    </>
-                                )}
+                                {/* Page Numbers */}
+                                <div className="flex items-center gap-1">
+                                    {/* First page */}
+                                    {pagination.page > 3 && (
+                                        <>
+                                            <button
+                                                onClick={() => handleSearchChange({ page: 1 })}
+                                                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                            >
+                                                1
+                                            </button>
+                                            {pagination.page > 4 && (
+                                                <span className="px-2 text-gray-500 text-sm">...</span>
+                                            )}
+                                        </>
+                                    )}
 
-                                {/* Current page and neighbors */}
-                                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                                    let pageNum;
-                                    if (pagination.totalPages <= 5) {
-                                        pageNum = i + 1;
-                                    } else if (pagination.page <= 3) {
-                                        pageNum = i + 1;
-                                    } else if (pagination.page >= pagination.totalPages - 2) {
-                                        pageNum = pagination.totalPages - 4 + i;
-                                    } else {
-                                        pageNum = pagination.page - 2 + i;
-                                    }
+                                    {/* Current page and neighbors */}
+                                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (pagination.totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (pagination.page <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (pagination.page >= pagination.totalPages - 2) {
+                                            pageNum = pagination.totalPages - 4 + i;
+                                        } else {
+                                            pageNum = pagination.page - 2 + i;
+                                        }
 
-                                    if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+                                        if (pageNum < 1 || pageNum > pagination.totalPages) return null;
 
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => handleSearchChange({ page: pageNum })}
-                                            className={`px-3 py-2 border rounded-md transition-colors ${pageNum === pagination.page
-                                                ? "bg-blue-600 text-white border-blue-600"
-                                                : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                                                }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => handleSearchChange({ page: pageNum })}
+                                                className={`px-3 py-2 border rounded-md transition-colors text-sm ${pageNum === pagination.page
+                                                    ? "bg-blue-600 text-white border-blue-600"
+                                                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
 
-                                {/* Last page */}
-                                {pagination.page < pagination.totalPages - 2 && (
-                                    <>
-                                        {pagination.page < pagination.totalPages - 3 && (
-                                            <span className="px-2 text-gray-500">...</span>
-                                        )}
-                                        <button
-                                            onClick={() => handleSearchChange({ page: pagination.totalPages })}
-                                            className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                                        >
-                                            {pagination.totalPages}
-                                        </button>
-                                    </>
-                                )}
+                                    {/* Last page */}
+                                    {pagination.page < pagination.totalPages - 2 && (
+                                        <>
+                                            {pagination.page < pagination.totalPages - 3 && (
+                                                <span className="px-2 text-gray-500 text-sm">...</span>
+                                            )}
+                                            <button
+                                                onClick={() => handleSearchChange({ page: pagination.totalPages })}
+                                                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                            >
+                                                {pagination.totalPages}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Next Button */}
+                                <button
+                                    onClick={() => handleSearchChange({ page: pagination.page + 1 })}
+                                    disabled={pagination.page >= pagination.totalPages}
+                                    className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                >
+                                    Next
+                                </button>
                             </div>
 
-                            {/* Next Button */}
-                            <button
-                                onClick={() => handleSearchChange({ page: pagination.page + 1 })}
-                                disabled={pagination.page >= pagination.totalPages}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                Next
-                            </button>
-
                             {/* Page Info */}
-                            <div className="ml-4 px-4 py-2 text-sm text-gray-600 font-medium border-l border-gray-300">
+                            <div className="text-sm text-gray-600 font-medium">
                                 Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
                             </div>
                         </div>
