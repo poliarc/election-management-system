@@ -53,7 +53,7 @@ export interface RegistrationLinkSearchParams {
     party_id?: number;
     state_id?: number;
     district_id?: number;
-    isActive?: boolean;
+    isActive?: number; // Changed from boolean to number to match API expectation
     created_by?: number;
     sort_by?: 'created_at' | 'updated_at' | 'expires_at' | 'party_name' | 'state_name' | 'district_name';
     order?: 'asc' | 'desc';
@@ -230,6 +230,8 @@ export const registrationLinksApi = createApi({
             invalidatesTags: (_result, _error, { id }) => [
                 { type: "RegistrationLink", id },
                 { type: "RegistrationLink", id: "LIST" },
+                // Invalidate all party-specific caches to ensure fresh data
+                "RegistrationLink",
             ],
         }),
     }),
