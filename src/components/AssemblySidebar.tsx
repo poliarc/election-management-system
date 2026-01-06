@@ -99,21 +99,21 @@ const Icons = {
       />
     </svg>
   ),
-  karyakarta: (
-    <svg
-      className={iconClass}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-    >
-      <path
-        d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
+  // karyakarta: (
+  //   <svg
+  //     className={iconClass}
+  //     viewBox="0 0 24 24"
+  //     fill="none"
+  //     stroke="currentColor"
+  //   >
+  //     <path
+  //       d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
+  //       strokeWidth={1.4}
+  //       strokeLinecap="round"
+  //       strokeLinejoin="round"
+  //     />
+  //   </svg>
+  // ),
   campaigns: (
     <svg
       className={iconClass}
@@ -229,7 +229,7 @@ const primaryItems: NavItem[] = [
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booths },
-  { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
+  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
 const otherItemsBefore: NavItem[] = [
@@ -530,9 +530,8 @@ export default function AssemblySidebar({
                 </span>
               </div>
               <svg
-                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${
-                  switchDropdownOpen ? "rotate-180" : "rotate-0"
-                }`}
+                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"
+                  }`}
                 viewBox="0 0 20 20"
                 fill="none"
               >
@@ -558,7 +557,7 @@ export default function AssemblySidebar({
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===
-                      assignment.assignment_id
+                        assignment.assignment_id
                         ? "bg-indigo-50 text-indigo-900"
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")}
@@ -588,18 +587,18 @@ export default function AssemblySidebar({
                     </div>
                     {selectedAssignment.assignment_id ===
                       assignment.assignment_id && (
-                      <svg
-                        className="h-4 w-4 shrink-0"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
+                        <svg
+                          className="h-4 w-4 shrink-0"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                   </button>
                 ))}
               </div>
