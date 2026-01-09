@@ -1419,7 +1419,7 @@ export default function StateBoothList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedBoothId(null)}
-                              colSpan={9}
+                              colSpan={5}
                             />
                           )}
                       </React.Fragment>

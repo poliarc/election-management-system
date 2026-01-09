@@ -31,6 +31,7 @@ import AssemblyAssignedEvents from "./pages/Assembly/assigned-events/AssignedEve
 import BlockAssignedEvents from "./pages/Block/assigned-events/AssignedEvents";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
+import AssemblyForm20 from "./pages/Assembly/Form20";
 import BlockList from "./pages/Assembly/block/BlockList";
 import CreateBlock from "./pages/Assembly/block/CreateBlock";
 import AssignBlock from "./pages/Assembly/block/AssignBlock";
@@ -126,6 +127,7 @@ import SubLevelBooths from "./pages/SubLevelPanel/Booths";
 import SubLevelSearchVoter from "./pages/SubLevelPanel/SearchVoter";
 import SubLevelBoothVoters from "./pages/SubLevelPanel/BoothVoters";
 import SubLevelAssignUser from "./pages/SubLevelPanel/AssignUser";
+import SubLevelForm20 from "./pages/SubLevelPanel/Form20";
 import {
   BoothManagementDashboard,
   AllAgentsPage,
@@ -326,6 +328,7 @@ export default function App() {
               element={<FamilyLabelsPage />}
             />
             <Route path="team" element={<AssemblyTeam />} />
+            <Route path="form-20" element={<AssemblyForm20 />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />
             <Route path="block/assign" element={<AssignBlock />} />
@@ -430,6 +433,7 @@ export default function App() {
             <Route path="assign-user" element={<SubLevelAssignUser />} />
             <Route path="booths" element={<SubLevelBooths />} />
             <Route path="booth-voters" element={<SubLevelBoothVoters />} />
+            <Route path="form-20" element={<SubLevelForm20 />} />
             <Route path="profile" element={<Profile />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<SubLevelSearchVoter />} />
