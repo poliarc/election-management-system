@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import AssignBoothVotersModal from "../../../components/AssignBoothVotersModal";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
+import ResultAnalysisModal from "../../../components/ResultAnalysisModal";
 import toast from "react-hot-toast";
 import { deleteBoothDeletedVoterFile, bulkDeleteBoothDeletedVoterFiles } from "../../../services/boothDeletedVoterFilesApi";
 
@@ -44,6 +45,14 @@ export default function BoothList() {
 
   // State for filtering booths without users
   const [showBoothsWithoutUsers, setShowBoothsWithoutUsers] = useState(false);
+
+  // State for Result Analysis Modal
+  const [isResultAnalysisModalOpen, setIsResultAnalysisModalOpen] = useState(false);
+  const [selectedBoothForAnalysis, setSelectedBoothForAnalysis] = useState<{
+    boothId: number;
+    assemblyId: number;
+    boothName: string;
+  } | null>(null);
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -819,6 +828,21 @@ export default function BoothList() {
     }
   };
 
+  // Handle Result Analysis Modal
+  const handleResultAnalysisClick = (booth: any) => {
+    setSelectedBoothForAnalysis({
+      boothId: booth.id,
+      assemblyId: assemblyInfo.assemblyId,
+      boothName: booth.displayName,
+    });
+    setIsResultAnalysisModalOpen(true);
+  };
+
+  const handleCloseResultAnalysisModal = () => {
+    setIsResultAnalysisModalOpen(false);
+    setSelectedBoothForAnalysis(null);
+  };
+
   const totalPages = Math.ceil(filteredBooths.length / itemsPerPage);
   const paginatedBooths = filteredBooths.slice(
     (currentPage - 1) * itemsPerPage,
@@ -1223,6 +1247,9 @@ export default function BoothList() {
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Uploaded Files
                       </th>
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Result Analysis
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1431,6 +1458,27 @@ export default function BoothList() {
                               )}
                             </button>
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => handleResultAnalysisClick(booth)}
+                              className="inline-flex items-center p-2 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 hover:text-orange-700 transition-colors"
+                              title="Result Analysis"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                />
+                              </svg>
+                            </button>
+                          </td>
                         </tr>
 
                         {/* Inline User Display */}
@@ -1463,13 +1511,13 @@ export default function BoothList() {
                                 window.location.reload();
                               }}
                               onClose={() => setExpandedBoothId(null)}
-                              colSpan={10}
+                              colSpan={11}
                             />
                           )}
 
                         {expandedFilesBoothId === booth.id && (
                           <tr>
-                            <td colSpan={10} className="bg-purple-50 px-6 py-4">
+                            <td colSpan={11} className="bg-purple-50 px-6 py-4">
                               <div className="flex items-start justify-between gap-4">
                                 <div>
                                   <h4 className="text-sm font-semibold text-purple-800 mb-2">
@@ -1808,6 +1856,17 @@ export default function BoothList() {
           assemblyId={assemblyInfo.assemblyId}
           stateId={assemblyInfo.stateId}
           districtId={assemblyInfo.districtId}
+        />
+      )}
+
+      {/* Result Analysis Modal */}
+      {isResultAnalysisModalOpen && selectedBoothForAnalysis && (
+        <ResultAnalysisModal
+          isOpen={isResultAnalysisModalOpen}
+          onClose={handleCloseResultAnalysisModal}
+          boothId={selectedBoothForAnalysis.boothId}
+          assemblyId={selectedBoothForAnalysis.assemblyId}
+          boothName={selectedBoothForAnalysis.boothName}
         />
       )}
     </div>
