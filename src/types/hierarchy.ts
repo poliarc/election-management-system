@@ -43,7 +43,11 @@ export interface HierarchyChild {
   | "Assembly"
   | "Block"
   | "Mandal"
-  | "Booth";
+  | "Booth"
+  | "Ward"
+  | "Zone"
+  | "Sector"
+  | "PollingCenter";
   parent_id: number | null;
   total_users: number;
   active_users: number;

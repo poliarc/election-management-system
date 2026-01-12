@@ -9,9 +9,9 @@ interface InlineUserDisplayProps {
   users: HierarchyUser[];
   locationName: string;
   locationId: number;
-  locationType: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter';
+  locationType: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter' | 'Ward' | string;
   parentLocationName?: string;
-  parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter';
+  parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter' | 'Ward' | string;
   onUserDeleted: () => void;
   onClose: () => void;
   colSpan: number; // Number of columns to span in parent table
@@ -81,8 +81,8 @@ export default function InlineUserDisplay({
       return str.trim().replace(/[<>]/g, '').slice(0, 100);
     };
 
-    // Validate location types against allowed values
-    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter'];
+    // Validate location types against allowed values (expanded to include more types)
+    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter', 'Ward', 'Zone', 'Sector'];
     const isValidLocationType = (type?: string): boolean => {
       return type ? validLocationTypes.includes(type) : false;
     };
@@ -108,7 +108,7 @@ export default function InlineUserDisplay({
 
   // Function to get parent column header
   const getParentColumnHeader = (): string | null => {
-    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter'];
+    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter', 'Ward', 'Zone', 'Sector'];
     if (parentLocationType && validLocationTypes.includes(parentLocationType)) {
       return parentLocationType;
     }
@@ -117,7 +117,7 @@ export default function InlineUserDisplay({
 
   // Function to get current location column header
   const getCurrentLocationColumnHeader = (): string => {
-    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter'];
+    const validLocationTypes = ['State', 'District', 'Assembly', 'Block', 'Mandal', 'Booth', 'PollingCenter', 'Ward', 'Zone', 'Sector'];
     if (locationType && validLocationTypes.includes(locationType)) {
       return locationType;
     }
@@ -391,12 +391,12 @@ export default function InlineUserDisplay({
                         {shouldShowParentColumn() && (
                           <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getParentColumnHeader()}</th>
                         )}
-                         
+
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getCurrentLocationColumnHeader()}</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Name</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Designation</th>
                         {/* <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Phone Number</th> */}
-                       
+
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Status</th>
                         <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase">Actions</th>
                       </tr>
@@ -416,18 +416,18 @@ export default function InlineUserDisplay({
                               </div>
                             </td>
                           )}
-                          
+
                           <td className="px-4 py-3 text-sm text-gray-600">
                             <div className="text-sm font-medium text-gray-900">
                               {getCurrentLocationName()}
                             </div>
                           </td>
-                          
+
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">
                             {user.first_name} {user.last_name}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">{user.role_name || user.role || user.designation || 'N/A'}</td>
-                          
+
                           <td className="px-4 py-3 text-sm">
                             {(() => {
                               // Enhanced status checking with more field variations
