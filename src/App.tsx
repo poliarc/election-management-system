@@ -96,6 +96,7 @@ import StatePollingCenterList from "./pages/State/pollingCenter/PollingCenterLis
 import DistrictBoothList from "./pages/District/booth/BoothList";
 import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCenterList";
 import StateKaryakartaListing from "./pages/State/karyakarta";
+import DynamicLevelPage from "./pages/State/DynamicLevelPage";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
@@ -215,6 +216,7 @@ export default function App() {
             <Route path="mandal" element={<StateMandalListing />} />
             <Route path="polling-center" element={<StatePollingCenterList />} />
             <Route path="booth" element={<StateBoothList />} />
+            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<StateKaryakartaListing />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
@@ -237,6 +239,7 @@ export default function App() {
               element={<DistrictPollingCenterList />}
             />
             <Route path="booth" element={<DistrictBoothList />} />
+            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
@@ -339,6 +342,7 @@ export default function App() {
               element={<AssemblyPollingCenterPage />}
             />
             <Route path="booth" element={<AssemblyBoothPage />} />
+            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
