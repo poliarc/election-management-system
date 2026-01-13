@@ -125,6 +125,8 @@ export interface ApiPermissions {
   accessibleMandals: StateAssignment[];
   accessiblePollingCenters: StateAssignment[];
   accessibleBooths?: any[]; // Booth assignments with different structure
+  // Dynamic catch-all for any other level types (accessibleWards, accessibleZones, etc.)
+  [key: string]: any;
 }
 
 // Login Response Data
