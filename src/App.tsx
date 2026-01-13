@@ -97,6 +97,7 @@ import DistrictBoothList from "./pages/District/booth/BoothList";
 import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCenterList";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import DynamicLevelPage from "./pages/State/DynamicLevelPage";
+import DistrictDynamicLevelPage from "./pages/District/DynamicLevelPage";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
@@ -239,7 +240,7 @@ export default function App() {
               element={<DistrictPollingCenterList />}
             />
             <Route path="booth" element={<DistrictBoothList />} />
-            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
+            <Route path="dynamic-level/:levelName" element={<DistrictDynamicLevelPage />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
