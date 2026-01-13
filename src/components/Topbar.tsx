@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment, clearSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
 import type { PanelAssignment } from "../types/auth";
+import { getAllDynamicLevelAssignments, getAllDynamicLevelTypes } from "../utils/panelHelpers";
 import GoogleTranslate from "./GoogleTranslate";
 
 export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
@@ -95,59 +96,21 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
     if (isAfterAssemblyPanel) {
       // For AfterAssembly panel, get all assignments with same levelName
-      const allAfterAssemblyAssignments = [
-        ...(permissions?.accessibleBlocks || []),
-        ...(permissions?.accessiblePollingCenters || []),
-        ...(permissions?.accessibleMandals || []),
-      ];
+      const allAfterAssemblyAssignments = getAllDynamicLevelAssignments(permissions);
 
       // Filter by the same levelName (e.g., all "PollingCenter" or all "Block")
       if (currentLevelName) {
         sameTypeAssignments = allAfterAssemblyAssignments
-          .filter((a: any) => a.levelName === currentLevelName)
-          .map((a: any) => ({
-            assignment_id: a.assignment_id,
-            stateMasterData_id: a.afterAssemblyData_id || 0,
-            afterAssemblyData_id: a.afterAssemblyData_id,
-            levelName: a.displayName || a.levelName,
-            levelType: a.levelName,
-            level_id: a.level_id,
-            parentId: a.parentId || a.parentAssemblyId,
-            parentLevelName: a.assemblyName || a.parentLevelName || 'Unknown',
-            parentLevelType: a.parentLevelType || 'Unknown',
-            displayName: a.displayName,
-            assemblyName: a.assemblyName,
-            partyLevelName: a.partyLevelName,
-            partyLevelDisplayName: a.partyLevelDisplayName,
-            partyLevelId: a.partyLevelId,
-          }));
+          .filter((a: StateAssignment) => a.levelName === currentLevelName || a.levelType === currentLevelName);
       }
     } else if (isSubLevelPanel) {
       // For SubLevel panel, get all assignments with same levelName
-      const allSubLevelAssignments = [
-        ...(permissions?.accessiblePollingCenters || []),
-        ...(permissions?.accessibleBooths || []),
-      ];
+      const allSubLevelAssignments = getAllDynamicLevelAssignments(permissions);
 
       // Filter by the same levelName
       if (currentLevelName) {
         sameTypeAssignments = allSubLevelAssignments
-          .filter((a: any) => a.levelName === currentLevelName)
-          .map((a: any) => ({
-            assignment_id: a.assignment_id || a.booth_assignment_id,
-            stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
-            afterAssemblyData_id: a.afterAssemblyData_id,
-            levelName: a.displayName || a.levelName,
-            levelType: a.levelName,
-            level_id: a.level_id,
-            parentId: a.parentId || a.parentLevelId,
-            parentLevelName: a.parentLevelName || 'Unknown',
-            parentLevelType: a.parentLevelType || 'Unknown',
-            displayName: a.displayName,
-            partyLevelName: a.partyLevelName,
-            partyLevelDisplayName: a.partyLevelDisplayName,
-            partyLevelId: a.partyLevelId,
-          }));
+          .filter((a: StateAssignment) => a.levelName === currentLevelName || a.levelType === currentLevelName);
       }
     }
   } else {
@@ -178,32 +141,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     allAssignments.push(...stateAssignments);
   }
 
-  // include dynamic assignments from permissions (blocks, mandals, polling centers, booths)
+  // include dynamic assignments from permissions (all levels after Assembly)
   if (permissions) {
-    const pushMaybe = (a: any) => {
-      const mapped: StateAssignment = {
-        assignment_id: a.assignment_id || a.booth_assignment_id,
-        stateMasterData_id: a.afterAssemblyData_id || a.stateMasterData_id || 0,
-        afterAssemblyData_id: a.afterAssemblyData_id,
-        levelName: a.displayName || a.levelName || a.partyLevelName,
-        levelType: a.levelName || a.partyLevelName || 'Unknown',
-        level_id: a.level_id || a.booth_assignment_id,
-        parentId: a.parentId || a.parentLevelId || a.parentAssemblyId,
-        parentLevelName: a.parentLevelName || a.assemblyName || null,
-        parentLevelType: a.parentLevelType || null,
-        displayName: a.displayName || a.partyLevelDisplayName,
-        assemblyName: a.assemblyName,
-        partyLevelName: a.partyLevelName,
-        partyLevelDisplayName: a.partyLevelDisplayName,
-        partyLevelId: a.partyLevelId,
-      };
-      allAssignments.push(mapped);
-    };
-
-    if (permissions.accessibleBlocks) permissions.accessibleBlocks.forEach(pushMaybe);
-    if (permissions.accessibleMandals) permissions.accessibleMandals.forEach(pushMaybe);
-    if (permissions.accessiblePollingCenters) permissions.accessiblePollingCenters.forEach(pushMaybe);
-    if (permissions.accessibleBooths) permissions.accessibleBooths.forEach(pushMaybe);
+    const dynamicAssignments = getAllDynamicLevelAssignments(permissions);
+    allAssignments.push(...dynamicAssignments);
   }
 
   // remove duplicates by assignment_id
@@ -252,20 +193,20 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       return;
     }
 
-    // Standard navigation
+    // Standard navigation - use dynamic routing for unknown level types
     const levelTypeRoutes: Record<string, string> = {
       State: "/state",
       District: "/district",
       Assembly: "/assembly",
-      Block: "/block",
-      Mandal: "/mandal",
-      PollingCenter: "/polling-center",
-      Booth: "/booth",
     };
 
     const route = levelTypeRoutes[assignment.levelType];
     if (route) {
       navigate(route);
+    } else {
+      // For dynamic levels, use kebab-case routing
+      const dynamicRoute = `/${assignment.levelType.toLowerCase()}`;
+      navigate(dynamicRoute);
     }
   };
 
@@ -304,13 +245,15 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       State: "/state/profile",
       District: "/district/profile",
       Assembly: "/assembly/profile",
-      Block: "/block/profile",
-      Mandal: "/mandal/profile",
-      PollingCenter: "/polling-center/profile",
-      Booth: "/booth/profile",
     };
 
-    return profileRoutes[currentLevelType] || "/profile";
+    const route = profileRoutes[currentLevelType];
+    if (route) {
+      return route;
+    } else {
+      // For dynamic levels, use kebab-case routing
+      return `/${currentLevelType.toLowerCase()}/profile`;
+    }
   };
 
   // Helper: map a permissions item into a full StateAssignment
@@ -598,73 +541,47 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
                       <div className="my-1 border-t border-gray-100" />
 
-                      {/* Dynamic types (Block/Mandal/PollingCenter/Booth) */}
+                      {/* Dynamic types (all levels after Assembly) */}
                       {(() => {
-                        const collect = (source: any[] | undefined, type: string) => {
-                          if (!source || source.length === 0) return [] as StateAssignment[];
-                          return source.map((item: any) => {
-                            if (type === 'Booth') {
-                              return {
-                                assignment_id: item.booth_assignment_id || item.assignment_id,
-                                afterAssemblyData_id: item.booth_assignment_id || item.afterAssemblyData_id,
-                                levelName: item.partyLevelName || item.levelName || 'Booth',
-                                levelType: item.partyLevelName || item.levelName || 'Booth',
-                                displayName: item.partyLevelDisplayName || item.displayName || (`Booth ${item.boothFrom || ''}-${item.boothTo || ''}`),
-                                level_id: item.booth_assignment_id || item.level_id,
-                                parentId: item.parentLevelId || item.parentId,
-                                parentLevelName: item.parentLevelName || 'PollingCenter',
-                                parentLevelType: item.parentLevelType || 'PollingCenter',
-                              } as StateAssignment;
-                            }
-                            const isDirectChildOfAssembly = item.parentId == null;
-                            return {
-                              assignment_id: item.assignment_id,
-                              afterAssemblyData_id: item.afterAssemblyData_id,
-                              levelName: item.displayName || item.levelName,
-                              levelType: item.levelName || type,
-                              displayName: item.displayName || item.levelName,
-                              level_id: item.level_id,
-                              parentId: item.parentId,
-                              parentLevelName: isDirectChildOfAssembly ? 'Assembly' : (item.parentLevelName || 'Unknown'),
-                              parentLevelType: isDirectChildOfAssembly ? 'Assembly' : (item.parentLevelType || 'Unknown'),
-                              assemblyName: item.assemblyName,
-                            } as StateAssignment;
-                          });
-                        };
-
-                        const groups = [
-                          { type: 'Block', items: collect(permissions?.accessibleBlocks || [], 'Block') },
-                          { type: 'Mandal', items: collect(permissions?.accessibleMandals || [], 'Mandal') },
-                          { type: 'PollingCenter', items: collect(permissions?.accessiblePollingCenters || [], 'PollingCenter') },
-                          { type: 'Booth', items: collect(permissions?.accessibleBooths || [], 'Booth') },
-                        ];
+                        // Get all dynamic level types from permissions
+                        const dynamicLevelTypes = getAllDynamicLevelTypes(permissions);
+                        const allDynamicAssignments = getAllDynamicLevelAssignments(permissions);
+                        
+                        // Group assignments by level type
+                        const groupedByType = dynamicLevelTypes.map(levelType => {
+                          const assignments = allDynamicAssignments.filter(a => 
+                            a.levelType === levelType || a.levelName === levelType
+                          );
+                          return {
+                            type: levelType,
+                            items: assignments
+                          };
+                        }).filter(group => group.items.length > 0);
 
                         return (
                           <div>
-                            {groups.map((g) =>
-                              g.items.length === 0 ? null : (
-                                <button
-                                  key={`dyn-${g.type}`}
-                                  onClick={() => handleAssignmentSwitch(g.items[0])}
-                                  className={[
-                                    "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
-                                    selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type
-                                      ? "bg-indigo-50 text-indigo-900"
-                                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
-                                  ].join(' ')}
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate text-xs sm:text-sm">{g.type}</div>
-                                    <div className="text-xs text-gray-500">{g.items.length} Assigned</div>
-                                  </div>
-                                  {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
-                                </button>
-                              )
-                            )}
+                            {groupedByType.map((g) => (
+                              <button
+                                key={`dyn-${g.type}`}
+                                onClick={() => handleAssignmentSwitch(g.items[0])}
+                                className={[
+                                  "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
+                                  selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type
+                                    ? "bg-indigo-50 text-indigo-900"
+                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                                ].join(' ')}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium truncate text-xs sm:text-sm">{g.type}</div>
+                                  <div className="text-xs text-gray-500">{g.items.length} Assigned</div>
+                                </div>
+                                {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
+                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                            ))}
                           </div>
                         );
                       })()}

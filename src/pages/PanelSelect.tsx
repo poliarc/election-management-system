@@ -7,6 +7,7 @@ import type { StateAssignment } from "../types/api";
 import {
   getPanelRoute,
   getLevelIcon,
+  getAllDynamicLevelAssignments,
 } from "../utils/panelHelpers";
 
 // Fixed level types (State → District → Assembly)
@@ -206,96 +207,7 @@ export default function PanelSelect() {
 
   // Collect all dynamic level assignments from permissions - memoized to prevent recreation
   const dynamicLevelAssignments = useMemo(() => {
-    const assignments: StateAssignment[] = [];
-
-    if (permissions) {
-      // Add Blocks
-      if (permissions.accessibleBlocks) {
-        assignments.push(...permissions.accessibleBlocks.map(block => {
-          // If parentId is null or undefined, it's a direct child of Assembly
-          const isDirectChildOfAssembly = block.parentId === null || block.parentId === undefined;
-          return {
-            assignment_id: block.assignment_id,
-            stateMasterData_id: block.afterAssemblyData_id || 0,
-            afterAssemblyData_id: block.afterAssemblyData_id,
-            levelName: block.displayName || block.levelName || 'Block',
-            levelType: block.levelName || 'Block',
-            displayName: block.displayName || block.levelName,
-            level_id: block.level_id,
-            parentId: block.parentId,
-            parentLevelName: block.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentLevelType: block.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentAssemblyId: block.parentAssemblyId,
-            assemblyName: block.assemblyName,
-          };
-        }));
-      }
-
-      // Add Mandals
-      if (permissions.accessibleMandals) {
-        assignments.push(...permissions.accessibleMandals.map(mandal => {
-          const isDirectChildOfAssembly = mandal.parentId === null || mandal.parentId === undefined;
-          return {
-            assignment_id: mandal.assignment_id,
-            stateMasterData_id: mandal.afterAssemblyData_id || 0,
-            afterAssemblyData_id: mandal.afterAssemblyData_id,
-            levelName: mandal.displayName || mandal.levelName || 'Mandal',
-            levelType: mandal.levelName || 'Mandal',
-            displayName: mandal.displayName || mandal.levelName,
-            level_id: mandal.level_id,
-            parentId: mandal.parentId,
-            parentLevelName: mandal.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentLevelType: mandal.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentAssemblyId: mandal.parentAssemblyId,
-            assemblyName: mandal.assemblyName,
-          };
-        }));
-      }
-
-      // Add Polling Centers
-      if (permissions.accessiblePollingCenters) {
-        assignments.push(...permissions.accessiblePollingCenters.map(pc => {
-          const isDirectChildOfAssembly = pc.parentId === null || pc.parentId === undefined;
-          return {
-            assignment_id: pc.assignment_id,
-            stateMasterData_id: pc.afterAssemblyData_id || 0,
-            afterAssemblyData_id: pc.afterAssemblyData_id,
-            levelName: pc.displayName || pc.levelName || 'PollingCenter',
-            levelType: pc.levelName || 'PollingCenter',
-            displayName: pc.displayName || pc.levelName,
-            level_id: pc.level_id,
-            parentId: pc.parentId,
-            parentLevelName: pc.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentLevelType: pc.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-            parentAssemblyId: pc.parentAssemblyId,
-            assemblyName: pc.assemblyName,
-          };
-        }));
-      }
-
-      // Add Booths
-      if (permissions.accessibleBooths && permissions.accessibleBooths.length > 0) {
-        assignments.push(...permissions.accessibleBooths.map(booth => {
-          const isDirectChildOfAssembly = booth.parentLevelId === null || booth.parentLevelId === undefined;
-          return {
-            assignment_id: booth.booth_assignment_id,
-            stateMasterData_id: booth.booth_assignment_id || 0,
-            afterAssemblyData_id: booth.booth_assignment_id,
-            levelName: booth.partyLevelName || 'Booth',
-            levelType: booth.partyLevelName || 'Booth',
-            displayName: `${booth.partyLevelDisplayName || 'Booth'} (${booth.boothFrom}-${booth.boothTo})`,
-            level_id: booth.booth_assignment_id,
-            parentId: booth.parentLevelId,
-            parentLevelName: booth.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'PollingCenter'),
-            parentLevelType: booth.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'PollingCenter'),
-            parentAssemblyId: undefined,
-            assemblyName: undefined,
-          };
-        }));
-      }
-    }
-
-    return assignments;
+    return getAllDynamicLevelAssignments(permissions);
   }, [permissions]);
 
   const hasAnyAccess = isPartyAdmin || isLevelAdmin || hasStateAssignments || dynamicLevelAssignments.length > 0;
