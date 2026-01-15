@@ -53,6 +53,7 @@ export interface UpdatePartyWiseLevelRequest {
 export interface SidebarLevel {
     level_name: string;
     display_level_name: string;
+    parent_level_name?: string;
 }
 
 export const partyWiseLevelApi = createApi({

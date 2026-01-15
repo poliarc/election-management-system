@@ -98,6 +98,7 @@ import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCen
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import DynamicLevelPage from "./pages/State/DynamicLevelPage";
 import DistrictDynamicLevelPage from "./pages/District/DynamicLevelPage";
+import AssemblyDynamicLevelPage from "./pages/Assembly/DynamicLevelPage";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
@@ -337,13 +338,14 @@ export default function App() {
             <Route path="block/create" element={<CreateBlock />} />
             <Route path="block/assign" element={<AssignBlock />} />
             <Route path="block/users" element={<ViewBlockUsers />} />
+            <Route path=":levelName/assign" element={<AssignBlock />} />
             <Route path="mandal" element={<AssemblyMandalPage />} />
             <Route
               path="polling-center"
               element={<AssemblyPollingCenterPage />}
             />
             <Route path="booth" element={<AssemblyBoothPage />} />
-            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
+            <Route path="dynamic-level/:levelName" element={<AssemblyDynamicLevelPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
