@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useGetBlockHierarchyQuery } from "../store/api/blockTeamApi";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
@@ -16,11 +15,8 @@ export default function DynamicLevelList({
     levelName,
     displayLevelName }: DynamicLevelListProps) {
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
-    const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
-    const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-    const [selectedMandalId, setSelectedMandalId] = useState<number>(0);
-    const [selectedPollingCenterId, setSelectedPollingCenterId] = useState<number>(0);
+    // Dynamic filters instead of hardcoded ones
+    const [selectedFilters, setSelectedFilters] = useState<Record<string, number>>({});
     const [selectedLevelFilter, setSelectedLevelFilter] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(20);
@@ -28,37 +24,28 @@ export default function DynamicLevelList({
     // Reset all filters when levelName changes (navigation to different level)
     useEffect(() => {
         setSearchTerm("");
-        setSelectedDistrictId(0);
-        setSelectedAssemblyId(0);
-        setSelectedBlockId(0);
-        setSelectedMandalId(0);
-        setSelectedPollingCenterId(0);
+        setSelectedFilters({});
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
         setExpandedItemId(null);
         setItemUsers({});
+        setAllLevelItems([]);
+        setParentInfo({});
+        setItemUserCounts({});
     }, [levelName]);
 
     // Function to reset all filters manually
     const resetAllFilters = () => {
         setSearchTerm("");
-        setSelectedDistrictId(0);
-        setSelectedAssemblyId(0);
-        setSelectedBlockId(0);
-        setSelectedMandalId(0);
-        setSelectedPollingCenterId(0);
+        setSelectedFilters({});
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
     };
 
-    // State for filter data - following the same pattern as existing files
-    const [districts, setDistricts] = useState<any[]>([]);
-    const [assemblies, setAssemblies] = useState<any[]>([]);
-    const [blocks, setBlocks] = useState<any[]>([]);
-    const [mandals, setMandals] = useState<any[]>([]);
-    const [pollingCenters, setPollingCenters] = useState<any[]>([]);
+    // State for filter data - will be populated dynamically
+    const [dynamicFilterOptions, setDynamicFilterOptions] = useState<Record<string, any[]>>({});
 
     // State for all items of the current level
     const [allLevelItems, setAllLevelItems] = useState<any[]>([]);
@@ -200,13 +187,133 @@ export default function DynamicLevelList({
         const currentLevelIndex = hierarchyOrder.indexOf(levelName);
         if (currentLevelIndex === -1) return hierarchyOrder.slice(0, 6); // Default fallback
 
-        // Show filters up to (but not including) the current level
-        return hierarchyOrder.slice(0, currentLevelIndex);
+        // Show filters up to (but not including) the current level, excluding State
+        return hierarchyOrder.slice(1, currentLevelIndex); // Start from index 1 to skip "State"
     };
 
     const visibleFilters = getVisibleFilters();
 
-    // Helper function to fetch all pages - same as existing files
+    // Handle dynamic filter change
+    const handleFilterChange = (levelName: string, value: number) => {
+        // Reset all dependent filters when a filter changes
+        const levelIndex = hierarchyOrder.indexOf(levelName);
+        const newFilters = { ...selectedFilters };
+        const newFilterOptions = { ...dynamicFilterOptions };
+        
+        // Remove all filters after the changed one
+        visibleFilters.forEach((filter) => {
+            if (hierarchyOrder.indexOf(filter) > levelIndex) {
+                delete newFilters[filter];
+                // Also clear filter options for dependent levels
+                delete newFilterOptions[filter];
+            }
+        });
+        
+        if (value > 0) {
+            newFilters[levelName] = value;
+        } else {
+            delete newFilters[levelName];
+        }
+        
+        setSelectedFilters(newFilters);
+        setDynamicFilterOptions(newFilterOptions);
+        setCurrentPage(1);
+    };
+
+    // Fetch filter options for each level based on parent selections
+    useEffect(() => {
+        const populateFilterOptions = async () => {
+            const newFilterOptions = { ...dynamicFilterOptions };
+            
+            // First, always fetch District options (children of State)
+            if (!newFilterOptions["District"] || newFilterOptions["District"].length === 0) {
+                if (stateInfo.stateId) {
+                    try {
+                        const districtData = await fetchAllPages(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
+                        );
+                        newFilterOptions["District"] = districtData.map((d: any) => ({
+                            id: d.location_id || d.id,
+                            displayName: d.location_name,
+                            levelName: "District"
+                        }));
+                    } catch (error) {
+                        console.error("Error fetching districts:", error);
+                    }
+                }
+            }
+            
+            // Fetch options for each selected filter
+            for (let i = 0; i < visibleFilters.length; i++) {
+                const currentLevel = visibleFilters[i];
+                const selectedId = selectedFilters[currentLevel];
+                
+                if (selectedId && selectedId > 0) {
+                    const nextLevel = visibleFilters[i + 1];
+                    
+                    // Determine which API to use based on current level
+                    if (nextLevel) {
+                        if (currentLevel === "District") {
+                            // Fetch Assemblies from state hierarchy API
+                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => !x.parentLevelId)) {
+                                try {
+                                    const assemblyData = await fetchAllPages(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedId}`
+                                    );
+                                    newFilterOptions[nextLevel] = assemblyData.map((a: any) => ({
+                                        id: a.location_id || a.id,
+                                        displayName: a.location_name,
+                                        levelName: "Assembly",
+                                        parentLevelId: selectedId
+                                    }));
+                                } catch (error) {
+                                    console.error(`Error fetching ${nextLevel}:`, error);
+                                }
+                            }
+                        } else if (currentLevel === "Assembly") {
+                            // Fetch after-assembly direct children
+                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => x.parentLevelId !== selectedId)) {
+                                try {
+                                    const response = await fetch(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${selectedId}`,
+                                        { headers: { Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` } }
+                                    );
+                                    const data = await response.json();
+                                    newFilterOptions[nextLevel] = (data.data || []).map((item: any) => ({
+                                        ...item,
+                                        parentLevelId: selectedId
+                                    }));
+                                } catch (error) {
+                                    console.error(`Error fetching ${nextLevel}:`, error);
+                                }
+                            }
+                        } else {
+                            // Fetch after-assembly hierarchy children for other levels
+                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => x.parentLevelId !== selectedId)) {
+                                try {
+                                    const childrenData = await fetchAllPages(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedId}`
+                                    );
+                                    newFilterOptions[nextLevel] = childrenData.map((item: any) => ({
+                                        ...item,
+                                        parentLevelId: selectedId,
+                                        levelName: item.levelName || nextLevel
+                                    }));
+                                } catch (error) {
+                                    console.error(`Error fetching ${nextLevel}:`, error);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            setDynamicFilterOptions(newFilterOptions);
+        };
+        
+        populateFilterOptions();
+    }, [stateInfo.stateId, selectedFilters]);
+
     const fetchAllPages = async (url: string) => {
         let allData: any[] = [];
         let page = 1;
@@ -238,202 +345,36 @@ export default function DynamicLevelList({
         }
 
         return allData;
-    };    // Fetch districts - same pattern as existing files
-    useEffect(() => {
-        const fetchDistricts = async () => {
-            if (!stateInfo.stateId) return;
-            try {
-                const districtsData = await fetchAllPages(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
-                );
-                const mappedDistricts = districtsData.map((district: any) => ({
-                    id: district.location_id || district.id,
-                    displayName: district.location_name,
-                    levelName: "District",
-                    location_id: district.location_id,
-                }));
-                setDistricts(mappedDistricts);
-            } catch (error) {
-                console.error("Error fetching districts:", error);
-            }
-        };
-        fetchDistricts();
-    }, [stateInfo.stateId]);
-
-    // Fetch assemblies when district is selected - same pattern
-    useEffect(() => {
-        const fetchAssemblies = async () => {
-            if (!selectedDistrictId) {
-                setAssemblies([]);
-                return;
-            }
-            try {
-                const assembliesData = await fetchAllPages(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}`
-                );
-                const mappedAssemblies = assembliesData.map((assembly: any) => ({
-                    id: assembly.location_id || assembly.id,
-                    displayName: assembly.location_name,
-                    levelName: "Assembly",
-                    location_id: assembly.location_id,
-                }));
-                setAssemblies(mappedAssemblies);
-            } catch (error) {
-                console.error("Error fetching assemblies:", error);
-            }
-        };
-        fetchAssemblies();
-    }, [selectedDistrictId]);
-
-    // Fetch after-assembly levels when assembly is selected - flexible approach
-    useEffect(() => {
-        const fetchAfterAssemblyLevels = async () => {
-            if (!selectedAssemblyId) {
-                setBlocks([]);
-                return;
-            }
-            try {
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${selectedAssemblyId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                        },
-                    }
-                );
-                const data = await response.json();
-                if (data.success) {
-                    // These are direct children of assembly (parentAssemblyId exists, parentId is null)
-                    setBlocks(data.data || []);
-                }
-            } catch (error) {
-                console.error("Error fetching after-assembly levels:", error);
-            }
-        };
-        fetchAfterAssemblyLevels();
-    }, [selectedAssemblyId]);    // Fetch mandals when block is selected - using blockTeamApi pattern
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
-
-    useEffect(() => {
-        if (mandalHierarchyData?.children) {
-            setMandals(mandalHierarchyData.children);
-        } else {
-            setMandals([]);
-        }
-    }, [mandalHierarchyData]);
-
-    // Fetch polling centers when mandal is selected - using blockTeamApi pattern
-    const { data: pollingCenterHierarchyData } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
-
-    useEffect(() => {
-        if (pollingCenterHierarchyData?.children) {
-            const filteredChildren = pollingCenterHierarchyData.children.filter(
-                (item: any) => item.levelName !== "Booth"
-            );
-            setPollingCenters(filteredChildren);
-        } else {
-            setPollingCenters([]);
-        }
-    }, [pollingCenterHierarchyData]);
+    };
 
     // Get current level items based on filters - improved flexible approach
     const getCurrentLevelItems = () => {
         let filteredItems = allLevelItems;
 
-        // Apply district filter
-        if (selectedDistrictId > 0) {
-            filteredItems = filteredItems.filter((item) =>
-                item.districtId === selectedDistrictId ||
-                item.district_id === selectedDistrictId
-            );
-        }
-
-        // Apply assembly filter
-        if (selectedAssemblyId > 0) {
-            filteredItems = filteredItems.filter((item) =>
-                item.assemblyId === selectedAssemblyId ||
-                item.assembly_id === selectedAssemblyId
-            );
-        }
-
-        // Apply flexible filtering for after-assembly levels
-        if (selectedBlockId > 0) {
-            filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedBlockId || item.blockId === selectedBlockId) {
-                    return true;
-                }
-
-                // Check if this item is the selected block itself
-                if (item.id === selectedBlockId) {
-                    return true;
-                }
-
-                // Check if item has block in its hierarchy chain
-                if (item.parentLevelType === "Block" && item.parentLevelId === selectedBlockId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
-                return item.blockId === selectedBlockId ||
-                    item.block_id === selectedBlockId ||
-                    (item.parentHierarchy && item.parentHierarchy.includes(selectedBlockId));
-            });
-        }
-
-        if (selectedMandalId > 0) {
-            filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedMandalId || item.mandalId === selectedMandalId) {
-                    return true;
-                }
-
-                // Check if this item is the selected mandal itself
-                if (item.id === selectedMandalId) {
-                    return true;
-                }
-
-                // Check if item has mandal in its hierarchy chain
-                if (item.parentLevelType === "Mandal" && item.parentLevelId === selectedMandalId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
-                return item.mandalId === selectedMandalId ||
-                    item.mandal_id === selectedMandalId ||
-                    (item.parentHierarchy && item.parentHierarchy.includes(selectedMandalId));
-            });
-        }
-
-        if (selectedPollingCenterId > 0) {
-            filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedPollingCenterId || item.pollingCenterId === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // Check if this item is the selected polling center itself
-                if (item.id === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // Check if item has polling center in its hierarchy chain
-                if (item.parentLevelType === "PollingCenter" && item.parentLevelId === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
-                return item.pollingCenterId === selectedPollingCenterId ||
-                    item.polling_center_id === selectedPollingCenterId ||
-                    (item.parentHierarchy && item.parentHierarchy.includes(selectedPollingCenterId));
-            });
-        }
+        // Apply filters dynamically based on visible filters
+        visibleFilters.forEach((filterLevel) => {
+            const selectedIdForFilter = selectedFilters[filterLevel];
+            if (selectedIdForFilter && selectedIdForFilter > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    // Check direct parent relationship
+                    if (item.parentLevelId === selectedIdForFilter) return true;
+                    
+                    // Check parent chain (full hierarchy)
+                    if (item.parentChain && item.parentChain[filterLevel] === selectedIdForFilter) return true;
+                    
+                    // Check if the item has this level's id in various property names
+                    const levelKey = filterLevel.toLowerCase();
+                    if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
+                    if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
+                    
+                    // Check parent hierarchy
+                    if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) return true;
+                    if (item.parentHierarchy && item.parentHierarchy.includes(selectedIdForFilter)) return true;
+                    
+                    return false;
+                });
+            }
+        });
 
         return filteredItems;
     };
@@ -1117,149 +1058,37 @@ export default function DynamicLevelList({
                                 />
                             </div>
 
-                            {/* District Filter - Show if level is after District */}
-                            {visibleFilters.includes("District") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        District
-                                    </label>
-                                    <select
-                                        value={selectedDistrictId}
-                                        onChange={(e) => {
-                                            setSelectedDistrictId(Number(e.target.value));
-                                            setSelectedAssemblyId(0);
-                                            setSelectedBlockId(0);
-                                            setSelectedMandalId(0);
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value={0}>All Districts</option>
-                                        {districts.map((district) => (
-                                            <option
-                                                key={district.location_id || district.id}
-                                                value={district.location_id || district.id}
-                                            >
-                                                {district.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Assembly Filter - Show if level is after Assembly */}
-                            {visibleFilters.includes("Assembly") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Assembly
-                                    </label>
-                                    <select
-                                        value={selectedAssemblyId}
-                                        onChange={(e) => {
-                                            setSelectedAssemblyId(Number(e.target.value));
-                                            setSelectedBlockId(0);
-                                            setSelectedMandalId(0);
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedDistrictId}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Assemblies</option>
-                                        {assemblies.map((assembly) => (
-                                            <option
-                                                key={assembly.location_id || assembly.id}
-                                                value={assembly.location_id || assembly.id}
-                                            >
-                                                {assembly.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-                            {/* Block Filter - Show if level is after Block */}
-                            {visibleFilters.includes("Block") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Block
-                                    </label>
-                                    <select
-                                        value={selectedBlockId}
-                                        onChange={(e) => {
-                                            setSelectedBlockId(Number(e.target.value));
-                                            setSelectedMandalId(0);
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedAssemblyId}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Blocks</option>
-                                        {blocks.map((block) => (
-                                            <option key={block.id} value={block.id}>
-                                                {block.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Mandal Filter - Show if level is after Mandal */}
-                            {visibleFilters.includes("Mandal") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mandal
-                                    </label>
-                                    <select
-                                        value={selectedMandalId}
-                                        onChange={(e) => {
-                                            setSelectedMandalId(Number(e.target.value));
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedBlockId}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Mandals</option>
-                                        {mandals.map((mandal) => (
-                                            <option key={mandal.id} value={mandal.id}>
-                                                {mandal.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Polling Center Filter - Show if level is after PollingCenter */}
-                            {visibleFilters.includes("PollingCenter") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Polling Center
-                                    </label>
-                                    <select
-                                        value={selectedPollingCenterId}
-                                        onChange={(e) => {
-                                            setSelectedPollingCenterId(Number(e.target.value));
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedMandalId}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Polling Centers</option>
-                                        {pollingCenters.map((pc) => (
-                                            <option key={pc.id} value={pc.id}>
-                                                {pc.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            {/* Dynamic Filters - Render based on hierarchy */}
+                            {visibleFilters.map((filterLevel) => {
+                                const filterOptions = dynamicFilterOptions[filterLevel] || [];
+                                const parentFilterLevel = visibleFilters[visibleFilters.indexOf(filterLevel) - 1];
+                                const parentSelected = selectedFilters[parentFilterLevel];
+                                const isDisabled = !!(parentFilterLevel && (!parentSelected || parentSelected === 0));
+                                
+                                return (
+                                    <div key={filterLevel}>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            {filterLevel}
+                                        </label>
+                                        <select
+                                            value={selectedFilters[filterLevel] || 0}
+                                            onChange={(e) => handleFilterChange(filterLevel, Number(e.target.value))}
+                                            disabled={isDisabled}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                        >
+                                            <option value={0}>All {filterLevel}s</option>
+                                            {filterOptions.map((option: any) => (
+                                                <option
+                                                    key={option.id}
+                                                    value={option.id}
+                                                >
+                                                    {option.displayName || option.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                );
+                            })}
 
                             {/* Current Level Filter */}
                             <div>
@@ -1321,7 +1150,7 @@ export default function DynamicLevelList({
                             <div className="flex items-end">
                                 <button
                                     onClick={resetAllFilters}
-                                    disabled={!selectedDistrictId && !selectedAssemblyId && !selectedBlockId && !selectedMandalId && !selectedPollingCenterId && !searchTerm && !selectedLevelFilter}
+                                    disabled={Object.keys(selectedFilters).length === 0 && !searchTerm && !selectedLevelFilter}
                                     className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200"
                                     title="Clear all filters and reset search"
                                 >
