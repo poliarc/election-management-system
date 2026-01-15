@@ -1,7 +1,5 @@
 import React, { useState, useEffect, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetBlockHierarchyQuery } from "../store/api/blockTeamApi";
-import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import InlineUserDisplay from "./InlineUserDisplay";
@@ -57,6 +55,7 @@ export default function AssemblyDynamicLevelList({
         setItemUsers({});
         setItemUserCounts({}); // Reset user counts when level changes
         setAllLevelItems([]); // Reset all level items
+        setDynamicFilters({}); // Reset dynamic filters
     }, [levelName]);
 
     // Function to reset all filters manually
@@ -68,13 +67,21 @@ export default function AssemblyDynamicLevelList({
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
+        setDynamicFilters({});
+        setSelectedFilters({});
+        setDynamicFilterData({});
         // Don't reset user counts when just clearing filters, only when level changes
     };
 
-    // State for filter data - Assembly context (no assembly filter needed)
-    const [blocks, setBlocks] = useState<any[]>([]);
-    const [mandals, setMandals] = useState<any[]>([]);
-    const [pollingCenters, setPollingCenters] = useState<any[]>([]);
+    // State for filter data - Assembly context (same as District approach)
+    // Dynamic filter state: maps level name to selected ID
+    const [selectedFilters, setSelectedFilters] = useState<Record<string, number>>({});
+
+    // Dynamic filter data: maps level name to array of items
+    const [dynamicFilterData, setDynamicFilterData] = useState<Record<string, any[]>>({});
+
+    // Keep old state for backward compatibility
+    const [dynamicFilters, setDynamicFilters] = useState<Record<string, { id: number; items: any[] }>>({});
 
     // State for all items of the current level
     const [allLevelItems, setAllLevelItems] = useState<any[]>([]);
@@ -89,10 +96,67 @@ export default function AssemblyDynamicLevelList({
     // State for user counts
     const [itemUserCounts, setItemUserCounts] = useState<Record<number, number>>({});
 
-    // State for dynamic hierarchy order
-    const [hierarchyOrder, setHierarchyOrder] = useState<string[]>([
-        "State", "District", "Assembly", "Block", "Mandal", "PollingCenter", "Ward", "Zone", "Sector", "Booth"
-    ]);
+    // State for dynamic hierarchy order (actual parent-child chain for current level)
+    const [actualHierarchyChain, setActualHierarchyChain] = useState<string[]>([]);
+
+    // Fallback: Infer hierarchy from first item's data structure (FULLY DYNAMIC)
+    const inferHierarchyFromData = (items: any[]): string[] => {
+        if (items.length === 0) return [];
+
+        const firstItem = items[0];
+        const hierarchy: string[] = [];
+
+        console.log(`[Hierarchy Inference] Analyzing first item:`, firstItem);
+
+        // Dynamically detect all properties that end with 'Name' or 'Id' and might be parent levels
+        // Build a map of potential parent properties
+        const potentialParents: Array<{ key: string; level: string; id?: number }> = [];
+
+        for (const key in firstItem) {
+            // Check if property ends with 'Name' and has a corresponding 'Id' property
+            if (key.endsWith('Name') && !key.includes('display') && !key.includes('party')) {
+                const levelName = key.replace('Name', '');
+                const idKey = `${levelName}Id`;
+                const altIdKey = `${levelName}_id`;
+
+                // Check if corresponding ID exists
+                if (firstItem[idKey] || firstItem[altIdKey]) {
+                    const level = levelName.charAt(0).toUpperCase() + levelName.slice(1); // Capitalize
+                    potentialParents.push({
+                        key: key,
+                        level: level,
+                        id: firstItem[idKey] || firstItem[altIdKey]
+                    });
+                }
+            }
+        }
+
+        console.log(`[Hierarchy Inference] Found potential parents:`, potentialParents.map(p => p.level));
+
+        // Add parents to hierarchy if they're not the current level
+        for (const parent of potentialParents) {
+            if (firstItem.levelName !== parent.level && firstItem.displayName !== parent.level) {
+                hierarchy.push(parent.level);
+            }
+        }
+
+        // Also check parentChain if available
+        if (firstItem.parentChain && typeof firstItem.parentChain === 'object') {
+            const chainLevels = Object.keys(firstItem.parentChain);
+            console.log(`[Hierarchy Inference] Found parentChain:`, chainLevels);
+            for (const level of chainLevels) {
+                if (!hierarchy.includes(level) && level !== firstItem.levelName) {
+                    hierarchy.push(level);
+                }
+            }
+        }
+
+        // Remove duplicates and sort by common hierarchy order
+        const uniqueHierarchy = [...new Set(hierarchy)];
+
+        console.log(`[Hierarchy Inference] Inferred hierarchy:`, uniqueHierarchy);
+        return uniqueHierarchy;
+    };
 
     // State for parent information
     const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
@@ -168,8 +232,6 @@ export default function AssemblyDynamicLevelList({
         (state: RootState) => state.auth.selectedAssignment
     );
 
-    const user = useSelector((state: RootState) => state.auth.user);
-
     const [assemblyInfo, setAssemblyInfo] = useState({
         assemblyName: "",
         districtName: "",
@@ -178,33 +240,278 @@ export default function AssemblyDynamicLevelList({
         districtId: 0,
     });
 
-    // Get party and state info for API call - Assembly context
-    const partyId = user?.partyId || 0;
-    // For Assembly panel, we need the state ID from the assembly's parent hierarchy
-    const stateId = selectedAssignment?.parentId || (selectedAssignment as any)?.state_id || 0;
-
-    // Fetch dynamic sidebar levels from API
-    const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
-        { partyId, stateId },
-        { skip: !partyId || !stateId }
-    );
-
-    // Update hierarchy order based on API response
+    // Fetch actual hierarchy chain for current level from API - SIMPLIFIED APPROACH
     useEffect(() => {
-        if (sidebarLevels && sidebarLevels.length > 0) {
-            // Extract level names from API response and create hierarchy order
-            const apiHierarchy = ["State", "District", "Assembly"]; // Always start with these
+        const fetchActualHierarchy = async () => {
+            if (!assemblyInfo.assemblyId || !levelName) return;
 
-            // Add levels from API response in order
-            sidebarLevels.forEach((level: any) => {
-                if (level.level_name && !apiHierarchy.includes(level.level_name)) {
-                    apiHierarchy.push(level.level_name);
+            try {
+                console.log(`[Hierarchy] ========================================`);
+                console.log(`[Hierarchy] Starting hierarchy detection for level: ${levelName}`);
+
+                // Fetch direct children of assembly to understand the hierarchy
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                        },
+                    }
+                );
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    const allDirectChildren = data.data;
+                    console.log(`[Hierarchy] ========================================`);
+                    console.log(`[Hierarchy] Target Level: ${levelName}`);
+                    console.log(`[Hierarchy] Direct children of Assembly (${allDirectChildren.length}):`, allDirectChildren.map((c: any) => `${c.levelName} (ID: ${c.id})`));
+
+                    // If current level is direct child of assembly
+                    const directChild = allDirectChildren.find((item: any) =>
+                        item.levelName && item.levelName.toLowerCase() === levelName.toLowerCase()
+                    );
+                    if (directChild) {
+                        // Current level is directly under assembly, no parent filters needed
+                        console.log(`[Hierarchy] ✓ ${levelName} is direct child of Assembly (ID: ${directChild.id}), no filters needed`);
+                        setActualHierarchyChain([]);
+                        return;
+                    }
+
+                    console.log(`[Hierarchy] ${levelName} is NOT a direct child, starting BFS to find path...`);
+
+                    // Helper function to fetch ALL children with pagination
+                    const fetchAllChildren = async (parentId: number): Promise<any[]> => {
+                        let allChildren: any[] = [];
+                        let page = 1;
+                        let hasMore = true;
+
+                        while (hasMore) {
+                            try {
+                                const childrenResponse = await fetch(
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}?page=${page}&limit=50`,
+                                    {
+                                        headers: {
+                                            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                        },
+                                    }
+                                );
+                                const childrenData = await childrenResponse.json();
+
+                                // Handle both response structures
+                                let currentPageChildren: any[] = [];
+                                if (childrenData.success && childrenData.children && childrenData.children.length > 0) {
+                                    currentPageChildren = childrenData.children;
+                                } else if (childrenData.success && childrenData.data?.children && childrenData.data.children.length > 0) {
+                                    currentPageChildren = childrenData.data.children;
+                                }
+
+                                if (currentPageChildren.length > 0) {
+                                    allChildren = allChildren.concat(currentPageChildren);
+                                    hasMore = currentPageChildren.length === 50; // Continue if we got full page
+                                    page++;
+                                } else {
+                                    hasMore = false;
+                                }
+                            } catch (err) {
+                                console.error(`[Hierarchy] Error fetching page ${page} for parent ${parentId}:`, err);
+                                hasMore = false;
+                            }
+                        }
+
+                        return allChildren;
+                    };
+
+                    // BFS to find complete path from assembly to current level
+                    const findPathToLevel = async (targetLevel: string): Promise<string[]> => {
+                        // Queue: [{ id, levelName, path }]
+                        const queue: Array<{ id: number; levelName: string; path: string[] }> = [];
+
+                        // Initialize queue with all direct children of assembly
+                        for (const child of allDirectChildren) {
+                            queue.push({
+                                id: child.id,
+                                levelName: child.levelName,
+                                path: [child.levelName]
+                            });
+                        }
+
+                        const visited = new Set<number>();
+                        let iterations = 0;
+                        const maxIterations = 200; // Increased safety limit
+
+                        while (queue.length > 0 && iterations < maxIterations) {
+                            iterations++;
+                            const current = queue.shift()!;
+
+                            if (visited.has(current.id)) continue;
+                            visited.add(current.id);
+
+                            console.log(`[Hierarchy BFS #${iterations}] Checking ${current.levelName} (ID: ${current.id}), path:`, current.path);
+
+                            // Fetch ALL children with pagination
+                            const allChildren = await fetchAllChildren(current.id);
+                            console.log(`[Hierarchy BFS #${iterations}] Fetched ${allChildren.length} children for ${current.levelName} (ID: ${current.id})`);
+
+                            if (allChildren.length > 0) {
+                                // Get unique level names from children
+                                const uniqueLevels = [...new Set(allChildren.map((c: any) => c.levelName))];
+                                console.log(`[Hierarchy BFS] Children level types:`, uniqueLevels);
+                                console.log(`[Hierarchy BFS] Looking for target level: ${targetLevel}`);
+
+                                // Check if target level is among children (case-insensitive)
+                                const targetChild = allChildren.find((c: any) =>
+                                    c.levelName && c.levelName.toLowerCase() === targetLevel.toLowerCase()
+                                );
+                                if (targetChild) {
+                                    const fullPath = [...current.path, targetLevel];
+                                    const parentLevels = current.path; // Exclude target level
+                                    console.log(`[Hierarchy] ✓✓✓ FOUND PATH to ${targetLevel}! ✓✓✓`);
+                                    console.log(`[Hierarchy] Full path:`, fullPath);
+                                    console.log(`[Hierarchy] Parent levels (filters):`, parentLevels);
+                                    return parentLevels;
+                                }
+
+                                // Add children to queue - take one representative per level type
+                                // This ensures we explore all possible paths without redundancy
+                                const seenLevels = new Set<string>();
+                                for (const child of allChildren) {
+                                    if (!visited.has(child.id) && !seenLevels.has(child.levelName)) {
+                                        seenLevels.add(child.levelName);
+                                        queue.push({
+                                            id: child.id,
+                                            levelName: child.levelName,
+                                            path: [...current.path, child.levelName]
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        console.warn(`[Hierarchy] ✗ Path not found for ${targetLevel} after ${iterations} iterations`);
+                        return []; // Path not found
+                    };
+
+                    const chain = await findPathToLevel(levelName);
+                    console.log(`[Hierarchy] ========================================`);
+                    console.log(`[Hierarchy] BFS Result for ${levelName}:`, chain);
+                    console.log(`[Hierarchy] Chain length:`, chain.length);
+
+                    // If BFS found a path, use it
+                    if (chain.length > 0) {
+                        console.log(`[Hierarchy] ✓ Using BFS result:`, chain);
+                        setActualHierarchyChain(chain);
+                        return;
+                    }
+
+                    // If BFS failed, try alternative approach: fetch items and build hierarchy from parentId
+                    console.warn(`[Hierarchy] ⚠ BFS failed to find path for ${levelName}`);
+                    console.log(`[Hierarchy] Trying alternative approach: fetch items and trace parentId chain...`);
+
+                    // Try to fetch items of target level directly
+                    try {
+                        // Fetch items using the dynamic fetch function
+                        const sampleItems = await fetchAllPages(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${allDirectChildren[0]?.id}`
+                        );
+
+                        console.log(`[Hierarchy] Fetched ${sampleItems.length} items from first direct child`);
+
+                        // Look for target level in these items
+                        let targetItem = sampleItems.find((item: any) =>
+                            item.levelName && item.levelName.toLowerCase() === levelName.toLowerCase()
+                        );
+
+                        // If not found in first level, try going deeper
+                        if (!targetItem && sampleItems.length > 0) {
+                            console.log(`[Hierarchy] Target not found in first level, checking deeper...`);
+                            for (const item of sampleItems.slice(0, 3)) { // Check first 3 items
+                                const deeperItems = await fetchAllPages(
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${item.id}`
+                                );
+                                targetItem = deeperItems.find((child: any) =>
+                                    child.levelName && child.levelName.toLowerCase() === levelName.toLowerCase()
+                                );
+                                if (targetItem) {
+                                    console.log(`[Hierarchy] Found target item in deeper level (ID: ${targetItem.id})`);
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (targetItem && targetItem.parentId) {
+                            console.log(`[Hierarchy] Found sample item, tracing parentId chain from ${targetItem.id}...`);
+
+                            // Build hierarchy by following parentId
+                            const hierarchyChain: string[] = [];
+                            let currentParentId = targetItem.parentId;
+                            const visited = new Set<number>();
+                            let iterations = 0;
+
+                            while (currentParentId && iterations < 10) {
+                                iterations++;
+                                if (visited.has(currentParentId)) break;
+                                visited.add(currentParentId);
+
+                                try {
+                                    const parentResponse = await fetch(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${currentParentId}`,
+                                        {
+                                            headers: {
+                                                Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                            },
+                                        }
+                                    );
+                                    const parentData = await parentResponse.json();
+
+                                    if (parentData.success && parentData.data?.afterAssemblyData) {
+                                        const parent = parentData.data.afterAssemblyData;
+                                        console.log(`[Hierarchy] Parent ${iterations}: ${parent.levelName} (ID: ${parent.id})`);
+                                        hierarchyChain.push(parent.levelName);
+                                        currentParentId = parent.parentId;
+
+                                        if (!currentParentId) break; // Reached assembly
+                                    } else {
+                                        break;
+                                    }
+                                } catch (err) {
+                                    console.error(`[Hierarchy] Error fetching parent ${currentParentId}:`, err);
+                                    break;
+                                }
+                            }
+
+                            const reversedChain = hierarchyChain.reverse();
+                            console.log(`[Hierarchy] ✓ Built hierarchy from parentId chain:`, reversedChain);
+                            setActualHierarchyChain(reversedChain);
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(`[Hierarchy] Alternative approach failed:`, err);
+                    }
+
+                    // Last resort: set empty chain
+                    console.warn(`[Hierarchy] ✗ Could not determine hierarchy, setting empty chain`);
+                    setActualHierarchyChain([]);
                 }
-            });
+            } catch (error) {
+                console.error("[Hierarchy] Error fetching actual hierarchy:", error);
 
-            setHierarchyOrder(apiHierarchy);
-        }
-    }, [sidebarLevels]);
+                // Fallback: Try to infer from existing data
+                if (allLevelItems.length > 0) {
+                    console.log(`[Hierarchy] Error occurred, attempting to infer from data...`);
+                    const inferredChain = inferHierarchyFromData(allLevelItems);
+                    if (inferredChain.length > 0) {
+                        console.log(`[Hierarchy] ✓ Using inferred hierarchy:`, inferredChain);
+                        setActualHierarchyChain(inferredChain);
+                        return;
+                    }
+                }
+
+                setActualHierarchyChain([]);
+            }
+        };
+
+        fetchActualHierarchy();
+    }, [assemblyInfo.assemblyId, levelName, allLevelItems.length]);
 
     useEffect(() => {
         if (selectedAssignment) {
@@ -218,13 +525,11 @@ export default function AssemblyDynamicLevelList({
         }
     }, [selectedAssignment]);
 
-    // Determine which filters to show based on the current level - Assembly context
+    // Determine which filters to show based on actual hierarchy chain
     const getVisibleFilters = () => {
-        const currentLevelIndex = hierarchyOrder.indexOf(levelName);
-        if (currentLevelIndex === -1) return hierarchyOrder.slice(3, 6); // Start after Assembly
-
-        // Show filters from first level after Assembly up to (but not including) the current level
-        return hierarchyOrder.slice(3, currentLevelIndex); // Skip State, District, Assembly
+        // Return the actual parent chain for current level
+        // If empty, means current level is direct child of assembly (no filters needed)
+        return actualHierarchyChain;
     };
 
     const visibleFilters = getVisibleFilters();
@@ -263,13 +568,15 @@ export default function AssemblyDynamicLevelList({
         return allData;
     };
 
-    // Fetch blocks for the current assembly (direct children of assembly)
-    useEffect(() => {
-        const fetchBlocks = async () => {
-            if (!assemblyInfo.assemblyId) return;
-            try {
+    // Generic function to fetch children for any filter level (same as District approach)
+    const fetchFilterLevelChildren = async (parentId: number, parentLevelName: string) => {
+        if (!parentId) return [];
+
+        try {
+            // For first level after assembly, use after-assembly-data API
+            if (!parentLevelName || parentLevelName === "Assembly") {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assemblyInfo.assemblyId}`,
+                    `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${parentId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -277,71 +584,174 @@ export default function AssemblyDynamicLevelList({
                     }
                 );
                 const data = await response.json();
-                if (data.success) {
-                    // These are direct children of assembly (parentAssemblyId exists, parentId is null)
-                    setBlocks(data.data || []);
+                return data.data || [];
+            } else {
+                // For deeper levels, use hierarchy children API with pagination
+                const childrenData = await fetchAllPages(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}`
+                );
+                return childrenData;
+            }
+        } catch (error) {
+            console.error(`Error fetching children for ${parentLevelName} ${parentId}:`, error);
+            return [];
+        }
+    };
+
+    // Fetch first level data (direct children of assembly)
+    useEffect(() => {
+        const fetchFirstLevelData = async () => {
+            if (!assemblyInfo.assemblyId || visibleFilters.length === 0) return;
+
+            try {
+                const firstLevel = visibleFilters[0];
+                console.log(`[Filter Data] ========================================`);
+                console.log(`[Filter Data] Current Level: ${levelName}`);
+                console.log(`[Filter Data] Visible Filters (Hierarchy Chain):`, visibleFilters);
+                console.log(`[Filter Data] Fetching first filter level: ${firstLevel}`);
+                console.log(`[Filter Data] From Assembly ID: ${assemblyInfo.assemblyId}`);
+
+                const children = await fetchFilterLevelChildren(assemblyInfo.assemblyId, "Assembly");
+                console.log(`[Filter Data] Received ${children.length} total children from Assembly`);
+                console.log(`[Filter Data] Child level types:`, [...new Set(children.map((c: any) => c.levelName))]);
+
+                // Filter by first level name - this should match the first item in hierarchy chain
+                const firstLevelItems = children.filter((item: any) => item.levelName === firstLevel);
+                console.log(`[Filter Data] ✓ Filtered to ${firstLevelItems.length} items for level ${firstLevel}`);
+
+                if (firstLevelItems.length === 0) {
+                    console.warn(`[Filter Data] ⚠ No items found for first level ${firstLevel}!`);
+                    console.warn(`[Filter Data] Available levels:`, [...new Set(children.map((c: any) => c.levelName))]);
                 }
+
+                setDynamicFilterData((prev) => ({
+                    ...prev,
+                    [firstLevel]: firstLevelItems,
+                }));
             } catch (error) {
-                console.error("Error fetching blocks:", error);
+                console.error("[Filter Data] Error fetching first level data:", error);
             }
         };
-        fetchBlocks();
-    }, [assemblyInfo.assemblyId]);
 
-    // Fetch mandals when block is selected - using blockTeamApi pattern
-    const { data: mandalHierarchyData } = useGetBlockHierarchyQuery(
-        selectedBlockId,
-        { skip: !selectedBlockId }
-    );
+        fetchFirstLevelData();
+    }, [assemblyInfo.assemblyId, visibleFilters.join(','), levelName]);;
 
+    // Fetch next level data whenever a filter changes (same as District approach)
     useEffect(() => {
-        if (mandalHierarchyData?.children) {
-            setMandals(mandalHierarchyData.children);
-        } else {
-            setMandals([]);
+        const fetchAllLevelData = async () => {
+            if (visibleFilters.length === 0) return;
+
+            console.log(`[Filter Data] Fetching data for visible filters:`, visibleFilters);
+            console.log(`[Filter Data] Current selected filters:`, selectedFilters);
+
+            // Fetch data for each filter level based on its parent selection
+            for (let i = 0; i < visibleFilters.length; i++) {
+                const currentLevel = visibleFilters[i];
+                const parentLevel = i > 0 ? visibleFilters[i - 1] : "Assembly";
+
+                // For first level, parent is Assembly
+                if (i === 0) {
+                    // First level data is already fetched by fetchFirstLevelData effect
+                    console.log(`[Filter Data] Skipping ${currentLevel} (first level, handled separately)`);
+                    continue;
+                }
+
+                // For subsequent levels, fetch only if parent is selected
+                const parentId = selectedFilters[parentLevel];
+                console.log(`[Filter Data] Level ${currentLevel}: parent=${parentLevel}, parentId=${parentId}`);
+
+                if (parentId && parentId > 0) {
+                    console.log(`[Filter Data] Fetching ${currentLevel} children of ${parentLevel} (ID: ${parentId})`);
+                    const children = await fetchFilterLevelChildren(parentId, parentLevel);
+                    console.log(`[Filter Data] Received ${children.length} children`);
+
+                    // Filter by current level name
+                    const currentLevelItems = children.filter((item: any) => item.levelName === currentLevel);
+                    console.log(`[Filter Data] Filtered to ${currentLevelItems.length} items for level ${currentLevel}`);
+
+                    setDynamicFilterData((prev) => ({
+                        ...prev,
+                        [currentLevel]: currentLevelItems,
+                    }));
+                } else {
+                    // Clear data for this level if parent is not selected
+                    console.log(`[Filter Data] Clearing ${currentLevel} (parent not selected)`);
+                    setDynamicFilterData((prev) => ({
+                        ...prev,
+                        [currentLevel]: [],
+                    }));
+                }
+            }
+        };
+
+        fetchAllLevelData();
+    }, [selectedFilters, visibleFilters.join(','), assemblyInfo.assemblyId]);
+
+    // Handle filter change - when a filter is changed, reset all filters after it (same as District)
+    const handleFilterChange = (levelName: string, value: number) => {
+        const changedLevelIndex = visibleFilters.indexOf(levelName);
+
+        // Update the selected filter
+        const newFilters = { ...selectedFilters };
+        newFilters[levelName] = value;
+
+        // Reset all filters after this one
+        for (let i = changedLevelIndex + 1; i < visibleFilters.length; i++) {
+            newFilters[visibleFilters[i]] = 0;
         }
-    }, [mandalHierarchyData]);
 
-    // Fetch polling centers when mandal is selected - using blockTeamApi pattern
-    const { data: pollingCenterHierarchyData } = useGetBlockHierarchyQuery(
-        selectedMandalId,
-        { skip: !selectedMandalId }
-    );
+        setSelectedFilters(newFilters);
 
-    useEffect(() => {
-        if (pollingCenterHierarchyData?.children) {
-            const filteredChildren = pollingCenterHierarchyData.children.filter(
-                (item: any) => item.levelName !== "Booth"
-            );
-            setPollingCenters(filteredChildren);
-        } else {
-            setPollingCenters([]);
+        // Backward compatibility
+        if (levelName === "Block") {
+            setSelectedBlockId(value);
+            setSelectedMandalId(0);
+            setSelectedPollingCenterId(0);
+        } else if (levelName === "Mandal") {
+            setSelectedMandalId(value);
+            setSelectedPollingCenterId(0);
+        } else if (levelName === "PollingCenter") {
+            setSelectedPollingCenterId(value);
         }
-    }, [pollingCenterHierarchyData]);
 
-    // Get current level items based on filters - Assembly context
+        setCurrentPage(1);
+    };
+
+    // Get current level items based on filters - Assembly context (same as District)
     const getCurrentLevelItems = () => {
         let filteredItems = allLevelItems;
 
-        // Apply flexible filtering for after-assembly levels
+        // Apply filters dynamically based on visible filters
+        visibleFilters.forEach((filterLevel) => {
+            const selectedIdForFilter = selectedFilters[filterLevel];
+            if (selectedIdForFilter && selectedIdForFilter > 0) {
+                filteredItems = filteredItems.filter((item) => {
+                    // Check direct parent relationship
+                    if (item.parentLevelId === selectedIdForFilter) return true;
+
+                    // Check parent chain (full hierarchy)
+                    if (item.parentChain && item.parentChain[filterLevel] === selectedIdForFilter) return true;
+
+                    // Check if the item has this level's id in various property names
+                    const levelKey = filterLevel.toLowerCase();
+                    if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
+                    if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
+
+                    // Check parent hierarchy
+                    if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) return true;
+                    if (item.parentHierarchy && item.parentHierarchy.includes(selectedIdForFilter)) return true;
+
+                    return false;
+                });
+            }
+        });
+
+        // Backward compatibility with old filter states
         if (selectedBlockId > 0) {
             filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedBlockId || item.blockId === selectedBlockId) {
-                    return true;
-                }
-
-                // Check if this item is the selected block itself
-                if (item.id === selectedBlockId) {
-                    return true;
-                }
-
-                // Check if item has block in its hierarchy chain
-                if (item.parentLevelType === "Block" && item.parentLevelId === selectedBlockId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
+                if (item.parentLevelId === selectedBlockId || item.blockId === selectedBlockId) return true;
+                if (item.id === selectedBlockId) return true;
+                if (item.parentLevelType === "Block" && item.parentLevelId === selectedBlockId) return true;
                 return item.blockId === selectedBlockId ||
                     item.block_id === selectedBlockId ||
                     (item.parentHierarchy && item.parentHierarchy.includes(selectedBlockId));
@@ -350,22 +760,9 @@ export default function AssemblyDynamicLevelList({
 
         if (selectedMandalId > 0) {
             filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedMandalId || item.mandalId === selectedMandalId) {
-                    return true;
-                }
-
-                // Check if this item is the selected mandal itself
-                if (item.id === selectedMandalId) {
-                    return true;
-                }
-
-                // Check if item has mandal in its hierarchy chain
-                if (item.parentLevelType === "Mandal" && item.parentLevelId === selectedMandalId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
+                if (item.parentLevelId === selectedMandalId || item.mandalId === selectedMandalId) return true;
+                if (item.id === selectedMandalId) return true;
+                if (item.parentLevelType === "Mandal" && item.parentLevelId === selectedMandalId) return true;
                 return item.mandalId === selectedMandalId ||
                     item.mandal_id === selectedMandalId ||
                     (item.parentHierarchy && item.parentHierarchy.includes(selectedMandalId));
@@ -374,22 +771,9 @@ export default function AssemblyDynamicLevelList({
 
         if (selectedPollingCenterId > 0) {
             filteredItems = filteredItems.filter((item) => {
-                // Direct parent relationship
-                if (item.parentLevelId === selectedPollingCenterId || item.pollingCenterId === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // Check if this item is the selected polling center itself
-                if (item.id === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // Check if item has polling center in its hierarchy chain
-                if (item.parentLevelType === "PollingCenter" && item.parentLevelId === selectedPollingCenterId) {
-                    return true;
-                }
-
-                // For deeper levels, check if any parent in the chain matches
+                if (item.parentLevelId === selectedPollingCenterId || item.pollingCenterId === selectedPollingCenterId) return true;
+                if (item.id === selectedPollingCenterId) return true;
+                if (item.parentLevelType === "PollingCenter" && item.parentLevelId === selectedPollingCenterId) return true;
                 return item.pollingCenterId === selectedPollingCenterId ||
                     item.polling_center_id === selectedPollingCenterId ||
                     (item.parentHierarchy && item.parentHierarchy.includes(selectedPollingCenterId));
@@ -560,18 +944,18 @@ export default function AssemblyDynamicLevelList({
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
                                     .map((mandal: any) => ({
                                         ...mandal,
+                                        // Store the Block/Ward/Zone parent info
                                         parentLevelId: parentLevel.id,
                                         parentLevelName: parentLevel.displayName,
                                         parentLevelType: parentLevel.levelName,
+                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
+                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         assemblyId: parentLevel.assemblyId,
                                         assemblyName: parentLevel.assemblyName,
                                         districtId: parentLevel.districtId,
                                         districtName: parentLevel.districtName,
                                         // Add parent hierarchy chain for better filtering
                                         parentHierarchy: [parentLevel.id, ...(parentLevel.parentHierarchy || [])],
-                                        // Add all parent level names for proper display
-                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
-                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                     }));
                             })
                         )
@@ -588,9 +972,12 @@ export default function AssemblyDynamicLevelList({
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
                                     .map((mandal: any) => ({
                                         ...mandal,
+                                        // Store the Block/Ward/Zone parent info
                                         parentLevelId: parentLevel.id,
                                         parentLevelName: parentLevel.displayName,
                                         parentLevelType: parentLevel.levelName,
+                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
+                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         assemblyId: parentLevel.assemblyId,
                                         assemblyName: parentLevel.assemblyName,
                                         districtId: parentLevel.districtId,
@@ -613,11 +1000,17 @@ export default function AssemblyDynamicLevelList({
 
                                 return filteredChildren.map((pc: any) => ({
                                     ...pc,
+                                    // Propagate Mandal info
                                     mandalId: mandal.id,
                                     mandalName: mandal.displayName,
-                                    parentLevelId: mandal.parentLevelId,
-                                    parentLevelName: mandal.parentLevelName,
-                                    parentLevelType: mandal.parentLevelType,
+                                    // Propagate Block/Ward/Zone info from mandal
+                                    [`${mandal.parentLevelType.toLowerCase()}Name`]: mandal.parentLevelName,
+                                    [`${mandal.parentLevelType.toLowerCase()}Id`]: mandal.parentLevelId,
+                                    // Keep original parent info for immediate parent
+                                    parentLevelId: mandal.id,
+                                    parentLevelName: mandal.displayName,
+                                    parentLevelType: mandal.levelName,
+                                    // Propagate assembly info
                                     assemblyId: mandal.assemblyId,
                                     assemblyName: mandal.assemblyName,
                                     districtId: mandal.districtId,
@@ -638,9 +1031,12 @@ export default function AssemblyDynamicLevelList({
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
                                     .map((mandal: any) => ({
                                         ...mandal,
+                                        // Store the Block/Ward/Zone parent info
                                         parentLevelId: parentLevel.id,
                                         parentLevelName: parentLevel.displayName,
                                         parentLevelType: parentLevel.levelName,
+                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
+                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         assemblyId: parentLevel.assemblyId,
                                         assemblyName: parentLevel.assemblyName,
                                         districtId: parentLevel.districtId,
@@ -658,11 +1054,17 @@ export default function AssemblyDynamicLevelList({
                                 );
                                 return childrenData.map((child: any) => ({
                                     ...child,
+                                    // Propagate Mandal info
                                     mandalId: mandal.id,
                                     mandalName: mandal.displayName,
-                                    parentLevelId: mandal.parentLevelId,
-                                    parentLevelName: mandal.parentLevelName,
-                                    parentLevelType: mandal.parentLevelType,
+                                    // Propagate Block/Ward/Zone info from mandal
+                                    [`${mandal.parentLevelType.toLowerCase()}Name`]: mandal.parentLevelName,
+                                    [`${mandal.parentLevelType.toLowerCase()}Id`]: mandal.parentLevelId,
+                                    // Keep original parent info for immediate parent
+                                    parentLevelId: mandal.id,
+                                    parentLevelName: mandal.displayName,
+                                    parentLevelType: mandal.levelName,
+                                    // Propagate assembly info
                                     assemblyId: mandal.assemblyId,
                                     assemblyName: mandal.assemblyName,
                                     districtId: mandal.districtId,
@@ -689,13 +1091,22 @@ export default function AssemblyDynamicLevelList({
                                 );
                                 return boothsData.map((booth: any) => ({
                                     ...booth,
+                                    // Propagate Polling Center info
                                     pollingCenterId: pc.id,
                                     pollingCenterName: pc.displayName,
+                                    // Propagate Mandal info from polling center
                                     mandalId: pc.mandalId,
                                     mandalName: pc.mandalName,
-                                    parentLevelId: pc.parentLevelId,
-                                    parentLevelName: pc.parentLevelName,
-                                    parentLevelType: pc.parentLevelType,
+                                    // Propagate Block/Ward/Zone info from polling center
+                                    ...(pc.blockName && { blockName: pc.blockName, blockId: pc.blockId }),
+                                    ...(pc.wardName && { wardName: pc.wardName, wardId: pc.wardId }),
+                                    ...(pc.zoneName && { zoneName: pc.zoneName, zoneId: pc.zoneId }),
+                                    ...(pc.sectorName && { sectorName: pc.sectorName, sectorId: pc.sectorId }),
+                                    // Keep original parent info for immediate parent (polling center)
+                                    parentLevelId: pc.id,
+                                    parentLevelName: pc.displayName,
+                                    parentLevelType: pc.levelName,
+                                    // Propagate assembly info
                                     assemblyId: pc.assemblyId,
                                     assemblyName: pc.assemblyName,
                                     districtId: pc.districtId,
@@ -1313,85 +1724,39 @@ export default function AssemblyDynamicLevelList({
                                 />
                             </div>
 
-                            {/* Block Filter - Show if level is after Block */}
-                            {visibleFilters.includes("Block") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Block
-                                    </label>
-                                    <select
-                                        value={selectedBlockId}
-                                        onChange={(e) => {
-                                            setSelectedBlockId(Number(e.target.value));
-                                            setSelectedMandalId(0);
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value={0}>All Blocks</option>
-                                        {blocks.map((block) => (
-                                            <option key={block.id} value={block.id}>
-                                                {block.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                            {/* Dynamic Filters - Show filters based on hierarchy */}
+                            {visibleFilters.length > 0 ? (
+                                visibleFilters.map((filterLevel, index) => {
+                                    const filterItems = dynamicFilterData[filterLevel] || [];
+                                    const previousFilterLevel = index > 0 ? visibleFilters[index - 1] : null;
+                                    const isPreviousSelected = !previousFilterLevel || (selectedFilters[previousFilterLevel] && selectedFilters[previousFilterLevel] > 0);
+                                    const isDisabled = index > 0 && !isPreviousSelected;
 
-                            {/* Mandal Filter - Show if level is after Mandal */}
-                            {visibleFilters.includes("Mandal") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Mandal
-                                    </label>
-                                    <select
-                                        value={selectedMandalId}
-                                        onChange={(e) => {
-                                            setSelectedMandalId(Number(e.target.value));
-                                            setSelectedPollingCenterId(0);
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedBlockId}
-                                        className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Mandals</option>
-                                        {mandals.map((mandal) => (
-                                            <option key={mandal.id} value={mandal.id}>
-                                                {mandal.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                                    // Get current selected value for this filter
+                                    const currentValue = selectedFilters[filterLevel] || 0;
 
-                            {/* Polling Center Filter - Show if level is after PollingCenter */}
-                            {visibleFilters.includes("PollingCenter") && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Polling Center
-                                    </label>
-                                    <select
-                                        value={selectedPollingCenterId}
-                                        onChange={(e) => {
-                                            setSelectedPollingCenterId(Number(e.target.value));
-                                            setSelectedLevelFilter("");
-                                            setCurrentPage(1);
-                                        }}
-                                        disabled={!selectedMandalId}
-                                        className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    >
-                                        <option value={0}>All Polling Centers</option>
-                                        {pollingCenters.map((pc) => (
-                                            <option key={pc.id} value={pc.id}>
-                                                {pc.displayName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            )}
+                                    return (
+                                        <div key={filterLevel}>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                {filterLevel}
+                                            </label>
+                                            <select
+                                                value={currentValue}
+                                                onChange={(e) => handleFilterChange(filterLevel, Number(e.target.value))}
+                                                disabled={isDisabled}
+                                                className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                            >
+                                                <option value={0}>All {filterLevel}s</option>
+                                                {filterItems.map((item: any) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.displayName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    );
+                                })
+                            ) : null}
 
                             {/* Current Level Filter */}
                             <div>
@@ -1453,7 +1818,14 @@ export default function AssemblyDynamicLevelList({
                             <div className="flex items-end">
                                 <button
                                     onClick={resetAllFilters}
-                                    disabled={!selectedBlockId && !selectedMandalId && !selectedPollingCenterId && !searchTerm && !selectedLevelFilter}
+                                    disabled={
+                                        !selectedBlockId &&
+                                        !selectedMandalId &&
+                                        !selectedPollingCenterId &&
+                                        !searchTerm &&
+                                        !selectedLevelFilter &&
+                                        !Object.values(dynamicFilters).some(f => f.id > 0)
+                                    }
                                     className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200"
                                     title="Clear all filters and reset search"
                                 >
@@ -1512,37 +1884,16 @@ export default function AssemblyDynamicLevelList({
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                         S.No
                                                     </th>
-                                                    {/* Dynamic parent level column */}
-                                                    {visibleFilters.length > 0 && (
-                                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                            {(() => {
-                                                                // Get the actual parent level name from first item's parent info
-                                                                if (paginatedItems.length > 0) {
-                                                                    const firstItem = paginatedItems[0];
-                                                                    const parentId = firstItem.parentId || firstItem.parent_id;
-                                                                    const parent = parentId ? parentInfo[parentId] : null;
-
-                                                                    if (parent && parent.levelName) {
-                                                                        return parent.levelName;
-                                                                    }
-
-                                                                    // Try to get parent level from item's parentLevelType
-                                                                    if (firstItem.parentLevelType) {
-                                                                        return firstItem.parentLevelType;
-                                                                    }
-                                                                }
-
-                                                                // Determine parent level based on current level in hierarchy
-                                                                const currentLevelIndex = hierarchyOrder.indexOf(levelName);
-                                                                if (currentLevelIndex > 0) {
-                                                                    return hierarchyOrder[currentLevelIndex - 1];
-                                                                }
-
-                                                                // Fallback to last visible filter
-                                                                return visibleFilters[visibleFilters.length - 1] || "Parent";
-                                                            })()}
+                                                    {/* Show Assembly column always */}
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                        Assembly
+                                                    </th>
+                                                    {/* Dynamic parent level columns - show all levels in hierarchy */}
+                                                    {visibleFilters.map((filterLevel) => (
+                                                        <th key={filterLevel} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                            {filterLevel}
                                                         </th>
-                                                    )}
+                                                    ))}
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                         Level Type
                                                     </th>
@@ -1577,55 +1928,61 @@ export default function AssemblyDynamicLevelList({
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                                 {(currentPage - 1) * itemsPerPage + index + 1}
                                                             </td>
-                                                            {/* Dynamic parent level display */}
-                                                            {visibleFilters.length > 0 && (
-                                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                                                                        {(() => {
-                                                                            const parentId = item.parentId || item.parent_id;
-                                                                            const parent = parentId ? parentInfo[parentId] : null;
+                                                            {/* Assembly column - always shown */}
+                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                                    {item.assemblyName || assemblyInfo.assemblyName || "N/A"}
+                                                                </span>
+                                                            </td>
+                                                            {/* Dynamic parent level columns - show all hierarchy levels */}
+                                                            {visibleFilters.map((filterLevel) => {
+                                                                // Helper function to get the display name for a specific level
+                                                                const getDisplayNameForLevel = (levelName: string) => {
+                                                                    // Try to get from item properties with various naming conventions
+                                                                    const levelKey = levelName.toLowerCase();
 
-                                                                            if (parent) {
-                                                                                return parent.displayName || parent.levelName || "N/A";
-                                                                            }
+                                                                    // Try direct property names
+                                                                    if (item[`${levelKey}Name`]) return item[`${levelKey}Name`];
+                                                                    if (item[`${levelKey}_name`]) return item[`${levelKey}_name`];
 
-                                                                            // Try to get parent name from item's parentLevelName first
-                                                                            if (item.parentLevelName) {
-                                                                                return item.parentLevelName;
-                                                                            }
+                                                                    // Try specific known properties
+                                                                    const propertyMap: Record<string, string[]> = {
+                                                                        'Block': ['blockName', 'block_name'],
+                                                                        'Mandal': ['mandalName', 'mandal_name'],
+                                                                        'PollingCenter': ['pollingCenterName', 'polling_center_name'],
+                                                                        'Ward': ['wardName', 'ward_name'],
+                                                                        'Zone': ['zoneName', 'zone_name'],
+                                                                        'Sector': ['sectorName', 'sector_name'],
+                                                                    };
 
-                                                                            // Determine the correct parent level based on current level position in hierarchy
-                                                                            const currentLevelIndex = hierarchyOrder.indexOf(levelName);
-                                                                            if (currentLevelIndex > 0) {
-                                                                                const parentLevelName = hierarchyOrder[currentLevelIndex - 1];
-                                                                                const parentKey = `${parentLevelName.toLowerCase()}Name`;
+                                                                    const possibleProps = propertyMap[levelName] || [];
+                                                                    for (const prop of possibleProps) {
+                                                                        if (item[prop]) return item[prop];
+                                                                    }
 
-                                                                                if (item[parentKey]) {
-                                                                                    return item[parentKey];
-                                                                                }
-                                                                            }
+                                                                    // If this is the immediate parent level, try parentLevelName
+                                                                    if (item.parentLevelType === levelName && item.parentLevelName) {
+                                                                        return item.parentLevelName;
+                                                                    }
 
-                                                                            // Try specific parent name fields based on level hierarchy
-                                                                            const possibleParentNames = [
-                                                                                item.pollingCenterName,
-                                                                                item.mandalName,
-                                                                                item.blockName,
-                                                                                item.wardName,
-                                                                                item.zoneName,
-                                                                                item.sectorName,
-                                                                                item.assemblyName,
-                                                                            ].filter(Boolean);
+                                                                    // Try to get from parentInfo if this level matches the parent
+                                                                    const parentId = item.parentId || item.parent_id;
+                                                                    const parent = parentId ? parentInfo[parentId] : null;
+                                                                    if (parent && parent.levelName === levelName) {
+                                                                        return parent.displayName || parent.levelName;
+                                                                    }
 
-                                                                            // Return the most immediate parent (first non-null value)
-                                                                            if (possibleParentNames.length > 0) {
-                                                                                return possibleParentNames[0];
-                                                                            }
+                                                                    return "N/A";
+                                                                };
 
-                                                                            return "N/A";
-                                                                        })()}
-                                                                    </span>
-                                                                </td>
-                                                            )}
+                                                                return (
+                                                                    <td key={filterLevel} className="px-6 py-4 whitespace-nowrap">
+                                                                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                                                            {getDisplayNameForLevel(filterLevel)}
+                                                                        </span>
+                                                                    </td>
+                                                                );
+                                                            })}
                                                             <td className="px-6 py-4 whitespace-nowrap">
                                                                 <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                                     {item.levelName || levelName}
