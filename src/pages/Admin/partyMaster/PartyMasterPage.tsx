@@ -9,8 +9,9 @@ import {
   activateParty,
   deactivateParty,
   deleteParty,
-  fetchUsersByParty,
+  fetchUsersByPartyPaginated,
   setQueryParams,
+  setUsersQueryParams,
   clearError,
   clearPartyUsers,
 } from "../../../store/partySlice";
@@ -49,6 +50,7 @@ export const PartyMasterPage: React.FC = () => {
     error,
     pagination,
     queryParams,
+    usersPagination
   } = useAppSelector((state) => state.party);
 
   const [showForm, setShowForm] = useState(false);
@@ -64,6 +66,7 @@ export const PartyMasterPage: React.FC = () => {
     queryParams.search || ""
   );
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [userSearch, setUserSearch] = useState<string>("");
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -164,7 +167,9 @@ export const PartyMasterPage: React.FC = () => {
 
   const handleAssignAdmin = (party: Party) => {
     setSelectedPartyForAdmin(party);
-    dispatch(fetchUsersByParty(party.party_id));
+    setUserSearch("");
+    dispatch(setUsersQueryParams({ page: 1, limit: 10, search: "" }));
+    dispatch(fetchUsersByPartyPaginated({ partyId: party.party_id, params: { page: 1, limit: 10 } }));
     setShowUserModal(true);
   };
 
@@ -180,6 +185,31 @@ export const PartyMasterPage: React.FC = () => {
     setSelectedPartyForAdmin(null);
     dispatch(clearPartyUsers());
     dispatch(fetchParties(queryParams));
+  };
+
+  // Debounced user search
+  useEffect(() => {
+    if (!showUserModal || !selectedPartyForAdmin) return;
+
+    const timer = setTimeout(() => {
+      const newParams = { page: 1, limit: 10, search: userSearch };
+      dispatch(fetchUsersByPartyPaginated({
+        partyId: selectedPartyForAdmin.party_id,
+        params: newParams
+      }));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [userSearch, showUserModal, selectedPartyForAdmin]);
+
+  const handleUsersPageChange = (newPage: number) => {
+    if (!selectedPartyForAdmin) return;
+    const newParams = { page: newPage, limit: 10, search: userSearch };
+    dispatch(setUsersQueryParams(newParams));
+    dispatch(fetchUsersByPartyPaginated({
+      partyId: selectedPartyForAdmin.party_id,
+      params: newParams
+    }));
   };
 
   // Form Component
@@ -277,9 +307,8 @@ export const PartyMasterPage: React.FC = () => {
               type="text"
               value={partyCode}
               onChange={(e) => setPartyCode(codeSanitized(e.target.value))}
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                codeValid ? "border-gray-300" : "border-red-300"
-              }`}
+              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${codeValid ? "border-gray-300" : "border-red-300"
+                }`}
               placeholder="Enter party code (e.g., BJP, INC)"
               disabled={submitting}
             />
@@ -330,6 +359,7 @@ export const PartyMasterPage: React.FC = () => {
               onClick={() => {
                 setShowUserModal(false);
                 setSelectedPartyForAdmin(null);
+                setUserSearch("");
                 dispatch(clearPartyUsers());
               }}
               className="text-gray-500 hover:text-gray-700"
@@ -337,6 +367,24 @@ export const PartyMasterPage: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Search Bar */}
+          <div className="px-5 py-3 border-b bg-gray-50">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search users by name, email, or contact..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="mt-2 text-xs text-gray-600">
+              Showing {partyUsers.filter((user) => user.isSuperAdmin !== 1).length} of {usersPagination.total} users
+            </div>
+          </div>
+
           <div className="p-5 overflow-y-auto flex-1">
             {loading ? (
               <div className="text-center py-8 text-gray-500">
@@ -345,7 +393,7 @@ export const PartyMasterPage: React.FC = () => {
             ) : partyUsers.filter((user) => user.isSuperAdmin !== 1).length ===
               0 ? (
               <div className="text-center py-8 text-gray-500">
-                No users found for this party
+                {userSearch ? "No users found matching your search" : "No users found for this party"}
               </div>
             ) : (
               <div className="space-y-2">
@@ -354,11 +402,10 @@ export const PartyMasterPage: React.FC = () => {
                   .map((user) => (
                     <div
                       key={user.user_id}
-                      className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${
-                        selectedPartyForAdmin.adminId === user.user_id
-                          ? "bg-blue-100 border-blue-500"
-                          : "border-gray-200"
-                      }`}
+                      className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${selectedPartyForAdmin.adminId === user.user_id
+                        ? "bg-blue-100 border-blue-500"
+                        : "border-gray-200"
+                        }`}
                       onClick={() => handleSelectAdmin(user.user_id)}
                     >
                       <div className="flex items-center justify-between">
@@ -403,6 +450,58 @@ export const PartyMasterPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {usersPagination.totalPages > 1 && (
+            <div className="px-5 py-3 border-t bg-gray-50 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Page {usersPagination.page} of {usersPagination.totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleUsersPageChange(usersPagination.page - 1)}
+                  disabled={usersPagination.page === 1 || loading}
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, usersPagination.totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (usersPagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (usersPagination.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (usersPagination.page >= usersPagination.totalPages - 2) {
+                      pageNum = usersPagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = usersPagination.page - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handleUsersPageChange(pageNum)}
+                        disabled={loading}
+                        className={`px-3 py-1 border rounded-md text-sm ${usersPagination.page === pageNum
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "border-gray-300 hover:bg-gray-100"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => handleUsersPageChange(usersPagination.page + 1)}
+                  disabled={usersPagination.page === usersPagination.totalPages || loading}
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -669,11 +768,10 @@ export const PartyMasterPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${
-                showFilters || hasActiveFilters
-                  ? "bg-blue-50 border-blue-300 text-blue-700"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
+                ? "bg-blue-50 border-blue-300 text-blue-700"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
             >
               <Filter className="w-4 h-4" /> Filters
               {hasActiveFilters && (
@@ -816,16 +914,14 @@ export const PartyMasterPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            p.isActive === 1 ? "bg-purple-100" : "bg-gray-100"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${p.isActive === 1 ? "bg-purple-100" : "bg-gray-100"
+                            }`}
                         >
                           <Database
-                            className={`w-5 h-5 ${
-                              p.isActive === 1
-                                ? "text-purple-600"
-                                : "text-gray-400"
-                            }`}
+                            className={`w-5 h-5 ${p.isActive === 1
+                              ? "text-purple-600"
+                              : "text-gray-400"
+                              }`}
                           />
                         </div>
                         <div>
