@@ -80,7 +80,7 @@ import ViewMandalUsers from "./pages/Block/mandal/ViewMandalUsers";
 import { Profile as BlockProfile } from "./pages/Block/Profile/Profile";
 import { RolePage } from "./pages/Admin/role";
 import { UserPage } from "./pages/Admin/users/UserPage";
-
+import PdfToExcel from "./pages/Admin/PdfToExcel";
 import AdminOverview from "./pages/Admin/Overview";
 import StateLayout from "./layouts/StateLayout";
 import StateOverview from "./pages/State/Dashboard";
@@ -203,6 +203,7 @@ export default function App() {
             />
             <Route path="role" element={<RolePage />} />
             <Route path="users" element={<UserPage />} />
+            <Route path="pdf-to-excel" element={<PdfToExcel />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
