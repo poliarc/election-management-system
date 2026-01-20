@@ -98,6 +98,7 @@ import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCen
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import DynamicLevelPage from "./pages/State/DynamicLevelPage";
 import DistrictDynamicLevelPage from "./pages/District/DynamicLevelPage";
+import { VisitorsPage } from "./pages/Assembly/visitors";
 import AssemblyDynamicLevelPage from "./pages/Assembly/DynamicLevelPage";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
@@ -334,6 +335,7 @@ export default function App() {
               element={<FamilyLabelsPage />}
             />
             <Route path="team" element={<AssemblyTeam />} />
+            <Route path="visitors" element={<VisitorsPage />} />
             <Route path="form-20" element={<AssemblyForm20 />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />
