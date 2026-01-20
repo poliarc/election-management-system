@@ -85,12 +85,23 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'state_id' || name === 'district_id' || name === 'assembly_id' || name === 'assembly_user_id' || name === 'no_of_persons'
-        ? parseInt(value) || 0
-        : value
-    }));
+    
+    // Special handling for phone number
+    if (name === 'phone') {
+      // Only allow digits and limit to 10 characters
+      const phoneValue = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({
+        ...prev,
+        [name]: phoneValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'state_id' || name === 'district_id' || name === 'assembly_id' || name === 'assembly_user_id' || name === 'no_of_persons'
+          ? parseInt(value) || 0
+          : value
+      }));
+    }
 
     // Clear related fields when parent changes
     if (name === 'state_id') {
@@ -110,7 +121,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
-    if (!/^\d{10,15}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10-15 digits';
+    if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be exactly 10 digits';
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
     if (!formData.state_id) newErrors.state_id = 'State is required';
     if (!formData.district_id) newErrors.district_id = 'District is required';
@@ -230,10 +241,12 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
+                  maxLength={10}
+                  pattern="[0-9]{10}"
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                     errors.phone ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter phone number"
+                  placeholder="Enter 10-digit phone number"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
