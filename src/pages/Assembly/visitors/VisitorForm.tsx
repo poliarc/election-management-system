@@ -130,6 +130,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
     if (!formData.place_of_visit.trim()) newErrors.place_of_visit = 'Place of visit is required';
     if (formData.no_of_persons < 1) newErrors.no_of_persons = 'Number of persons must be at least 1';
     if (!formData.purpose_of_visit.trim()) newErrors.purpose_of_visit = 'Purpose of visit is required';
+    if (formData.follow_up_date && formData.follow_up_date < new Date().toISOString().split('T')[0]) {
+      newErrors.follow_up_date = 'Follow-up date cannot be in the past';
+    }
     if (!formData.assembly_user_id) {
       newErrors.assembly_user_id = 'Assembly user is required';
     } else {
@@ -451,7 +454,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                 {errors.purpose_of_visit && <p className="text-red-500 text-sm mt-1">{errors.purpose_of_visit}</p>}
               </div>
 
-               <div>
+               {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Follow-up Date
                 </label>
@@ -460,12 +463,13 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="follow_up_date"
                   value={formData.follow_up_date}
                   onChange={handleInputChange}
+                  min={new Date().toISOString().split('T')[0]}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
                     errors.follow_up_date ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
                 {errors.follow_up_date && <p className="text-red-500 text-sm mt-1">{errors.follow_up_date}</p>}
-              </div>
+              </div> */}
             </div>
           </div>
 
