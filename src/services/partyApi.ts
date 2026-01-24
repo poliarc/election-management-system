@@ -267,3 +267,37 @@ export async function fetchUsersByParty(partyId: number): Promise<PartyUsersResp
 
     return response.json();
 }
+
+// Fetch users by party with pagination and search
+export async function fetchUsersByPartyPaginated(
+    partyId: number,
+    params: { page?: number; limit?: number; search?: string } = {}
+): Promise<PartyUsersResponse> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.append("page", params.page.toString());
+    if (params.limit) searchParams.append("limit", params.limit.toString());
+    if (params.search) searchParams.append("search", params.search);
+    const queryString = searchParams.toString();
+
+    const url = `${API_CONFIG.BASE_URL}/api/users/by-party/${partyId}${queryString ? `?${queryString}` : ""}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response
+            .json()
+            .catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch users");
+    }
+
+    return response.json();
+}

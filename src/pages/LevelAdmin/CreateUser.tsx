@@ -631,9 +631,9 @@ export const LevelAdminCreateUser: React.FC = () => {
           user={selectedUserForContact}
         />
 
-        {/* Loading Overlay - Only show when not in form mode */}
-        {!showForm && isLoadingUsers && (
-          <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40">
+        {/* Loading Overlay - Only show for first page load */}
+        {!showForm && isLoadingUsers && searchParams.page === 1 && (
+          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-40">
             <div className="bg-white rounded-lg p-6 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -645,7 +645,7 @@ export const LevelAdminCreateUser: React.FC = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && userToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <div className="flex items-center gap-4">

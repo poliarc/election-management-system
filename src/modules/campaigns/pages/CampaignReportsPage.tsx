@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getAllCampaigns, getAllReports } from "../data/staticCampaignData";
+import { getCampaignStatusText } from "../../../utils/campaignUtils";
 
 export const CampaignReportsPage = () => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
@@ -85,7 +86,7 @@ export const CampaignReportsPage = () => {
               {campaigns.map((campaign) => (
                 <option key={campaign.id} value={campaign.id}>
                   {campaign.name} (
-                  {campaign.status === 0 ? "Completed" : "Active"})
+                  {getCampaignStatusText(campaign) === "completed" ? "Completed" : "Active"})
                 </option>
               ))}
             </select>

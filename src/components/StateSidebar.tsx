@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
+import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -212,8 +213,8 @@ const stateItems: NavItem[] = [
   // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
-// Dropdown items
-const listItems: NavItem[] = [
+// Dropdown items - These will be replaced by dynamic levels from API
+const staticListItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
@@ -227,6 +228,7 @@ export default function StateSidebar({
   onNavigate?: () => void;
 }) {
   const user = useAppSelector((s) => s.auth.user);
+  const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -236,6 +238,49 @@ export default function StateSidebar({
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;
+
+  // Get party and state info for API call
+  const partyId = user?.partyId || 0;
+  const stateId = selectedAssignment?.stateMasterData_id || 0;
+
+  // Fetch dynamic sidebar levels from API
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    { skip: !partyId || !stateId }
+  );
+
+  // Create dynamic list items from API response
+  const dynamicListItems: NavItem[] = useMemo(() => {
+    if (!sidebarLevels.length) return staticListItems;
+
+    // Filter levels that come after Assembly
+    const afterAssemblyLevels = sidebarLevels.filter(level =>
+      !["State", "District", "Assembly"].includes(level.level_name)
+    );
+
+    return afterAssemblyLevels.map(level => ({
+      to: `dynamic-level/${level.level_name.toLowerCase()}`,
+      label: level.display_level_name,
+      icon: getIconForLevel(level.level_name),
+    }));
+  }, [sidebarLevels]);
+
+  // Use dynamic levels if available, otherwise fall back to static
+  const listItems = dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
+
+  // Helper function to get appropriate icon for level
+  function getIconForLevel(levelName: string): ReactNode {
+    const lowerLevelName = levelName.toLowerCase();
+
+    if (lowerLevelName.includes('block')) return Icons.block;
+    if (lowerLevelName.includes('mandal')) return Icons.mandal;
+    if (lowerLevelName.includes('polling') || lowerLevelName.includes('center')) return Icons.polling;
+    if (lowerLevelName.includes('booth')) return Icons.booths;
+    if (lowerLevelName.includes('ward')) return Icons.district; // Use district icon for ward
+
+    // Default icon for unknown levels
+    return Icons.mandal;
+  }
 
   const onLogout = () => {
     dispatch(logout());

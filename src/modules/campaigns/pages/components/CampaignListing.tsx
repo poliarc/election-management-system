@@ -13,6 +13,7 @@ import {
   // FileText,
 } from "lucide-react";
 import type { Campaign } from "../../../../types/campaign";
+import { isCampaignActive, getCampaignStatusColor, getCampaignStats } from "../../../../utils/campaignUtils";
 // import { useNavigate } from "react-router-dom";
 
 interface CampaignListingProps {
@@ -229,16 +230,6 @@ const extractCampaignImages = (campaign: Campaign): string[] => {
   return images;
 };
 
-const isCampaignActive = (campaign: Campaign): boolean => {
-  if (typeof campaign.isActive === "number") {
-    return campaign.isActive !== 0;
-  }
-  if (campaign.status === null || campaign.status === undefined) {
-    return true;
-  }
-  return campaign.status !== 0;
-};
-
 export const CampaignListing = ({
   campaigns,
   onViewDetails,
@@ -294,9 +285,7 @@ export const CampaignListing = ({
   });
 
   const stats = {
-    total: campaigns.length,
-    active: campaigns.filter((c) => isCampaignActive(c)).length,
-    completed: campaigns.filter((c) => !isCampaignActive(c)).length,
+    ...getCampaignStats(campaigns),
     totalParticipants: campaigns.reduce(
       (sum, c) => sum + (c.totalParticipants ?? 0),
       0
@@ -304,9 +293,7 @@ export const CampaignListing = ({
   };
 
   const getStatusColor = (campaign: Campaign) => {
-    return isCampaignActive(campaign)
-      ? "bg-green-100 text-green-800"
-      : "bg-gray-100 text-gray-800";
+    return getCampaignStatusColor(campaign);
   };
 
   return (
