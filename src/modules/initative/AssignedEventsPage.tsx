@@ -7,6 +7,7 @@ import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
 import { MyReportsModal } from "./MyReportsModal";
+import { isCampaignEventActive } from "../../utils/campaignUtils";
 import {
   useGetMyCampaignsQuery,
   useUpdateCampaignAcceptanceMutation,
@@ -140,6 +141,12 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
       return;
     }
 
+    // Check if campaign has ended
+    if (selectedNotificationForDetail && !isCampaignEventActive(selectedNotificationForDetail)) {
+      toast.error("This campaign has ended. You can no longer accept it.");
+      return;
+    }
+
     const loadingToast = toast.loading("Accepting campaign...");
 
     try {
@@ -168,7 +175,13 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
     } catch (error) {
       console.error("Failed to accept campaign:", error);
       toast.dismiss(loadingToast);
-      toast.error("Failed to accept campaign. Please try again.");
+      
+      // Check if the error is about campaign ending
+      const errorMessage = error && typeof error === "object" && "data" in error
+        ? (error.data as { error?: { message?: string } })?.error?.message
+        : "Failed to accept campaign. Please try again.";
+      
+      toast.error(errorMessage || "Failed to accept campaign. Please try again.");
     }
   };
 
@@ -176,6 +189,12 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
     const campaignId = selectedNotificationForDetail?.campaign_id;
     if (!campaignId) {
       toast.error("Invalid campaign.");
+      return;
+    }
+
+    // Check if campaign has ended
+    if (selectedNotificationForDetail && !isCampaignEventActive(selectedNotificationForDetail)) {
+      toast.error("This campaign has ended. You can no longer decline it.");
       return;
     }
 
@@ -193,7 +212,13 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
     } catch (error) {
       console.error("Failed to decline campaign:", error);
       toast.dismiss(loadingToast);
-      toast.error("Failed to decline campaign. Please try again.");
+      
+      // Check if the error is about campaign ending
+      const errorMessage = error && typeof error === "object" && "data" in error
+        ? (error.data as { error?: { message?: string } })?.error?.message
+        : "Failed to decline campaign. Please try again.";
+      
+      toast.error(errorMessage || "Failed to decline campaign. Please try again.");
     }
   };
 

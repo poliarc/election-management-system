@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { Campaign, CampaignReport } from "../../../../types/campaign";
+import { isCampaignActive } from "../../../../utils/campaignUtils";
 
 interface CampaignDetailsProps {
   campaign: Campaign;
@@ -82,15 +83,6 @@ export const CampaignDetails = ({
     }
   };
 
-  const isCampaignActive = (campaignData: Campaign) => {
-    if (typeof campaignData.isActive === "number") {
-      return campaignData.isActive !== 0;
-    }
-    if (campaignData.status === undefined || campaignData.status === null) {
-      return true;
-    }
-    return campaignData.status !== 0;
-  };
   const isActive = isCampaignActive(campaign);
 
   const filteredReports = reports.filter(
