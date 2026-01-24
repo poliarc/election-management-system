@@ -4,6 +4,7 @@ import { Calendar, Bell, Plus, TrendingUp } from "lucide-react";
 import { CampaignSlider } from "./CampaignSlider";
 import { CampaignList } from "./CampaignList";
 import { CampaignDetailModal } from "./CampaignDetailModal";
+import { isCampaignEventActive } from "../../utils/campaignUtils";
 import {
   getCampaignsByLevel,
   updateCampaignAcceptanceStatus,
@@ -207,6 +208,12 @@ export const PartyCampaignPage: React.FC = () => {
       return;
     }
 
+    // Check if campaign has ended
+    if (selectedNotificationForDetail && !isCampaignEventActive(selectedNotificationForDetail)) {
+      alert("This campaign has ended. You can no longer accept it.");
+      return;
+    }
+
     updateCampaignAcceptanceStatus(acceptanceId, "accepted");
     alert("You have accepted this campaign.");
     setSelectedNotificationForDetail(null);
@@ -217,6 +224,12 @@ export const PartyCampaignPage: React.FC = () => {
     const acceptanceId = selectedNotificationForDetail?.acceptance_id;
     if (!acceptanceId) {
       alert("Invalid campaign scope.");
+      return;
+    }
+
+    // Check if campaign has ended
+    if (selectedNotificationForDetail && !isCampaignEventActive(selectedNotificationForDetail)) {
+      alert("This campaign has ended. You can no longer decline it.");
       return;
     }
 

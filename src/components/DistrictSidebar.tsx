@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
+import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
@@ -144,21 +145,51 @@ const Icons = {
       />
     </svg>
   ),
-  // karyakarta: (
-  //   <svg
-  //     className={iconClass}
-  //     viewBox="0 0 24 24"
-  //     fill="none"
-  //     stroke="currentColor"
-  //   >
-  //     <path
-  //       d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
-  //       strokeWidth={1.4}
-  //       strokeLinecap="round"
-  //       strokeLinejoin="round"
-  //     />
-  //   </svg>
-  // ),
+  ward: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M3 8h18M3 16h18M8 21V3m8 0v18"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  zone: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  sector: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   profile: (
     <svg
       className={iconClass}
@@ -198,8 +229,8 @@ const districtItems: NavItem[] = [
   { to: "assembly", label: "Assembly List", icon: Icons.assembly },
 ];
 
-// Dropdown items under "List"
-const listItems: NavItem[] = [
+// Dropdown items under "List" - These will be replaced by dynamic levels from API
+const staticListItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
@@ -233,6 +264,55 @@ export default function DistrictSidebar({
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
   )}&background=6366f1&color=fff&bold=true`;
+
+  // Get party and state info for API call
+  const partyId = user?.partyId || 0;
+  // For District panel, we need the state ID from the district's parent (which is the state)
+  const stateId = selectedAssignment?.parentId || user?.state_id || 0;
+
+  // Fetch dynamic sidebar levels from API
+  const { data: sidebarLevels = [], isLoading: sidebarLoading, error: sidebarError } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    {
+      skip: !partyId || !stateId || partyId === 0 || stateId === 0,
+      refetchOnMountOrArgChange: true
+    }
+  );
+
+  // Create dynamic list items from API response
+  const dynamicListItems: NavItem[] = useMemo(() => {
+    if (!sidebarLevels.length) return staticListItems;
+
+    // Filter levels that come after Assembly
+    const afterAssemblyLevels = sidebarLevels.filter(level =>
+      !["State", "District", "Assembly"].includes(level.level_name)
+    );
+
+    return afterAssemblyLevels.map(level => ({
+      to: `dynamic-level/${level.level_name.toLowerCase()}`,
+      label: level.display_level_name,
+      icon: getIconForLevel(level.level_name),
+    }));
+  }, [sidebarLevels]);
+
+  // Use dynamic levels if available, otherwise fall back to static
+  const listItems = dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
+
+  // Helper function to get appropriate icon for level
+  function getIconForLevel(levelName: string): ReactNode {
+    const lowerLevelName = levelName.toLowerCase();
+
+    if (lowerLevelName.includes('block')) return Icons.block;
+    if (lowerLevelName.includes('mandal')) return Icons.mandal;
+    if (lowerLevelName.includes('polling') || lowerLevelName.includes('center')) return Icons.polling;
+    if (lowerLevelName.includes('booth')) return Icons.booth;
+    if (lowerLevelName.includes('ward')) return Icons.ward;
+    if (lowerLevelName.includes('zone')) return Icons.zone;
+    if (lowerLevelName.includes('sector')) return Icons.sector;
+
+    // Default icon for unknown levels
+    return Icons.mandal;
+  }
 
   const onLogout = () => {
     dispatch(logout());
@@ -437,7 +517,10 @@ export default function DistrictSidebar({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-black">List</span>
+              <span className="text-black">
+                List {sidebarLoading && "(Loading...)"}
+                {sidebarError && "(Error)"}
+              </span>
             </span>
             <svg
               className={[
@@ -458,25 +541,33 @@ export default function DistrictSidebar({
           </button>
           {listOpen && (
             <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
-              {listItems.map((li) => (
-                <NavLink
-                  key={li.to}
-                  to={`${base}/${li.to}`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-50 ring-1 ring-indigo-200"
-                        : "border border-transparent hover:border-gray-200",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{li.icon}</span>
-                  <span className="truncate">{li.label}</span>
-                </NavLink>
-              ))}
+              {sidebarLoading ? (
+                <div className="px-3 py-2 text-sm text-gray-500">Loading levels...</div>
+              ) : sidebarError ? (
+                <div className="px-3 py-2 text-sm text-red-500">Error loading levels</div>
+              ) : listItems.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-gray-500">No levels available</div>
+              ) : (
+                listItems.map((li) => (
+                  <NavLink
+                    key={li.to}
+                    to={`${base}/${li.to}`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                        "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-50 ring-1 ring-indigo-200"
+                          : "border border-transparent hover:border-gray-200",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600">{li.icon}</span>
+                    <span className="truncate">{li.label}</span>
+                  </NavLink>
+                ))
+              )}
             </div>
           )}
         </div>

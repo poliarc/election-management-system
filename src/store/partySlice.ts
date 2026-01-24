@@ -24,6 +24,17 @@ interface PartyState {
         totalPages: number;
     };
     queryParams: PartyQueryParams;
+    usersPagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+    usersQueryParams: {
+        page: number;
+        limit: number;
+        search?: string;
+    };
 }
 
 const initialState: PartyState = {
@@ -40,6 +51,16 @@ const initialState: PartyState = {
         totalPages: 0,
     },
     queryParams: {
+        page: 1,
+        limit: 10,
+    },
+    usersPagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+    },
+    usersQueryParams: {
         page: 1,
         limit: 10,
     },
@@ -118,12 +139,23 @@ export const fetchUsersByParty = createAsyncThunk(
     }
 );
 
+export const fetchUsersByPartyPaginated = createAsyncThunk(
+    "party/fetchUsersByPartyPaginated",
+    async ({ partyId, params }: { partyId: number; params?: { page?: number; limit?: number; search?: string } }) => {
+        const response = await partyApi.fetchUsersByPartyPaginated(partyId, params);
+        return response;
+    }
+);
+
 const partySlice = createSlice({
     name: "party",
     initialState,
     reducers: {
         setQueryParams: (state, action: PayloadAction<PartyQueryParams>) => {
             state.queryParams = { ...state.queryParams, ...action.payload };
+        },
+        setUsersQueryParams: (state, action: PayloadAction<{ page?: number; limit?: number; search?: string }>) => {
+            state.usersQueryParams = { ...state.usersQueryParams, ...action.payload };
         },
         clearError: (state) => {
             state.error = null;
@@ -133,6 +165,16 @@ const partySlice = createSlice({
         },
         clearPartyUsers: (state) => {
             state.partyUsers = [];
+            state.usersPagination = {
+                page: 1,
+                limit: 10,
+                total: 0,
+                totalPages: 0,
+            };
+            state.usersQueryParams = {
+                page: 1,
+                limit: 10,
+            };
         },
     },
     extraReducers: (builder) => {
@@ -288,10 +330,28 @@ const partySlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message || "Failed to fetch users";
             });
+
+        // Fetch users by party paginated
+        builder
+            .addCase(fetchUsersByPartyPaginated.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchUsersByPartyPaginated.fulfilled, (state, action) => {
+                state.loading = false;
+                state.partyUsers = action.payload.data;
+                if (action.payload.pagination) {
+                    state.usersPagination = action.payload.pagination;
+                }
+            })
+            .addCase(fetchUsersByPartyPaginated.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || "Failed to fetch users";
+            });
     },
 });
 
-export const { setQueryParams, clearError, clearSelectedParty, clearPartyUsers } =
+export const { setQueryParams, setUsersQueryParams, clearError, clearSelectedParty, clearPartyUsers } =
     partySlice.actions;
 
 export default partySlice.reducer;

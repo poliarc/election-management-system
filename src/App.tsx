@@ -80,7 +80,7 @@ import ViewMandalUsers from "./pages/Block/mandal/ViewMandalUsers";
 import { Profile as BlockProfile } from "./pages/Block/Profile/Profile";
 import { RolePage } from "./pages/Admin/role";
 import { UserPage } from "./pages/Admin/users/UserPage";
-
+import PdfToExcel from "./pages/Admin/PdfToExcel";
 import AdminOverview from "./pages/Admin/Overview";
 import StateLayout from "./layouts/StateLayout";
 import StateOverview from "./pages/State/Dashboard";
@@ -96,6 +96,10 @@ import StatePollingCenterList from "./pages/State/pollingCenter/PollingCenterLis
 import DistrictBoothList from "./pages/District/booth/BoothList";
 import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCenterList";
 import StateKaryakartaListing from "./pages/State/karyakarta";
+import DynamicLevelPage from "./pages/State/DynamicLevelPage";
+import DistrictDynamicLevelPage from "./pages/District/DynamicLevelPage";
+import { VisitorsPage } from "./pages/Assembly/visitors";
+import AssemblyDynamicLevelPage from "./pages/Assembly/DynamicLevelPage";
 import { CampaignsStatePage } from "./modules/campaigns/pages/CampaignsStatePage";
 import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPage";
 import { PartyTypePage } from "./pages/Admin/partyType";
@@ -200,6 +204,7 @@ export default function App() {
             />
             <Route path="role" element={<RolePage />} />
             <Route path="users" element={<UserPage />} />
+            <Route path="pdf-to-excel" element={<PdfToExcel />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
@@ -215,6 +220,7 @@ export default function App() {
             <Route path="mandal" element={<StateMandalListing />} />
             <Route path="polling-center" element={<StatePollingCenterList />} />
             <Route path="booth" element={<StateBoothList />} />
+            <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<StateKaryakartaListing />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
@@ -237,6 +243,7 @@ export default function App() {
               element={<DistrictPollingCenterList />}
             />
             <Route path="booth" element={<DistrictBoothList />} />
+            <Route path="dynamic-level/:levelName" element={<DistrictDynamicLevelPage />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
@@ -328,17 +335,20 @@ export default function App() {
               element={<FamilyLabelsPage />}
             />
             <Route path="team" element={<AssemblyTeam />} />
+            <Route path="visitors" element={<VisitorsPage />} />
             <Route path="form-20" element={<AssemblyForm20 />} />
             <Route path="block" element={<BlockList />} />
             <Route path="block/create" element={<CreateBlock />} />
             <Route path="block/assign" element={<AssignBlock />} />
             <Route path="block/users" element={<ViewBlockUsers />} />
+            <Route path=":levelName/assign" element={<AssignBlock />} />
             <Route path="mandal" element={<AssemblyMandalPage />} />
             <Route
               path="polling-center"
               element={<AssemblyPollingCenterPage />}
             />
             <Route path="booth" element={<AssemblyBoothPage />} />
+            <Route path="dynamic-level/:levelName" element={<AssemblyDynamicLevelPage />} />
             <Route path="karyakarta" element={<AssemblyKaryakartaPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />

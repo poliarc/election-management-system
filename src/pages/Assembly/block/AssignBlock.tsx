@@ -15,8 +15,11 @@ import type { HierarchyUser } from "../../../types/hierarchy";
 export default function AssignBlock() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const blockId = searchParams.get("blockId");
-    const blockName = searchParams.get("blockName");
+
+    // Support both old (blockId/blockName) and new (levelId/levelName/levelType) query params
+    const levelId = searchParams.get("levelId") || searchParams.get("blockId");
+    const levelName = searchParams.get("levelName") || searchParams.get("blockName");
+    const levelType = searchParams.get("levelType") || "Block";
 
     const { user } = useAppSelector((s) => s.auth);
     const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
@@ -199,13 +202,13 @@ export default function AssignBlock() {
 
     // Fetch already assigned users
     const { data: assignedData } = useGetBlockAssignmentsQuery(
-        Number(blockId),
-        { skip: !blockId }
+        Number(levelId),
+        { skip: !levelId }
     );
 
     // Fetch assigned users with full details
     const fetchAssignedUsers = async () => {
-        if (!blockId) return;
+        if (!levelId) return;
         try {
             setLoadingAssignedUsers(true);
             // Use the existing assigned data from the query
@@ -263,8 +266,8 @@ export default function AssignBlock() {
             return;
         }
 
-        if (!blockId) {
-            toast.error("Block ID not found");
+        if (!levelId) {
+            toast.error(`${levelType} ID not found`);
             return;
         }
 
@@ -272,13 +275,13 @@ export default function AssignBlock() {
             const promises = selectedUsers.map((userId) =>
                 createAssignment({
                     user_id: userId,
-                    afterAssemblyData_id: Number(blockId),
+                    afterAssemblyData_id: Number(levelId),
                 }).unwrap()
             );
 
             await Promise.all(promises);
             toast.success(
-                `Successfully assigned ${selectedUsers.length} user(s) to block`
+                `Successfully assigned ${selectedUsers.length} user(s) to ${levelType.toLowerCase()}`
             );
             // Refresh assigned users list
             fetchAssignedUsers();
@@ -286,14 +289,14 @@ export default function AssignBlock() {
             setActiveTab('assigned');
         } catch (error: any) {
             console.error(error?.data?.message);
-            navigate("/assembly/block");
+            navigate(`/assembly/dynamic-level/${levelType}`);
             window.location.reload();
         }
     };
 
     const handleUnassign = async (userId: number, userName: string) => {
-        if (!blockId) {
-            toast.error("Block ID not found");
+        if (!levelId) {
+            toast.error(`${levelType} ID not found`);
             return;
         }
 
@@ -301,11 +304,11 @@ export default function AssignBlock() {
             setUnassigningUserId(userId);
             const response = await deleteAssignedLevels({
                 user_id: userId,
-                afterAssemblyData_ids: [Number(blockId)]
+                afterAssemblyData_ids: [Number(levelId)]
             }).unwrap();
 
             if (response.success && response.summary.success > 0) {
-                toast.success(`Unassigned ${userName} from block`);
+                toast.success(`Unassigned ${userName} from ${levelType.toLowerCase()}`);
 
                 // Update local state immediately - user will disappear from list instantly
                 setAssignedUsers(prev => prev.filter(user => user.user_id !== userId));
@@ -350,16 +353,16 @@ export default function AssignBlock() {
         );
     }
 
-    if (!blockId || !blockName) {
+    if (!levelId || !levelName) {
         return (
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-                    <p className="text-red-600">Invalid block information</p>
+                    <p className="text-red-600">Invalid {levelType.toLowerCase()} information</p>
                     <button
-                        onClick={() => navigate("/assembly/block")}
+                        onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
                         className="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
                     >
-                        Back to Block List
+                        Back to {levelType} List
                     </button>
                 </div>
             </div>
@@ -373,20 +376,20 @@ export default function AssignBlock() {
                     <div className="mb-1">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => navigate("/assembly/block")}
+                                onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Back to Block List"
+                                title={`Back to ${levelType} List`}
                             >
                                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
                             <h1 className="text-2xl font-bold text-gray-900">
-                                Manage Block Users
+                                Manage {levelType} Users
                             </h1>
                         </div>
                         <p className="text-sm text-gray-600 mt-2 px-13">
-                            Block: <span className="font-medium">{blockName}</span>
+                            {levelType}: <span className="font-medium">{levelName}</span>
                         </p>
                         {/* {stateId && (
                             <p className="text-xs text-blue-600 mt-1">
@@ -599,7 +602,7 @@ export default function AssignBlock() {
                                             {isAssigning ? "Assigning..." : "Assign Selected Users"}
                                         </button>
                                         <button
-                                            onClick={() => navigate("/assembly/block")}
+                                            onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
                                             className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                                         >
                                             Cancel
@@ -664,10 +667,10 @@ export default function AssignBlock() {
                                     </div>
                                     <div className="flex gap-4 mt-6">
                                         <button
-                                            onClick={() => navigate("/assembly/block")}
+                                            onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
                                             className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
                                         >
-                                            Back to Block List
+                                            Back to {levelType} List
                                         </button>
                                     </div>
                                 </>

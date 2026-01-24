@@ -7,25 +7,25 @@ interface UserDetailsModalProps {
     users: HierarchyUser[];
     locationName: string;
     locationId: number;
-    locationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
+    locationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter' | 'Ward' | 'Zone' | 'Sector';
     isOpen: boolean;
     onClose: () => void;
     onUserDeleted?: () => void;
     // New hierarchical context props
     parentLocationName?: string;
-    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth';
+    parentLocationType?: 'State' | 'District' | 'Assembly' | 'Block' | 'Mandal' | 'Booth' | 'PollingCenter' | 'Ward' | 'Zone' | 'Sector';
 }
 
-export default function UserDetailsModal({ 
-    users, 
-    locationName, 
-    locationId, 
-    locationType = 'District', 
-    isOpen, 
-    onClose, 
+export default function UserDetailsModal({
+    users,
+    locationName,
+    locationId,
+    locationType = 'District',
+    isOpen,
+    onClose,
     onUserDeleted,
     parentLocationName,
-    parentLocationType 
+    parentLocationType
 }: UserDetailsModalProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
@@ -376,15 +376,15 @@ export default function UserDetailsModal({
                                                         } else if (user.status !== undefined && user.status !== null) {
                                                             isActive = checkActiveStatus(user.status);
                                                         }
-                                                        
-                                                        console.log(`Status for user ${user.user_id}:`, { 
-                                                            is_active: user.is_active, 
-                                                            user_active: user.user_active, 
-                                                            active: user.active, 
-                                                            status: user.status, 
-                                                            result: isActive 
+
+                                                        console.log(`Status for user ${user.user_id}:`, {
+                                                            is_active: user.is_active,
+                                                            user_active: user.user_active,
+                                                            active: user.active,
+                                                            status: user.status,
+                                                            result: isActive
                                                         });
-                                                        
+
                                                         return (
                                                             <span
                                                                 className={`px-2 py-1 text-xs font-medium rounded-full ${isActive
@@ -416,7 +416,7 @@ export default function UserDetailsModal({
                                                                 </svg>
                                                             )}
                                                         </button>
-                                                        
+
                                                         {openMenuId === user.user_id && (
                                                             <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
                                                                 <div className="py-1" role="menu">

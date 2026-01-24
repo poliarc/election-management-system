@@ -106,12 +106,16 @@ export default function HierarchyTable({
     locationType: HierarchyChild["location_type"];
     parentLocationName?: string;
     parentLocationType?:
-      | "State"
-      | "District"
-      | "Assembly"
-      | "Block"
-      | "Mandal"
-      | "Booth";
+    | "State"
+    | "District"
+    | "Assembly"
+    | "Block"
+    | "Mandal"
+    | "Booth"
+    | "PollingCenter"
+    | "Ward"
+    | "Zone"
+    | "Sector";
   } | null>(null);
 
   // New state for inline user display
@@ -123,12 +127,12 @@ export default function HierarchyTable({
     locationType: HierarchyChild["location_type"];
     parentLocationName?: string;
     parentLocationType?:
-      | "State"
-      | "District"
-      | "Assembly"
-      | "Block"
-      | "Mandal"
-      | "Booth";
+    | "State"
+    | "District"
+    | "Assembly"
+    | "Block"
+    | "Mandal"
+    | "Booth";
   } | null>(null);
 
   // Function to determine parent context based on current view and available props
@@ -137,12 +141,12 @@ export default function HierarchyTable({
   ): {
     parentName?: string;
     parentType?:
-      | "State"
-      | "District"
-      | "Assembly"
-      | "Block"
-      | "Mandal"
-      | "Booth";
+    | "State"
+    | "District"
+    | "Assembly"
+    | "Block"
+    | "Mandal"
+    | "Booth";
   } => {
     // Determine parent context based on current location type and available props
     switch (item.location_type) {
@@ -308,17 +312,16 @@ export default function HierarchyTable({
       {/* Filters Section */}
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
         <div
-          className={`grid grid-cols-1 ${
-            blocks.length > 0 && onBlockChange
+          className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
               ? "sm:grid-cols-3 lg:grid-cols-6"
               : assemblies.length > 0 && onAssemblyChange
-              ? "sm:grid-cols-2 lg:grid-cols-5"
-              : districts.length > 0 && onDistrictChange
-              ? "sm:grid-cols-2 lg:grid-cols-4"
-              : onUserAssignmentFilterChange
-              ? "sm:grid-cols-2 lg:grid-cols-3"
-              : "sm:grid-cols-3 lg:grid-cols-3"
-          } gap-3`}
+                ? "sm:grid-cols-2 lg:grid-cols-5"
+                : districts.length > 0 && onDistrictChange
+                  ? "sm:grid-cols-2 lg:grid-cols-4"
+                  : onUserAssignmentFilterChange
+                    ? "sm:grid-cols-2 lg:grid-cols-3"
+                    : "sm:grid-cols-3 lg:grid-cols-3"
+            } gap-3`}
         >
           {/* State Field (Disabled) */}
           {stateName && (
@@ -408,11 +411,10 @@ export default function HierarchyTable({
                 value={selectedBlock}
                 onChange={(e) => onBlockChange(e.target.value)}
                 disabled={!selectedAssembly}
-                className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${
-                  !selectedAssembly
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
                     ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                     : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                }`}
+                  }`}
               >
                 <option value="">Select Block</option>
                 {blocks.map((block) => (
@@ -513,14 +515,14 @@ export default function HierarchyTable({
                   {blockName
                     ? "Assembly / Block"
                     : isAssemblyView && stateName
-                    ? "District"
-                    : assemblyName
-                    ? "Assembly"
-                    : stateName
-                    ? "State"
-                    : districtName
-                    ? "District"
-                    : "Location"}
+                      ? "District"
+                      : assemblyName
+                        ? "Assembly"
+                        : stateName
+                          ? "State"
+                          : districtName
+                            ? "District"
+                            : "Location"}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Type
@@ -534,14 +536,14 @@ export default function HierarchyTable({
                       {blockName
                         ? "Mandal"
                         : isAssemblyView && stateName
-                        ? "Assembly"
-                        : assemblyName
-                        ? "Block"
-                        : stateName
-                        ? "District"
-                        : districtName
-                        ? "Assembly"
-                        : "Name"}
+                          ? "Assembly"
+                          : assemblyName
+                            ? "Block"
+                            : stateName
+                              ? "District"
+                              : districtName
+                                ? "Assembly"
+                                : "Name"}
                     </span>
                     <SortIcon field="location_name" />
                   </button>
@@ -642,13 +644,13 @@ export default function HierarchyTable({
                         {blockName
                           ? `${assemblyName} / ${blockName}`
                           : showAllDistricts && "district_name" in item
-                          ? (item as EnhancedHierarchyChild).district_name
-                          : assemblyName ||
+                            ? (item as EnhancedHierarchyChild).district_name
+                            : assemblyName ||
                             districtName ||
                             (districts.length > 0 && item.parent_id
                               ? districts.find(
-                                  (d) => d.location_id === item.parent_id
-                                )?.location_name
+                                (d) => d.location_id === item.parent_id
+                              )?.location_name
                               : null) ||
                             stateName ||
                             parentName ||
@@ -690,11 +692,10 @@ export default function HierarchyTable({
                             }
                           }}
                           disabled={!item.users || item.users.length === 0}
-                          className={`flex items-center ${
-                            item.users && item.users.length > 0
+                          className={`flex items-center ${item.users && item.users.length > 0
                               ? "cursor-pointer hover:text-blue-600"
                               : "cursor-default"
-                          }`}
+                            }`}
                           title={
                             item.users && item.users.length > 0
                               ? expandedRowId === item.location_id

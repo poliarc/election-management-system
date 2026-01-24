@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
+import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
@@ -99,6 +100,51 @@ const Icons = {
       />
     </svg>
   ),
+  zone: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  sector: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  generic: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m18-5H3"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   // karyakarta: (
   //   <svg
   //     className={iconClass}
@@ -153,6 +199,21 @@ const Icons = {
     >
       <path
         d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  visitors: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
         strokeWidth={1.4}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -236,10 +297,13 @@ const Icons = {
 };
 
 // Top-level items
-const primaryItems: NavItem[] = [
+const assemblyItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "team", label: "Assembly Team", icon: Icons.team },
+];
 
+// Dropdown items under "List" - These will be replaced by dynamic levels from API
+const staticListItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
@@ -248,6 +312,7 @@ const primaryItems: NavItem[] = [
 ];
 
 const otherItemsBefore: NavItem[] = [
+  { to: "visitors", label: "Visitors", icon: Icons.visitors },
   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
   // {
   //   to: "assigned-campaigns",
@@ -405,10 +470,97 @@ export default function AssemblySidebar({
     firstName
   )}&background=6366f1&color=fff&bold=true`;
 
+  // Get party and state info from localStorage
+  const getPartyAndStateFromStorage = () => {
+    try {
+      const authState = localStorage.getItem('auth_state');
+      if (authState) {
+        const parsed = JSON.parse(authState);
+        const partyId = parsed?.user?.partyId || 0;
+        const stateId = parsed?.user?.state_id || parsed?.selectedAssignment?.stateMasterData_id || 0;
+        return { partyId, stateId };
+      }
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+    }
+    return { partyId: 0, stateId: 0 };
+  };
+
+  const { partyId, stateId } = getPartyAndStateFromStorage();
+
+  // Fetch dynamic sidebar levels from API
+  const { data: sidebarLevels = [], isLoading: sidebarLoading, error: sidebarError } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    {
+      skip: !partyId || !stateId || partyId === 0 || stateId === 0,
+      refetchOnMountOrArgChange: true
+    }
+  );
+
+  // Create dynamic list items from API response
+  const dynamicListItems: NavItem[] = useMemo(() => {
+    if (!sidebarLevels.length) return staticListItems;
+
+    // Filter levels that come after Assembly
+    const afterAssemblyLevels = sidebarLevels.filter(level =>
+      !["State", "District", "Assembly"].includes(level.level_name)
+    );
+
+    return afterAssemblyLevels.map(level => ({
+      to: `dynamic-level/${level.level_name.toLowerCase()}`,
+      label: level.display_level_name,
+      icon: getIconForLevel(level.level_name),
+    }));
+  }, [sidebarLevels]);
+
+  // Use dynamic levels if available, otherwise fall back to static
+  const listItems = dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
+
+  // Helper function to get appropriate icon for level
+  function getIconForLevel(levelName: string): ReactNode {
+    const lowerLevelName = levelName.toLowerCase();
+
+    // Exact matches first - comprehensive mapping
+    const iconMap: Record<string, ReactNode> = {
+      'block': Icons.block,
+      'mandal': Icons.mandal,
+      'pollingCenter': Icons.polling,
+      'polling center': Icons.polling,
+      'booth': Icons.booths,
+      'ward': Icons.block,
+      'zone': Icons.zone,
+      'sector': Icons.sector,
+    };
+
+    // Check for exact match (case-insensitive)
+    const exactMatch = iconMap[lowerLevelName];
+    if (exactMatch) return exactMatch;
+
+    // Check for partial matches with specific icons
+    if (lowerLevelName.includes('block')) return Icons.block;
+    if (lowerLevelName.includes('mandal')) return Icons.mandal;
+    if (lowerLevelName.includes('polling') || lowerLevelName.includes('center')) return Icons.polling;
+    if (lowerLevelName.includes('booth')) return Icons.booths;
+    if (lowerLevelName.includes('ward')) return Icons.block;
+    if (lowerLevelName.includes('zone')) return Icons.zone;
+    if (lowerLevelName.includes('sector')) return Icons.sector;
+
+    // Default icon for unknown levels - use generic icon
+    return Icons.generic;
+  }
+
   const onLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
+
+  // Determine if any list item is active to default-open the dropdown
+  const isListPathActive = useMemo(
+    () =>
+      listItems.some((li) => location.pathname.startsWith(`${base}/${li.to}`)),
+    [location.pathname, base, listItems]
+  );
+  const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
   // Determine if any booth management item is active to default-open the dropdown
   const isBoothMgmtPathActive = useMemo(
@@ -625,8 +777,8 @@ export default function AssemblySidebar({
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-5 space-y-2">
-        {/* Primary items */}
-        {primaryItems.map((item) => (
+        {/* Assembly items */}
+        {assemblyItems.map((item) => (
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
@@ -649,6 +801,90 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
+        {/* List dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={listOpen}
+            onClick={() => setListOpen((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              listOpen
+                ? "bg-gray-50 ring-1 ring-indigo-200"
+                : "border border-transparent hover:border-gray-200",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  d="M4 6h16M4 12h16M4 18h16"
+                  strokeWidth={1.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-black">
+                List {sidebarLoading && "(Loading...)"}
+                {sidebarError && "(Error)"}
+              </span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                listOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {listOpen && (
+            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+              {sidebarLoading ? (
+                <div className="px-3 py-2 text-sm text-gray-500">Loading levels...</div>
+              ) : sidebarError ? (
+                <div className="px-3 py-2 text-sm text-red-500">Error loading levels</div>
+              ) : listItems.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-gray-500">No levels available</div>
+              ) : (
+                listItems.map((li) => (
+                  <NavLink
+                    key={li.to}
+                    to={`${base}/${li.to}`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                        "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-50 ring-1 ring-indigo-200"
+                          : "border border-transparent hover:border-gray-200",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600">{li.icon}</span>
+                    <span className="truncate">{li.label}</span>
+                  </NavLink>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Booth Management dropdown */}
         <div>

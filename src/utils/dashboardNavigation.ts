@@ -11,54 +11,72 @@ export const getDashboardNavigation = (title: string, levelType: 'State' | 'Dist
 
     const basePath = basePaths[levelType];
 
-    // Dynamic navigation mapping - covers all possible hierarchy levels
-    const navigationMap: Record<string, string> = {
-        // State level navigation
+    // Fixed hierarchy levels (State → District → Assembly)
+    const fixedNavigationMap: Record<string, string> = {
+        // State level navigation - these are fixed routes
         'districts': `${basePath}/districts`,
         'assemblies': `${basePath}/assembly`,
-        'blocks': `${basePath}/block`,
-        'mandals': `${basePath}/mandal`,
-        'booths': `${basePath}/booth`,
-
-        // District level navigation  
-        'sectors': `${basePath}/sector`,
-        'pollingcenters': `${basePath}/polling-center`,
-        'zones': `${basePath}/zone`,
-        'wards': `${basePath}/ward`,
-
-        // Assembly level navigation (after-assembly hierarchy)
-        // These are dynamic levels that can vary
     };
 
-    // Check direct mapping first
-    if (navigationMap[normalizedTitle]) {
-        return navigationMap[normalizedTitle];
+    // Check fixed mapping first
+    if (fixedNavigationMap[normalizedTitle]) {
+        return fixedNavigationMap[normalizedTitle];
     }
 
-    // Handle variations and plurals
-    const variations: Record<string, string[]> = {
+    // Handle variations and plurals for fixed levels
+    const fixedVariations: Record<string, string[]> = {
         'assemblies': ['assembly', 'assemblies'],
         'districts': ['district', 'districts'],
-        'blocks': ['block', 'blocks'],
-        'mandals': ['mandal', 'mandals'],
-        'sectors': ['sector', 'sectors'],
-        'zones': ['zone', 'zones'],
-        'wards': ['ward', 'wards'],
-        'booths': ['booth', 'booths'],
-        'pollingcenters': ['pollingcenter', 'pollingcenters', 'polling-center', 'polling-centers']
     };
 
-    // Find matching variation
-    for (const [key, variants] of Object.entries(variations)) {
+    // Find matching fixed variation
+    for (const [key, variants] of Object.entries(fixedVariations)) {
         if (variants.some(variant => normalizedTitle.includes(variant))) {
-            return navigationMap[key] || `${basePath}/${key.replace(/s$/, '')}`;
+            return fixedNavigationMap[key];
         }
     }
 
-    // For dynamic levels not in our mapping, create a generic route
-    // This handles cases like "Sectors", "Zones", "Wards" etc.
-    const singularTitle = normalizedTitle.endsWith('s') ? normalizedTitle.slice(0, -1) : normalizedTitle;
-    return `${basePath}/${singularTitle}`;
+    // For dynamic levels after Assembly (Block, Ward, Zone, Sector, Mandal, PollingCenter, Booth, etc.)
+    // Use the new dynamic-level route structure
+    const dynamicLevels = [
+        'blocks', 'block',
+        'mandals', 'mandal',
+        'sectors', 'sector',
+        'zones', 'zone',
+        'wards', 'ward',
+        'booths', 'booth',
+        'pollingcenters', 'pollingcenter', 'polling-center', 'polling-centers'
+    ];
+
+    // Check if this is a dynamic level
+    const isDynamicLevel = dynamicLevels.some(level => normalizedTitle.includes(level));
+
+    if (isDynamicLevel) {
+        // Extract the level name (remove 's' if plural)
+        let levelName = normalizedTitle;
+
+        // Handle specific cases
+        if (normalizedTitle.includes('polling')) {
+            levelName = 'pollingcenter';
+        } else if (normalizedTitle.endsWith('s') && !normalizedTitle.endsWith('ss')) {
+            levelName = normalizedTitle.slice(0, -1);
+        }
+
+        // Capitalize first letter for the route
+        const capitalizedLevel = levelName.charAt(0).toUpperCase() + levelName.slice(1);
+
+        return `${basePath}/dynamic-level/${capitalizedLevel}`;
+    }
+
+    // For any other unknown levels, try to create a dynamic route
+    // This handles new levels that might be added in the future
+    const singularTitle = normalizedTitle.endsWith('s') && !normalizedTitle.endsWith('ss')
+        ? normalizedTitle.slice(0, -1)
+        : normalizedTitle;
+
+    const capitalizedTitle = singularTitle.charAt(0).toUpperCase() + singularTitle.slice(1);
+
+    return `${basePath}/dynamic-level/${capitalizedTitle}`;
 };
 
 // Get appropriate icon type for any card title

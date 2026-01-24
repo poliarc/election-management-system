@@ -50,6 +50,12 @@ export interface UpdatePartyWiseLevelRequest {
     state_id?: number;
 }
 
+export interface SidebarLevel {
+    level_name: string;
+    display_level_name: string;
+    parent_level_name?: string;
+}
+
 export const partyWiseLevelApi = createApi({
     reducerPath: "partyWiseLevelApi",
     baseQuery: fetchBaseQuery({
@@ -225,6 +231,17 @@ export const partyWiseLevelApi = createApi({
             }),
             invalidatesTags: [{ type: "PartyWiseLevel", id: "LIST" }],
         }),
+
+        getSidebarLevels: builder.query<SidebarLevel[], { partyId: number; stateId: number }>({
+            query: ({ partyId, stateId }) => ({
+                url: `/party-wise-level/sidebar/${partyId}/${stateId}`,
+            }),
+            transformResponse: (response: ApiResponse<SidebarLevel[]>) =>
+                response.data || [],
+            providesTags: (_result, _error, { partyId, stateId }) => [
+                { type: "PartyWiseLevel", id: `SIDEBAR-${partyId}-${stateId}` },
+            ],
+        }),
     }),
 });
 
@@ -237,4 +254,5 @@ export const {
     useDeactivatePartyWiseLevelMutation,
     // useAddAdminToLevelMutation, // DEPRECATED: Use useUpdatePartyWiseLevelMutation instead
     useRemoveAdminFromLevelMutation,
+    useGetSidebarLevelsQuery,
 } = partyWiseLevelApi;

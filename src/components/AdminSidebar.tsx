@@ -53,6 +53,21 @@ const Icons = {
       />
     </svg>
   ),
+  pdfToExcel: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   settings: (
     <svg
       className={iconClass}
@@ -103,7 +118,7 @@ const adminItems: NavItem[] = [
   { to: "party-master", label: "Party Master", icon: Icons.partyType },
   { to: "party-type", label: "Party Type", icon: Icons.partyType },
   { to: "users", label: "Users", icon: Icons.users },
-
+  { to: "pdf-to-excel", label: "PDF to Excel", icon: Icons.pdfToExcel },
   // { to: "party-wise-level", label: "Party Wise Level", icon: Icons.partyType },
   { to: "role", label: "Role", icon: Icons.partyType },
 ];
@@ -143,9 +158,9 @@ export default function AdminSidebar({
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-             Super Admin
+              Super Admin
             </p>
-            
+
           </div>
         </div>
       </div>
