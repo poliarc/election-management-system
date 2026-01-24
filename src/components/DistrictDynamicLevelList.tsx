@@ -84,14 +84,14 @@ export default function DistrictDynamicLevelList({
     setAllLevelItems([]);
   }, [levelName]);
 
-  // Function to reset all filters manually
-  const resetAllFilters = () => {
-    setSearchTerm("");
-    setSelectedFilters({});
-    setSelectedLevelFilter("");
-    setCurrentPage(1);
-    setShowItemsWithoutUsers(false);
-  };
+  // // Function to reset all filters manually
+  // const resetAllFilters = () => {
+  //   setSearchTerm("");
+  //   setSelectedFilters({});
+  //   setSelectedLevelFilter("");
+  //   setCurrentPage(1);
+  //   setShowItemsWithoutUsers(false);
+  // };
 
   // Function to fetch parent details using the after-assembly API (which returns parentDetails)
   const fetchParentDetailsFromAPI = async (itemId: number) => {
@@ -397,7 +397,7 @@ export default function DistrictDynamicLevelList({
     setCurrentPage(1);
   };
 
-  // Get current level items based on filters - District context (dynamic)
+  // Get current level items based on filters - District context (fixed to prevent cross-assembly contamination)
   const getCurrentLevelItems = () => {
     let filteredItems = allLevelItems;
     const visibleFilters = getVisibleFilters();
@@ -407,32 +407,46 @@ export default function DistrictDynamicLevelList({
       const selectedIdForFilter = selectedFilters[filterLevel];
       if (selectedIdForFilter && selectedIdForFilter > 0) {
         filteredItems = filteredItems.filter((item) => {
-          // Check direct parent relationship
+          // For Assembly filter, check assemblyId - strict matching only
+          if (filterLevel === "Assembly") {
+            return item.assemblyId === selectedIdForFilter || 
+                   (item.parentChain && item.parentChain["Assembly"] === selectedIdForFilter);
+          }
+          
+          // For District filter, check districtId - strict matching only
+          if (filterLevel === "District") {
+            return item.districtId === selectedIdForFilter ||
+                   (item.parentChain && item.parentChain["District"] === selectedIdForFilter);
+          }
+          
+          // For other levels, use strict hierarchy checking
+          // First check direct parent relationship
           if (item.parentLevelId === selectedIdForFilter) return true;
 
-          // Check parent chain (full hierarchy)
-          if (
-            item.parentChain &&
-            item.parentChain[filterLevel] === selectedIdForFilter
-          )
+          // Check parent chain (full hierarchy) - but only for exact matches
+          if (item.parentChain && item.parentChain[filterLevel] === selectedIdForFilter) {
             return true;
+          }
 
-          // Check if the item has this level's id in various property names
+          // Check if the item has this level's id in specific property names
           const levelKey = filterLevel.toLowerCase();
           if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
           if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
 
-          // Check parent hierarchy
-          if (
-            item.parentLevelType === filterLevel &&
-            item.parentLevelId === selectedIdForFilter
-          )
-            return true;
-          if (
-            item.parentHierarchy &&
-            item.parentHierarchy.includes(selectedIdForFilter)
-          )
-            return true;
+          // For after-assembly levels, ensure we only match items that belong to the correct assembly
+          // This prevents cross-assembly contamination
+          if (filterLevel !== "Assembly" && filterLevel !== "District") {
+            // If we have an assembly filter active, ensure this item belongs to that assembly
+            const selectedAssemblyId = selectedFilters["Assembly"];
+            if (selectedAssemblyId && item.parentChain && item.parentChain["Assembly"] !== selectedAssemblyId) {
+              return false;
+            }
+            
+            // Check parent hierarchy but only for direct relationships
+            if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) {
+              return true;
+            }
+          }
 
           return false;
         });
@@ -580,12 +594,16 @@ export default function DistrictDynamicLevelList({
                     import.meta.env.VITE_API_BASE_URL
                   }/api/user-state-hierarchies/hierarchy/children/${parentId}`
                 );
-                // Map state hierarchy response to have levelName property
+                // Map state hierarchy response to have levelName property and assembly information
                 childrenData = rawAssemblies.map((assembly: any) => ({
                   ...assembly,
                   id: assembly.location_id || assembly.id,
                   displayName: assembly.location_name || assembly.displayName,
                   levelName: "Assembly",
+                  assemblyId: assembly.location_id || assembly.id, // Self-reference for assemblies
+                  assemblyName: assembly.location_name || assembly.displayName,
+                  districtId: parentId,
+                  districtName: districtInfo.districtName,
                 }));
               } else if (parentLevelIndex === 2) {
                 // Assembly level
@@ -597,7 +615,14 @@ export default function DistrictDynamicLevelList({
                   { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const data = await response.json();
-                childrenData = data.data || [];
+                // Ensure each item has proper assembly association
+                childrenData = (data.data || []).map((item: any) => ({
+                  ...item,
+                  assemblyId: parentId,
+                  assemblyName: parentChain["Assembly"] || `Assembly ${parentId}`,
+                  districtId: parentChain["District"] || districtInfo.districtId,
+                  districtName: parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName,
+                }));
               } else {
                 // All other levels (after-assembly levels)
                 // Fetch from after-assembly hierarchy API
@@ -636,6 +661,11 @@ export default function DistrictDynamicLevelList({
                       item.displayName ||
                       item.name ||
                       `${detectedLevel} ${item.id}`,
+                    // Inherit assembly information from parent chain
+                    assemblyId: item.assemblyId || parentChain["Assembly"],
+                    assemblyName: item.assemblyName || (parentChain["Assembly"] ? `Assembly ${parentChain["Assembly"]}` : undefined),
+                    districtId: item.districtId || parentChain["District"] || districtInfo.districtId,
+                    districtName: item.districtName || (parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName),
                   };
                 });
               }
@@ -1155,7 +1185,7 @@ export default function DistrictDynamicLevelList({
               </div>
 
               {/* Clear Filters Button */}
-              <div className="flex items-end">
+              {/* <div className="flex items-end">
                 <button
                   onClick={resetAllFilters}
                   disabled={
@@ -1181,7 +1211,7 @@ export default function DistrictDynamicLevelList({
                   </svg>
                   Clear Filters
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
 
