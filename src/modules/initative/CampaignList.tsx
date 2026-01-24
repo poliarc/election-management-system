@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Calendar, Camera, Clock, Plus, X, Eye } from "lucide-react";
+import { Calendar, Camera, Clock, Plus, X, Eye, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import type { CampaignEvent } from "../../types/initative";
 import { CampaignImageSlider } from "./CampaignImageSlider";
+import { isCampaignEventActive } from "../../utils/campaignUtils";
 
 import { useCreateCampaignReportMutation } from "../../store/api/myCampaignsApi";
 import { storage } from "../../utils/storage";
@@ -58,6 +59,12 @@ export const CampaignList: React.FC<CampaignListProps> = ({
   }, [imagePreviews]);
 
   const handleReportClick = (campaign: CampaignEvent) => {
+    // Check if campaign has ended
+    if (!isCampaignEventActive(campaign)) {
+      toast.error("This campaign has ended. No new reports can be submitted.");
+      return;
+    }
+    
     if (campaign.acceptance_status !== "accepted") {
       toast.error("Accept the campaign before submitting a report.");
       return;
@@ -270,103 +277,126 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      {notifications.map((notification) => (
-        <div
-          key={notification.id}
-          onClick={() => onEventClick(notification)}
-          className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
-            selectedNotification?.id === notification.id
-              ? "ring-2 ring-blue-500 shadow-lg"
-              : ""
-          }`}
-        >
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="w-full sm:w-40 h-32 sm:h-24 md:w-56 md:h-32 rounded-2xl overflow-hidden shrink-0">
-              <CampaignImageSlider
-                images={
-                  Array.isArray(notification.image)
-                    ? notification.image
-                    : [notification.image || ""]
-                }
-                alt={notification.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-2">
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
-                  {notification.title}
-                </h3>
-                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
-                  <span className="text-lg">
-                    {getCategoryIcon(notification.category)}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-medium border whitespace-nowrap ${getStatusColor(
-                      notification.acceptance_status
-                    )}`}
-                  >
-                    {notification.acceptance_status.charAt(0).toUpperCase() +
-                      notification.acceptance_status.slice(1)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-2">
-                <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-wrap">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
-                  <div className="flex flex-wrap items-center gap-1 min-w-0">
-                    <span className="text-xs sm:text-sm whitespace-nowrap">
-                      {formatDate(notification.startDate)}
-                    </span>
-                    <span className="text-xs sm:text-sm">to</span>
-                    <span className="text-xs sm:text-sm whitespace-nowrap">
-                      {formatDate(notification.endDate)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0" />
-                  <span className="text-xs sm:text-sm">
-                    {notification.time}
-                  </span>
-                </div>
-                {notification.acceptance_status === "accepted" && (
-                  <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-auto w-full sm:w-auto">
-                    <button
-                      type="button"
-                      className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-green-600 text-white rounded-md text-xs font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewReportsClick(notification);
-                      }}
-                    >
-                      <Eye className="w-3 h-3" />
-                      <span className="hidden sm:inline">My Reports</span>
-                      <span className="sm:hidden">Reports</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReportClick(notification);
-                      }}
-                    >
-                      Report
-                    </button>
+      {notifications.map((notification) => {
+        const campaignHasEnded = !isCampaignEventActive(notification);
+        
+        return (
+          <div
+            key={notification.id}
+            onClick={() => onEventClick(notification)}
+            className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+              selectedNotification?.id === notification.id
+                ? "ring-2 ring-blue-500 shadow-lg"
+                : ""
+            } ${campaignHasEnded ? "opacity-75" : ""}`}
+          >
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="w-full sm:w-40 h-32 sm:h-24 md:w-56 md:h-32 rounded-2xl overflow-hidden shrink-0 relative">
+                <CampaignImageSlider
+                  images={
+                    Array.isArray(notification.image)
+                      ? notification.image
+                      : [notification.image || ""]
+                  }
+                  alt={notification.title}
+                  className="w-full h-full object-cover"
+                />
+                {campaignHasEnded && (
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <div className="bg-white bg-opacity-90 rounded-lg px-2 py-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4 text-gray-600" />
+                      <span className="text-xs font-medium text-gray-700">Ended</span>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2 sm:line-clamp-1">
-                {notification.description}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
+                    {notification.title}
+                    {campaignHasEnded && (
+                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                        (Campaign Ended)
+                      </span>
+                    )}
+                  </h3>
+                  <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
+                    <span className="text-lg">
+                      {getCategoryIcon(notification.category)}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-md text-xs font-medium border whitespace-nowrap ${getStatusColor(
+                        notification.acceptance_status
+                      )}`}
+                    >
+                      {notification.acceptance_status.charAt(0).toUpperCase() +
+                        notification.acceptance_status.slice(1)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-2">
+                  <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-wrap">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
+                    <div className="flex flex-wrap items-center gap-1 min-w-0">
+                      <span className="text-xs sm:text-sm whitespace-nowrap">
+                        {formatDate(notification.startDate)}
+                      </span>
+                      <span className="text-xs sm:text-sm">to</span>
+                      <span className="text-xs sm:text-sm whitespace-nowrap">
+                        {formatDate(notification.endDate)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0" />
+                    <span className="text-xs sm:text-sm">
+                      {notification.time}
+                    </span>
+                  </div>
+                  {notification.acceptance_status === "accepted" && !campaignHasEnded && (
+                    <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-auto w-full sm:w-auto">
+                      <button
+                        type="button"
+                        className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-green-600 text-white rounded-md text-xs font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewReportsClick(notification);
+                        }}
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span className="hidden sm:inline">My Reports</span>
+                        <span className="sm:hidden">Reports</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="flex-1 sm:flex-none px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReportClick(notification);
+                        }}
+                      >
+                        Report
+                      </button>
+                    </div>
+                  )}
+                  {campaignHasEnded && (
+                    <div className="flex items-center gap-1 text-gray-500 text-xs mt-2 sm:mt-0 sm:ml-auto">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>Campaign ended on {formatDate(notification.endDate)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2 sm:line-clamp-1">
+                  {notification.description}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {showReportModal && activeCampaign && (
         <div
