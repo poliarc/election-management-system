@@ -35,14 +35,14 @@ export default function DynamicLevelList({
         setItemUserCounts({});
     }, [levelName]);
 
-    // Function to reset all filters manually
-    const resetAllFilters = () => {
-        setSearchTerm("");
-        setSelectedFilters({});
-        setSelectedLevelFilter("");
-        setCurrentPage(1);
-        setShowItemsWithoutUsers(false);
-    };
+    // // Function to reset all filters manually
+    // const resetAllFilters = () => {
+    //     setSearchTerm("");
+    //     setSelectedFilters({});
+    //     setSelectedLevelFilter("");
+    //     setCurrentPage(1);
+    //     setShowItemsWithoutUsers(false);
+    // };
 
     // State for filter data - will be populated dynamically
     const [dynamicFilterOptions, setDynamicFilterOptions] = useState<Record<string, any[]>>({});
@@ -279,9 +279,12 @@ export default function DynamicLevelList({
                                         { headers: { Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` } }
                                     );
                                     const data = await response.json();
+                                    // Ensure each item has the correct assembly association
                                     newFilterOptions[nextLevel] = (data.data || []).map((item: any) => ({
                                         ...item,
-                                        parentLevelId: selectedId
+                                        parentLevelId: selectedId,
+                                        assemblyId: selectedId, // Explicitly set assembly ID
+                                        assemblyName: dynamicFilterOptions["Assembly"]?.find(a => a.id === selectedId)?.displayName || "Unknown"
                                     }));
                                 } catch (error) {
                                     console.error(`Error fetching ${nextLevel}:`, error);
@@ -294,10 +297,18 @@ export default function DynamicLevelList({
                                     const childrenData = await fetchAllPages(
                                         `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedId}`
                                     );
+                                    // Get the parent item to inherit assembly information
+                                    const parentItem = newFilterOptions[currentLevel]?.find(item => item.id === selectedId);
+                                    
                                     newFilterOptions[nextLevel] = childrenData.map((item: any) => ({
                                         ...item,
                                         parentLevelId: selectedId,
-                                        levelName: item.levelName || nextLevel
+                                        levelName: item.levelName || nextLevel,
+                                        // Inherit assembly information from parent
+                                        assemblyId: parentItem?.assemblyId || item.assemblyId,
+                                        assemblyName: parentItem?.assemblyName || item.assemblyName,
+                                        districtId: parentItem?.districtId || item.districtId,
+                                        districtName: parentItem?.districtName || item.districtName
                                     }));
                                 } catch (error) {
                                     console.error(`Error fetching ${nextLevel}:`, error);
@@ -347,7 +358,7 @@ export default function DynamicLevelList({
         return allData;
     };
 
-    // Get current level items based on filters - improved flexible approach
+    // Get current level items based on filters - fixed to prevent cross-assembly contamination
     const getCurrentLevelItems = () => {
         let filteredItems = allLevelItems;
 
@@ -356,20 +367,39 @@ export default function DynamicLevelList({
             const selectedIdForFilter = selectedFilters[filterLevel];
             if (selectedIdForFilter && selectedIdForFilter > 0) {
                 filteredItems = filteredItems.filter((item) => {
-                    // Check direct parent relationship
+                    // For Assembly filter, check assemblyId - strict matching only
+                    if (filterLevel === "Assembly") {
+                        return item.assemblyId === selectedIdForFilter;
+                    }
+                    
+                    // For District filter, check districtId - strict matching only
+                    if (filterLevel === "District") {
+                        return item.districtId === selectedIdForFilter;
+                    }
+                    
+                    // For other levels, use strict hierarchy checking
+                    // First check direct parent relationship
                     if (item.parentLevelId === selectedIdForFilter) return true;
                     
-                    // Check parent chain (full hierarchy)
-                    if (item.parentChain && item.parentChain[filterLevel] === selectedIdForFilter) return true;
-                    
-                    // Check if the item has this level's id in various property names
+                    // Check if the item has this level's id in specific property names
                     const levelKey = filterLevel.toLowerCase();
                     if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
                     if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
                     
-                    // Check parent hierarchy
-                    if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) return true;
-                    if (item.parentHierarchy && item.parentHierarchy.includes(selectedIdForFilter)) return true;
+                    // For after-assembly levels, ensure we only match items that belong to the correct assembly
+                    // This prevents cross-assembly contamination
+                    if (filterLevel !== "Assembly" && filterLevel !== "District") {
+                        // If we have an assembly filter active, ensure this item belongs to that assembly
+                        const selectedAssemblyId = selectedFilters["Assembly"];
+                        if (selectedAssemblyId && item.assemblyId !== selectedAssemblyId) {
+                            return false;
+                        }
+                        
+                        // Check parent hierarchy but only for direct relationships
+                        if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) {
+                            return true;
+                        }
+                    }
                     
                     return false;
                 });
@@ -536,8 +566,8 @@ export default function DynamicLevelList({
                                             assemblyName: parentLevel.assemblyName,
                                             districtId: parentLevel.districtId,
                                             districtName: parentLevel.districtName,
-                                            // Add parent hierarchy chain for better filtering
-                                            parentHierarchy: [parentLevel.id, ...(parentLevel.parentHierarchy || [])],
+                                            // Add parent hierarchy chain for better filtering - simplified
+                                            parentHierarchy: [parentLevel.id],
                                             // Add all parent level names for proper display
                                             [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                             [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
@@ -565,8 +595,8 @@ export default function DynamicLevelList({
                                         assemblyName: parentLevel.assemblyName,
                                         districtId: parentLevel.districtId,
                                         districtName: parentLevel.districtName,
-                                        // Add parent hierarchy chain for better filtering
-                                        parentHierarchy: [parentLevel.id, ...(parentLevel.parentHierarchy || [])],
+                                        // Add parent hierarchy chain for better filtering - simplified
+                                        parentHierarchy: [parentLevel.id],
                                         // Add all parent level names for proper display
                                         [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                         [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
@@ -1147,7 +1177,7 @@ export default function DynamicLevelList({
                             </div>
 
                             {/* Clear Filters Button */}
-                            <div className="flex items-end">
+                            {/* <div className="flex items-end">
                                 <button
                                     onClick={resetAllFilters}
                                     disabled={Object.keys(selectedFilters).length === 0 && !searchTerm && !selectedLevelFilter}
@@ -1169,7 +1199,7 @@ export default function DynamicLevelList({
                                     </svg>
                                     Clear Filters
                                 </button>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                     {/* Level Items List */}
