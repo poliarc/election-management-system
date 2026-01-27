@@ -4,7 +4,7 @@ import { Plus, Link, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { RegistrationLinkForm } from "./components/RegistrationLinkForm";
 import { RegistrationLinksList } from "./components/RegistrationLinksList";
-import { ConfirmationModal } from "../../components/ConfirmationModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import {
     useGetRegistrationLinksByPartyQuery,
     useCreateRegistrationLinkMutation,

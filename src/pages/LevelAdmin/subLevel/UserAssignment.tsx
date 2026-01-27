@@ -407,7 +407,7 @@ export default function UserAssignment() {
 
   if (!currentPanel) {
     return (
-        
+
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
           <p className="text-red-700">Level admin panel not found</p>
@@ -676,8 +676,7 @@ export default function UserAssignment() {
                                 if (selectedLevel?.id) {
                                   openUnassignModal(
                                     user.user_id || user.id,
-                                    `${user.first_name || user.firstName} ${
-                                      user.last_name || user.lastName
+                                    `${user.first_name || user.firstName} ${user.last_name || user.lastName
                                     }`,
                                     selectedLevel.id
                                   );

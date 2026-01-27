@@ -208,7 +208,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                 <span className="font-semibold text-lg">Campaign has ended</span>
               </div>
               <p className="text-gray-500 text-sm">
-                This campaign ended on {new Date(notification.endDate).toLocaleDateString()}. 
+                This campaign ended on {new Date(notification.endDate).toLocaleDateString()}.
                 No further actions can be taken.
               </p>
             </div>
