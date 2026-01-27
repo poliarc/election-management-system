@@ -9,7 +9,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { Role } from "../../../types/role";
-import ConfirmationModal from "../../components/ConfirmationModal";
+import { ConfirmationModal } from "../../components/ConfirmationModal";
 
 interface RoleListProps {
   roles: Role[];
@@ -152,12 +152,14 @@ export const RoleList: React.FC<RoleListProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-3">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${role.isActive ? "bg-blue-100" : "bg-gray-100"
-                          }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          role.isActive ? "bg-blue-100" : "bg-gray-100"
+                        }`}
                       >
                         <Shield
-                          className={`w-5 h-5 ${role.isActive ? "text-blue-600" : "text-gray-400"
-                            }`}
+                          className={`w-5 h-5 ${
+                            role.isActive ? "text-blue-600" : "text-gray-400"
+                          }`}
                         />
                       </div>
                       <div>
@@ -173,10 +175,12 @@ export const RoleList: React.FC<RoleListProps> = ({
                         onToggleStatus(role.role_id, !role.isActive)
                       }
                       className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
-                      title={`Click to ${role.isActive ? "deactivate" : "activate"
-                        }`}
-                      aria-label={`${role.isActive ? "Deactivate" : "Activate"
-                        } ${role.roleName}`}
+                      title={`Click to ${
+                        role.isActive ? "deactivate" : "activate"
+                      }`}
+                      aria-label={`${
+                        role.isActive ? "Deactivate" : "Activate"
+                      } ${role.roleName}`}
                     >
                       {role.isActive ? (
                         <>

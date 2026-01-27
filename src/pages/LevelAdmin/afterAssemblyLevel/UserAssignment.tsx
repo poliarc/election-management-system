@@ -144,9 +144,9 @@ export default function UserAssignment() {
           // Filter to only show levels matching the current panel's level name
           const filteredData = currentPanel?.name
             ? response.data.filter(
-              (level: AfterAssemblyData) =>
-                level.levelName === currentPanel.name
-            )
+                (level: AfterAssemblyData) =>
+                  level.levelName === currentPanel.name
+              )
             : response.data;
 
           if (filteredData.length > 0) {
@@ -201,9 +201,9 @@ export default function UserAssignment() {
         // Filter children to only show the panel's level
         const filteredChildren = currentPanel?.name
           ? response.data.filter(
-            (level: AfterAssemblyData) =>
-              level.levelName === currentPanel.name
-          )
+              (level: AfterAssemblyData) =>
+                level.levelName === currentPanel.name
+            )
           : response.data;
 
         if (filteredChildren.length > 0) {
@@ -652,7 +652,7 @@ export default function UserAssignment() {
                         Email
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                        User Id
+                         User Id
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                         Actions
@@ -693,7 +693,8 @@ export default function UserAssignment() {
                               onClick={() =>
                                 openUnassignModal(
                                   user.user_id || user.id,
-                                  `${user.first_name || user.firstName} ${user.last_name || user.lastName
+                                  `${user.first_name || user.firstName} ${
+                                    user.last_name || user.lastName
                                   }`,
                                   selectedLevel.id
                                 )
@@ -766,7 +767,7 @@ export default function UserAssignment() {
                         Email
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                        User Id
+                         User Id
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                         Actions

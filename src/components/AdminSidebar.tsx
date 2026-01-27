@@ -118,8 +118,6 @@ const adminItems: NavItem[] = [
   { to: "party-master", label: "Party Master", icon: Icons.partyType },
   { to: "party-type", label: "Party Type", icon: Icons.partyType },
   { to: "users", label: "Users", icon: Icons.users },
-  { to: "module-master", label: "Module Master", icon: Icons.settings },
-  { to: "module-access", label: "Module Access", icon: Icons.settings },
   { to: "pdf-to-excel", label: "PDF to Excel", icon: Icons.pdfToExcel },
   // { to: "party-wise-level", label: "Party Wise Level", icon: Icons.partyType },
   { to: "role", label: "Role", icon: Icons.partyType },
