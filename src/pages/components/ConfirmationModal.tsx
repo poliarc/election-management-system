@@ -49,3 +49,6 @@ export function ConfirmationModal({
     </div>
   );
 }
+
+// Default export for backward compatibility
+export default ConfirmationModal;

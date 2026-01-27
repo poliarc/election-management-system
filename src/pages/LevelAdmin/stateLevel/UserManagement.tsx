@@ -402,21 +402,19 @@ export default function UserManagement() {
           <nav className="flex">
             <button
               onClick={() => setShowAssignModal(false)}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                !showAssignModal
-                  ? "border-purple-500 text-purple-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${!showAssignModal
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               Assigned Users ({assignedTotalCount})
             </button>
             <button
               onClick={() => setShowAssignModal(true)}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                showAssignModal
-                  ? "border-purple-500 text-purple-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${showAssignModal
+                ? "border-purple-500 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
             >
               Available Users ({unassignedUsers.length})
             </button>
@@ -498,11 +496,10 @@ export default function UserManagement() {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            user.isActive === 1 || user.is_active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${user.isActive === 1 || user.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {user.isActive === 1 || user.is_active
                             ? "Active"
@@ -513,8 +510,8 @@ export default function UserManagement() {
                         {user.assigned_at
                           ? new Date(user.assigned_at).toLocaleDateString()
                           : user.created_on
-                          ? new Date(user.created_on).toLocaleDateString()
-                          : "N/A"}
+                            ? new Date(user.created_on).toLocaleDateString()
+                            : "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <button
@@ -581,7 +578,7 @@ export default function UserManagement() {
                     Email
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                  User Id
+                    User Id
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
                     District
@@ -627,11 +624,10 @@ export default function UserManagement() {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            user.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${user.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {user.isActive ? "Active" : "Inactive"}
                         </span>
