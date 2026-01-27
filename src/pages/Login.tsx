@@ -7,6 +7,7 @@ import { useLocation, Link } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import VersionDisplay from "../components/VersionDisplay";
 
 // Accept either a valid email or a phone number (+ optional country code, 10-15 digits)
 const identifierSchema = z
@@ -311,9 +312,20 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            © {new Date().getFullYear()}. All rights
-            reserved.
+            © {new Date().getFullYear()}. All rights reserved.
           </p>
+
+          {/* Version Display */}
+          {import.meta.env.VITE_SHOW_VERSION_ON_LOGIN === 'true' && (
+            <div className="mt-4 text-center">
+              <VersionDisplay
+                variant="short"
+                showEnvironment={import.meta.env.VITE_SHOW_ENVIRONMENT === 'true'}
+                showBuildTime={import.meta.env.VITE_SHOW_BUILD_INFO === 'true'}
+                className="text-gray-400 dark:text-gray-500 font-mono"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
