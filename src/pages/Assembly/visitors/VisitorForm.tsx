@@ -9,7 +9,7 @@ interface VisitorFormProps {
 }
 
 const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
-  const { selectedAssignment } = useAppSelector((state) => state.auth);
+  const { selectedAssignment, user } = useAppSelector((state) => state.auth);
   const [createVisitor, { isLoading: isCreating }] = useCreateVisitorMutation();
   const [updateVisitor, { isLoading: isUpdating }] = useUpdateVisitorMutation();
   const { data: stateMasterData } = useGetStateMasterDataQuery();
@@ -40,7 +40,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
     no_of_persons: 1,
     purpose_of_visit: '',
     follow_up_date: '',
-    assembly_user_id: 0,
+    assembly_user_id: user?.id || 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -82,6 +82,26 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
       });
     }
   }, [visitor]);
+
+  // Set default state and district based on assembly when data is loaded
+  useEffect(() => {
+    if (stateMasterData?.data && formData.assembly_id && !visitor) {
+      const assembly = stateMasterData.data.find(item => item.id === formData.assembly_id && item.levelType === 'Assembly');
+      if (assembly) {
+        const district = stateMasterData.data.find(item => item.id === assembly.ParentId && item.levelType === 'District');
+        if (district) {
+          const state = stateMasterData.data.find(item => item.id === district.ParentId && item.levelType === 'State');
+          if (state) {
+            setFormData(prev => ({
+              ...prev,
+              state_id: state.id,
+              district_id: district.id,
+            }));
+          }
+        }
+      }
+    }
+  }, [stateMasterData, formData.assembly_id, visitor]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -134,12 +154,12 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
       newErrors.follow_up_date = 'Follow-up date cannot be in the past';
     }
     if (!formData.assembly_user_id) {
-      newErrors.assembly_user_id = 'Assembly user is required';
+      newErrors.assembly_user_id = 'Meeting with is required';
     } else {
       // Validate that the selected assembly_user_id exists in the current assembly users
       const userExists = assemblyUsers.some(user => user.user_id === formData.assembly_user_id);
       if (!userExists) {
-        newErrors.assembly_user_id = 'Selected assembly user is not valid';
+        newErrors.assembly_user_id = 'Selected user is not valid';
       }
     }
 
@@ -254,7 +274,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
 
-              <div className="md:col-span-2">
+              {/* <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
@@ -269,7 +289,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   placeholder="Enter email address (optional)"
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -403,7 +423,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assembly User *
+                  Meeting with *
                 </label>
                 {/* Assembly users are always from the current user's assembly panel, not the selected assembly in the form */}
                 <select
@@ -416,7 +436,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   } ${usersLoading ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>
-                    {usersLoading ? 'Loading users...' : 'Select Assembly User'}
+                    {usersLoading ? 'Loading users...' : 'Select User'}
                   </option>
                   {assemblyUsers.map(user => (
                     <option key={user.user_id} value={user.user_id}>

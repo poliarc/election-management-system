@@ -32,8 +32,6 @@ const VisitorList: React.FC<VisitorListProps> = ({
   error,
   selectedVisitors,
   filters,
-  teamMembers = [],
-  selectedTeamMember,
   onFilterChange,
   onPageChange,
   onEditVisitor,
@@ -41,12 +39,10 @@ const VisitorList: React.FC<VisitorListProps> = ({
   onToggleStatus,
   onSelectVisitor,
   onSelectAll,
-  onTeamMemberSelect,
 }) => {
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteVisitorId, setDeleteVisitorId] = useState<number | null>(null);
-  const [showTeamMembers, setShowTeamMembers] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingVisitor, setViewingVisitor] = useState<Visitor | null>(null);
 
@@ -130,99 +126,6 @@ const VisitorList: React.FC<VisitorListProps> = ({
   return (
     <>
       <div className="bg-white rounded-lg border border-gray-200">
-        {/* Team Members Section */}
-        {teamMembers.length > 0 && (
-          <div className="border-b border-gray-200 bg-gray-50">
-            {/* Team Members Toggle Header */}
-            <div className="p-3 sm:p-4 lg:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  onClick={() => setShowTeamMembers(!showTeamMembers)}
-                  className="flex items-center space-x-2 text-left hover:text-indigo-600 transition-colors"
-                >
-                  <svg 
-                    className={`w-5 h-5 transition-transform ${showTeamMembers ? 'rotate-90' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                    Team Members ({teamMembers.length})
-                  </h3>
-                </button>
-                {selectedTeamMember && showTeamMembers && (
-                  <button
-                    onClick={() => onTeamMemberSelect?.(0)}
-                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium mt-2 sm:mt-0"
-                  >
-                    Clear Selection
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Team Members Grid - Collapsible */}
-            {showTeamMembers && (
-              <div className="px-3 sm:px-4 lg:px-6 pb-3 sm:pb-4 lg:pb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
-                  {teamMembers.map((member) => (
-                    <div
-                      key={member.user_id}
-                      onClick={() => onTeamMemberSelect?.(member.user_id)}
-                      className={`relative p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedTeamMember === member.user_id
-                          ? 'border-indigo-500 bg-indigo-50 shadow-md ring-2 ring-indigo-200'
-                          : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-25'
-                      }`}
-                    >
-                      {selectedTeamMember === member.user_id && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center">
-                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                      <div className="flex items-start space-x-3">
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
-                          selectedTeamMember === member.user_id ? 'bg-indigo-500' : 'bg-gray-400'
-                        }`}>
-                          {member.user_name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-medium text-sm sm:text-base truncate ${
-                            selectedTeamMember === member.user_id ? 'text-indigo-900' : 'text-gray-900'
-                          }`}>
-                            {member.user_name}
-                          </div>
-                          <div className={`text-xs sm:text-sm truncate ${
-                            selectedTeamMember === member.user_id ? 'text-indigo-700' : 'text-gray-600'
-                          }`}>
-                            {member.role_name || member.designation || 'Team Member'}
-                          </div>
-                          <div className={`text-xs truncate mt-1 ${
-                            selectedTeamMember === member.user_id ? 'text-indigo-600' : 'text-gray-500'
-                          }`}>
-                            {member.mobile_number}
-                          </div>
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
-                            member.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {member.is_active ? 'Active' : 'Inactive'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Filters */}
         <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
@@ -307,9 +210,6 @@ const VisitorList: React.FC<VisitorListProps> = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <p className="text-sm sm:text-base">No visitors found</p>
-                    {selectedTeamMember && (
-                      <p className="text-xs text-gray-400 mt-1">Try selecting a different team member</p>
-                    )}
                   </div>
                 </td>
               </tr>
