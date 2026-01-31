@@ -98,14 +98,14 @@ export default function Form20() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold"> Result Analysis</h1>
-             
+
               {boothInfo.districtName && (
                 <p className="text-orange-100 text-sm">
                   District: {boothInfo.districtName} | State: {boothInfo.stateName}
                 </p>
               )}
             </div>
-           
+
           </div>
         </div>
 
@@ -215,15 +215,15 @@ export default function Form20() {
                               .slice()
                               .sort((a, b) => (b.candidateVotes || 0) - (a.candidateVotes || 0))
                               .map((candidate, candidateIndex) => {
-                                const percentage = result.validVotes > 0 
+                                const percentage = result.validVotes > 0
                                   ? ((candidate.candidateVotes || 0) / result.validVotes * 100).toFixed(2)
                                   : "0.00";
-                                
+
                                 return (
                                   <tr key={candidateIndex} className={candidateIndex === 0 ? "bg-green-50" : ""}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                       <div className="flex items-center">
-                                        {candidateIndex === 0 && (
+                                        {/* {candidateIndex === 0 && (
                                           <svg
                                             className="w-5 h-5 text-yellow-500 mr-2"
                                             fill="currentColor"
@@ -231,9 +231,9 @@ export default function Form20() {
                                           >
                                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                           </svg>
-                                        )}
+                                        )} */}
                                         <span className="text-sm font-medium text-gray-900">
-                                          #{candidateIndex + 1}
+                                          {candidateIndex + 1}
                                         </span>
                                       </div>
                                     </td>

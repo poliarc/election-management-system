@@ -417,14 +417,10 @@ export default function AfterAssemblyPanelSidebar({
     icon: getIconForModule(module.moduleName),
   }));
 
-  const additionalStaticItems: NavItem[] = [
-    { to: "search-voter", label: "Search Voter", icon: Icons.search },
-  ];
 
   const navItems: NavItem[] = [
     ...staticNavItems,
     ...dynamicModuleItems,
-    ...additionalStaticItems,
   ];
 
   const vicMenuItems = [
