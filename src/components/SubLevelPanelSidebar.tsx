@@ -443,7 +443,7 @@ export default function SubLevelPanelSidebar({
   }));
 
   const additionalStaticItems: NavItem[] = [
-    { to: "search-voter", label: "Search Voter", icon: Icons.search },
+    // { to: "search-voter", label: "Search Voter", icon: Icons.search },
     // Only show Booth Voters if it's a Booth level
     ...(isBooth
       ? [
@@ -454,16 +454,7 @@ export default function SubLevelPanelSidebar({
         },
       ]
       : []),
-    // Only show Form 20 if it's a Booth level
-    ...(isBooth
-      ? [
-        {
-          to: "form-20",
-          label: "Form 20",
-          icon: Icons.form20,
-        },
-      ]
-      : []),
+    // Form 20 is now handled by dynamic modules, so removed from static items
   ];
 
   const navItems: NavItem[] = [
