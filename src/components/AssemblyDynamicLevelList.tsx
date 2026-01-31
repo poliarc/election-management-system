@@ -1912,7 +1912,7 @@ export default function AssemblyDynamicLevelList({
                                                                 Uploaded Files
                                                             </th>
                                                             <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                                Result Analysis
+                                                                F20 uploads
                                                             </th>
                                                         </>
                                                     )}

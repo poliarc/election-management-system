@@ -1078,6 +1078,13 @@ export const CampaignForm = ({
                             ))}
                           </div>
                         )}
+                        {sel.district_ids.length > 0 && (
+                          <div className="mt-1 text-xs text-gray-600 max-h-16 overflow-y-auto">
+                            Selected: {sel.district_ids.map(id => 
+                              districtsData.find(d => String(d.id) === id)?.levelName
+                            ).filter(Boolean).join(', ')}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1183,6 +1190,18 @@ export const CampaignForm = ({
                                   )}
                                 </>
                               );
+                            })()}
+                          </div>
+                        )}
+                        {sel.assembly_ids.length > 0 && (
+                          <div className="mt-1 text-xs text-gray-600 max-h-16 overflow-y-auto">
+                            Selected: {(() => {
+                              const assemblies = userLevelType === "District"
+                                ? assembliesByDistrict(String(stateId))
+                                : sel.district_ids.flatMap((dId) => assembliesByDistrict(dId));
+                              return sel.assembly_ids.map(id => 
+                                assemblies.find(a => String(a.id) === id)?.levelName
+                              ).filter(Boolean).join(', ');
                             })()}
                           </div>
                         )}
@@ -1386,6 +1405,21 @@ export const CampaignForm = ({
                                 </span>
                               </label>
                             ))}
+                          </div>
+                        )}
+                        {selectedCount > 0 && (
+                          <div className="mt-1 text-xs text-gray-600 max-h-16 overflow-y-auto">
+                            Selected: {availableOptions.filter(node => 
+                              isFirstLevel
+                                ? sel.assembly_child_ids.includes(String(node.id))
+                                : levelIndex === 1
+                                ? sel.level2_ids.includes(String(node.id))
+                                : levelIndex === 2
+                                ? sel.level3_ids.includes(String(node.id))
+                                : levelIndex === 3
+                                ? sel.level4_ids.includes(String(node.id))
+                                : false
+                            ).map(node => node.displayName).join(', ')}
                           </div>
                         )}
                       </div>
