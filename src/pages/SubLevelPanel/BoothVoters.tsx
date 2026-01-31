@@ -225,7 +225,7 @@ export default function BoothVoters() {
                             : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
-                        हिंदी
+                        Regional
                     </button>
                 </div>
             </div>

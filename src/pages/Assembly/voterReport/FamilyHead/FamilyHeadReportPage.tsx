@@ -115,7 +115,7 @@ const FamilyHeadReportPage: React.FC = () => {
                             : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        हिंदी
+                        Regional
                     </button>
                 </div>
             </div>

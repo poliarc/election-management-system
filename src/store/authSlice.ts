@@ -16,6 +16,68 @@ const savedAccessToken = savedAuthState?.accessToken || localStorage.getItem('au
 // Validate token before restoring state
 const isValidToken = isTokenValid(savedAccessToken);
 
+// Helper function to ensure selectedAssignment has partyLevelId
+// This fixes cases where selectedAssignment is missing partyLevelId but
+// the same assignment exists in stateAssignments or permissions with partyLevelId populated
+const ensureSelectedAssignmentPartyLevelId = (
+  selectedAssignment: StateAssignment | null,
+  stateAssignments: StateAssignment[],
+  permissions: any = null
+): StateAssignment | null => {
+  if (!selectedAssignment || selectedAssignment.partyLevelId) {
+    return selectedAssignment;
+  }
+
+  let matchingAssignment: StateAssignment | null = null;
+
+  // First, try to find in stateAssignments (different assignment with same stateMasterData_id)
+  matchingAssignment = stateAssignments.find(
+    (sa) => (sa.stateMasterData_id === selectedAssignment.stateMasterData_id ||
+      sa.assignment_id === selectedAssignment.assignment_id) &&
+      sa.assignment_id !== selectedAssignment.assignment_id && // Don't match the same assignment
+      sa.partyLevelId // Only match assignments that have partyLevelId
+  ) || null;
+
+  // If not found in stateAssignments, try to find in permissions
+  if (!matchingAssignment && permissions) {
+    const permissionArrays = [
+      permissions.accessibleStates,
+      permissions.accessibleDistricts,
+      permissions.accessibleAssemblies,
+      permissions.accessibleBlocks,
+      permissions.accessibleMandals,
+      permissions.accessiblePollingCenters,
+    ].filter(Boolean);
+
+    for (const permArray of permissionArrays) {
+      matchingAssignment = permArray.find(
+        (pa: StateAssignment) => (pa.stateMasterData_id === selectedAssignment.stateMasterData_id ||
+          pa.assignment_id === selectedAssignment.assignment_id ||
+          pa.afterAssemblyData_id === selectedAssignment.afterAssemblyData_id) &&
+          pa.partyLevelId // Only match assignments that have partyLevelId
+      ) || null;
+      if (matchingAssignment) break;
+    }
+  }
+
+  if (matchingAssignment && matchingAssignment.partyLevelId) {
+    return {
+      ...selectedAssignment,
+      partyLevelId: matchingAssignment.partyLevelId,
+      partyLevelName: matchingAssignment.partyLevelName,
+      partyLevelDisplayName: matchingAssignment.partyLevelDisplayName,
+    };
+  }
+
+  return selectedAssignment;
+};
+
+const restoredStateAssignments = isValidToken ? (savedAuthState?.stateAssignments || []) : [];
+const restoredPermissions = isValidToken ? (savedAuthState?.permissions || null) : null;
+const restoredSelectedAssignment = isValidToken ?
+  ensureSelectedAssignmentPartyLevelId(savedAuthState?.selectedAssignment || null, restoredStateAssignments, restoredPermissions) :
+  null;
+
 const initialState: AuthState = {
   user: isValidToken ? (savedAuthState?.user || storage.getUser()) : null,
   accessToken: isValidToken ? savedAccessToken : null,
@@ -27,9 +89,9 @@ const initialState: AuthState = {
   hasStateAssignments: isValidToken ? (savedAuthState?.hasStateAssignments || false) : false,
   partyAdminPanels: isValidToken ? (savedAuthState?.partyAdminPanels || []) : [],
   levelAdminPanels: isValidToken ? (savedAuthState?.levelAdminPanels || []) : [],
-  stateAssignments: isValidToken ? (savedAuthState?.stateAssignments || []) : [],
+  stateAssignments: restoredStateAssignments,
   permissions: isValidToken ? (savedAuthState?.permissions || null) : null,
-  selectedAssignment: isValidToken ? (savedAuthState?.selectedAssignment || null) : null,
+  selectedAssignment: restoredSelectedAssignment,
 };
 
 // Clear invalid tokens from storage
@@ -78,7 +140,57 @@ const authSlice = createSlice({
       storage.clearAuthState();
     },
     setSelectedAssignment: (state, action: PayloadAction<StateAssignment>) => {
-      state.selectedAssignment = action.payload;
+      let assignment = action.payload;
+
+      // Ensure partyLevelId is populated from stateAssignments or permissions if missing
+      // This handles cases where some assignments from API don't have partyLevelId
+      // but the same assignment exists elsewhere with partyLevelId populated
+      if (!assignment.partyLevelId) {
+        let matchingAssignment: StateAssignment | null = null;
+
+        // First, try to find in stateAssignments (different assignment with same stateMasterData_id)
+        if (state.stateAssignments) {
+          matchingAssignment = state.stateAssignments.find(
+            (sa) => (sa.stateMasterData_id === assignment.stateMasterData_id ||
+              sa.assignment_id === assignment.assignment_id) &&
+              sa.assignment_id !== assignment.assignment_id && // Don't match the same assignment
+              sa.partyLevelId // Only match assignments that have partyLevelId
+          ) || null;
+        }
+
+        // If not found in stateAssignments, try to find in permissions
+        if (!matchingAssignment && state.permissions) {
+          const permissionArrays = [
+            state.permissions.accessibleStates,
+            state.permissions.accessibleDistricts,
+            state.permissions.accessibleAssemblies,
+            state.permissions.accessibleBlocks,
+            state.permissions.accessibleMandals,
+            state.permissions.accessiblePollingCenters,
+          ].filter(Boolean);
+
+          for (const permArray of permissionArrays) {
+            matchingAssignment = permArray.find(
+              (pa: StateAssignment) => (pa.stateMasterData_id === assignment.stateMasterData_id ||
+                pa.assignment_id === assignment.assignment_id ||
+                pa.afterAssemblyData_id === assignment.afterAssemblyData_id) &&
+                pa.partyLevelId // Only match assignments that have partyLevelId
+            ) || null;
+            if (matchingAssignment) break;
+          }
+        }
+
+        if (matchingAssignment && matchingAssignment.partyLevelId) {
+          assignment = {
+            ...assignment,
+            partyLevelId: matchingAssignment.partyLevelId,
+            partyLevelName: matchingAssignment.partyLevelName,
+            partyLevelDisplayName: matchingAssignment.partyLevelDisplayName,
+          };
+        }
+      }
+
+      state.selectedAssignment = assignment;
 
       // Persist updated state
       storage.setAuthState({
