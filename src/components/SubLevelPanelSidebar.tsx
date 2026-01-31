@@ -5,6 +5,7 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
 import { fetchAfterAssemblyChildrenByParent } from "../services/afterAssemblyApi";
+import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -223,6 +224,77 @@ export default function SubLevelPanelSidebar({
   const base = `/sublevel/${levelId}`;
   const firstName = user?.firstName || user?.username || "User";
 
+  // Get party and state info for API call from localStorage
+  const getPartyAndStateFromStorage = () => {
+    try {
+      const authUser = localStorage.getItem('auth_user');
+      if (authUser) {
+        const user = JSON.parse(authUser);
+        return {
+          partyId: user?.partyId || 0,
+          stateId: user?.state_id || 0,
+        };
+      }
+    } catch (error) {
+      console.error('Error reading auth_user from localStorage:', error);
+    }
+    return { partyId: 0, stateId: 0 };
+  };
+
+  const { partyId, stateId } = getPartyAndStateFromStorage();
+
+  // Get correct partyLevelId from permissions data instead of selectedAssignment
+  const getCorrectPartyLevelId = () => {
+    if (!selectedAssignment || !permissions) {
+      return selectedAssignment?.partyLevelId || 0;
+    }
+
+    // Check in all accessible levels for matching assignment (sub-levels only)
+    const accessibleLevels = [
+      { data: permissions.accessibleBooths, idField: 'booth_assignment_id' },
+      { data: permissions.accessiblePollingCenters, idField: 'assignment_id' },
+      { data: permissions.accessibleMandals, idField: 'assignment_id' },
+      { data: permissions.accessibleBlocks, idField: 'assignment_id' },
+      { data: permissions.accessibleSectors, idField: 'assignment_id' },
+      { data: permissions.accessibleWards, idField: 'assignment_id' },
+      { data: permissions.accessibleZones, idField: 'assignment_id' },
+    ];
+
+    for (const level of accessibleLevels) {
+      if (level.data && Array.isArray(level.data)) {
+        const matchingItem = level.data.find(
+          (item: any) => item[level.idField] === selectedAssignment.assignment_id
+        );
+        if (matchingItem && matchingItem.partyLevelId) {
+          return matchingItem.partyLevelId;
+        }
+      }
+    }
+
+    // Fallback to selectedAssignment
+    return selectedAssignment.partyLevelId || 0;
+  };
+
+  const partyLevelId = getCorrectPartyLevelId();
+
+  // Debug logging to check the values
+  console.log('SubLevelPanelSidebar API params:', {
+    state_id: stateId,
+    party_id: partyId,
+    party_level_id: partyLevelId,
+    selectedAssignment
+  });
+
+  // Fetch dynamic sidebar modules from API
+  const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
+    {
+      state_id: stateId,
+      party_id: partyId,
+      party_level_id: partyLevelId
+    },
+    { skip: !partyId || !stateId || !partyLevelId }
+  );
+
   const formatLevelName = (name?: string | null): string => {
     if (!name) return "Sub Level";
     // PollingCenter → Polling Center
@@ -233,7 +305,7 @@ export default function SubLevelPanelSidebar({
   };
 
   const levelName = formatLevelName(
-    levelInfo?.partyLevelName || levelInfo?.levelType
+    levelInfo?.levelType || levelInfo?.levelName
   );
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName
@@ -317,7 +389,38 @@ export default function SubLevelPanelSidebar({
     ? `${childLevelLabel} level`
     : "Below Levels";
 
-  const navItems: NavItem[] = [
+  // Helper function to get appropriate icon for module
+  function getIconForModule(moduleName: string): ReactNode {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    if (lowerModuleName.includes('campaign')) return Icons.campaigns;
+    if (lowerModuleName.includes('user')) return Icons.team;
+    if (lowerModuleName.includes('event')) return Icons.campaigns;
+    if (lowerModuleName.includes('search')) return Icons.search;
+    if (lowerModuleName.includes('vic')) return Icons.vic;
+    if (lowerModuleName.includes('chat')) return Icons.chat;
+
+    // Default icon for unknown modules
+    return Icons.campaigns;
+  }
+
+  // Helper function to get appropriate route for module
+  function getModuleRoute(moduleName: string): string {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    // Map specific module names to their correct routes for SubLevel
+    if (lowerModuleName.includes('campaign')) return 'campaigns';
+    if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'assigned-events';
+    if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
+    if (lowerModuleName.includes('search')) return 'search-voter';
+    if (lowerModuleName.includes('vic')) return 'vic';
+    if (lowerModuleName.includes('chat')) return 'chat';
+
+    // Default: convert module name to kebab-case
+    return moduleName.toLowerCase().replace(/\s+/g, '-');
+  }
+
+  const staticNavItems: NavItem[] = [
     { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
     { to: "team", label: "Team", icon: Icons.team },
     // Only show Child Levels if not a Booth
@@ -331,8 +434,15 @@ export default function SubLevelPanelSidebar({
       ]
       : []),
     { to: "booths", label: "Booths", icon: Icons.booths },
+  ];
 
-    { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
+  const dynamicModuleItems: NavItem[] = sidebarModules.map((module) => ({
+    to: getModuleRoute(module.moduleName),
+    label: module.displayName,
+    icon: getIconForModule(module.moduleName),
+  }));
+
+  const additionalStaticItems: NavItem[] = [
     { to: "search-voter", label: "Search Voter", icon: Icons.search },
     // Only show Booth Voters if it's a Booth level
     ...(isBooth
@@ -354,7 +464,12 @@ export default function SubLevelPanelSidebar({
         },
       ]
       : []),
-    // { to: "chat", label: "Chat", icon: Icons.chat },
+  ];
+
+  const navItems: NavItem[] = [
+    ...staticNavItems,
+    ...dynamicModuleItems,
+    ...additionalStaticItems,
   ];
 
   const vicMenuItems = [

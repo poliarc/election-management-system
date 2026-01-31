@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
+import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
 import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
@@ -311,19 +312,19 @@ const staticListItems: NavItem[] = [
   // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
-const otherItemsBefore: NavItem[] = [
-  { to: "visitors", label: "Visitors", icon: Icons.visitors },
-  { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
-  // {
-  //   to: "assigned-campaigns",
-  //   label: "Assigned Campaigns",
-  //   icon: Icons.campaigns,
-  // },
-  { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
-  { to: "search-voter", label: "Search Voter", icon: Icons.search },
-  { to: "compare-voters", label: "Compare Voters", icon: Icons.compare },
-  { to: "form-20", label: "Form 20", icon: Icons.form20 },
-];
+// const otherItemsBefore: NavItem[] = [
+//   { to: "visitors", label: "Visitors", icon: Icons.visitors },
+//   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
+//   // {
+//   //   to: "assigned-campaigns",
+//   //   label: "Assigned Campaigns",
+//   //   icon: Icons.campaigns,
+//   // },
+//   { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
+//   { to: "search-voter", label: "Search Voter", icon: Icons.search },
+//   { to: "compare-voters", label: "Compare Voters", icon: Icons.compare },
+//   { to: "form-20", label: "Form 20", icon: Icons.form20 },
+// ];
 
 const otherItemsAfter: NavItem[] = [];
 
@@ -487,6 +488,7 @@ export default function AssemblySidebar({
   };
 
   const { partyId, stateId } = getPartyAndStateFromStorage();
+  const partyLevelId = selectedAssignment?.partyLevelId || 0;
 
   // Fetch dynamic sidebar levels from API
   const { data: sidebarLevels = [], isLoading: sidebarLoading, error: sidebarError } = useGetSidebarLevelsQuery(
@@ -495,6 +497,16 @@ export default function AssemblySidebar({
       skip: !partyId || !stateId || partyId === 0 || stateId === 0,
       refetchOnMountOrArgChange: true
     }
+  );
+
+  // Fetch dynamic sidebar modules from API
+  const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
+    {
+      state_id: stateId,
+      party_id: partyId,
+      party_level_id: partyLevelId
+    },
+    { skip: !partyId || !stateId || !partyLevelId }
   );
 
   // Create dynamic list items from API response
@@ -547,6 +559,43 @@ export default function AssemblySidebar({
 
     // Default icon for unknown levels - use generic icon
     return Icons.generic;
+  }
+
+  // Helper function to get appropriate icon for module
+  function getIconForModule(moduleName: string): ReactNode {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    if (lowerModuleName.includes('campaign')) return Icons.campaigns;
+    if (lowerModuleName.includes('user')) return Icons.team;
+    if (lowerModuleName.includes('district')) return Icons.dashboard;
+    if (lowerModuleName.includes('assembly')) return Icons.dashboard;
+    if (lowerModuleName.includes('block')) return Icons.block;
+    if (lowerModuleName.includes('mandal')) return Icons.mandal;
+    if (lowerModuleName.includes('polling') || lowerModuleName.includes('center')) return Icons.polling;
+    if (lowerModuleName.includes('booth')) return Icons.booths;
+    if (lowerModuleName.includes('event')) return Icons.campaigns;
+    if (lowerModuleName.includes('visitor')) return Icons.visitors;
+    if (lowerModuleName.includes('communication')) return Icons.communication;
+    if (lowerModuleName.includes('search')) return Icons.search;
+
+    // Default icon for unknown modules
+    return Icons.campaigns;
+  }
+
+  // Helper function to get appropriate route for module
+  function getModuleRoute(moduleName: string): string {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    // Map specific module names to their correct routes for Assembly level
+    if (lowerModuleName.includes('campaign')) return 'campaigns';
+    if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'assigned-events';
+    if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
+    if (lowerModuleName.includes('visitor')) return 'visitors';
+    if (lowerModuleName.includes('search')) return 'search-voter';
+    if (lowerModuleName.includes('communication')) return 'communication';
+
+    // Default: convert module name to kebab-case
+    return moduleName.toLowerCase().replace(/\s+/g, '-');
   }
 
   const onLogout = () => {
@@ -958,11 +1007,11 @@ export default function AssemblySidebar({
             </div>
           )}
         </div>
-        {/* Other items before Voter Reports */}
-        {otherItemsBefore.map((item) => (
+        {/* Dynamic Modules */}
+        {sidebarModules.map((module) => (
           <NavLink
-            key={item.to}
-            to={`${base}/${item.to}`}
+            key={module.module_id}
+            to={`${base}/${getModuleRoute(module.moduleName)}`}
             onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
@@ -974,8 +1023,8 @@ export default function AssemblySidebar({
               ].join(" ")
             }
           >
-            <span className="text-indigo-600 shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
+            <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
+            <span className="truncate">{module.displayName}</span>
             {/** Accent bar */}
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
             {/** Active indicator */}
