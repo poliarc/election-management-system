@@ -263,7 +263,7 @@ export default function SearchVoter() {
                             : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
-                        हिंदी
+                        Regional
                     </button>
                 </div>
             </div>

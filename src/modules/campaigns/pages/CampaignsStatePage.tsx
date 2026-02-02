@@ -168,11 +168,26 @@ export const CampaignsStatePage = () => {
       console.error("Failed to load campaigns", error);
       const fallbackCampaigns = getAllCampaigns();
       setCampaigns(fallbackCampaigns.map(normalizeCampaignStatus));
-      setCampaignsError(
-        error instanceof Error
-          ? `${error.message}. Showing demo campaigns instead.`
-          : "Unable to load campaigns. Showing demo campaigns instead."
-      );
+      
+      // Extract specific error message from API response
+      let errorMessage = "Unable to load campaigns. Showing demo campaigns instead.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.data?.error?.details) {
+          const details = axiosError.response.data.error.details;
+          if (Array.isArray(details) && details.length > 0) {
+            errorMessage = details.map((detail: any) => detail.message).join(', ') + '. Showing demo campaigns instead.';
+          } else if (axiosError.response.data.error.message) {
+            errorMessage = axiosError.response.data.error.message + '. Showing demo campaigns instead.';
+          }
+        } else if (axiosError.response?.data?.error?.message) {
+          errorMessage = axiosError.response.data.error.message + '. Showing demo campaigns instead.';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `${error.message}. Showing demo campaigns instead.`;
+      }
+      
+      setCampaignsError(errorMessage);
       setIsUsingFallbackData(true);
     } finally {
       setIsLoadingCampaigns(false);
@@ -220,11 +235,26 @@ export const CampaignsStatePage = () => {
         setSelectedCampaignReports(response.data);
       } catch (error) {
         console.error("Failed to load campaign reports", error);
-        setReportsError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load participant activity."
-        );
+        
+        // Extract specific error message from API response
+        let errorMessage = "Failed to load participant activity.";
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as any;
+          if (axiosError.response?.data?.error?.details) {
+            const details = axiosError.response.data.error.details;
+            if (Array.isArray(details) && details.length > 0) {
+              errorMessage = details.map((detail: any) => detail.message).join(', ');
+            } else if (axiosError.response.data.error.message) {
+              errorMessage = axiosError.response.data.error.message;
+            }
+          } else if (axiosError.response?.data?.error?.message) {
+            errorMessage = axiosError.response.data.error.message;
+          }
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        
+        setReportsError(errorMessage);
         if (fallbackReports.length > 0) {
           setSelectedCampaignReports(fallbackReports);
           setIsReportsUsingFallback(true);
@@ -271,11 +301,26 @@ export const CampaignsStatePage = () => {
         setEditingCampaign(merged);
       } catch (error) {
         console.error("Failed to load campaign details", error);
-        setFormPrefillError(
-          error instanceof Error
-            ? error.message
-            : "Failed to load campaign details. Showing cached data instead."
-        );
+        
+        // Extract specific error message from API response
+        let errorMessage = "Failed to load campaign details. Showing cached data instead.";
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as any;
+          if (axiosError.response?.data?.error?.details) {
+            const details = axiosError.response.data.error.details;
+            if (Array.isArray(details) && details.length > 0) {
+              errorMessage = details.map((detail: any) => detail.message).join(', ') + '. Showing cached data instead.';
+            } else if (axiosError.response.data.error.message) {
+              errorMessage = axiosError.response.data.error.message + '. Showing cached data instead.';
+            }
+          } else if (axiosError.response?.data?.error?.message) {
+            errorMessage = axiosError.response.data.error.message + '. Showing cached data instead.';
+          }
+        } else if (error instanceof Error) {
+          errorMessage = error.message + '. Showing cached data instead.';
+        }
+        
+        setFormPrefillError(errorMessage);
         setEditingCampaign(campaign);
       } finally {
         setIsPrefillingForm(false);
@@ -431,11 +476,26 @@ export const CampaignsStatePage = () => {
         handleCancel();
       } catch (error) {
         console.error("Failed to submit campaign form", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to submit campaign. Please try again."
-        );
+        
+        // Extract specific error message from API response
+        let errorMessage = "Failed to submit campaign. Please try again.";
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as any;
+          if (axiosError.response?.data?.error?.details) {
+            const details = axiosError.response.data.error.details;
+            if (Array.isArray(details) && details.length > 0) {
+              errorMessage = details.map((detail: any) => detail.message).join(', ');
+            } else if (axiosError.response.data.error.message) {
+              errorMessage = axiosError.response.data.error.message;
+            }
+          } else if (axiosError.response?.data?.error?.message) {
+            errorMessage = axiosError.response.data.error.message;
+          }
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        
+        toast.error(errorMessage);
       }
     },
     [editingCampaign, handleCancel, isUsingFallbackData, loadCampaigns]
@@ -488,11 +548,26 @@ export const CampaignsStatePage = () => {
       });
     } catch (error) {
       console.error("Failed to delete campaign", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete campaign. Please try again."
-      );
+      
+      // Extract specific error message from API response
+      let errorMessage = "Failed to delete campaign. Please try again.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.data?.error?.details) {
+          const details = axiosError.response.data.error.details;
+          if (Array.isArray(details) && details.length > 0) {
+            errorMessage = details.map((detail: any) => detail.message).join(', ');
+          } else if (axiosError.response.data.error.message) {
+            errorMessage = axiosError.response.data.error.message;
+          }
+        } else if (axiosError.response?.data?.error?.message) {
+          errorMessage = axiosError.response.data.error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       setDeleteModal((prev) => ({ ...prev, isLoading: false }));
     }
   }, [
@@ -553,11 +628,26 @@ export const CampaignsStatePage = () => {
       toast.success("Campaign marked as completed.");
     } catch (error) {
       console.error("Failed to end campaign", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to end campaign. Please try again."
-      );
+      
+      // Extract specific error message from API response
+      let errorMessage = "Failed to end campaign. Please try again.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.data?.error?.details) {
+          const details = axiosError.response.data.error.details;
+          if (Array.isArray(details) && details.length > 0) {
+            errorMessage = details.map((detail: any) => detail.message).join(', ');
+          } else if (axiosError.response.data.error.message) {
+            errorMessage = axiosError.response.data.error.message;
+          }
+        } else if (axiosError.response?.data?.error?.message) {
+          errorMessage = axiosError.response.data.error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setEndCampaignModal({
         isOpen: false,

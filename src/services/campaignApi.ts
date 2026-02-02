@@ -1,4 +1,4 @@
-import { API_CONFIG, getApiUrl } from "../config/api";
+import { apiClient } from "./api";
 import type {
   CampaignCreateRequest,
   CampaignCreateResponse,
@@ -11,7 +11,6 @@ import type {
   CampaignReport,
   CampaignReportsApiItem,
 } from "../types/campaign";
-import { storage } from "../utils/storage";
 
 const toStringArray = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -60,76 +59,15 @@ const normalizeCampaignReportFromApi = (
 
 export const campaignApi = {
   async fetchHierarchy(stateId: number, partyId: number) {
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-    const endpoint = "/api/campaigns/hierarchy";
-    const url = new URL(getApiUrl(endpoint));
-    url.searchParams.set("state_id", String(stateId));
-    url.searchParams.set("party_id", String(partyId));
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
+    const response = await apiClient.get('/campaigns/hierarchy', {
+      params: { state_id: stateId, party_id: partyId }
     });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignHierarchyResponse;
+    return response.data as CampaignHierarchyResponse;
   },
 
   async fetchCreatedByMe() {
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    const endpoint = "/api/campaigns/created-by-me";
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignListResponse;
+    const response = await apiClient.get('/campaigns/created-by-me');
+    return response.data as CampaignListResponse;
   },
 
   async fetchCampaignById(campaignId: string | number) {
@@ -138,39 +76,8 @@ export const campaignApi = {
       throw new Error("A valid campaign id is required to load details.");
     }
 
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    const endpoint = `/api/campaigns/${numericId}`;
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignDetailResponse;
+    const response = await apiClient.get(`/campaigns/${numericId}`);
+    return response.data as CampaignDetailResponse;
   },
 
   async fetchCampaignReports(campaignId: string | number) {
@@ -181,39 +88,8 @@ export const campaignApi = {
       );
     }
 
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    const endpoint = `/api/campaign-reports/campaign/${numericId}`;
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const json = (await response.json()) as CampaignReportsResponse;
+    const response = await apiClient.get(`/campaign-reports/campaign/${numericId}`);
+    const json = response.data as CampaignReportsResponse;
     const normalizedReports = Array.isArray(json.data)
       ? json.data.map((report) =>
           normalizeCampaignReportFromApi(report, numericId)
@@ -236,91 +112,24 @@ export const campaignApi = {
       throw new Error("A valid campaign id is required to delete a campaign.");
     }
 
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    const endpoint = `/api/campaigns/${numericId}`;
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignDeleteResponse;
+    const response = await apiClient.delete(`/campaigns/${numericId}`);
+    return response.data as CampaignDeleteResponse;
   },
 
   async createCampaign(
     payload: CampaignCreateRequest,
     imageFiles: File[] = []
   ) {
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    // Step 1: Create campaign without images (using JSON to avoid validation errors)
-    const endpoint = "/api/campaigns/create";
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const result = (await response.json()) as CampaignCreateResponse;
+    // Step 1: Create campaign without images
+    const response = await apiClient.post('/campaigns/create', payload);
+    const result = response.data as CampaignCreateResponse;
 
     // Step 2: If images exist, upload them separately
     if (imageFiles.length > 0 && result.data?.campaign_id) {
       try {
         await this.uploadCampaignImages(
           Number(result.data.campaign_id),
-          imageFiles,
-          token
+          imageFiles
         );
       } catch (error) {
         console.error("Failed to upload images:", error);
@@ -333,41 +142,19 @@ export const campaignApi = {
 
   async uploadCampaignImages(
     campaignId: number,
-    imageFiles: File[],
-    token: string
+    imageFiles: File[]
   ): Promise<void> {
-    const endpoint = `/api/campaigns/${campaignId}`;
-    const url = getApiUrl(endpoint);
-
     const formData = new FormData();
     imageFiles.forEach((file) => {
       formData.append("images", file);
     });
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-    const response = await fetch(url, {
-      method: "PUT",
+    await apiClient.put(`/campaigns/${campaignId}`, formData, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
-      body: formData,
-      signal: controller.signal,
+      timeout: 60000,
     });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      throw new Error(
-        errorData.error?.message ||
-          errorData.message ||
-          "Failed to upload images"
-      );
-    }
   },
 
   async updateCampaign(
@@ -380,82 +167,25 @@ export const campaignApi = {
       throw new Error("A valid campaign id is required to update a campaign.");
     }
 
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
     // If images exist, upload them using multipart
     if (imageFiles.length > 0) {
-      const endpoint = `/api/campaigns/${numericId}`;
-      const url = getApiUrl(endpoint);
-
       const formData = new FormData();
       imageFiles.forEach((file) => {
         formData.append("images", file);
       });
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-      const response = await fetch(url, {
-        method: "PUT",
+      const response = await apiClient.put(`/campaigns/${numericId}`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
-        signal: controller.signal,
+        timeout: 60000,
       });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: `HTTP ${response.status}` }));
-        const errorMessage =
-          errorData.error?.message ||
-          errorData.message ||
-          `HTTP ${response.status}`;
-        throw new Error(errorMessage);
-      }
-
-      return (await response.json()) as CampaignCreateResponse;
+      return response.data as CampaignCreateResponse;
     }
 
     // No images - update with JSON
-    const endpoint = `/api/campaigns/${numericId}`;
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
-    const response = await fetch(url, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignCreateResponse;
+    const response = await apiClient.put(`/campaigns/${numericId}`, payload);
+    return response.data as CampaignCreateResponse;
   },
 
   async completeCampaign(campaignId: string | number) {
@@ -466,40 +196,8 @@ export const campaignApi = {
       );
     }
 
-    const token = storage.getToken("access");
-    if (!token) {
-      throw new Error("Access token required");
-    }
-
-    const endpoint = `/api/campaigns/${numericId}/complete`;
-    const url = getApiUrl(endpoint);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-    const response = await fetch(url, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: `HTTP ${response.status}` }));
-      const errorMessage =
-        errorData.error?.message ||
-        errorData.message ||
-        `HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    return (await response.json()) as CampaignCreateResponse;
+    const response = await apiClient.patch(`/campaigns/${numericId}/complete`);
+    return response.data as CampaignCreateResponse;
   },
 };
 

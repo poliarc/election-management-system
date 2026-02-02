@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
+import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -242,11 +243,22 @@ export default function StateSidebar({
   // Get party and state info for API call
   const partyId = user?.partyId || 0;
   const stateId = selectedAssignment?.stateMasterData_id || 0;
+  const partyLevelId = selectedAssignment?.partyLevelId || 0;
 
   // Fetch dynamic sidebar levels from API
   const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
     { partyId, stateId },
     { skip: !partyId || !stateId }
+  );
+
+  // Fetch dynamic sidebar modules from API
+  const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
+    {
+      state_id: stateId,
+      party_id: partyId,
+      party_level_id: partyLevelId
+    },
+    { skip: !partyId || !stateId || !partyLevelId }
   );
 
   // Create dynamic list items from API response
@@ -280,6 +292,37 @@ export default function StateSidebar({
 
     // Default icon for unknown levels
     return Icons.mandal;
+  }
+
+  // Helper function to get appropriate icon for module
+  function getIconForModule(moduleName: string): ReactNode {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    if (lowerModuleName.includes('campaign')) return Icons.campaigns;
+    if (lowerModuleName.includes('user')) return Icons.team;
+    if (lowerModuleName.includes('district')) return Icons.district;
+    if (lowerModuleName.includes('assembly')) return Icons.assembly;
+    if (lowerModuleName.includes('block')) return Icons.block;
+    if (lowerModuleName.includes('mandal')) return Icons.mandal;
+    if (lowerModuleName.includes('polling') || lowerModuleName.includes('center')) return Icons.polling;
+    if (lowerModuleName.includes('booth')) return Icons.booths;
+    if (lowerModuleName.includes('vic')) return Icons.vic;
+
+    // Default icon for unknown modules
+    return Icons.campaigns;
+  }
+
+  // Helper function to get appropriate route for module
+  function getModuleRoute(moduleName: string): string {
+    const lowerModuleName = moduleName.toLowerCase();
+
+    // Map specific module names to their correct routes
+    if (lowerModuleName.includes('campaign')) return 'campaigns';
+    if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'initiatives';
+    if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
+
+    // Default: convert module name to kebab-case
+    return moduleName.toLowerCase().replace(/\s+/g, '-');
   }
 
   const onLogout = () => {
@@ -417,27 +460,29 @@ export default function StateSidebar({
             )}
           </div>
 
-          {/* Campaigns - Outside List dropdown but appears below it */}
-          <div className="mt-2">
-            <NavLink
-              to={`${base}/campaigns`}
-              onClick={() => onNavigate?.()}
-              className={({ isActive }) =>
-                [
-                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  isActive
-                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                    : "border border-transparent hover:border-gray-200",
-                ].join(" ")
-              }
-            >
-              <span className="text-indigo-600 shrink-0">{Icons.campaigns}</span>
-              <span className="truncate">Campaigns</span>
-              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-            </NavLink>
-          </div>
+          {/* Dynamic Modules */}
+          {sidebarModules.map((module) => (
+            <div key={module.module_id} className="mt-2">
+              <NavLink
+                to={`${base}/${getModuleRoute(module.moduleName)}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                      : "border border-transparent hover:border-gray-200",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
+                <span className="truncate">{module.displayName}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            </div>
+          ))}
         </nav>
       </div>
 
