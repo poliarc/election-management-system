@@ -9,7 +9,7 @@ interface VisitorFormProps {
 }
 
 const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
-  const { selectedAssignment } = useAppSelector((state) => state.auth);
+  const { selectedAssignment, user } = useAppSelector((state) => state.auth);
   const [createVisitor, { isLoading: isCreating }] = useCreateVisitorMutation();
   const [updateVisitor, { isLoading: isUpdating }] = useUpdateVisitorMutation();
   const { data: stateMasterData } = useGetStateMasterDataQuery();
@@ -40,17 +40,17 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
     no_of_persons: 1,
     purpose_of_visit: '',
     follow_up_date: '',
-    assembly_user_id: 0,
+    assembly_user_id: user?.id || 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Get states, districts, and assemblies from master data
   const states = stateMasterData?.data?.filter(item => item.levelType === 'State') || [];
-  const districts = stateMasterData?.data?.filter(item => 
+  const districts = stateMasterData?.data?.filter(item =>
     item.levelType === 'District' && item.ParentId === formData.state_id
   ) || [];
-  const assemblies = stateMasterData?.data?.filter(item => 
+  const assemblies = stateMasterData?.data?.filter(item =>
     item.levelType === 'Assembly' && item.ParentId === formData.district_id
   ) || [];
 
@@ -59,7 +59,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
   const { data: assemblyUsersData, isLoading: usersLoading, error: usersError } = useGetAssemblyUsersQuery(currentAssemblyId, {
     skip: !currentAssemblyId,
   });
-  
+
   // Extract users from the response structure
   const assemblyUsers = assemblyUsersData?.data?.users || [];
 
@@ -83,9 +83,29 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
     }
   }, [visitor]);
 
+  // Set default state and district based on assembly when data is loaded
+  useEffect(() => {
+    if (stateMasterData?.data && formData.assembly_id && !visitor) {
+      const assembly = stateMasterData.data.find(item => item.id === formData.assembly_id && item.levelType === 'Assembly');
+      if (assembly) {
+        const district = stateMasterData.data.find(item => item.id === assembly.ParentId && item.levelType === 'District');
+        if (district) {
+          const state = stateMasterData.data.find(item => item.id === district.ParentId && item.levelType === 'State');
+          if (state) {
+            setFormData(prev => ({
+              ...prev,
+              state_id: state.id,
+              district_id: district.id,
+            }));
+          }
+        }
+      }
+    }
+  }, [stateMasterData, formData.assembly_id, visitor]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     // Special handling for phone number
     if (name === 'phone') {
       // Only allow digits and limit to 10 characters
@@ -134,12 +154,12 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
       newErrors.follow_up_date = 'Follow-up date cannot be in the past';
     }
     if (!formData.assembly_user_id) {
-      newErrors.assembly_user_id = 'Assembly user is required';
+      newErrors.assembly_user_id = 'Meeting with is required';
     } else {
       // Validate that the selected assembly_user_id exists in the current assembly users
       const userExists = assemblyUsers.some(user => user.user_id === formData.assembly_user_id);
       if (!userExists) {
-        newErrors.assembly_user_id = 'Selected assembly user is not valid';
+        newErrors.assembly_user_id = 'Selected user is not valid';
       }
     }
 
@@ -149,7 +169,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -227,9 +247,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter visitor name"
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -246,15 +265,14 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   onChange={handleInputChange}
                   maxLength={10}
                   pattern="[0-9]{10}"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter 10-digit phone number"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>
 
-              <div className="md:col-span-2">
+              {/* <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
@@ -269,7 +287,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   placeholder="Enter email address (optional)"
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -284,9 +302,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="state_id"
                   value={formData.state_id}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.state_id ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.state_id ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 >
                   <option value={0}>Select State</option>
                   {states.map(state => (
@@ -307,9 +324,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.district_id}
                   onChange={handleInputChange}
                   disabled={!formData.state_id}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.district_id ? 'border-red-500' : 'border-gray-300'
-                  } ${!formData.state_id ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.district_id ? 'border-red-500' : 'border-gray-300'
+                    } ${!formData.state_id ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>Select District</option>
                   {districts.map(district => (
@@ -330,9 +346,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.assembly_id}
                   onChange={handleInputChange}
                   disabled={!formData.district_id}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.assembly_id ? 'border-red-500' : 'border-gray-300'
-                  } ${!formData.district_id ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.assembly_id ? 'border-red-500' : 'border-gray-300'
+                    } ${!formData.district_id ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>Select Assembly</option>
                   {assemblies.map(assembly => (
@@ -358,14 +373,13 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="date_of_visit"
                   value={formData.date_of_visit}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.date_of_visit ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_visit ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.date_of_visit && <p className="text-red-500 text-sm mt-1">{errors.date_of_visit}</p>}
               </div>
 
-             
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -376,9 +390,8 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="place_of_visit"
                   value={formData.place_of_visit}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.place_of_visit ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.place_of_visit ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter place of visit"
                 />
                 {errors.place_of_visit && <p className="text-red-500 text-sm mt-1">{errors.place_of_visit}</p>}
@@ -394,16 +407,15 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.no_of_persons}
                   onChange={handleInputChange}
                   min="1"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.no_of_persons ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.no_of_persons ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.no_of_persons && <p className="text-red-500 text-sm mt-1">{errors.no_of_persons}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assembly User *
+                  Meeting with *
                 </label>
                 {/* Assembly users are always from the current user's assembly panel, not the selected assembly in the form */}
                 <select
@@ -411,12 +423,11 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.assembly_user_id}
                   onChange={handleInputChange}
                   disabled={usersLoading}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.assembly_user_id ? 'border-red-500' : 'border-gray-300'
-                  } ${usersLoading ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.assembly_user_id ? 'border-red-500' : 'border-gray-300'
+                    } ${usersLoading ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>
-                    {usersLoading ? 'Loading users...' : 'Select Assembly User'}
+                    {usersLoading ? 'Loading users...' : 'Select User'}
                   </option>
                   {assemblyUsers.map(user => (
                     <option key={user.user_id} value={user.user_id}>
@@ -446,15 +457,14 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.purpose_of_visit}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.purpose_of_visit ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.purpose_of_visit ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter purpose of visit"
                 />
                 {errors.purpose_of_visit && <p className="text-red-500 text-sm mt-1">{errors.purpose_of_visit}</p>}
               </div>
 
-               {/* <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Follow-up Date
                 </label>

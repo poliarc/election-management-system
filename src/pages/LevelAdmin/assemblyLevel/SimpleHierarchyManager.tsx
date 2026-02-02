@@ -16,6 +16,8 @@ interface EditingNode {
     newParentAssemblyId: number | null;
     targetType: 'assembly' | 'node';
     targetName: string;
+    selectedLevel: string | null;
+    availableLevels: string[];
 }
 
 export default function SimpleHierarchyManager() {
@@ -102,65 +104,36 @@ export default function SimpleHierarchyManager() {
         return { assemblies, nodes: availableNodes };
     };
 
-    // Function to build the full hierarchy path for a node
-    const getNodeHierarchyPath = (nodeId: number): string => {
-        // Find which assembly this node belongs to
-        let targetAssembly: AssemblyHierarchy | null = null;
-        let targetNode: HierarchyNode | null = null;
+    // Get unique levels from all nodes
+    const getAvailableLevels = () => {
+        const allNodes = getAllNodes();
+        const levels = [...new Set(allNodes.map(node => node.levelName))];
+        return levels.sort();
+    };
 
-        // Search through all assemblies to find the node
-        for (const assembly of hierarchyData) {
-            const findNodeInAssembly = (nodes: HierarchyNode[]): HierarchyNode | null => {
-                for (const node of nodes) {
-                    if (node.id === nodeId) {
-                        return node;
-                    }
-                    if (node.children) {
-                        const found = findNodeInAssembly(node.children);
-                        if (found) return found;
-                    }
-                }
-                return null;
-            };
+    // Get nodes filtered by level
+    const getNodesByLevel = (levelName: string, currentNodeId: number) => {
+        const allNodes = getAllNodes();
+        return allNodes.filter(node =>
+            node.levelName === levelName &&
+            node.id !== currentNodeId &&
+            !isDescendantOf(currentNodeId, node.id)
+        );
+    };
 
-            const found = findNodeInAssembly(assembly.afterAssemblyHierarchy);
-            if (found) {
-                targetAssembly = assembly;
-                targetNode = found;
-                break;
-            }
-        }
+    // Helper function to check if a node is descendant of another
+    const isDescendantOf = (ancestorId: number, nodeId: number): boolean => {
+        const allNodes = getAllNodes();
+        const ancestor = allNodes.find(n => n.id === ancestorId);
+        if (!ancestor || !ancestor.children) return false;
 
-        if (!targetAssembly || !targetNode) {
-            return 'Unknown';
-        }
-
-        // Build the path from assembly to the target node
-        const buildPath = (nodes: HierarchyNode[], targetId: number, currentPath: string[] = []): string[] | null => {
-            for (const node of nodes) {
-                const newPath = [...currentPath, `${node.displayName} (${node.levelName})`];
-
-                if (node.id === targetId) {
-                    return newPath;
-                }
-
-                if (node.children) {
-                    const result = buildPath(node.children, targetId, newPath);
-                    if (result) return result;
-                }
-            }
-            return null;
-        };
-
-        const path = buildPath(targetAssembly.afterAssemblyHierarchy, nodeId);
-        if (path) {
-            return `${targetAssembly.assembly.levelName} → ${path.join(' → ')}`;
-        }
-
-        return `${targetAssembly.assembly.levelName} → ${targetNode.displayName} (${targetNode.levelName})`;
+        return ancestor.children.some(child =>
+            child.id === nodeId || isDescendantOf(ancestorId, child.id)
+        );
     };
 
     const handleEditHierarchy = (node: HierarchyNode) => {
+        const availableLevels = getAvailableLevels();
         setEditingNode({
             id: node.id,
             newParentId: node.parentId,
@@ -168,7 +141,9 @@ export default function SimpleHierarchyManager() {
             targetType: node.parentAssemblyId ? 'assembly' : 'node',
             targetName: node.parentAssemblyId
                 ? hierarchyData.find(a => a.assembly.id === node.parentAssemblyId)?.assembly.levelName || ''
-                : getAllNodes().find(n => n.id === node.parentId)?.displayName || ''
+                : getAllNodes().find(n => n.id === node.parentId)?.displayName || '',
+            selectedLevel: null,
+            availableLevels: availableLevels
         });
     };
 
@@ -323,7 +298,9 @@ export default function SimpleHierarchyManager() {
                                                     ...editingNode,
                                                     targetType: e.target.value as 'assembly' | 'node',
                                                     newParentId: null,
-                                                    newParentAssemblyId: editingNode.newParentAssemblyId
+                                                    newParentAssemblyId: editingNode.newParentAssemblyId,
+                                                    selectedLevel: null,
+                                                    targetName: ''
                                                 })}
                                                 className="mr-2"
                                             />
@@ -339,7 +316,9 @@ export default function SimpleHierarchyManager() {
                                                     ...editingNode,
                                                     targetType: e.target.value as 'assembly' | 'node',
                                                     newParentId: editingNode.newParentId,
-                                                    newParentAssemblyId: null
+                                                    newParentAssemblyId: null,
+                                                    selectedLevel: null,
+                                                    targetName: ''
                                                 })}
                                                 className="mr-2"
                                             />
@@ -371,39 +350,105 @@ export default function SimpleHierarchyManager() {
                                             className="w-full"
                                         />
                                     ) : (
-                                        <SearchableSelect
-                                            options={getAvailableTargets(node.id).nodes.map(targetNode => ({
-                                                value: targetNode.id,
-                                                label: getNodeHierarchyPath(targetNode.id),
-                                                subtitle: `Level: ${targetNode.levelName} - ID: ${targetNode.id}`
-                                            }))}
-                                            value={editingNode.newParentId}
-                                            onChange={(value) => setEditingNode({
-                                                ...editingNode,
-                                                newParentId: value ? Number(value) : null,
-                                                targetName: getAllNodes().find(n => n.id === Number(value))?.displayName || ''
-                                            })}
-                                            placeholder="Select a parent node..."
-                                            className="w-full"
-                                            maxHeight="max-h-60 sm:max-h-80"
-                                        />
+                                        <div className="space-y-3">
+                                            {/* Level Selection */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                    Select Level:
+                                                </label>
+                                                <SearchableSelect
+                                                    options={editingNode.availableLevels.map(level => ({
+                                                        value: level,
+                                                        label: level,
+                                                        subtitle: `${getNodesByLevel(level, node.id).length} available nodes`
+                                                    }))}
+                                                    value={editingNode.selectedLevel}
+                                                    onChange={(value) => setEditingNode({
+                                                        ...editingNode,
+                                                        selectedLevel: value as string,
+                                                        newParentId: null,
+                                                        targetName: ''
+                                                    })}
+                                                    placeholder="Select a level first..."
+                                                    className="w-full"
+                                                />
+                                            </div>
+
+                                            {/* Node Selection - Only show if level is selected */}
+                                            {editingNode.selectedLevel && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                                        Select {editingNode.selectedLevel}:
+                                                    </label>
+                                                    <SearchableSelect
+                                                        options={getNodesByLevel(editingNode.selectedLevel, node.id).map(targetNode => ({
+                                                            value: targetNode.id,
+                                                            label: `${targetNode.displayName}`,
+                                                            subtitle: `${targetNode.levelName} - ID: ${targetNode.id}`
+                                                        }))}
+                                                        value={editingNode.newParentId}
+                                                        onChange={(value) => {
+                                                            const selectedNode = getAllNodes().find(n => n.id === Number(value));
+                                                            setEditingNode({
+                                                                ...editingNode,
+                                                                newParentId: value ? Number(value) : null,
+                                                                targetName: selectedNode?.displayName || ''
+                                                            });
+                                                        }}
+                                                        placeholder={`Select a ${editingNode.selectedLevel.toLowerCase()}...`}
+                                                        className="w-full"
+                                                        maxHeight="max-h-60 sm:max-h-80"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
-                                {/* Preview */}
-                                {editingNode.targetName && (
+                                {/* Preview - Only show when a selection is made */}
+                                {(editingNode.targetType === 'assembly' && editingNode.newParentAssemblyId) ||
+                                    (editingNode.targetType === 'node' && editingNode.selectedLevel) ? (
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-blue-50 rounded-lg">
                                         <span className="text-sm text-gray-600 flex-shrink-0">Will move to:</span>
                                         <ArrowRight className="w-4 h-4 text-blue-500 hidden sm:block flex-shrink-0" />
-                                        <span className="font-medium text-blue-700 break-words">{editingNode.targetName}</span>
+                                        <span className="font-medium text-blue-700 break-words">
+                                            {(() => {
+                                                // Show target if something is selected
+                                                if (editingNode.targetName) {
+                                                    return editingNode.targetType === 'assembly'
+                                                        ? `${editingNode.targetName} (Assembly Level)`
+                                                        : `${editingNode.targetName} (${editingNode.selectedLevel || 'Node Level'})`;
+                                                }
+
+                                                // Show level selection for node type when level is selected but no specific node yet
+                                                if (editingNode.targetType === 'node' && editingNode.selectedLevel && !editingNode.targetName) {
+                                                    return `${editingNode.selectedLevel} Level (Select specific ${editingNode.selectedLevel.toLowerCase()})`;
+                                                }
+
+                                                // Show current location as fallback
+                                                if (node.parentAssemblyId) {
+                                                    const currentAssembly = hierarchyData.find(a => a.assembly.id === node.parentAssemblyId);
+                                                    return `${currentAssembly?.assembly.levelName || 'Unknown Assembly'} (Assembly Level)`;
+                                                } else if (node.parentId) {
+                                                    const currentParent = getAllNodes().find(n => n.id === node.parentId);
+                                                    return `${currentParent?.displayName || 'Unknown Parent'} (${currentParent?.levelName || 'Unknown Level'})`;
+                                                } else {
+                                                    return 'Root Level';
+                                                }
+                                            })()}
+                                        </span>
                                     </div>
-                                )}
+                                ) : null}
 
                                 {/* Action Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <button
                                         onClick={handleSaveHierarchy}
-                                        disabled={isUpdating || (!editingNode.newParentId && !editingNode.newParentAssemblyId)}
+                                        disabled={isUpdating || (
+                                            editingNode.targetType === 'assembly'
+                                                ? !editingNode.newParentAssemblyId
+                                                : !editingNode.newParentId
+                                        )}
                                         className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <Save className="w-4 h-4" />
