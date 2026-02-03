@@ -44,6 +44,8 @@ export default function DistrictDynamicLevelList({
 
   // State for filtering items without users
   const [showItemsWithoutUsers, setShowItemsWithoutUsers] = useState(false);
+  // State for filtering items with users
+  const [showItemsWithUsers, setShowItemsWithUsers] = useState(false);
   // State for user counts
   const [itemUserCounts, setItemUserCounts] = useState<Record<number, number>>(
     {}
@@ -78,6 +80,7 @@ export default function DistrictDynamicLevelList({
     setSelectedLevelFilter("");
     setCurrentPage(1);
     setShowItemsWithoutUsers(false);
+    setShowItemsWithUsers(false);
     setExpandedItemId(null);
     setItemUsers({});
     setItemUserCounts({});
@@ -97,8 +100,7 @@ export default function DistrictDynamicLevelList({
   const fetchParentDetailsFromAPI = async (itemId: number) => {
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
         {
           headers: {
@@ -132,8 +134,7 @@ export default function DistrictDynamicLevelList({
   const fetchUserCount = async (itemId: number) => {
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
         {
           headers: {
@@ -283,10 +284,8 @@ export default function DistrictDynamicLevelList({
       if (!districtInfo.districtId) return;
       try {
         const assembliesData = await fetchAllPages(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            districtInfo.districtId
+          `${import.meta.env.VITE_API_BASE_URL
+          }/api/user-state-hierarchies/hierarchy/children/${districtInfo.districtId
           }`
         );
         const mappedAssemblies = assembliesData.map((assembly: any) => ({
@@ -318,8 +317,7 @@ export default function DistrictDynamicLevelList({
       if (parentLevelName === "Assembly") {
         // Fetch direct children of assembly from after-assembly API (single fetch, no pagination needed)
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/after-assembly-data/assembly/${parentId}`,
           {
             headers: {
@@ -334,8 +332,7 @@ export default function DistrictDynamicLevelList({
       } else {
         // Fetch children from after-assembly hierarchy API using pagination
         const childrenData = await fetchAllPages(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}`
         );
         return childrenData;
@@ -409,16 +406,16 @@ export default function DistrictDynamicLevelList({
         filteredItems = filteredItems.filter((item) => {
           // For Assembly filter, check assemblyId - strict matching only
           if (filterLevel === "Assembly") {
-            return item.assemblyId === selectedIdForFilter || 
-                   (item.parentChain && item.parentChain["Assembly"] === selectedIdForFilter);
+            return item.assemblyId === selectedIdForFilter ||
+              (item.parentChain && item.parentChain["Assembly"] === selectedIdForFilter);
           }
-          
+
           // For District filter, check districtId - strict matching only
           if (filterLevel === "District") {
             return item.districtId === selectedIdForFilter ||
-                   (item.parentChain && item.parentChain["District"] === selectedIdForFilter);
+              (item.parentChain && item.parentChain["District"] === selectedIdForFilter);
           }
-          
+
           // For other levels, use strict hierarchy checking
           // First check direct parent relationship
           if (item.parentLevelId === selectedIdForFilter) return true;
@@ -441,7 +438,7 @@ export default function DistrictDynamicLevelList({
             if (selectedAssemblyId && item.parentChain && item.parentChain["Assembly"] !== selectedAssemblyId) {
               return false;
             }
-            
+
             // Check parent hierarchy but only for direct relationships
             if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) {
               return true;
@@ -590,8 +587,7 @@ export default function DistrictDynamicLevelList({
                 // District level
                 // Fetch assemblies from state hierarchy API
                 const rawAssemblies = await fetchAllPages(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
+                  `${import.meta.env.VITE_API_BASE_URL
                   }/api/user-state-hierarchies/hierarchy/children/${parentId}`
                 );
                 // Map state hierarchy response to have levelName property and assembly information
@@ -609,8 +605,7 @@ export default function DistrictDynamicLevelList({
                 // Assembly level
                 // Fetch direct children from after-assembly API
                 const response = await fetch(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
+                  `${import.meta.env.VITE_API_BASE_URL
                   }/api/after-assembly-data/assembly/${parentId}`,
                   { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -627,8 +622,7 @@ export default function DistrictDynamicLevelList({
                 // All other levels (after-assembly levels)
                 // Fetch from after-assembly hierarchy API
                 const rawChildren = await fetchAllPages(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
+                  `${import.meta.env.VITE_API_BASE_URL
                   }/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}`
                 );
 
@@ -779,6 +773,23 @@ export default function DistrictDynamicLevelList({
 
     if (itemsWithoutUsersCount > 0) {
       setShowItemsWithoutUsers(!showItemsWithoutUsers);
+      setShowItemsWithUsers(false); // Disable the other filter
+      setCurrentPage(1);
+    }
+  };
+
+  // Handle items with users filter
+  const handleItemsWithUsersClick = () => {
+    const itemsWithUsersCount = levelItems.filter(
+      (item) =>
+        (itemUserCounts[item.id] !== undefined
+          ? itemUserCounts[item.id]
+          : item.user_count || 0) > 0
+    ).length;
+
+    if (itemsWithUsersCount > 0) {
+      setShowItemsWithUsers(!showItemsWithUsers);
+      setShowItemsWithoutUsers(false); // Disable the other filter
       setCurrentPage(1);
     }
   };
@@ -792,11 +803,17 @@ export default function DistrictDynamicLevelList({
 
     const matchesWithoutUsersFilter = showItemsWithoutUsers
       ? (itemUserCounts[item.id] !== undefined
-          ? itemUserCounts[item.id]
-          : item.user_count || 0) === 0
+        ? itemUserCounts[item.id]
+        : item.user_count || 0) === 0
       : true;
 
-    return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
+    const matchesWithUsersFilter = showItemsWithUsers
+      ? (itemUserCounts[item.id] !== undefined
+        ? itemUserCounts[item.id]
+        : item.user_count || 0) > 0
+      : true;
+
+    return matchesSearch && matchesFilter && matchesWithoutUsersFilter && matchesWithUsersFilter;
   });
 
   const handleViewUsers = async (itemId: number) => {
@@ -812,8 +829,7 @@ export default function DistrictDynamicLevelList({
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
         {
           headers: {
@@ -925,11 +941,40 @@ export default function DistrictDynamicLevelList({
                       </svg>
                     </div>
                   </div>
-                  {/* Total Users Card */}
-                  <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                  {/* Total Users Card - Clickable */}
+                  <div
+                    onClick={handleItemsWithUsersClick}
+                    className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter(
+                      (item) =>
+                        (itemUserCounts[item.id] !== undefined
+                          ? itemUserCounts[item.id]
+                          : item.user_count || 0) > 0
+                    ).length > 0
+                        ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
+                        : "cursor-default"
+                      } ${showItemsWithUsers
+                        ? "ring-2 ring-green-500 bg-green-50"
+                        : ""
+                      }`}
+                    title={
+                      levelItems.filter(
+                        (item) =>
+                          (itemUserCounts[item.id] !== undefined
+                            ? itemUserCounts[item.id]
+                            : item.user_count || 0) > 0
+                      ).length > 0
+                        ? `Click to view ${displayLevelName.toLowerCase()}s with users`
+                        : `No ${displayLevelName.toLowerCase()}s with users`
+                    }
+                  >
                     <div>
                       <p className="text-xs font-medium text-gray-600">
                         Total Users
+                        {showItemsWithUsers && (
+                          <span className="ml-2 text-green-600 font-semibold">
+                            (Filtered)
+                          </span>
+                        )}
                       </p>
                       <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                         {levelItems.reduce(
@@ -962,20 +1007,18 @@ export default function DistrictDynamicLevelList({
                   {/* Items Without Users Card - Clickable */}
                   <div
                     onClick={handleItemsWithoutUsersClick}
-                    className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                      levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) === 0
-                      ).length > 0
+                    className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter(
+                      (item) =>
+                        (itemUserCounts[item.id] !== undefined
+                          ? itemUserCounts[item.id]
+                          : item.user_count || 0) === 0
+                    ).length > 0
                         ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                         : "cursor-default"
-                    } ${
-                      showItemsWithoutUsers
+                      } ${showItemsWithoutUsers
                         ? "ring-2 ring-red-500 bg-red-50"
                         : ""
-                    }`}
+                      }`}
                     title={
                       levelItems.filter(
                         (item) =>
@@ -997,16 +1040,15 @@ export default function DistrictDynamicLevelList({
                         )}
                       </p>
                       <p
-                        className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                          levelItems.filter(
-                            (item) =>
-                              (itemUserCounts[item.id] !== undefined
-                                ? itemUserCounts[item.id]
-                                : item.user_count || 0) === 0
-                          ).length > 0
+                        className={`text-xl sm:text-2xl font-semibold mt-1 ${levelItems.filter(
+                          (item) =>
+                            (itemUserCounts[item.id] !== undefined
+                              ? itemUserCounts[item.id]
+                              : item.user_count || 0) === 0
+                        ).length > 0
                             ? "text-red-600"
                             : "text-gray-400"
-                        }`}
+                          }`}
                       >
                         {
                           levelItems.filter(
@@ -1019,16 +1061,15 @@ export default function DistrictDynamicLevelList({
                       </p>
                     </div>
                     <div
-                      className={`rounded-full p-1.5 ${
-                        levelItems.filter(
-                          (item) =>
-                            (itemUserCounts[item.id] !== undefined
-                              ? itemUserCounts[item.id]
-                              : item.user_count || 0) === 0
-                        ).length > 0
+                      className={`rounded-full p-1.5 ${levelItems.filter(
+                        (item) =>
+                          (itemUserCounts[item.id] !== undefined
+                            ? itemUserCounts[item.id]
+                            : item.user_count || 0) === 0
+                      ).length > 0
                           ? "bg-red-50"
                           : "bg-gray-50"
-                      }`}
+                        }`}
                     >
                       {levelItems.filter(
                         (item) =>
@@ -1438,26 +1479,26 @@ export default function DistrictDynamicLevelList({
                                     "PollingCenter",
                                     "Booth",
                                   ].includes(levelName) && (
-                                    <svg
-                                      className="w-5 h-5 text-blue-600"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                      />
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                      />
-                                    </svg>
-                                  )}
+                                      <svg
+                                        className="w-5 h-5 text-blue-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                        />
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                      </svg>
+                                    )}
                                 </div>
                                 <div>
                                   <p className="text-sm font-semibold text-gray-900">
@@ -1474,11 +1515,10 @@ export default function DistrictDynamicLevelList({
                               <div className="flex items-center justify-center">
                                 <button
                                   onClick={() => handleViewUsers(item.id)}
-                                  className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
-                                    expandedItemId === item.id
+                                  className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${expandedItemId === item.id
                                       ? "text-blue-700 bg-blue-100"
                                       : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                  }`}
+                                    }`}
                                   title={
                                     expandedItemId === item.id
                                       ? "Hide Users"
@@ -1672,11 +1712,10 @@ export default function DistrictDynamicLevelList({
                                 <button
                                   key={pageNum}
                                   onClick={() => setCurrentPage(pageNum)}
-                                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                    currentPage === pageNum
+                                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
                                       ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
                                       : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                                  }`}
+                                    }`}
                                 >
                                   {pageNum}
                                 </button>

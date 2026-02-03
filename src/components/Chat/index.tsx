@@ -1359,7 +1359,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
             {chat.image ? (
               <img
                 src={chat.image}
-                alt={chat.name}
+                alt={chat.name.slice(0, 8)}
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
@@ -1371,7 +1371,11 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <span className="font-medium truncate block">{chat.name}</span>
+              <span className="font-medium truncate block capitalize">
+                {chat.name.length > 8
+                  ? `${chat.name.slice(0, 8)}...`
+                  : chat.name}
+              </span>
               {isGroup && chat.group && (
                 <span className="text-xs opacity-90">
                   {chat.group.member_count} members

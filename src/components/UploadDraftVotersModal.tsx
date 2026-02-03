@@ -66,7 +66,7 @@ export default function UploadDraftVotersModal({
       );
 
     if (!isValidType) {
-      alert("Please upload a PDF, CSV, or Excel file");
+      alert("Please upload a CSV, or Excel file");
       return;
     }
 
@@ -183,17 +183,16 @@ export default function UploadDraftVotersModal({
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Upload PDF, CSV, or Excel files to the draft voter table for this
+              Upload CSV, or Excel files to the draft voter table for this
               assembly.
             </p>
           </div>
 
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive
-                ? "border-indigo-500 bg-indigo-50"
-                : "border-gray-300 bg-gray-50"
-            }`}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 bg-gray-50"
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -202,7 +201,7 @@ export default function UploadDraftVotersModal({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls"
               onChange={handleFileInputChange}
               className="hidden"
             />
@@ -230,7 +229,7 @@ export default function UploadDraftVotersModal({
                   Browse Files
                 </button>
                 <p className="mt-2 text-xs text-gray-500">
-                  PDF, CSV, XLSX, XLS
+                  CSV, XLSX, XLS
                 </p>
               </>
             ) : (
