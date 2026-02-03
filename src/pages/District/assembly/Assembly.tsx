@@ -14,6 +14,7 @@ export default function DistrictAssembly() {
     district: string;
   }>({ state: "", district: "" });
   const [showWithoutUsers, setShowWithoutUsers] = useState(false);
+  const [showAssignedUsers, setShowAssignedUsers] = useState(false);
 
   const {
     data,
@@ -91,16 +92,40 @@ export default function DistrictAssembly() {
 
   const filteredAssemblies = showWithoutUsers
     ? data.filter((assembly) => assembly.total_users === 0)
+    : showAssignedUsers
+    ? data.filter((assembly) => assembly.total_users > 0)
     : data;
 
   useEffect(() => {
     setPage(1);
-  }, [showWithoutUsers, setPage]);
+  }, [showWithoutUsers, showAssignedUsers, setPage]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
+  };
+
+  const handleWithoutUsersClick = () => {
+    if (assembliesWithoutUsers === 0) return;
+    const newValue = !showWithoutUsers;
+    setShowWithoutUsers(newValue);
+    if (newValue) {
+      setShowAssignedUsers(false);
+      setSearchInput("");
+    }
+    setPage(1);
+  };
+
+  const handleAssignedUsersClick = () => {
+    if (totalUsers === 0) return;
+    const newValue = !showAssignedUsers;
+    setShowAssignedUsers(newValue);
+    if (newValue) {
+      setShowWithoutUsers(false);
+      setSearchInput("");
+    }
+    setPage(1);
   };
 
   return (
@@ -146,14 +171,43 @@ export default function DistrictAssembly() {
             </div>
 
             {/* Total Users Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            <div
+              onClick={handleAssignedUsersClick}
+              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                totalUsers > 0
+                  ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
+                  : "cursor-default"
+              } ${
+                showAssignedUsers ? "ring-2 ring-green-500 bg-green-50" : ""
+              }`}
+              title={
+                totalUsers > 0
+                  ? "Click to view assemblies with assigned users"
+                  : "No assigned users"
+              }
+            >
               <div>
-                <p className="text-xs font-medium text-gray-600">Total Users</p>
-                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                <p className="text-xs font-medium text-gray-600">
+                  Total Users
+                  {showAssignedUsers && (
+                    <span className="ml-2 text-green-600 font-semibold">
+                      (Filtered)
+                    </span>
+                  )}
+                </p>
+                <p
+                  className={`text-xl sm:text-2xl font-semibold mt-1 ${
+                    totalUsers > 0 ? "text-green-600" : "text-gray-400"
+                  }`}
+                >
                   {formatNumber(totalUsers)}
                 </p>
               </div>
-              <div className="bg-green-50 rounded-full p-1.5">
+              <div
+                className={`rounded-full p-1.5 ${
+                  totalUsers > 0 ? "bg-green-50" : "bg-gray-50"
+                }`}
+              >
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
                   fill="none"
@@ -171,33 +225,39 @@ export default function DistrictAssembly() {
             </div>
 
             {/* Assemblies Without Users Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            <div
+              onClick={handleWithoutUsersClick}
+              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                assembliesWithoutUsers > 0
+                  ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                  : "cursor-default"
+              } ${
+                showWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""
+              }`}
+              title={
+                assembliesWithoutUsers > 0
+                  ? "Click to view assemblies without users"
+                  : "No assemblies without users"
+              }
+            >
               <div>
                 <p className="text-xs font-medium text-gray-600">
                   Assemblies Without Users
+                  {showWithoutUsers && (
+                    <span className="ml-2 text-red-600 font-semibold">
+                      (Filtered)
+                    </span>
+                  )}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (assembliesWithoutUsers === 0) return;
-                    setShowWithoutUsers(true);
-                    setSearchInput("");
-                    setPage(1);
-                  }}
-                  className={`text-left text-xl sm:text-2xl font-semibold mt-1 ${
+                <p
+                  className={`text-xl sm:text-2xl font-semibold mt-1 ${
                     assembliesWithoutUsers > 0
-                      ? "text-red-600 hover:underline"
-                      : "text-gray-400 cursor-default"
+                      ? "text-red-600"
+                      : "text-gray-400"
                   }`}
-                  disabled={assembliesWithoutUsers === 0}
-                  title={
-                    assembliesWithoutUsers > 0
-                      ? "Show assemblies without users"
-                      : "No assemblies without users"
-                  }
                 >
                   {formatNumber(assembliesWithoutUsers)}
-                </button>
+                </p>
               </div>
               <div
                 className={`rounded-full p-1.5 ${
@@ -239,12 +299,25 @@ export default function DistrictAssembly() {
         </div>
       </div>
 
-      {showWithoutUsers && (
-        <div className="mb-2 flex items-center justify-between rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-          <span>Filtering assemblies without users</span>
+      {(showWithoutUsers || showAssignedUsers) && (
+        <div
+          className={`mb-2 flex items-center justify-between rounded-md border px-3 py-2 text-sm ${
+            showWithoutUsers
+              ? "bg-red-50 border-red-200 text-red-700"
+              : "bg-green-50 border-green-200 text-green-700"
+          }`}
+        >
+          <span>
+            {showWithoutUsers
+              ? "Filtering assemblies without users"
+              : "Filtering assemblies with assigned users"}
+          </span>
           <button
             type="button"
-            onClick={() => setShowWithoutUsers(false)}
+            onClick={() => {
+              setShowWithoutUsers(false);
+              setShowAssignedUsers(false);
+            }}
             className="underline"
           >
             Clear filter
