@@ -14,6 +14,7 @@ export default function StateDistricts() {
   const [allDistricts, setAllDistricts] = useState<HierarchyChild[]>([]);
   const [localPage, setLocalPage] = useState(1);
   const [showDistrictsWithoutUsers, setShowDistrictsWithoutUsers] = useState(false);
+  const [showAssignedUsers, setShowAssignedUsers] = useState(false);
 
   // Get state info from localStorage
   useEffect(() => {
@@ -82,14 +83,35 @@ export default function StateDistricts() {
   const handleDistrictChange = (districtId: string) => {
     setSelectedDistrictId(districtId);
     setShowDistrictsWithoutUsers(false); // Reset districts without users filter
+    setShowAssignedUsers(false); // Reset assigned users filter
     setLocalPage(1); // Reset to page 1 when filter changes
   };
 
   // Handle districts without users filter
   const handleDistrictsWithoutUsersClick = () => {
     if (districtsWithoutUsers > 0) {
-      setShowDistrictsWithoutUsers(!showDistrictsWithoutUsers);
-      setSelectedDistrictId(""); // Reset district selection
+      const newValue = !showDistrictsWithoutUsers;
+      setShowDistrictsWithoutUsers(newValue);
+      
+      if (newValue) {
+        setShowAssignedUsers(false); // Mutually exclusive
+        setSelectedDistrictId(""); // Reset district selection
+      }
+      
+      setLocalPage(1); // Reset to page 1
+    }
+  };
+
+  const handleAssignedUsersClick = () => {
+    if (totalUsers > 0) {
+      const newValue = !showAssignedUsers;
+      setShowAssignedUsers(newValue);
+      
+      if (newValue) {
+        setShowDistrictsWithoutUsers(false); // Mutually exclusive
+        setSelectedDistrictId(""); // Reset district selection
+      }
+      
       setLocalPage(1); // Reset to page 1
     }
   };
@@ -104,7 +126,7 @@ export default function StateDistricts() {
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    if (selectedDistrictId || showDistrictsWithoutUsers) {
+    if (selectedDistrictId || showDistrictsWithoutUsers || showAssignedUsers) {
       setLocalPage(page);
     } else {
       setPage(page);
@@ -143,6 +165,20 @@ export default function StateDistricts() {
         filteredTotal: filtered.length,
         currentPageToUse: localPage
       };
+    } else if (showAssignedUsers) {
+      // When filtering districts WITH users
+      const filtered = allDistricts.filter((item) => item.total_users > 0);
+
+      const itemsPerPage = 10;
+      const startIndex = (localPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginated = filtered.slice(startIndex, endIndex);
+
+      return {
+        paginatedData: paginated,
+        filteredTotal: filtered.length,
+        currentPageToUse: localPage
+      };
     } else {
       // When not filtering, use server-side pagination
       return {
@@ -151,7 +187,7 @@ export default function StateDistricts() {
         currentPageToUse: currentPage
       };
     }
-  }, [selectedDistrictId, showDistrictsWithoutUsers, allDistricts, data, totalChildren, localPage, currentPage]);
+  }, [selectedDistrictId, showDistrictsWithoutUsers, showAssignedUsers, allDistricts, data, totalChildren, localPage, currentPage]);
 
   // Calculate summary statistics from all districts (not just current page)
   const totalUsers = districts.reduce((sum, district) => sum + district.total_users, 0);
@@ -187,13 +223,32 @@ export default function StateDistricts() {
               </div>
             </div>
 
-            {/* Total Users Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            {/* Total Users Card - Clickable */}
+            <div 
+              onClick={handleAssignedUsersClick}
+              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                totalUsers > 0 
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50' 
+                  : 'cursor-default'
+              } ${
+                showAssignedUsers 
+                  ? 'ring-2 ring-green-500 bg-green-50' 
+                  : ''
+              }`}
+              title={totalUsers > 0 ? "Click to view districts with assigned users" : "No assigned users"}
+            >
               <div>
-                <p className="text-xs font-medium text-gray-600">Total Users</p>
-                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">{formatNumber(totalUsers)}</p>
+                <p className="text-xs font-medium text-gray-600">
+                  Total Users
+                  {showAssignedUsers && (
+                    <span className="ml-2 text-green-600 font-semibold">(Filtered)</span>
+                  )}
+                </p>
+                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${totalUsers > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                  {formatNumber(totalUsers)}
+                </p>
               </div>
-              <div className="bg-green-50 rounded-full p-1.5">
+              <div className={`rounded-full p-1.5 ${totalUsers > 0 ? 'bg-green-50' : 'bg-gray-50'}`}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>

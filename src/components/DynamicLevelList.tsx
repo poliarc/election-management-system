@@ -28,6 +28,7 @@ export default function DynamicLevelList({
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
+        setShowItemsWithUsers(false);
         setExpandedItemId(null);
         setItemUsers({});
         setAllLevelItems([]);
@@ -57,6 +58,8 @@ export default function DynamicLevelList({
 
     // State for filtering items without users
     const [showItemsWithoutUsers, setShowItemsWithoutUsers] = useState(false);
+    // State for filtering items with users
+    const [showItemsWithUsers, setShowItemsWithUsers] = useState(false);
     // State for user counts
     const [itemUserCounts, setItemUserCounts] = useState<Record<number, number>>({});
 
@@ -758,6 +761,20 @@ export default function DynamicLevelList({
 
         if (itemsWithoutUsersCount > 0) {
             setShowItemsWithoutUsers(!showItemsWithoutUsers);
+            setShowItemsWithUsers(false); // Disable the other filter
+            setCurrentPage(1);
+        }
+    };
+
+    // Handle items with users filter
+    const handleItemsWithUsersClick = () => {
+        const itemsWithUsersCount = levelItems.filter(
+            (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0
+        ).length;
+
+        if (itemsWithUsersCount > 0) {
+            setShowItemsWithUsers(!showItemsWithUsers);
+            setShowItemsWithoutUsers(false); // Disable the other filter
             setCurrentPage(1);
         }
     };
@@ -774,7 +791,11 @@ export default function DynamicLevelList({
             ? (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
             : true;
 
-        return matchesSearch && matchesFilter && matchesWithoutUsersFilter;
+        const matchesWithUsersFilter = showItemsWithUsers
+            ? (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0
+            : true;
+
+        return matchesSearch && matchesFilter && matchesWithoutUsersFilter && matchesWithUsersFilter;
     });
 
     const handleViewUsers = async (itemId: number) => {
@@ -959,11 +980,32 @@ export default function DynamicLevelList({
                                             </svg>
                                         </div>
                                     </div>
-                                    {/* Total Users Card */}
-                                    <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                    {/* Total Users Card - Clickable */}
+                                    <div
+                                        onClick={handleItemsWithUsersClick}
+                                        className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
+                                            .length > 0
+                                            ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
+                                            : "cursor-default"
+                                            } ${showItemsWithUsers
+                                                ? "ring-2 ring-green-500 bg-green-50"
+                                                : ""
+                                            }`}
+                                        title={
+                                            levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
+                                                .length > 0
+                                                ? `Click to view ${displayLevelName.toLowerCase()}s with users`
+                                                : `No ${displayLevelName.toLowerCase()}s with users`
+                                        }
+                                    >
                                         <div>
                                             <p className="text-xs font-medium text-gray-600">
                                                 Total Users
+                                                {showItemsWithUsers && (
+                                                    <span className="ml-2 text-green-600 font-semibold">
+                                                        (Filtered)
+                                                    </span>
+                                                )}
                                             </p>
                                             <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                                 {Object.values(itemUserCounts).reduce((sum, count) => sum + count, 0) ||
