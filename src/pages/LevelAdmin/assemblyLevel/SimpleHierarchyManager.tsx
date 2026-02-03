@@ -132,6 +132,53 @@ export default function SimpleHierarchyManager() {
         );
     };
 
+    // Get complete parent hierarchy for a node
+    const getParentHierarchy = (node: HierarchyNode): Array<{ id: number, name: string, levelName: string, type: 'assembly' | 'node' }> => {
+        const hierarchy: Array<{ id: number, name: string, levelName: string, type: 'assembly' | 'node' }> = [];
+
+        // Add assembly parent if exists
+        if (node.parentAssemblyId) {
+            const assembly = hierarchyData.find(a => a.assembly.id === node.parentAssemblyId);
+            if (assembly) {
+                hierarchy.push({
+                    id: assembly.assembly.id,
+                    name: assembly.assembly.levelName,
+                    levelName: 'Assembly',
+                    type: 'assembly'
+                });
+            }
+        }
+
+        // Add node parents recursively
+        const addNodeParents = (currentNode: HierarchyNode) => {
+            if (currentNode.parentId) {
+                const parentNode = getAllNodes().find(n => n.id === currentNode.parentId);
+                if (parentNode) {
+                    // Recursively add parent's parents first
+                    addNodeParents(parentNode);
+                    // Then add the parent itself
+                    hierarchy.push({
+                        id: parentNode.id,
+                        name: parentNode.displayName,
+                        levelName: parentNode.levelName,
+                        type: 'node'
+                    });
+                }
+            }
+        };
+
+        addNodeParents(node);
+        return hierarchy;
+    };
+
+    // Get parent hierarchy as a formatted string for display
+    const getParentHierarchyString = (node: HierarchyNode): string => {
+        const hierarchy = getParentHierarchy(node);
+        if (hierarchy.length === 0) return 'Root Level';
+
+        return hierarchy.map(parent => `${parent.name} (${parent.levelName})`).join(' → ');
+    };
+
     const handleEditHierarchy = (node: HierarchyNode) => {
         const availableLevels = getAvailableLevels();
         setEditingNode({
@@ -381,11 +428,14 @@ export default function SimpleHierarchyManager() {
                                                         Select {editingNode.selectedLevel}:
                                                     </label>
                                                     <SearchableSelect
-                                                        options={getNodesByLevel(editingNode.selectedLevel, node.id).map(targetNode => ({
-                                                            value: targetNode.id,
-                                                            label: `${targetNode.displayName}`,
-                                                            subtitle: `${targetNode.levelName} - ID: ${targetNode.id}`
-                                                        }))}
+                                                        options={getNodesByLevel(editingNode.selectedLevel, node.id).map(targetNode => {
+                                                            const parentHierarchy = getParentHierarchyString(targetNode);
+                                                            return {
+                                                                value: targetNode.id,
+                                                                label: `${targetNode.displayName}`,
+                                                                subtitle: `${targetNode.levelName} - ID: ${targetNode.id} | Path: ${parentHierarchy}`
+                                                            };
+                                                        })}
                                                         value={editingNode.newParentId}
                                                         onChange={(value) => {
                                                             const selectedNode = getAllNodes().find(n => n.id === Number(value));
@@ -407,35 +457,84 @@ export default function SimpleHierarchyManager() {
 
                                 {/* Preview - Only show when a selection is made */}
                                 {(editingNode.targetType === 'assembly' && editingNode.newParentAssemblyId) ||
-                                    (editingNode.targetType === 'node' && editingNode.selectedLevel) ? (
+                                    (editingNode.targetType === 'node' && editingNode.newParentId) ? (
+                                    <div className="space-y-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                                            <span className="text-sm text-gray-600 flex-shrink-0">Will move to:</span>
+                                            <ArrowRight className="w-4 h-4 text-blue-500 hidden sm:block flex-shrink-0" />
+                                            <span className="font-medium text-blue-700 break-words">
+                                                {(() => {
+                                                    if (editingNode.targetType === 'assembly' && editingNode.newParentAssemblyId) {
+                                                        const assembly = hierarchyData.find(a => a.assembly.id === editingNode.newParentAssemblyId);
+                                                        return `${assembly?.assembly.levelName || 'Unknown Assembly'} (Assembly Level)`;
+                                                    } else if (editingNode.targetType === 'node' && editingNode.newParentId) {
+                                                        const selectedNode = getAllNodes().find(n => n.id === editingNode.newParentId);
+                                                        return `${selectedNode?.displayName || 'Unknown Node'} (${selectedNode?.levelName || 'Unknown Level'})`;
+                                                    }
+                                                    return 'Unknown Target';
+                                                })()}
+                                            </span>
+                                        </div>
+
+                                        {/* Show parent hierarchy of selected target */}
+                                        {editingNode.targetType === 'node' && editingNode.newParentId && (
+                                            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                                <div className="text-sm font-medium text-purple-700 mb-2">Target Node Hierarchy:</div>
+                                                {(() => {
+                                                    const selectedNode = getAllNodes().find(n => n.id === editingNode.newParentId);
+                                                    if (selectedNode) {
+                                                        const targetHierarchy = getParentHierarchy(selectedNode);
+                                                        if (targetHierarchy.length > 0) {
+                                                            return (
+                                                                <div className="flex flex-wrap items-center gap-1 text-xs">
+                                                                    {targetHierarchy.map((parent, index) => (
+                                                                        <div key={`preview-${parent.type}-${parent.id}`} className="flex items-center gap-1">
+                                                                            <span className={`px-2 py-1 rounded text-xs font-medium ${parent.type === 'assembly'
+                                                                                    ? 'bg-green-100 text-green-700'
+                                                                                    : 'bg-blue-100 text-blue-700'
+                                                                                }`}>
+                                                                                {parent.name}
+                                                                            </span>
+                                                                            {index < targetHierarchy.length - 1 && (
+                                                                                <ArrowRight className="w-3 h-3 text-purple-400" />
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                    <ArrowRight className="w-3 h-3 text-purple-400" />
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                                                                        {selectedNode.displayName}
+                                                                    </span>
+                                                                    <ArrowRight className="w-3 h-3 text-purple-400" />
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                                                        {node.displayName} (will be moved here)
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        } else {
+                                                            return (
+                                                                <div className="flex items-center gap-1 text-xs">
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                                                                        {selectedNode.displayName} (Root Level)
+                                                                    </span>
+                                                                    <ArrowRight className="w-3 h-3 text-purple-400" />
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                                                        {node.displayName} (will be moved here)
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    }
+                                                    return <span className="text-xs text-purple-600">Loading target hierarchy...</span>;
+                                                })()}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (editingNode.targetType === 'node' && editingNode.selectedLevel && !editingNode.newParentId) ? (
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-blue-50 rounded-lg">
                                         <span className="text-sm text-gray-600 flex-shrink-0">Will move to:</span>
                                         <ArrowRight className="w-4 h-4 text-blue-500 hidden sm:block flex-shrink-0" />
                                         <span className="font-medium text-blue-700 break-words">
-                                            {(() => {
-                                                // Show target if something is selected
-                                                if (editingNode.targetName) {
-                                                    return editingNode.targetType === 'assembly'
-                                                        ? `${editingNode.targetName} (Assembly Level)`
-                                                        : `${editingNode.targetName} (${editingNode.selectedLevel || 'Node Level'})`;
-                                                }
-
-                                                // Show level selection for node type when level is selected but no specific node yet
-                                                if (editingNode.targetType === 'node' && editingNode.selectedLevel && !editingNode.targetName) {
-                                                    return `${editingNode.selectedLevel} Level (Select specific ${editingNode.selectedLevel.toLowerCase()})`;
-                                                }
-
-                                                // Show current location as fallback
-                                                if (node.parentAssemblyId) {
-                                                    const currentAssembly = hierarchyData.find(a => a.assembly.id === node.parentAssemblyId);
-                                                    return `${currentAssembly?.assembly.levelName || 'Unknown Assembly'} (Assembly Level)`;
-                                                } else if (node.parentId) {
-                                                    const currentParent = getAllNodes().find(n => n.id === node.parentId);
-                                                    return `${currentParent?.displayName || 'Unknown Parent'} (${currentParent?.levelName || 'Unknown Level'})`;
-                                                } else {
-                                                    return 'Root Level';
-                                                }
-                                            })()}
+                                            {`${editingNode.selectedLevel} Level (Select specific ${editingNode.selectedLevel.toLowerCase()})`}
                                         </span>
                                     </div>
                                 ) : null}

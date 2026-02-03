@@ -14,22 +14,29 @@ const OutsideLocationListPage: React.FC = () => {
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
-    const [stayingStatus, setStayingStatus] = useState<string>("outside");
-    const [partFrom, setPartFrom] = useState<number | undefined>();
-    const [partTo, setPartTo] = useState<number | undefined>();
+    const [outsideCountry, setOutsideCountry] = useState<string>("");
     const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
+    // Countries list for outside country filter
+    const countries = [
+        "Afghanistan", "Albania", "Algeria", "Argentina", "Australia", "Austria",
+        "Bangladesh", "Belgium", "Brazil", "Canada", "China", "Denmark", "Egypt",
+        "France", "Germany", "India", "Indonesia", "Iran", "Iraq", "Italy", "Japan",
+        "Jordan", "Kenya", "Malaysia", "Mexico", "Netherlands", "New Zealand", "Norway",
+        "Pakistan", "Philippines", "Russia", "Saudi Arabia", "Singapore", "South Africa",
+        "South Korea", "Spain", "Sri Lanka", "Sweden", "Switzerland", "Thailand",
+        "Turkey", "United Arab Emirates", "United Kingdom", "United States", "Vietnam"
+    ];
+
     const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
-            partFrom,
-            partTo,
         },
         { skip: !assembly_id }
     );
@@ -38,15 +45,19 @@ const OutsideLocationListPage: React.FC = () => {
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
 
+    // Filter voters - only show voters staying outside with country filter
     const filteredVoters = useMemo(() => {
         if (!voters) return [];
 
         return voters.filter((voter) => {
-            if (stayingStatus === "outside") {
-                if (!voter.staying_outside) return false;
-            } else if (stayingStatus === "not_outside") {
-                if (voter.staying_outside) return false;
+            // Only show voters staying outside
+            if (!voter.staying_outside) return false;
+
+            // Filter by outside country
+            if (outsideCountry && voter.outside_country !== outsideCountry) {
+                return false;
             }
+
             return true;
         }).sort((a, b) => {
             if (a.part_no !== b.part_no) {
@@ -54,12 +65,10 @@ const OutsideLocationListPage: React.FC = () => {
             }
             return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
         });
-    }, [voters, stayingStatus]);
+    }, [voters, outsideCountry]);
 
     const handleReset = () => {
-        setStayingStatus("outside");
-        setPartFrom(undefined);
-        setPartTo(undefined);
+        setOutsideCountry("");
         setPage(1);
     };
 
@@ -135,51 +144,26 @@ const OutsideLocationListPage: React.FC = () => {
             ) : (
                 <>
                     <div className="bg-white p-1 rounded-lg shadow mb-1">
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Staying Status
+                                    Outside Country
                                 </label>
                                 <select
-                                    value={stayingStatus}
+                                    value={outsideCountry}
                                     onChange={(e) => {
-                                        setStayingStatus(e.target.value);
+                                        setOutsideCountry(e.target.value);
                                         setPage(1);
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="all">All Voters</option>
-                                    <option value="outside">Staying Outside</option>
-                                    <option value="not_outside">Not Staying Outside</option>
+                                    <option value="">All Countries</option>
+                                    {countries.map((country) => (
+                                        <option key={country} value={country}>
+                                            {country}
+                                        </option>
+                                    ))}
                                 </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
-                                </label>
-                                <input
-                                    type="number"
-                                    value={partFrom || ""}
-                                    onChange={(e) =>
-                                        setPartFrom(e.target.value ? Number(e.target.value) : undefined)
-                                    }
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Enter part number"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
-                                </label>
-                                <input
-                                    type="number"
-                                    value={partTo || ""}
-                                    onChange={(e) =>
-                                        setPartTo(e.target.value ? Number(e.target.value) : undefined)
-                                    }
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Enter part number"
-                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -187,7 +171,7 @@ const OutsideLocationListPage: React.FC = () => {
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-50 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
                                     Reset
                                 </button>
@@ -201,18 +185,10 @@ const OutsideLocationListPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <div className={`mb-1 text-sm text-gray-600 p-3 rounded-lg border ${stayingStatus === "outside"
-                                ? "bg-purple-50 border-purple-200"
-                                : stayingStatus === "not_outside"
-                                    ? "bg-green-50 border-green-200"
-                                    : "bg-gray-50 border-gray-200"
-                                }`}>
-                                Found {filteredVoters.length} voters
-                                {stayingStatus !== "all" && (
-                                    <span> • Status: {stayingStatus === "outside" ? "Staying Outside" : "Not Staying Outside"}</span>
-                                )}
-                                {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                            <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-purple-50 border-purple-200">
+                                Found {filteredVoters.length} voters staying outside
+                                {outsideCountry && (
+                                    <span> • Country: {outsideCountry}</span>
                                 )}
                             </div>
                             <VoterListTable

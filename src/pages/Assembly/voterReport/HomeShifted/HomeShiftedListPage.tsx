@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetAllStateMasterDataQuery } from "../../../../store/api/stateMasterApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -14,22 +15,49 @@ const HomeShiftedListPage: React.FC = () => {
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
-    const [shiftedStatus, setShiftedStatus] = useState<string>("shifted");
-    const [partFrom, setPartFrom] = useState<number | undefined>();
-    const [partTo, setPartTo] = useState<number | undefined>();
+    const [shiftedState, setShiftedState] = useState<string>("");
+    const [shiftedCity, setShiftedCity] = useState<string>("");
     const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
+    // Fetch state master data for dropdowns
+    const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
+
+    // Get states for dropdown
+    const states = useMemo(() => {
+        return stateMasterData.filter(item => item.levelType === "State" && item.isActive === 1);
+    }, [stateMasterData]);
+
+    // Get districts based on selected state
+    const districts = useMemo(() => {
+        if (!shiftedState) return [];
+        const selectedState = stateMasterData.find(item =>
+            item.levelType === "State" &&
+            item.levelName === shiftedState &&
+            item.isActive === 1
+        );
+        return stateMasterData.filter(item =>
+            item.levelType === "District" &&
+            item.isActive === 1 &&
+            (selectedState ? item.ParentId === selectedState.id : false)
+        );
+    }, [stateMasterData, shiftedState]);
+
+    // Reset city when state changes
+    React.useEffect(() => {
+        if (shiftedState) {
+            setShiftedCity("");
+        }
+    }, [shiftedState]);
+
     const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
-            partFrom,
-            partTo,
         },
         { skip: !assembly_id }
     );
@@ -38,20 +66,23 @@ const HomeShiftedListPage: React.FC = () => {
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
 
-    // Filter voters by shifted status
+    // Filter voters - only show shifted voters with location filters
     const filteredVoters = useMemo(() => {
         if (!voters) return [];
 
         return voters.filter((voter) => {
-            // Filter by shifted status
-            if (shiftedStatus === "shifted") {
-                // Show only shifted voters (shifted = true or 1)
-                if (!voter.shifted) return false;
-            } else if (shiftedStatus === "not_shifted") {
-                // Show only not shifted voters (shifted = false or 0)
-                if (voter.shifted) return false;
+            // Only show shifted voters
+            if (!voter.shifted) return false;
+
+            // Filter by shifted state
+            if (shiftedState && voter.shifted_state !== shiftedState) {
+                return false;
             }
-            // If "all", show all voters
+
+            // Filter by shifted city
+            if (shiftedCity && voter.shifted_city !== shiftedCity) {
+                return false;
+            }
 
             return true;
         }).sort((a, b) => {
@@ -60,12 +91,11 @@ const HomeShiftedListPage: React.FC = () => {
             }
             return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
         });
-    }, [voters, shiftedStatus]);
+    }, [voters, shiftedState, shiftedCity]);
 
     const handleReset = () => {
-        setShiftedStatus("shifted");
-        setPartFrom(undefined);
-        setPartTo(undefined);
+        setShiftedState("");
+        setShiftedCity("");
         setPage(1);
     };
 
@@ -141,51 +171,47 @@ const HomeShiftedListPage: React.FC = () => {
             ) : (
                 <>
                     <div className="bg-white p-1 rounded-lg shadow mb-1">
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Shifted Status
+                                    Shifted State
                                 </label>
                                 <select
-                                    value={shiftedStatus}
+                                    value={shiftedState}
                                     onChange={(e) => {
-                                        setShiftedStatus(e.target.value);
+                                        setShiftedState(e.target.value);
                                         setPage(1);
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="all">All Voters</option>
-                                    <option value="shifted">Shifted</option>
-                                    <option value="not_shifted">Not Shifted</option>
+                                    <option value="">All States</option>
+                                    {states.map((state) => (
+                                        <option key={state.id} value={state.levelName}>
+                                            {state.levelName}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                    Shifted District
                                 </label>
-                                <input
-                                    type="number"
-                                    value={partFrom || ""}
-                                    onChange={(e) =>
-                                        setPartFrom(e.target.value ? Number(e.target.value) : undefined)
-                                    }
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Enter part number"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
-                                </label>
-                                <input
-                                    type="number"
-                                    value={partTo || ""}
-                                    onChange={(e) =>
-                                        setPartTo(e.target.value ? Number(e.target.value) : undefined)
-                                    }
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Enter part number"
-                                />
+                                <select
+                                    value={shiftedCity}
+                                    onChange={(e) => {
+                                        setShiftedCity(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    disabled={!shiftedState}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    <option value="">All Districts</option>
+                                    {districts.map((district) => (
+                                        <option key={district.id} value={district.levelName}>
+                                            {district.levelName}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -207,18 +233,13 @@ const HomeShiftedListPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <div className={`mb-1 text-sm text-gray-600 p-3 rounded-lg border ${shiftedStatus === "shifted"
-                                ? "bg-amber-50 border-amber-200"
-                                : shiftedStatus === "not_shifted"
-                                    ? "bg-green-50 border-green-200"
-                                    : "bg-gray-50 border-gray-200"
-                                }`}>
-                                Found {filteredVoters.length} voters
-                                {shiftedStatus !== "all" && (
-                                    <span> • Status: {shiftedStatus === "shifted" ? "Shifted" : "Not Shifted"}</span>
+                            <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-amber-50 border-amber-200">
+                                Found {filteredVoters.length} shifted voters
+                                {shiftedState && (
+                                    <span> • State: {shiftedState}</span>
                                 )}
-                                {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                                {shiftedCity && (
+                                    <span> • District: {shiftedCity}</span>
                                 )}
                             </div>
                             <VoterListTable
