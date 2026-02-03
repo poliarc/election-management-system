@@ -5,6 +5,8 @@ import type { VoterListCandidate } from "../../../types/voter";
 import { ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store";
 
 interface LabeledInputProps {
     label: string;
@@ -112,6 +114,11 @@ export const VoterEditForm: React.FC<Props> = ({
     onCancel,
 }) => {
     const [editingSection, setEditingSection] = useState<string | null>(null);
+
+    // Get user's state from Redux store
+    const user = useSelector((state: RootState) => state.auth.user);
+    const selectedAssignment = useSelector((state: RootState) => state.auth.selectedAssignment);
+
     const { register, handleSubmit, getValues, reset, watch, setValue } = useForm<VoterListCandidate>({
         defaultValues: initialValues,
     });
@@ -119,9 +126,34 @@ export const VoterEditForm: React.FC<Props> = ({
     // Fetch state master data
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
 
+    // Get user's state name for default selection
+    const getUserStateName = React.useMemo(() => {
+        if (!user?.state_id || !stateMasterData.length) return null;
+
+        // First try to get from selectedAssignment
+        if (selectedAssignment?.stateMasterData_id) {
+            const assignmentState = stateMasterData.find(item =>
+                item.id === selectedAssignment.stateMasterData_id &&
+                item.levelType === "State" &&
+                item.isActive === 1
+            );
+            if (assignmentState) return assignmentState.levelName;
+        }
+
+        // Fallback to user's state_id
+        const userState = stateMasterData.find(item =>
+            item.id === user.state_id &&
+            item.levelType === "State" &&
+            item.isActive === 1
+        );
+        return userState?.levelName || null;
+    }, [user?.state_id, selectedAssignment?.stateMasterData_id, stateMasterData]);
+
     const expiredAliveValue = watch("expired_alive");
     const influencerValue = watch("influencer");
     const labarthiInPersonValue = watch("labarthi_in_person");
+    const labarthiCenterValue = watch("labarthi_center");
+    const labarthiStateValue = watch("labarthi_state");
     const stayingOutsideValue = watch("staying_outside");
     const shiftedValue = watch("shifted");
     const stayingWithinValue = watch("staying_within");
@@ -208,6 +240,13 @@ export const VoterEditForm: React.FC<Props> = ({
             reset(initialValues);
         }
     }, [initialValues, reset]);
+
+    // Set default state for staying_state when user state is available
+    React.useEffect(() => {
+        if (getUserStateName && !watch("staying_state")) {
+            setValue("staying_state", getUserStateName);
+        }
+    }, [getUserStateName, setValue, watch]);
 
     const handleEdit = (sectionName: string) => {
         setEditingSection(sectionName);
@@ -579,7 +618,35 @@ export const VoterEditForm: React.FC<Props> = ({
                                             <option value="no">No</option>
                                         </select>
                                     </div>
-                                    <LabeledInput label="Labarthi Scheme" field="labarthi_scheme" register={register} disabled={editingSection !== 'labarthi'} />
+                                    {(labarthiCenterValue === "yes" || labarthiStateValue === "yes") && (
+                                        <div className="flex flex-col">
+                                            <label className="text-sm font-medium mb-1.5 text-gray-700">
+                                                {labarthiCenterValue === "yes" && labarthiStateValue === "yes"
+                                                    ? "Labarthi Center/State Scheme"
+                                                    : labarthiCenterValue === "yes"
+                                                        ? "Labarthi Center Scheme"
+                                                        : "Labarthi State Scheme"
+                                                }
+                                            </label>
+                                            <input
+                                                type="text"
+                                                {...register("labarthi_scheme")}
+                                                placeholder={
+                                                    labarthiCenterValue === "yes" && labarthiStateValue === "yes"
+                                                        ? "Enter Labarthi Center/State Scheme"
+                                                        : labarthiCenterValue === "yes"
+                                                            ? "Enter Labarthi Center Scheme"
+                                                            : "Enter Labarthi State Scheme"
+                                                }
+                                                disabled={editingSection !== 'labarthi'}
+                                                className={`
+                                                    bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm
+                                                    focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
+                                                    ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}
+                                                `}
+                                            />
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -618,30 +685,64 @@ export const VoterEditForm: React.FC<Props> = ({
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* Staying Outside Checkbox */}
+
+                            {/* Staying Within Checkbox */}
                             <div className="flex items-center gap-2">
-                                <input type="checkbox" {...register("staying_outside")} id="staying_outside" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="staying_outside" className="text-sm font-medium text-gray-700">Staying Outside</label>
+                                <input type="checkbox" {...register("staying_within")} id="staying_within" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
+                                <label htmlFor="staying_within" className="text-sm font-medium text-gray-700">Within State</label>
                             </div>
 
-                            {/* Outside Country Field - Show when staying_outside is checked */}
-                            {stayingOutsideValue && (
-                                <div className="flex flex-col">
-                                    <label className="text-sm font-medium mb-1.5 text-gray-700">Outside Country</label>
-                                    <select
-                                        {...register("outside_country")}
-                                        disabled={editingSection !== 'location'}
-                                        className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                    >
-                                        <option value="">Select Country...</option>
-                                        {countries.map((country) => (
-                                            <option key={country} value={country}>
-                                                {country}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                            {/* Staying Within Fields - Show when staying_within is checked */}
+                            {stayingWithinValue && (
+                                <>
+                                    <div className="flex flex-col">
+                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying State</label>
+                                        <select
+                                            {...register("staying_state")}
+                                            disabled={true}
+                                            className="bg-gray-100 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm cursor-not-allowed appearance-none"
+                                        >
+                                            <option value="">Select State...</option>
+                                            {states.map((state) => (
+                                                <option key={state.id} value={state.levelName}>
+                                                    {state.levelName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying District</label>
+                                        <select
+                                            {...register("staying_city")}
+                                            disabled={editingSection !== 'location' || !watchStayingStateId}
+                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchStayingStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        >
+                                            <option value="">Select District...</option>
+                                            {stayingDistricts.map((district) => (
+                                                <option key={district.id} value={district.levelName}>
+                                                    {district.levelName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying Assembly</label>
+                                        <select
+                                            {...register("staying_address")}
+                                            disabled={editingSection !== 'location' || !watch("staying_city")}
+                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watch("staying_city") ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        >
+                                            <option value="">Select Assembly...</option>
+                                            {assemblies.map((assembly) => (
+                                                <option key={assembly.id} value={assembly.levelName}>
+                                                    {assembly.levelName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </>
                             )}
+
 
                             {/* Shifted Checkbox */}
                             <div className="flex items-center gap-2">
@@ -685,63 +786,31 @@ export const VoterEditForm: React.FC<Props> = ({
                                 </>
                             )}
 
-                            {/* Staying Within Checkbox */}
+
+                            {/* Staying Outside Checkbox */}
                             <div className="flex items-center gap-2">
-                                <input type="checkbox" {...register("staying_within")} id="staying_within" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="staying_within" className="text-sm font-medium text-gray-700">Staying Within</label>
+                                <input type="checkbox" {...register("staying_outside")} id="staying_outside" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
+                                <label htmlFor="staying_outside" className="text-sm font-medium text-gray-700">Staying Outside Country</label>
                             </div>
 
-                            {/* Staying Within Fields - Show when staying_within is checked */}
-                            {stayingWithinValue && (
-                                <>
-                                    <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying State</label>
-                                        <select
-                                            {...register("staying_state")}
-                                            disabled={editingSection !== 'location'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                        >
-                                            <option value="">Select State...</option>
-                                            {states.map((state) => (
-                                                <option key={state.id} value={state.levelName}>
-                                                    {state.levelName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying District</label>
-                                        <select
-                                            {...register("staying_city")}
-                                            disabled={editingSection !== 'location' || !watchStayingStateId}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchStayingStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                        >
-                                            <option value="">Select District...</option>
-                                            {stayingDistricts.map((district) => (
-                                                <option key={district.id} value={district.levelName}>
-                                                    {district.levelName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying Assembly</label>
-                                        <select
-                                            {...register("staying_address")}
-                                            disabled={editingSection !== 'location' || !watch("staying_city")}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watch("staying_city") ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                                        >
-                                            <option value="">Select Assembly...</option>
-                                            {assemblies.map((assembly) => (
-                                                <option key={assembly.id} value={assembly.levelName}>
-                                                    {assembly.levelName}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </>
+                            {/* Outside Country Field - Show when staying_outside is checked */}
+                            {stayingOutsideValue && (
+                                <div className="flex flex-col">
+                                    <label className="text-sm font-medium mb-1.5 text-gray-700">Outside Country</label>
+                                    <select
+                                        {...register("outside_country")}
+                                        disabled={editingSection !== 'location'}
+                                        className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    >
+                                        <option value="">Select Country...</option>
+                                        {countries.map((country) => (
+                                            <option key={country} value={country}>
+                                                {country}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             )}
-
 
                         </div>
                         {editingSection === 'location' && (
