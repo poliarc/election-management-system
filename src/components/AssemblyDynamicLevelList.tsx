@@ -2362,13 +2362,26 @@ export default function AssemblyDynamicLevelList({
                                                                     window.location.reload();
                                                                 }}
                                                                 onClose={() => setExpandedItemId(null)}
-                                                                colSpan={levelName === "Booth" ? (visibleFilters.length > 0 ? 9 : 8) : (visibleFilters.length > 0 ? 6 : 5)}
+                                                                colSpan={(() => {
+                                                                    // Calculate total columns: S.No + Assembly + visibleFilters + Level Type + Name + Total Users + Actions
+                                                                    let totalCols = 1 + 1 + visibleFilters.length + 1 + 1 + 1 + 1; // 7 base columns
+                                                                    
+                                                                    // Add booth-specific columns if levelName is "Booth"
+                                                                    if (levelName === "Booth") {
+                                                                        totalCols += 3; // Upload + Files + F20 columns
+                                                                    }
+                                                                    
+                                                                    return totalCols;
+                                                                })()}
                                                             />
                                                         )}
                                                         {/* File Display for Booths */}
                                                         {levelName === "Booth" && expandedFilesBoothId === item.id && boothFiles[item.id] && (
                                                             <tr>
-                                                                <td colSpan={visibleFilters.length > 0 ? 9 : 8} className="px-6 py-4 bg-purple-50">
+                                                                <td colSpan={(() => {
+                                                                    // Calculate total columns: S.No + Assembly + visibleFilters + Level Type + Name + Total Users + Upload + Files + F20 + Actions
+                                                                    return 1 + 1 + visibleFilters.length + 1 + 1 + 1 + 1 + 1 + 1 + 1; // 10 base columns for booth
+                                                                })()} className="px-6 py-4 bg-purple-50">
                                                                     <div>
                                                                         <h4 className="text-sm font-semibold text-purple-800 mb-2">Uploaded Deleted Voter Files</h4>
                                                                         {boothFiles[item.id]?.loading && (
