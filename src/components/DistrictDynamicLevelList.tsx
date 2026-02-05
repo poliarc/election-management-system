@@ -3,6 +3,7 @@ import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import InlineUserDisplay from "./InlineUserDisplay";
+import { getAssemblyCache, setAssemblyCache, fetchAssemblyNameWithCache } from "../utils/assemblyCache";
 
 interface DistrictDynamicLevelListProps {
   levelName: string;
@@ -69,6 +70,32 @@ export default function DistrictDynamicLevelList({
   const [dynamicFilterData, setDynamicFilterData] = useState<
     Record<string, any[]>
   >({});
+
+  // State for assembly information cache - Use utility functions for persistence
+  const [assemblyInfoCache, setAssemblyInfoCache] = useState<Record<number, { id: number; name: string }>>(() => {
+    return getAssemblyCache();
+  });
+
+  // Update localStorage whenever cache changes using utility
+  useEffect(() => {
+    setAssemblyCache(assemblyInfoCache);
+  }, [assemblyInfoCache]);
+
+  // Function to fetch assembly information by ID using utility
+  const fetchAssemblyInfo = async (assemblyId: number): Promise<string> => {
+    // Use utility function for caching
+    const assemblyName = await fetchAssemblyNameWithCache(assemblyId, districtInfo.districtId);
+
+    // Update local state cache as well
+    if (assemblyName && !assemblyName.startsWith('Assembly ')) {
+      setAssemblyInfoCache(prev => ({
+        ...prev,
+        [assemblyId]: { id: assemblyId, name: assemblyName }
+      }));
+    }
+
+    return assemblyName;
+  };
 
   // State for parent information
   const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
@@ -294,6 +321,16 @@ export default function DistrictDynamicLevelList({
           levelName: "Assembly",
           location_id: assembly.location_id,
         }));
+
+        // Update assembly cache with localStorage persistence
+        const newAssemblyCache: Record<number, { id: number; name: string }> = { ...assemblyInfoCache };
+        assembliesData.forEach((assembly: any) => {
+          const id = assembly.location_id || assembly.id;
+          const name = assembly.location_name || assembly.displayName || assembly.name || `Assembly ${id}`;
+          newAssemblyCache[id] = { id, name };
+        });
+        setAssemblyInfoCache(newAssemblyCache);
+
         setDynamicFilterData((prev) => ({
           ...prev,
           Assembly: mappedAssemblies,
@@ -304,6 +341,31 @@ export default function DistrictDynamicLevelList({
     };
     fetchAssemblies();
   }, [districtInfo.districtId]);
+
+  // Update assembly names for existing items when assembly cache is populated
+  useEffect(() => {
+    if (Object.keys(assemblyInfoCache).length > 0 && allLevelItems.length > 0) {
+      const updatedItems = allLevelItems.map(item => {
+        if (item.assemblyId && assemblyInfoCache[item.assemblyId] &&
+          (!item.assemblyName || item.assemblyName.startsWith('Assembly '))) {
+          return {
+            ...item,
+            assemblyName: assemblyInfoCache[item.assemblyId].name
+          };
+        }
+        return item;
+      });
+
+      // Only update if there are actual changes
+      const hasChanges = updatedItems.some((item, index) =>
+        item.assemblyName !== allLevelItems[index].assemblyName
+      );
+
+      if (hasChanges) {
+        setAllLevelItems(updatedItems);
+      }
+    }
+  }, [assemblyInfoCache]);
 
   // Generic function to fetch children for any filter level
   const fetchFilterLevelChildren = async (
@@ -610,11 +672,15 @@ export default function DistrictDynamicLevelList({
                   { headers: { Authorization: `Bearer ${token}` } }
                 );
                 const data = await response.json();
+
+                // Get assembly name from cache or fetch it
+                const assemblyName = await fetchAssemblyInfo(parentId);
+
                 // Ensure each item has proper assembly association
                 childrenData = (data.data || []).map((item: any) => ({
                   ...item,
                   assemblyId: parentId,
-                  assemblyName: parentChain["Assembly"] || `Assembly ${parentId}`,
+                  assemblyName: assemblyName,
                   districtId: parentChain["District"] || districtInfo.districtId,
                   districtName: parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName,
                 }));
@@ -627,7 +693,7 @@ export default function DistrictDynamicLevelList({
                 );
 
                 // Map response - preserve existing levelName, or detect from data structure
-                childrenData = rawChildren.map((item: any) => {
+                const childrenDataPromises = rawChildren.map(async (item: any) => {
                   // If API already has levelName, use it. Otherwise detect it.
                   let detectedLevel = item.levelName;
 
@@ -648,6 +714,13 @@ export default function DistrictDynamicLevelList({
                     }
                   }
 
+                  // Get assembly name from cache or fetch it
+                  let assemblyName = item.assemblyName;
+                  if (!assemblyName && parentChain["Assembly"]) {
+                    const assemblyId = parentChain["Assembly"];
+                    assemblyName = await fetchAssemblyInfo(assemblyId);
+                  }
+
                   return {
                     ...item,
                     levelName: detectedLevel,
@@ -657,11 +730,13 @@ export default function DistrictDynamicLevelList({
                       `${detectedLevel} ${item.id}`,
                     // Inherit assembly information from parent chain
                     assemblyId: item.assemblyId || parentChain["Assembly"],
-                    assemblyName: item.assemblyName || (parentChain["Assembly"] ? `Assembly ${parentChain["Assembly"]}` : undefined),
+                    assemblyName: assemblyName,
                     districtId: item.districtId || parentChain["District"] || districtInfo.districtId,
                     districtName: item.districtName || (parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName),
                   };
                 });
+
+                childrenData = await Promise.all(childrenDataPromises);
               }
 
               // Filter items - flexible approach to handle non-strictly-nested data
@@ -950,8 +1025,8 @@ export default function DistrictDynamicLevelList({
                           ? itemUserCounts[item.id]
                           : item.user_count || 0) > 0
                     ).length > 0
-                        ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
-                        : "cursor-default"
+                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
+                      : "cursor-default"
                       } ${showItemsWithUsers
                         ? "ring-2 ring-green-500 bg-green-50"
                         : ""
@@ -1013,8 +1088,8 @@ export default function DistrictDynamicLevelList({
                           ? itemUserCounts[item.id]
                           : item.user_count || 0) === 0
                     ).length > 0
-                        ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
-                        : "cursor-default"
+                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                      : "cursor-default"
                       } ${showItemsWithoutUsers
                         ? "ring-2 ring-red-500 bg-red-50"
                         : ""
@@ -1046,8 +1121,8 @@ export default function DistrictDynamicLevelList({
                               ? itemUserCounts[item.id]
                               : item.user_count || 0) === 0
                         ).length > 0
-                            ? "text-red-600"
-                            : "text-gray-400"
+                          ? "text-red-600"
+                          : "text-gray-400"
                           }`}
                       >
                         {
@@ -1067,8 +1142,8 @@ export default function DistrictDynamicLevelList({
                             ? itemUserCounts[item.id]
                             : item.user_count || 0) === 0
                       ).length > 0
-                          ? "bg-red-50"
-                          : "bg-gray-50"
+                        ? "bg-red-50"
+                        : "bg-gray-50"
                         }`}
                     >
                       {levelItems.filter(
@@ -1516,8 +1591,8 @@ export default function DistrictDynamicLevelList({
                                 <button
                                   onClick={() => handleViewUsers(item.id)}
                                   className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${expandedItemId === item.id
-                                      ? "text-blue-700 bg-blue-100"
-                                      : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                    ? "text-blue-700 bg-blue-100"
+                                    : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                                     }`}
                                   title={
                                     expandedItemId === item.id
@@ -1713,8 +1788,8 @@ export default function DistrictDynamicLevelList({
                                   key={pageNum}
                                   onClick={() => setCurrentPage(pageNum)}
                                   className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
-                                      ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                                      : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                                    ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
+                                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                                     }`}
                                 >
                                   {pageNum}
