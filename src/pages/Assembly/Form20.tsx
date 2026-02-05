@@ -113,7 +113,7 @@ export default function AssemblyForm20() {
 
     boothsMap.forEach((boothResults) => {
       // For each booth, take the latest result (in case of multiple uploads)
-      const latestResult = boothResults.sort((a: any, b: any) =>
+      const latestResult = boothResults.sort((a: any, b: any) => 
         new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
       )[0];
 
@@ -132,7 +132,7 @@ export default function AssemblyForm20() {
 
         latestResult.candidateDetails.forEach((candidate: any) => {
           const key = `${candidate.candidateName}-${candidate.candidateParty}`;
-
+          
           if (candidatesMap.has(key)) {
             const existing = candidatesMap.get(key)!;
             existing.totalVotes += candidate.candidateVotes || 0;
@@ -193,7 +193,7 @@ export default function AssemblyForm20() {
 
     boothsMap.forEach((boothResults_raw) => {
       // For each booth, take the latest result (in case of multiple uploads)
-      const latestResult = boothResults_raw.sort((a: any, b: any) =>
+      const latestResult = boothResults_raw.sort((a: any, b: any) => 
         new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
       )[0];
 
@@ -438,8 +438,8 @@ export default function AssemblyForm20() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {consolidatedResults.candidates.map((candidate, index) => (
-                          <tr key={`${candidate.candidateName}-${candidate.candidateParty}`}
-                            className={index === 0 ? "bg-green-50" : ""}>
+                          <tr key={`${candidate.candidateName}-${candidate.candidateParty}`} 
+                              className={index === 0 ? "bg-green-50" : ""}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {/* {index === 0 && (
@@ -554,7 +554,7 @@ export default function AssemblyForm20() {
                             />
                           </svg>
                         </div>
-
+                        
                         {booth.winner && (
                           <div className="mb-3">
                             <div className="text-sm text-gray-600 mb-1">Winner:</div>
@@ -692,8 +692,8 @@ export default function AssemblyForm20() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {selectedBooth.candidates.map((candidate, index) => (
-                          <tr key={`${candidate.candidateName}-${candidate.candidateParty}`}
-                            className={index === 0 ? "bg-green-50" : ""}>
+                          <tr key={`${candidate.candidateName}-${candidate.candidateParty}`} 
+                              className={index === 0 ? "bg-green-50" : ""}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {index === 0 && (

@@ -28,7 +28,9 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
   }, [notifications.length]);
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'Invalid Date';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
     return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
@@ -37,7 +39,15 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
   };
 
   const formatDateRange = (dateString: string) => {
+    if (!dateString) {
+      return { from: 'Invalid Date', to: 'Invalid Date' };
+    }
+    
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return { from: 'Invalid Date', to: 'Invalid Date' };
+    }
+    
     const endDate = new Date(date);
     endDate.setDate(date.getDate() + 1); // Assuming events are single day, you can modify this logic
 
@@ -74,10 +84,16 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
 
   // Guard against out-of-bounds index
   const currentNotification = notifications[currentIndex] || notifications[0];
-  const dateRange =
-    currentNotification && currentNotification.date
-      ? formatDateRange(currentNotification.date)
-      : { from: "", to: "" };
+  const dateRange = (() => {
+    try {
+      return currentNotification && currentNotification.date
+        ? formatDateRange(currentNotification.date)
+        : { from: "", to: "" };
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return { from: "Invalid Date", to: "Invalid Date" };
+    }
+  })();
 
   return (
     <div className="relative bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">

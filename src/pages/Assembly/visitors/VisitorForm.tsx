@@ -47,10 +47,10 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
   // Get states, districts, and assemblies from master data
   const states = stateMasterData?.data?.filter(item => item.levelType === 'State') || [];
-  const districts = stateMasterData?.data?.filter(item =>
+  const districts = stateMasterData?.data?.filter(item => 
     item.levelType === 'District' && item.ParentId === formData.state_id
   ) || [];
-  const assemblies = stateMasterData?.data?.filter(item =>
+  const assemblies = stateMasterData?.data?.filter(item => 
     item.levelType === 'Assembly' && item.ParentId === formData.district_id
   ) || [];
 
@@ -59,7 +59,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
   const { data: assemblyUsersData, isLoading: usersLoading, error: usersError } = useGetAssemblyUsersQuery(currentAssemblyId, {
     skip: !currentAssemblyId,
   });
-
+  
   // Extract users from the response structure
   const assemblyUsers = assemblyUsersData?.data?.users || [];
 
@@ -105,7 +105,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-
+    
     // Special handling for phone number
     if (name === 'phone') {
       // Only allow digits and limit to 10 characters
@@ -169,7 +169,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!validateForm()) return;
 
     try {
@@ -247,8 +247,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter visitor name"
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -265,8 +266,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   onChange={handleInputChange}
                   maxLength={10}
                   pattern="[0-9]{10}"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.phone ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter 10-digit phone number"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -303,8 +305,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.state_id}
                   onChange={handleInputChange}
                   disabled={true}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 cursor-not-allowed ${errors.state_id ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 cursor-not-allowed ${
+                    errors.state_id ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value={0}>Select State</option>
                   {states.map(state => (
@@ -325,8 +328,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.district_id}
                   onChange={handleInputChange}
                   disabled={!formData.state_id}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.district_id ? 'border-red-500' : 'border-gray-300'
-                    } ${!formData.state_id ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.district_id ? 'border-red-500' : 'border-gray-300'
+                  } ${!formData.state_id ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>Select District</option>
                   {districts.map(district => (
@@ -347,8 +351,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.assembly_id}
                   onChange={handleInputChange}
                   disabled={!formData.district_id}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.assembly_id ? 'border-red-500' : 'border-gray-300'
-                    } ${!formData.district_id ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.assembly_id ? 'border-red-500' : 'border-gray-300'
+                  } ${!formData.district_id ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>Select Assembly</option>
                   {assemblies.map(assembly => (
@@ -374,13 +379,14 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="date_of_visit"
                   value={formData.date_of_visit}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_visit ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.date_of_visit ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
                 {errors.date_of_visit && <p className="text-red-500 text-sm mt-1">{errors.date_of_visit}</p>}
               </div>
 
-
+             
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -391,8 +397,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   name="place_of_visit"
                   value={formData.place_of_visit}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.place_of_visit ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.place_of_visit ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter place of visit"
                 />
                 {errors.place_of_visit && <p className="text-red-500 text-sm mt-1">{errors.place_of_visit}</p>}
@@ -408,8 +415,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.no_of_persons}
                   onChange={handleInputChange}
                   min="1"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.no_of_persons ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.no_of_persons ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
                 {errors.no_of_persons && <p className="text-red-500 text-sm mt-1">{errors.no_of_persons}</p>}
               </div>
@@ -424,8 +432,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.assembly_user_id}
                   onChange={handleInputChange}
                   disabled={usersLoading}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.assembly_user_id ? 'border-red-500' : 'border-gray-300'
-                    } ${usersLoading ? 'bg-gray-100' : ''}`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.assembly_user_id ? 'border-red-500' : 'border-gray-300'
+                  } ${usersLoading ? 'bg-gray-100' : ''}`}
                 >
                   <option value={0}>
                     {usersLoading ? 'Loading users...' : 'Select User'}
@@ -458,14 +467,15 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
                   value={formData.purpose_of_visit}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.purpose_of_visit ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.purpose_of_visit ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter purpose of visit"
                 />
                 {errors.purpose_of_visit && <p className="text-red-500 text-sm mt-1">{errors.purpose_of_visit}</p>}
               </div>
 
-              {/* <div>
+               {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Follow-up Date
                 </label>
