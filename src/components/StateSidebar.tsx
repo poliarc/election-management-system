@@ -188,6 +188,23 @@ const Icons = {
       />
     </svg>
   ),
+  supporters: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="7" r="4" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m22 21-3-3m0 0a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   logout: (
     <svg
       className={iconClass}
@@ -211,6 +228,7 @@ const stateItems: NavItem[] = [
   { to: "team", label: "State Team", icon: Icons.team },
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
+  { to: "supporters", label: "Supporters", icon: Icons.supporters },
   // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
