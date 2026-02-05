@@ -221,6 +221,21 @@ const Icons = {
       />
     </svg>
   ),
+  supporters: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   profile: (
     <svg
       className={iconClass}
@@ -575,6 +590,7 @@ export default function AssemblySidebar({
     if (lowerModuleName.includes('booth')) return Icons.booths;
     if (lowerModuleName.includes('event')) return Icons.campaigns;
     if (lowerModuleName.includes('visitor')) return Icons.visitors;
+    if (lowerModuleName.includes('supporter')) return Icons.supporters;
     if (lowerModuleName.includes('communication')) return Icons.communication;
     if (lowerModuleName.includes('search')) return Icons.search;
 
@@ -591,6 +607,7 @@ export default function AssemblySidebar({
     if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'assigned-events';
     if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
     if (lowerModuleName.includes('visitor')) return 'visitors';
+    if (lowerModuleName.includes('supporter')) return 'supporters';
     if (lowerModuleName.includes('search')) return 'search-voter';
     if (lowerModuleName.includes('communication')) return 'communication';
 
@@ -1031,6 +1048,28 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+
+        {/* Supporters */}
+        <NavLink
+          to={`${base}/supporters`}
+          onClick={() => onNavigate?.()}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              isActive
+                ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                : "border border-transparent hover:border-gray-200",
+            ].join(" ")
+          }
+        >
+          <span className="text-indigo-600 shrink-0">{Icons.supporters}</span>
+          <span className="truncate">Supporters</span>
+          {/** Accent bar */}
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+          {/** Active indicator */}
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
 
         {/* Communication dropdown */}
         <div>

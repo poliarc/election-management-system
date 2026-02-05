@@ -22,6 +22,7 @@ import { vicReportsApi } from "./api/vicReportsApi";
 import { resultAnalysisApi } from "./api/resultAnalysisApi";
 import { visitorsApi } from "./api/visitorsApi";
 import { modulesApi } from "./api/modulesApi";
+import { supportersApi } from "./api/supportersApi";
 
 export const store = configureStore({
   reducer: {
@@ -48,6 +49,7 @@ export const store = configureStore({
     [resultAnalysisApi.reducerPath]: resultAnalysisApi.reducer,
     [visitorsApi.reducerPath]: visitorsApi.reducer,
     [modulesApi.reducerPath]: modulesApi.reducer,
+    [supportersApi.reducerPath]: supportersApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -69,7 +71,8 @@ export const store = configureStore({
       .concat(vicReportsApi.middleware)
       .concat(resultAnalysisApi.middleware)
       .concat(visitorsApi.middleware)
-      .concat(modulesApi.middleware),
+      .concat(modulesApi.middleware)
+      .concat(supportersApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
