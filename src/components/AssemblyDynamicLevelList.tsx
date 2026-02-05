@@ -2365,12 +2365,12 @@ export default function AssemblyDynamicLevelList({
                                                                 colSpan={(() => {
                                                                     // Calculate total columns: S.No + Assembly + visibleFilters + Level Type + Name + Total Users + Actions
                                                                     let totalCols = 1 + 1 + visibleFilters.length + 1 + 1 + 1 + 1; // 7 base columns
-
+                                                                    
                                                                     // Add booth-specific columns if levelName is "Booth"
                                                                     if (levelName === "Booth") {
                                                                         totalCols += 3; // Upload + Files + F20 columns
                                                                     }
-
+                                                                    
                                                                     return totalCols;
                                                                 })()}
                                                             />
