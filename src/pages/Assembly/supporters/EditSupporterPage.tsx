@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
+import toast from 'react-hot-toast';
+import {
   useGetSupporterByIdQuery,
-  useUpdateSupporterMutation
+  useUpdateSupporterMutation,
+  useGetHierarchyQuery
 } from '../../../store/api/supportersApi';
+import { useAppSelector } from '../../../store/hooks';
 import type { UpdateSupporterRequest } from '../../../types/supporter';
 
 // Constants for dropdown options
@@ -12,8 +15,8 @@ const INITIALS_OPTIONS = ['Mr', 'Ms', 'Mrs', 'Dr'];
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
 
 const LANGUAGE_OPTIONS = [
-  'Assamese', 'Bengali', 'Bodo', 'Sadri', 'English', 'Hindi', 
-  'Garo', 'Nepali', 'Manipuri', 'Karbi', 'Rabha', 'Mishing', 
+  'Assamese', 'Bengali', 'Bodo', 'Sadri', 'English', 'Hindi',
+  'Garo', 'Nepali', 'Manipuri', 'Karbi', 'Rabha', 'Mishing',
   'Deori', 'Tiwa', 'Dimasa', 'Others'
 ];
 
@@ -33,6 +36,7 @@ const CASTE_OPTIONS = {
 const RELIGION_CATEGORIES = {
   Islam: ['Shia', 'Sunni', 'Others'],
   Christianity: ['Catholic', 'Protestant', 'Others'],
+  Buddhism: ['Theravada', 'Mahayana', 'Others'],
   Jainism: ['Shwetambar', 'Digambar', 'Others'],
   Sikhism: ['Khalsa', 'Namdhari', 'Nirankari', 'Udasi', 'Nirmala', 'Others'],
   Others: ['Others']
@@ -42,9 +46,18 @@ export default function EditSupporterPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const supporterId = parseInt(id || '0');
+  const { user } = useAppSelector((s) => s.auth);
 
   const { data: supporter, isLoading: supporterLoading } = useGetSupporterByIdQuery(supporterId, {
     skip: !supporterId,
+  });
+
+  // Fetch hierarchy data
+  const { data: hierarchyData } = useGetHierarchyQuery({
+    state_id: user?.state_id || 0,
+    party_id: user?.partyId || 0,
+  }, {
+    skip: !user?.state_id || !user?.partyId,
   });
 
   const [formData, setFormData] = useState({
@@ -64,6 +77,14 @@ export default function EditSupporterPage() {
     category: '',
     caste: '',
     remarks: '',
+    // Hierarchy fields
+    party_id: user?.partyId || 0,
+    state_id: user?.state_id || 0,
+    district_id: 0,
+    assembly_id: 0,
+    block_id: 0,
+    mandal_id: 0,
+    booth_id: 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -73,21 +94,57 @@ export default function EditSupporterPage() {
   // Function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): number => {
     if (!dateOfBirth) return 0;
-    
+
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
   useEffect(() => {
     if (supporter) {
+      // Helper function to normalize language to array
+      const normalizeLanguage = (lang: any): string[] => {
+        console.log('Original language data:', lang);
+        if (!lang) return [];
+
+        // If it's a JSON string, parse it first
+        if (typeof lang === 'string') {
+          try {
+            // Try to parse as JSON first
+            const parsed = JSON.parse(lang);
+            if (Array.isArray(parsed)) {
+              console.log('Parsed JSON array:', parsed);
+              return parsed;
+            }
+            // If not an array after parsing, treat as single string
+            return [lang];
+          } catch (e) {
+            // If JSON parsing fails, treat as single string
+            return [lang];
+          }
+        }
+
+        if (Array.isArray(lang)) return lang;
+        if (typeof lang === 'object' && lang.primary) {
+          const languages = [lang.primary];
+          if (lang.secondary && Array.isArray(lang.secondary)) {
+            languages.push(...lang.secondary);
+          }
+          return languages;
+        }
+        return [];
+      };
+
+      const normalizedLanguages = normalizeLanguage(supporter.language);
+      console.log('Normalized languages:', normalizedLanguages);
+
       setFormData({
         initials: supporter.initials || '',
         first_name: supporter.first_name || '',
@@ -100,45 +157,85 @@ export default function EditSupporterPage() {
         whatsapp_no: supporter.whatsapp_no || '',
         voter_epic_id: supporter.voter_epic_id || '',
         address: supporter.address || '',
-        language: supporter.language || [],
+        language: normalizedLanguages,
         religion: supporter.religion || '',
         category: supporter.category || '',
         caste: supporter.caste || '',
         remarks: supporter.remarks || '',
+        // Hierarchy fields
+        party_id: supporter.party_id || user?.partyId || 0,
+        state_id: supporter.state_id || user?.state_id || 0,
+        district_id: supporter.district_id || 0,
+        assembly_id: supporter.assembly_id || 0,
+        block_id: supporter.block_id || 0,
+        mandal_id: supporter.mandal_id || 0,
+        booth_id: supporter.booth_id || 0,
       });
     }
-  }, [supporter]);
+  }, [supporter, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    if (name === 'religion') {
+
+    // Handle numeric-only fields (phone numbers)
+    if (name === 'phone_no' || name === 'whatsapp_no') {
+      // Only allow digits
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
+      return;
+    }
+
+    // Handle cascading dropdowns
+    if (name === 'block_id') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 0,
+        mandal_id: 0,
+        booth_id: 0
+      }));
+    } else if (name === 'mandal_id') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 0,
+        booth_id: 0
+      }));
+    } else if (name === 'booth_id') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 0
+      }));
+    } else if (name === 'religion') {
       // Reset category and caste when religion changes
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         category: '',
         caste: ''
       }));
     } else if (name === 'category') {
       // Reset caste when category changes
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         caste: ''
       }));
     } else if (name === 'date_of_birth') {
       // Auto-calculate age when date of birth changes
       const age = calculateAge(value);
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         age: age
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -171,6 +268,32 @@ export default function EditSupporterPage() {
     }
     return [];
   };
+
+  // Get blocks, mandals, and booths from afterAssemblyHierarchy
+  const afterAssemblyData = hierarchyData?.data?.afterAssemblyHierarchy || [];
+
+  // Filter blocks under the selected assembly
+  const blocks = afterAssemblyData.filter(h =>
+    h.levelName === 'Block' && h.parentAssemblyId === formData.assembly_id
+  ) || [];
+
+  // Filter mandals under the selected block or assembly
+  const mandals = afterAssemblyData.filter(h =>
+    h.levelName === 'Mandal' && (
+      h.parentId === formData.block_id ||
+      (h.parentAssemblyId === formData.assembly_id && !formData.block_id)
+    )
+  ) || [];
+
+  // Filter booths under the selected mandal
+  const booths = afterAssemblyData.filter(h =>
+    h.levelName === 'Booth' && h.parentId === formData.mandal_id
+  ) || [];
+
+  // Check if dropdowns should be enabled - Always enable when not loading
+  const isBlockDropdownEnabled = hierarchyData && !isUpdating;
+  const isMandalDropdownEnabled = hierarchyData && !isUpdating;
+  const isBoothDropdownEnabled = hierarchyData && !isUpdating;
 
   // Check if caste should be shown (only for Hindu religion)
   const shouldShowCaste = formData.religion === 'Hindu' && formData.category && getAvailableCastes().length > 0;
@@ -250,7 +373,7 @@ export default function EditSupporterPage() {
         last_name: formData.last_name,
         father_name: formData.father_name,
         date_of_birth: formData.date_of_birth,
-        age: formData.age,
+        age: formData.age > 0 ? formData.age : undefined,
         gender: formData.gender as 'Male' | 'Female' | 'Other',
         phone_no: formData.phone_no,
         whatsapp_no: formData.whatsapp_no || undefined,
@@ -261,17 +384,49 @@ export default function EditSupporterPage() {
         category: formData.category,
         caste: formData.caste || undefined,
         remarks: formData.remarks || undefined,
+        // Include hierarchy fields
+        party_id: formData.party_id,
+        state_id: formData.state_id,
+        district_id: formData.district_id,
+        assembly_id: formData.assembly_id,
+        block_id: formData.block_id || undefined,
+        mandal_id: formData.mandal_id || undefined,
+        booth_id: formData.booth_id || undefined,
       };
       await updateSupporter({ id: supporterId, data: updateData }).unwrap();
+      toast.success('Supporter updated successfully!');
       navigate('/assembly/supporters');
     } catch (error: any) {
       console.error('Failed to update supporter:', error);
-      if (error.data?.errors) {
+
+      // Handle specific error cases
+      if (error.data?.error?.message) {
+        // Show the specific error message from the API
+        toast.error(error.data.error.message);
+      } else if (error.data?.message) {
+        // Fallback to general message
+        toast.error(error.data.message);
+      } else if (error.data?.errors) {
+        // Handle validation errors
         const apiErrors: Record<string, string> = {};
+        const errorMessages: string[] = [];
+
         error.data.errors.forEach((err: any) => {
           apiErrors[err.field] = err.message;
+          errorMessages.push(`${err.field}: ${err.message}`);
         });
+
         setErrors(apiErrors);
+
+        // Show a toast with the first error or a summary
+        if (errorMessages.length === 1) {
+          toast.error(error.data.errors[0].message);
+        } else {
+          toast.error(`Validation failed: ${errorMessages.length} errors found`);
+        }
+      } else {
+        // Generic error message
+        toast.error('Failed to update supporter. Please try again.');
       }
     }
   };
@@ -349,9 +504,8 @@ export default function EditSupporterPage() {
                     name="initials"
                     value={formData.initials}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.initials ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.initials ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Initials</option>
                     {INITIALS_OPTIONS.map((initial) => (
@@ -373,9 +527,8 @@ export default function EditSupporterPage() {
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.first_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.first_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter first name"
                   />
                   {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
@@ -391,9 +544,8 @@ export default function EditSupporterPage() {
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.last_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.last_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter last name"
                   />
                   {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
@@ -409,9 +561,8 @@ export default function EditSupporterPage() {
                     name="father_name"
                     value={formData.father_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.father_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.father_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter father's name"
                   />
                   {errors.father_name && <p className="text-red-500 text-xs mt-1">{errors.father_name}</p>}
@@ -427,9 +578,8 @@ export default function EditSupporterPage() {
                     name="date_of_birth"
                     value={formData.date_of_birth}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   />
                   {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
                 </div>
@@ -459,9 +609,8 @@ export default function EditSupporterPage() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.gender ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.gender ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Gender</option>
                     {GENDER_OPTIONS.map((gender) => (
@@ -483,9 +632,8 @@ export default function EditSupporterPage() {
                     name="phone_no"
                     value={formData.phone_no}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.phone_no ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.phone_no ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-digit phone number"
                     maxLength={10}
                   />
@@ -502,9 +650,8 @@ export default function EditSupporterPage() {
                     name="whatsapp_no"
                     value={formData.whatsapp_no}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.whatsapp_no ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.whatsapp_no ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-digit WhatsApp number"
                     maxLength={10}
                   />
@@ -521,9 +668,8 @@ export default function EditSupporterPage() {
                     name="voter_epic_id"
                     value={formData.voter_epic_id}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.voter_epic_id ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.voter_epic_id ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-character EPIC ID"
                     maxLength={10}
                     style={{ textTransform: 'uppercase' }}
@@ -536,7 +682,7 @@ export default function EditSupporterPage() {
             {/* Language and Religion Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Language & Religion Information</h3>
-              
+
               {/* Language Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -568,9 +714,8 @@ export default function EditSupporterPage() {
                     name="religion"
                     value={formData.religion}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.religion ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.religion ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Religion</option>
                     {RELIGION_OPTIONS.map((religion) => (
@@ -592,9 +737,8 @@ export default function EditSupporterPage() {
                     value={formData.category}
                     onChange={handleInputChange}
                     disabled={!formData.religion}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${
-                      errors.category ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Category</option>
                     {getAvailableCategories().map((category) => (
@@ -647,7 +791,7 @@ export default function EditSupporterPage() {
               </div>
             </div>
 
-            {/* Location Information - Read Only */}
+            {/* Location Information - Editable */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -655,7 +799,7 @@ export default function EditSupporterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
                   <input
                     type="text"
-                    value={supporter.state_name || ''}
+                    value={supporter?.state_name || ''}
                     disabled
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
                   />
@@ -664,7 +808,7 @@ export default function EditSupporterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
                   <input
                     type="text"
-                    value={supporter.district_name || ''}
+                    value={supporter?.district_name || ''}
                     disabled
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
                   />
@@ -673,44 +817,80 @@ export default function EditSupporterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Assembly</label>
                   <input
                     type="text"
-                    value={supporter.assembly_name || ''}
+                    value={supporter?.assembly_name || ''}
                     disabled
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
                   />
                 </div>
-                {supporter.block_name && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Block</label>
-                    <input
-                      type="text"
-                      value={supporter.block_name}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                    />
-                  </div>
-                )}
-                {supporter.mandal_name && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mandal</label>
-                    <input
-                      type="text"
-                      value={supporter.mandal_name}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                    />
-                  </div>
-                )}
-                {supporter.booth_name && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Booth</label>
-                    <input
-                      type="text"
-                      value={supporter.booth_name}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                    />
-                  </div>
-                )}
+
+                {/* Block Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Block
+                  </label>
+                  <select
+                    name="block_id"
+                    value={formData.block_id}
+                    onChange={handleInputChange}
+                    disabled={!isBlockDropdownEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                  >
+                    <option value={0}>Select Block</option>
+                    {blocks.map((block) => (
+                      <option key={block.id} value={block.id}>
+                        {block.displayName || block.levelName}
+                      </option>
+                    ))}
+                  </select>
+                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading blocks...</p>}
+                  {hierarchyData && blocks.length === 0 && <p className="text-xs text-gray-500 mt-1">No blocks available</p>}
+                </div>
+
+                {/* Mandal Dropdown - Optional */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mandal <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <select
+                    name="mandal_id"
+                    value={formData.mandal_id}
+                    onChange={handleInputChange}
+                    disabled={!isMandalDropdownEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                  >
+                    <option value={0}>Select Mandal</option>
+                    {mandals.map((mandal) => (
+                      <option key={mandal.id} value={mandal.id}>
+                        {mandal.displayName || mandal.levelName}
+                      </option>
+                    ))}
+                  </select>
+                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading mandals...</p>}
+                  {hierarchyData && mandals.length === 0 && <p className="text-xs text-gray-500 mt-1">No mandals available</p>}
+                </div>
+
+                {/* Booth Dropdown - Optional */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Booth <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <select
+                    name="booth_id"
+                    value={formData.booth_id}
+                    onChange={handleInputChange}
+                    disabled={!isBoothDropdownEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                  >
+                    <option value={0}>Select Booth</option>
+                    {booths.map((booth) => (
+                      <option key={booth.id} value={booth.id}>
+                        {booth.displayName || booth.levelName}
+                      </option>
+                    ))}
+                  </select>
+                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading booths...</p>}
+                  {hierarchyData && booths.length === 0 && <p className="text-xs text-gray-500 mt-1">No booths available</p>}
+                </div>
               </div>
             </div>
 
@@ -727,9 +907,8 @@ export default function EditSupporterPage() {
                     value={formData.address}
                     onChange={handleInputChange}
                     rows={3}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.address ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.address ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter complete address"
                   />
                   {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}

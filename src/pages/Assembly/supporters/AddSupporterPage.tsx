@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import toast from 'react-hot-toast';
+import {
   useCreateSupporterMutation,
-  useGetHierarchyQuery 
+  useGetHierarchyQuery
 } from '../../../store/api/supportersApi';
 import { useAppSelector } from '../../../store/hooks';
 import type { CreateSupporterRequest } from '../../../types/supporter';
@@ -13,8 +14,8 @@ const INITIALS_OPTIONS = ['Mr', 'Ms', 'Mrs', 'Dr'];
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
 
 const LANGUAGE_OPTIONS = [
-  'Assamese', 'Bengali', 'Bodo', 'Sadri', 'English', 'Hindi', 
-  'Garo', 'Nepali', 'Manipuri', 'Karbi', 'Rabha', 'Mishing', 
+  'Assamese', 'Bengali', 'Bodo', 'Sadri', 'English', 'Hindi',
+  'Garo', 'Nepali', 'Manipuri', 'Karbi', 'Rabha', 'Mishing',
   'Deori', 'Tiwa', 'Dimasa', 'Others'
 ];
 
@@ -34,6 +35,7 @@ const CASTE_OPTIONS = {
 const RELIGION_CATEGORIES = {
   Islam: ['Shia', 'Sunni', 'Others'],
   Christianity: ['Catholic', 'Protestant', 'Others'],
+  Buddhism: ['Theravada', 'Mahayana', 'Others'],
   Jainism: ['Shwetambar', 'Digambar', 'Others'],
   Sikhism: ['Khalsa', 'Namdhari', 'Nirankari', 'Udasi', 'Nirmala', 'Others'],
   Others: ['Others']
@@ -91,68 +93,81 @@ export default function AddSupporterPage() {
   // Function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): number => {
     if (!dateOfBirth) return 0;
-    
+
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
+    // Handle numeric-only fields (phone numbers)
+    if (name === 'phone_no' || name === 'whatsapp_no') {
+      // Only allow digits
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
+      return;
+    }
+
     // Handle cascading dropdowns
     if (name === 'block_id') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: parseInt(value) || 0,
         mandal_id: 0,
         booth_id: 0
       }));
     } else if (name === 'mandal_id') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: parseInt(value) || 0,
         booth_id: 0
       }));
     } else if (name === 'booth_id') {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: parseInt(value) || 0
       }));
     } else if (name === 'religion') {
       // Reset category and caste when religion changes
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         category: '',
         caste: ''
       }));
     } else if (name === 'category') {
       // Reset caste when category changes
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         caste: ''
       }));
     } else if (name === 'date_of_birth') {
       // Auto-calculate age when date of birth changes
       const age = calculateAge(value);
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         [name]: value,
         age: age
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -240,6 +255,7 @@ export default function AddSupporterPage() {
       const createData: CreateSupporterRequest = {
         ...formData,
         gender: formData.gender as 'Male' | 'Female' | 'Other',
+        age: formData.age > 0 ? formData.age : undefined,
         whatsapp_no: formData.whatsapp_no || undefined,
         voter_epic_id: formData.voter_epic_id || undefined,
         remarks: formData.remarks || undefined,
@@ -249,15 +265,39 @@ export default function AddSupporterPage() {
         caste: formData.caste || undefined,
       };
       await createSupporter(createData).unwrap();
+      toast.success('Supporter created successfully!');
       navigate('/assembly/supporters');
     } catch (error: any) {
       console.error('Failed to create supporter:', error);
-      if (error.data?.errors) {
+
+      // Handle specific error cases
+      if (error.data?.error?.message) {
+        // Show the specific error message from the API
+        toast.error(error.data.error.message);
+      } else if (error.data?.message) {
+        // Fallback to general message
+        toast.error(error.data.message);
+      } else if (error.data?.errors) {
+        // Handle validation errors
         const apiErrors: Record<string, string> = {};
+        const errorMessages: string[] = [];
+
         error.data.errors.forEach((err: any) => {
           apiErrors[err.field] = err.message;
+          errorMessages.push(`${err.field}: ${err.message}`);
         });
+
         setErrors(apiErrors);
+
+        // Show a toast with the first error or a summary
+        if (errorMessages.length === 1) {
+          toast.error(error.data.errors[0].message);
+        } else {
+          toast.error(`Validation failed: ${errorMessages.length} errors found`);
+        }
+      } else {
+        // Generic error message
+        toast.error('Failed to create supporter. Please try again.');
       }
     }
   };
@@ -265,25 +305,25 @@ export default function AddSupporterPage() {
   // Get filtered hierarchy levels
   const stateData = hierarchyData?.data?.stateHierarchy?.find(h => h.id === formData.state_id);
   const districtData = hierarchyData?.data?.stateHierarchy?.find(h => h.id === formData.district_id);
-  
+
   // Get blocks, mandals, and booths from afterAssemblyHierarchy
   const afterAssemblyData = hierarchyData?.data?.afterAssemblyHierarchy || [];
-  
+
   // Filter blocks under the selected assembly
-  const blocks = afterAssemblyData.filter(h => 
+  const blocks = afterAssemblyData.filter(h =>
     h.levelName === 'Block' && h.parentAssemblyId === formData.assembly_id
   ) || [];
-  
+
   // Filter mandals under the selected block or assembly
-  const mandals = afterAssemblyData.filter(h => 
+  const mandals = afterAssemblyData.filter(h =>
     h.levelName === 'Mandal' && (
-      h.parentId === formData.block_id || 
+      h.parentId === formData.block_id ||
       (h.parentAssemblyId === formData.assembly_id && !formData.block_id)
     )
   ) || [];
-  
+
   // Filter booths under the selected mandal
-  const booths = afterAssemblyData.filter(h => 
+  const booths = afterAssemblyData.filter(h =>
     h.levelName === 'Booth' && h.parentId === formData.mandal_id
   ) || [];
 
@@ -366,9 +406,8 @@ export default function AddSupporterPage() {
                     name="initials"
                     value={formData.initials}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.initials ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.initials ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Initials</option>
                     {INITIALS_OPTIONS.map((initial) => (
@@ -390,9 +429,8 @@ export default function AddSupporterPage() {
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.first_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.first_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter first name"
                   />
                   {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
@@ -408,9 +446,8 @@ export default function AddSupporterPage() {
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.last_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.last_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter last name"
                   />
                   {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
@@ -426,9 +463,8 @@ export default function AddSupporterPage() {
                     name="father_name"
                     value={formData.father_name}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.father_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.father_name ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter father's name"
                   />
                   {errors.father_name && <p className="text-red-500 text-xs mt-1">{errors.father_name}</p>}
@@ -444,9 +480,8 @@ export default function AddSupporterPage() {
                     name="date_of_birth"
                     value={formData.date_of_birth}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   />
                   {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
                 </div>
@@ -476,9 +511,8 @@ export default function AddSupporterPage() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.gender ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.gender ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Gender</option>
                     {GENDER_OPTIONS.map((gender) => (
@@ -500,9 +534,8 @@ export default function AddSupporterPage() {
                     name="phone_no"
                     value={formData.phone_no}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.phone_no ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.phone_no ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-digit phone number"
                     maxLength={10}
                   />
@@ -519,9 +552,8 @@ export default function AddSupporterPage() {
                     name="whatsapp_no"
                     value={formData.whatsapp_no}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.whatsapp_no ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.whatsapp_no ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-digit WhatsApp number"
                     maxLength={10}
                   />
@@ -538,9 +570,8 @@ export default function AddSupporterPage() {
                     name="voter_epic_id"
                     value={formData.voter_epic_id}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.voter_epic_id ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.voter_epic_id ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="10-character EPIC ID"
                     maxLength={10}
                     style={{ textTransform: 'uppercase' }}
@@ -553,7 +584,7 @@ export default function AddSupporterPage() {
             {/* Language and Religion Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Language & Religion Information</h3>
-              
+
               {/* Language Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -585,9 +616,8 @@ export default function AddSupporterPage() {
                     name="religion"
                     value={formData.religion}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.religion ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.religion ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Religion</option>
                     {RELIGION_OPTIONS.map((religion) => (
@@ -609,9 +639,8 @@ export default function AddSupporterPage() {
                     value={formData.category}
                     onChange={handleInputChange}
                     disabled={!formData.religion}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${
-                      errors.category ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="">Select Category</option>
                     {getAvailableCategories().map((category) => (
@@ -667,7 +696,7 @@ export default function AddSupporterPage() {
             {/* Location Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* State - Disabled */}
                 <div>
@@ -792,9 +821,8 @@ export default function AddSupporterPage() {
                     value={formData.address}
                     onChange={handleInputChange}
                     rows={3}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.address ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.address ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter complete address"
                   />
                   {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
