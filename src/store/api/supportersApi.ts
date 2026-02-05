@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { 
-  Supporter, 
-  CreateSupporterRequest, 
-  UpdateSupporterRequest, 
-  SupporterFilters, 
+import type {
+  Supporter,
+  CreateSupporterRequest,
+  UpdateSupporterRequest,
+  SupporterFilters,
   SupporterStats,
   BulkOperationRequest,
   BulkOperationResponse,
@@ -29,7 +29,7 @@ export const supportersApi = createApi({
   endpoints: (builder) => ({
     // Get all supporters with filters
     getSupporters: builder.query<
-      { data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
+      { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
       SupporterFilters
     >({
       query: (filters) => {
@@ -42,12 +42,31 @@ export const supportersApi = createApi({
         return `supporters?${params.toString()}`;
       },
       providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            pagination: response.pagination
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch supporters');
+      },
     }),
 
     // Get supporter by ID
     getSupporterById: builder.query<Supporter, number>({
       query: (id) => `supporters/${id}`,
       providesTags: (_, __, id) => [{ type: 'Supporter', id }],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to fetch supporter');
+      },
     }),
 
     // Create supporter
@@ -58,6 +77,13 @@ export const supportersApi = createApi({
         body: data,
       }),
       invalidatesTags: ['Supporter', 'SupporterStats'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to create supporter');
+      },
     }),
 
     // Update supporter
@@ -72,6 +98,13 @@ export const supportersApi = createApi({
         'Supporter',
         'SupporterStats',
       ],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to update supporter');
+      },
     }),
 
     // Toggle supporter status
@@ -113,6 +146,13 @@ export const supportersApi = createApi({
         return `supporters/stats?${params.toString()}`;
       },
       providesTags: ['SupporterStats'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Failed to fetch supporter stats');
+      },
     }),
 
     // Bulk operations
@@ -125,6 +165,28 @@ export const supportersApi = createApi({
       invalidatesTags: ['Supporter', 'SupporterStats'],
     }),
 
+    // Get supporters by created_by user
+    getSupportersByCreatedBy: builder.query<
+      { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
+      { createdBy: number; page?: number; limit?: number }
+    >({
+      query: ({ createdBy, page = 1, limit = 10 }) =>
+        `supporters/created-by/${createdBy}?page=${page}&limit=${limit}`,
+      providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            pagination: response.pagination
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch supporters');
+      },
+    }),
+
     // Get hierarchy for form dropdowns
     getHierarchy: builder.query<HierarchyResponse, { state_id: number; party_id: number }>({
       query: ({ state_id, party_id }) => `campaigns/hierarchy?state_id=${state_id}&party_id=${party_id}`,
@@ -135,6 +197,7 @@ export const supportersApi = createApi({
 export const {
   useGetSupportersQuery,
   useGetSupporterByIdQuery,
+  useGetSupportersByCreatedByQuery,
   useCreateSupporterMutation,
   useUpdateSupporterMutation,
   useToggleSupporterStatusMutation,

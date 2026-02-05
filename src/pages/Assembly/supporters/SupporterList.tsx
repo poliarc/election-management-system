@@ -1,9 +1,7 @@
-import { useState, useMemo } from 'react';
-import { 
-  useGetSupportersQuery, 
-  useToggleSupporterStatusMutation, 
-  useDeleteSupporterMutation,
-  useBulkOperationMutation 
+import { useState } from 'react';
+import { MoreVertical } from 'lucide-react';
+import {
+  useGetSupportersByCreatedByQuery
 } from '../../../store/api/supportersApi';
 import { useAppSelector } from '../../../store/hooks';
 import type { Supporter, SupporterFilters } from '../../../types/supporter';
@@ -11,11 +9,12 @@ import type { Supporter, SupporterFilters } from '../../../types/supporter';
 interface SupporterListProps {
   onEdit: (supporter: Supporter) => void;
   onView: (supporter: Supporter) => void;
+  onShowPhone: (supporter: Supporter) => void;
 }
 
-export default function SupporterList({ onEdit, onView }: SupporterListProps) {
+export default function SupporterList({ onEdit, onView, onShowPhone }: SupporterListProps) {
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
-  
+
   const [filters, setFilters] = useState<SupporterFilters>({
     page: 1,
     limit: 10,
@@ -23,26 +22,132 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
     party_id: user?.partyId || 0,
     state_id: user?.state_id || selectedAssignment?.stateMasterData_id || 0,
     assembly_id: selectedAssignment?.level_id || 0,
+    created_by: user?.id || 0,
     sortBy: 'created_at',
     sortOrder: 'DESC',
+    dateFrom: '',
+    dateTo: '',
+    gender: '',
+    ageFrom: '',
+    ageTo: '',
   });
 
-  const [selectedSupporters, setSelectedSupporters] = useState<number[]>([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const { data, isLoading, error } = useGetSupportersQuery(filters, {
-    skip: !filters.party_id || !filters.state_id || !filters.assembly_id,
-  });
+  // Use the created-by endpoint as specified in the API documentation
+  // Get user ID from localStorage if not available in Redux state
+  const getUserId = () => {
+    if (user?.id) return user.id;
 
-  const [toggleStatus] = useToggleSupporterStatusMutation();
-  const [deleteSupporter] = useDeleteSupporterMutation();
-  const [bulkOperation] = useBulkOperationMutation();
+    // Fallback to localStorage
+    const authData = localStorage.getItem('auth_user');
+    if (authData) {
+      try {
+        const parsedAuth = JSON.parse(authData);
+        return parsedAuth.id || 1;
+      } catch (e) {
+        console.error('Failed to parse auth data from localStorage:', e);
+      }
+    }
+    return 1;
+  };
 
-  const supporters = data?.data || [];
+  const currentUserId = getUserId();
+
+  const { data, isLoading, error } = useGetSupportersByCreatedByQuery(
+    {
+      createdBy: currentUserId,
+      page: filters.page,
+      limit: filters.limit
+    },
+    {
+      skip: !currentUserId,
+    }
+  );
+
+  // Select the appropriate data and apply client-side date filtering
+  const allSupporters = data?.data || [];
   const pagination = data?.pagination;
+
+  // Apply client-side filtering
+  const filteredSupporters = allSupporters.filter(supporter => {
+    const createdDate = new Date(supporter.created_at);
+
+    // Apply date filters with proper type checking
+    if (filters.dateFrom && filters.dateFrom.trim()) {
+      const fromDate = new Date(filters.dateFrom);
+      if (createdDate < fromDate) return false;
+    }
+
+    if (filters.dateTo && filters.dateTo.trim()) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      if (createdDate > toDate) return false;
+    }
+
+    // Apply gender filter
+    if (filters.gender && filters.gender.trim()) {
+      if (supporter.gender !== filters.gender) return false;
+    }
+
+    // Apply age filters
+    if (filters.ageFrom && filters.ageFrom.trim()) {
+      const ageFrom = parseInt(filters.ageFrom);
+      if (!supporter.age || supporter.age < ageFrom) return false;
+    }
+
+    if (filters.ageTo && filters.ageTo.trim()) {
+      const ageTo = parseInt(filters.ageTo);
+      if (!supporter.age || supporter.age > ageTo) return false;
+    }
+
+    // Apply search filter
+    if (filters.search && filters.search.trim()) {
+      const searchTerm = filters.search.toLowerCase();
+      const searchableText = [
+        supporter.first_name,
+        supporter.last_name,
+        supporter.father_name,
+        supporter.phone_no,
+        supporter.whatsapp_no || '',
+        supporter.voter_epic_id || '',
+        supporter.address
+      ].join(' ').toLowerCase();
+
+      if (!searchableText.includes(searchTerm)) return false;
+    }
+
+    return true;
+  });
+
+  const supporters = filteredSupporters;
 
   const handleSearch = (search: string) => {
     setFilters(prev => ({ ...prev, search, page: 1 }));
+  };
+
+  const handleDateFilter = (field: 'dateFrom' | 'dateTo', value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value, page: 1 }));
+  };
+
+  const handleGenderFilter = (gender: string) => {
+    setFilters(prev => ({ ...prev, gender, page: 1 }));
+  };
+
+  const handleAgeFilter = (field: 'ageFrom' | 'ageTo', value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value, page: 1 }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: '',
+      dateTo: '',
+      gender: '',
+      ageFrom: '',
+      ageTo: '',
+      page: 1
+    }));
   };
 
   const handlePageChange = (page: number) => {
@@ -56,68 +161,6 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
       sortOrder: prev.sortBy === sortBy && prev.sortOrder === 'ASC' ? 'DESC' : 'ASC',
     }));
   };
-
-  const handleToggleStatus = async (supporter: Supporter) => {
-    try {
-      await toggleStatus({
-        id: supporter.supporter_id,
-        isActive: !supporter.isActive,
-      }).unwrap();
-    } catch (error) {
-      console.error('Failed to toggle supporter status:', error);
-    }
-  };
-
-  const handleDelete = async (supporterId: number) => {
-    if (window.confirm('Are you sure you want to delete this supporter?')) {
-      try {
-        await deleteSupporter(supporterId).unwrap();
-      } catch (error) {
-        console.error('Failed to delete supporter:', error);
-      }
-    }
-  };
-
-  const handleSelectSupporter = (supporterId: number) => {
-    setSelectedSupporters(prev =>
-      prev.includes(supporterId)
-        ? prev.filter(id => id !== supporterId)
-        : [...prev, supporterId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedSupporters.length === supporters.length) {
-      setSelectedSupporters([]);
-    } else {
-      setSelectedSupporters(supporters.map(s => s.supporter_id));
-    }
-  };
-
-  const handleBulkAction = async (operation: 'activate' | 'deactivate' | 'delete') => {
-    if (selectedSupporters.length === 0) return;
-
-    const confirmMessage = operation === 'delete' 
-      ? 'Are you sure you want to delete the selected supporters?'
-      : `Are you sure you want to ${operation} the selected supporters?`;
-
-    if (window.confirm(confirmMessage)) {
-      try {
-        await bulkOperation({
-          supporter_ids: selectedSupporters,
-          operation,
-        }).unwrap();
-        setSelectedSupporters([]);
-        setShowBulkActions(false);
-      } catch (error) {
-        console.error(`Failed to ${operation} supporters:`, error);
-      }
-    }
-  };
-
-  const filteredSupporters = useMemo(() => {
-    return supporters;
-  }, [supporters]);
 
   if (isLoading) {
     return (
@@ -150,84 +193,168 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
     <div className="bg-white rounded-lg shadow">
       {/* Header with search and filters */}
       <div className="p-6 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search supporters..."
-                value={filters.search}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search supporters..."
+                  value={filters.search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <svg
+                  className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 flex items-center gap-2"
               >
-                <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Filters
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {selectedSupporters.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  {selectedSupporters.length} selected
-                </span>
+          {/* All Filters */}
+          {showFilters && (
+            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+              {/* Date Filters */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Date Range</h4>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                    <input
+                      type="date"
+                      value={filters.dateFrom}
+                      onChange={(e) => handleDateFilter('dateFrom', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                    <input
+                      type="date"
+                      value={filters.dateTo}
+                      onChange={(e) => handleDateFilter('dateTo', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Gender and Age Filters */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Demographics</h4>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                    <select
+                      value={filters.gender}
+                      onChange={(e) => handleGenderFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">All Genders</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Age From</label>
+                    <input
+                      type="number"
+                      placeholder="Min age"
+                      value={filters.ageFrom}
+                      onChange={(e) => handleAgeFilter('ageFrom', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      min="1"
+                      max="120"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Age To</label>
+                    <input
+                      type="number"
+                      placeholder="Max age"
+                      value={filters.ageTo}
+                      onChange={(e) => handleAgeFilter('ageTo', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      min="1"
+                      max="120"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Actions */}
+              <div className="flex gap-2 pt-2">
                 <button
-                  onClick={() => setShowBulkActions(!showBulkActions)}
-                  className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200"
+                  onClick={clearAllFilters}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Bulk Actions
+                  Clear All Filters
                 </button>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Bulk Actions */}
-        {showBulkActions && selectedSupporters.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center gap-2">
-            <button
-              onClick={() => handleBulkAction('activate')}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-            >
-              Activate
-            </button>
-            <button
-              onClick={() => handleBulkAction('deactivate')}
-              className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
-            >
-              Deactivate
-            </button>
-            <button
-              onClick={() => handleBulkAction('delete')}
-              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-            >
-              Delete
-            </button>
-          </div>
-        )}
+              {/* Active Filters Display */}
+              {(filters.dateFrom || filters.dateTo || filters.gender || filters.ageFrom || filters.ageTo) && (
+                <div className="mt-2 text-sm text-gray-600 space-y-1">
+                  {(filters.dateFrom || filters.dateTo) && (
+                    <div>
+                      📅 {filters.dateFrom && filters.dateTo
+                        ? `Created: ${new Date(filters.dateFrom).toLocaleDateString()} - ${new Date(filters.dateTo).toLocaleDateString()}`
+                        : filters.dateFrom
+                          ? `Created from: ${new Date(filters.dateFrom).toLocaleDateString()}`
+                          : filters.dateTo
+                            ? `Created until: ${new Date(filters.dateTo).toLocaleDateString()}`
+                            : ''
+                      }
+                    </div>
+                  )}
+                  {filters.gender && (
+                    <div>👤 Gender: {filters.gender}</div>
+                  )}
+                  {(filters.ageFrom || filters.ageTo) && (
+                    <div>
+                      🎂 Age: {filters.ageFrom && filters.ageTo
+                        ? `${filters.ageFrom} - ${filters.ageTo} years`
+                        : filters.ageFrom
+                          ? `${filters.ageFrom}+ years`
+                          : `Up to ${filters.ageTo} years`
+                      }
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left">
-                <input
-                  type="checkbox"
-                  checked={selectedSupporters.length === supporters.length && supporters.length > 0}
-                  onChange={handleSelectAll}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                S.No
               </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              <th
+                className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('name')}
               >
                 Name
@@ -237,79 +364,82 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
                   </span>
                 )}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Father Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Phone
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Gender
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Age
+              </th>
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 EPIC ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Assembly/Block
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Assembly
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+              <th
+                className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('created_at')}
+              >
+                Created Date
+                {filters.sortBy === 'created_at' && (
+                  <span className="ml-1">
+                    {filters.sortOrder === 'ASC' ? '↑' : '↓'}
+                  </span>
+                )}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSupporters.map((supporter) => (
+            {supporters.map((supporter, index) => (
               <tr key={supporter.supporter_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedSupporters.includes(supporter.supporter_id)}
-                    onChange={() => handleSelectSupporter(supporter.supporter_id)}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
+                <td className="px-3 py-4 text-center">
+                  <div className="text-sm font-medium text-gray-900">{((filters.page || 1) - 1) * (filters.limit || 10) + index + 1}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 py-4 text-center">
                   <div className="text-sm font-medium text-gray-900">{supporter.initials} {supporter.first_name} {supporter.last_name}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 py-4 text-center">
                   <div className="text-sm text-gray-900">{supporter.father_name}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{supporter.phone_no}</div>
+                <td className="px-3 py-4 text-center">
+                  <div className="text-sm text-gray-900">{supporter.gender || 'N/A'}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 py-4 text-center">
+                  <div className="text-sm text-gray-900">{supporter.age || 'N/A'}</div>
+                </td>
+                <td className="px-3 py-4 text-center">
                   <div className="text-sm text-gray-900">{supporter.voter_epic_id || 'N/A'}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 py-4 text-center">
                   <div className="text-sm text-gray-900">
                     {supporter.assembly_name}
-                    {supporter.block_name && (
-                      <div className="text-xs text-gray-500">{supporter.block_name}</div>
-                    )}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    supporter.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {supporter.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                <td className="px-3 py-4 text-center">
+                  <div className="text-sm text-gray-900">
+                    {new Date(supporter.created_at).toLocaleDateString()}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(supporter.created_at).toLocaleTimeString()}
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-3 py-4 text-center">
                   <div className="relative inline-block text-left">
                     <button
-                      className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                      className="text-black hover:text-gray-600 focus:outline-none"
                       onClick={(e) => {
                         e.stopPropagation();
                         const menu = e.currentTarget.nextElementSibling as HTMLElement;
                         menu.classList.toggle('hidden');
                       }}
                     >
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M12 5v.01M12 12v.01M12 19v.01" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <MoreVertical className="h-5 w-5" />
                     </button>
                     <div className="hidden absolute right-0 z-10 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
                       <div className="py-1">
@@ -326,17 +456,12 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(supporter)}
+                          onClick={() => onShowPhone(supporter)}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          {supporter.isActive ? 'Deactivate' : 'Activate'}
+                          Phone
                         </button>
-                        <button
-                          onClick={() => handleDelete(supporter.supporter_id)}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                        >
-                          Delete
-                        </button>
+
                       </div>
                     </div>
                   </div>
@@ -369,11 +494,10 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1 text-sm border rounded ${
-                    pagination.page === page
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-1 text-sm border rounded ${pagination.page === page
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'border-gray-300 hover:bg-gray-50'
+                    }`}
                 >
                   {page}
                 </button>
@@ -390,7 +514,7 @@ export default function SupporterList({ onEdit, onView }: SupporterListProps) {
         </div>
       )}
 
-      {filteredSupporters.length === 0 && (
+      {supporters.length === 0 && (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />

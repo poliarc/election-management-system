@@ -18,7 +18,7 @@ export interface Supporter {
   whatsapp_no?: string;
   voter_epic_id?: string;
   address: string;
-  language: string[];
+  language: string | string[] | { primary: string; secondary?: string[] };
   religion: string;
   category: string;
   caste?: string;
@@ -57,7 +57,7 @@ export interface CreateSupporterRequest {
   whatsapp_no?: string;
   voter_epic_id?: string;
   address: string;
-  language: string[];
+  language: string | string[] | { primary: string; secondary?: string[] };
   religion: string;
   category: string;
   caste?: string;
@@ -76,11 +76,19 @@ export interface UpdateSupporterRequest {
   whatsapp_no?: string;
   voter_epic_id?: string;
   address?: string;
-  language?: string[];
+  language?: string | string[] | { primary: string; secondary?: string[] };
   religion?: string;
   category?: string;
   caste?: string;
   remarks?: string;
+  // Hierarchy fields
+  party_id?: number;
+  state_id?: number;
+  district_id?: number;
+  assembly_id?: number;
+  block_id?: number;
+  mandal_id?: number;
+  booth_id?: number;
 }
 
 export interface SupporterFilters {
@@ -96,8 +104,11 @@ export interface SupporterFilters {
   booth_id?: number;
   created_by?: number;
   isActive?: boolean;
-  created_at_from?: string;
-  created_at_to?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  gender?: string;
+  ageFrom?: string;
+  ageTo?: string;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
 }
@@ -123,6 +134,13 @@ export interface SupporterStats {
     contributor_name: string;
     supporter_count: number;
   }>;
+  demographics?: {
+    by_gender: Array<{ gender: string; count: number }>;
+    by_age_group: Array<{ age_group: string; count: number }>;
+    by_religion: Array<{ religion: string; count: number }>;
+    by_category: Array<{ category: string; count: number }>;
+    by_language: Array<{ language: string; count: number }>;
+  };
 }
 
 export interface SupporterResponse {
