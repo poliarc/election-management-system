@@ -312,8 +312,8 @@ const VisitorList: React.FC<VisitorListProps> = ({
                     key={page}
                     onClick={() => onPageChange(page)}
                     className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded ${pagination.page === page
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-gray-300 hover:bg-gray-50'
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     {page}
@@ -326,8 +326,8 @@ const VisitorList: React.FC<VisitorListProps> = ({
                   <button
                     onClick={() => onPageChange(pagination.pages)}
                     className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded ${pagination.page === pagination.pages
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-gray-300 hover:bg-gray-50'
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     {pagination.pages}
@@ -384,8 +384,8 @@ const VisitorList: React.FC<VisitorListProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Status</label>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${viewingVisitor.isActive === 1
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
                       }`}>
                       {viewingVisitor.isActive === 1 ? 'Active' : 'Inactive'}
                     </span>
