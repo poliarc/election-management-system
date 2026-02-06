@@ -76,10 +76,12 @@ export function ModuleAccessPage() {
     }, [pagination.page, filters]);
 
     useEffect(() => {
-        if (formData.party_id > 0) {
-            fetchPartyLevels(formData.party_id);
+        if (formData.party_id > 0 && formData.state_id > 0) {
+            fetchPartyLevels(formData.party_id, formData.state_id);
+        } else {
+            setPartyLevels([]);
         }
-    }, [formData.party_id]);
+    }, [formData.party_id, formData.state_id]);
 
     const fetchInitialData = async () => {
         try {
@@ -152,14 +154,15 @@ export function ModuleAccessPage() {
         }
     };
 
-    const fetchPartyLevels = async (partyId: number) => {
+    const fetchPartyLevels = async (partyId: number, stateId: number) => {
         try {
-            const response = await externalApi.getPartyLevels(partyId);
+            const response = await externalApi.getPartyLevelsByState(partyId, stateId);
             if (response.data.success) {
                 setPartyLevels(response.data.data);
             }
         } catch (error) {
             console.error('Error fetching party levels:', error);
+            setPartyLevels([]);
         }
     };
 
@@ -236,7 +239,7 @@ export function ModuleAccessPage() {
             isDisplay: Boolean(access.isDisplay),
             isActive: Boolean(access.isActive),
         });
-        fetchPartyLevels(access.party_id);
+        fetchPartyLevels(access.party_id, access.state_id);
         setShowCreateModal(true);
     };
 
@@ -485,7 +488,7 @@ export function ModuleAccessPage() {
                                 </label>
                                 <select
                                     value={formData.state_id}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, state_id: Number(e.target.value) }))}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, state_id: Number(e.target.value), party_level_id: 0 }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     required
                                 >
@@ -537,9 +540,14 @@ export function ModuleAccessPage() {
                                     value={formData.party_level_id}
                                     onChange={(e) => setFormData(prev => ({ ...prev, party_level_id: Number(e.target.value) }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    disabled={!formData.state_id || !formData.party_id}
                                     required
                                 >
-                                    <option value={0}>Select Party Level</option>
+                                    <option value={0}>
+                                        {!formData.state_id || !formData.party_id
+                                            ? 'Select State and Party first'
+                                            : 'Select Party Level'}
+                                    </option>
                                     {partyLevels.map((level) => (
                                         <option key={level.party_wise_id} value={level.party_wise_id}>
                                             {level.display_level_name}
