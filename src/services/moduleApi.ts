@@ -200,11 +200,13 @@ export const sidebarApi = {
 };
 
 // External APIs (for dropdowns) - using fetch directly since these are external URLs
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
+
 export const externalApi = {
     // Get all states - filter only State level
     getStates: () => {
         const token = localStorage.getItem('auth_access_token');
-        return fetch('https://backend.assamnyay.com/api/state-master-data/all', {
+        return fetch(`${API_BASE_URL}/state-master-data/all`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -229,7 +231,7 @@ export const externalApi = {
         if (params?.limit) queryParams.append('limit', params.limit.toString());
 
         const token = localStorage.getItem('auth_access_token');
-        return fetch(`https://backend.assamnyay.com/api/parties/all?${queryParams.toString()}`, {
+        return fetch(`${API_BASE_URL}/parties/all?${queryParams.toString()}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -245,7 +247,20 @@ export const externalApi = {
         if (includeInactive) queryParams.append('includeInactive', 'true');
 
         const token = localStorage.getItem('auth_access_token');
-        return fetch(`https://backend.assamnyay.com/api/party-wise-level/party/${partyId}?${queryParams.toString()}`, {
+        return fetch(`${API_BASE_URL}/party-wise-level/party/${partyId}?${queryParams.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => ({ data }));
+    },
+
+    // Get party levels by party ID and state ID
+    getPartyLevelsByState: (partyId: number, stateId: number) => {
+        const token = localStorage.getItem('auth_access_token');
+        return fetch(`${API_BASE_URL}/party-wise-level/hierarchy/${partyId}/${stateId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
