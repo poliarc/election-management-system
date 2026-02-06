@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import { useDashboard } from "../../hooks/useDashboard";
@@ -7,48 +6,16 @@ import { getDashboardNavigation, getDynamicIconType, getIconSvgPath, getDynamicC
 
 export default function AssemblyDashboard() {
     const navigate = useNavigate();
+    const user = useSelector((state: RootState) => state.auth.user);
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
     const assemblyId = selectedAssignment?.stateMasterData_id;
     const assemblyName = selectedAssignment?.levelName || "Assembly";
-    const [stateId, setStateId] = useState<number | null>(null);
-    const [partyId, setPartyId] = useState<number | null>(null);
 
-    // Get additional info from localStorage
-    useEffect(() => {
-        const loadAssemblyInfo = () => {
-            try {
-                const authState = localStorage.getItem('auth_state');
-                if (authState) {
-                    const parsed = JSON.parse(authState);
-                    const selectedAssignment = parsed.selectedAssignment;
-
-                    // Get state ID - for assembly, we need to traverse up the hierarchy
-                    if (selectedAssignment?.levelType === 'Assembly') {
-                        // Try to get state ID from the assignment or use default
-                        // In a real implementation, you might need to traverse the hierarchy
-                        if (selectedAssignment.parentId) {
-                            // If parentId exists, it might be district ID, we need state ID
-                            // For now, use a default state ID or get it from user context
-                            setStateId(1); // Default state ID
-                        } else {
-                            setStateId(1); // Default state ID
-                        }
-                    }
-
-                    // Get party ID if available
-                    if (parsed.user && parsed.user.partyId) {
-                        setPartyId(parsed.user.partyId);
-                    }
-                }
-            } catch (err) {
-                console.error('Error reading assembly info:', err);
-            }
-        };
-
-        loadAssemblyInfo();
-    }, []);
+    // Get state_id and party_id from user
+    const stateId = user?.state_id || null;
+    const partyId = user?.partyId || null;
 
     // Use dashboard hook
     const { cards, levelInfo, loading, error } = useDashboard({
@@ -165,11 +132,11 @@ export default function AssemblyDashboard() {
                                             const total = cards.reduce((sum, c) => sum + c.userCount, 0);
                                             const percentage = total > 0 ? (card.userCount / total) * 100 : 0;
                                             const strokeDasharray = `${percentage * 2.51} 251.2`;
-                                            const strokeDashoffset = index > 0 ? 
+                                            const strokeDashoffset = index > 0 ?
                                                 -cards.slice(0, index).reduce((sum, c) => sum + (c.userCount / total) * 251.2, 0) : 0;
-                                            
+
                                             const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-                                            
+
                                             return (
                                                 <circle
                                                     key={index}
@@ -220,12 +187,12 @@ export default function AssemblyDashboard() {
                                 {cards.slice(0, 5).map((card, index) => {
                                     const maxCount = Math.max(...cards.map(c => c.count));
                                     const percentage = maxCount > 0 ? (card.count / maxCount) * 100 : 0;
-                                    const colors = ['bg-gradient-to-r from-blue-400 to-blue-600', 
-                                                  'bg-gradient-to-r from-green-400 to-green-600',
-                                                  'bg-gradient-to-r from-yellow-400 to-yellow-600',
-                                                  'bg-gradient-to-r from-red-400 to-red-600',
-                                                  'bg-gradient-to-r from-purple-400 to-purple-600'];
-                                    
+                                    const colors = ['bg-gradient-to-r from-blue-400 to-blue-600',
+                                        'bg-gradient-to-r from-green-400 to-green-600',
+                                        'bg-gradient-to-r from-yellow-400 to-yellow-600',
+                                        'bg-gradient-to-r from-red-400 to-red-600',
+                                        'bg-gradient-to-r from-purple-400 to-purple-600'];
+
                                     return (
                                         <div key={index} className="space-y-2 hover:bg-gray-50 p-3 rounded-lg transition-all duration-200 cursor-pointer group">
                                             <div className="flex justify-between items-center">
@@ -233,9 +200,9 @@ export default function AssemblyDashboard() {
                                                 <span className="text-sm text-gray-500 group-hover:text-gray-700 group-hover:font-medium transition-all duration-200">{card.count}</span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden group-hover:h-4 transition-all duration-200">
-                                                <div 
+                                                <div
                                                     className={`h-full ${colors[index % colors.length]} rounded-full transition-all duration-1000 ease-out group-hover:shadow-lg`}
-                                                    style={{ 
+                                                    style={{
                                                         width: `${percentage}%`,
                                                         animationDelay: `${index * 100}ms`
                                                     }}
