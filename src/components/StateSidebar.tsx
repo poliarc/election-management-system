@@ -188,6 +188,23 @@ const Icons = {
       />
     </svg>
   ),
+  supporters: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="7" r="4" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m22 21-3-3m0 0a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   logout: (
     <svg
       className={iconClass}
@@ -205,12 +222,12 @@ const Icons = {
   ),
 };
 
-// Top-level items
+// Top-level items (excluding team - will be dynamic)
 const stateItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  { to: "team", label: "State Team", icon: Icons.team },
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
+  // { to: "supporters", label: "Supporters", icon: Icons.supporters },
   // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
@@ -260,6 +277,14 @@ export default function StateSidebar({
     },
     { skip: !partyId || !stateId || !partyLevelId }
   );
+
+  // Check if State Team module is accessible
+  const hasStateTeamAccess = useMemo(() => {
+    return sidebarModules.some(module => 
+      module.moduleName.toLowerCase().includes('state team') ||
+      module.moduleName.toLowerCase().includes('team')
+    );
+  }, [sidebarModules]);
 
   // Create dynamic list items from API response
   const dynamicListItems: NavItem[] = useMemo(() => {
@@ -387,6 +412,30 @@ export default function StateSidebar({
             </NavLink>
           ))}
 
+          {/* State Team - Dynamic based on module access */}
+          {hasStateTeamAccess && (
+            <NavLink
+              to={`${base}/team`}
+              onClick={() => onNavigate?.()}
+              className={({ isActive }) =>
+                [
+                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  isActive
+                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                    : "border border-transparent hover:border-gray-200",
+                ].join(" ")
+              }
+            >
+              <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+              <span className="truncate">State Team</span>
+              {/** Accent bar */}
+              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+              {/** Active indicator */}
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+            </NavLink>
+          )}
+
           {/* List dropdown */}
           <div>
             <button
@@ -461,7 +510,9 @@ export default function StateSidebar({
           </div>
 
           {/* Dynamic Modules */}
-          {sidebarModules.map((module) => (
+          {sidebarModules
+            .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team modules as they're handled separately
+            .map((module) => (
             <div key={module.module_id} className="mt-2">
               <NavLink
                 to={`${base}/${getModuleRoute(module.moduleName)}`}

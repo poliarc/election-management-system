@@ -152,6 +152,20 @@ export const assemblyApi = createApi({
             providesTags: ["UserByParty"],
         }),
 
+        getAssemblyByState: builder.query<
+            { success: boolean; message: string; data: { stateHierarchy: Assembly[]; afterAssemblyHierarchy: any[] } },
+            { state_id: number; party_id: number }
+        >({
+            query: ({ state_id, party_id }) => `/campaigns/hierarchy?state_id=${state_id}&party_id=${party_id}`,
+            transformResponse: (response: any) => {
+                if (response.success) {
+                    return response;
+                }
+                throw new Error(response.message || 'Failed to fetch assemblies');
+            },
+            providesTags: ["Assembly"],
+        }),
+
         createAssemblyAssignment: builder.mutation<
             AssemblyAssignment,
             CreateAssemblyAssignmentRequest
@@ -173,5 +187,6 @@ export const {
     useGetUsersByPartyQuery,
     useGetUsersByPartyAndStateQuery,
     useGetAllUsersWithFilterQuery,
+    useGetAssemblyByStateQuery,
     useCreateAssemblyAssignmentMutation,
 } = assemblyApi;

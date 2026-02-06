@@ -190,6 +190,19 @@ export default function EditSupporterPage() {
       return;
     }
 
+    // Handle EPIC ID - allow alphanumeric characters only and convert to uppercase
+    if (name === 'voter_epic_id') {
+      // Only allow alphanumeric characters (A-Z, 0-9)
+      const alphanumericValue = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+      setFormData(prev => ({ ...prev, [name]: alphanumericValue }));
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
+      return;
+    }
+
     // Handle cascading dropdowns
     if (name === 'block_id') {
       setFormData(prev => ({
@@ -356,6 +369,18 @@ export default function EditSupporterPage() {
     }
 
     setErrors(newErrors);
+
+    // Auto-scroll to first error field
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Focus on the field
+        (errorElement as HTMLElement).focus();
+      }
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -950,7 +975,7 @@ export default function EditSupporterPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                 )}
-                {isUpdating ? 'Updating...' : 'Update Supporter'}
+                {isUpdating ? 'Updating...' : 'Update'}
               </button>
             </div>
           </form>
