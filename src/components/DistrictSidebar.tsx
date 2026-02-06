@@ -222,11 +222,9 @@ const Icons = {
   ),
 };
 
-// Top-level items
+// Top-level items (excluding team - will be dynamic)
 const districtItems: NavItem[] = [
-
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  { to: "district-team", label: "District Team", icon: Icons.team },
   { to: "assembly", label: "Assembly List", icon: Icons.assembly },
 ];
 
@@ -290,6 +288,14 @@ export default function DistrictSidebar({
     },
     { skip: !partyId || !stateId || !partyLevelId }
   );
+
+  // Check if District Team module is accessible
+  const hasDistrictTeamAccess = useMemo(() => {
+    return sidebarModules.some(module => 
+      module.moduleName.toLowerCase().includes('district team') ||
+      (module.moduleName.toLowerCase().includes('team') && !module.moduleName.toLowerCase().includes('state'))
+    );
+  }, [sidebarModules]);
 
   // Create dynamic list items from API response
   const dynamicListItems: NavItem[] = useMemo(() => {
@@ -531,6 +537,30 @@ export default function DistrictSidebar({
           </NavLink>
         ))}
 
+        {/* District Team - Dynamic based on module access */}
+        {hasDistrictTeamAccess && (
+          <NavLink
+            to={`${base}/district-team`}
+            onClick={() => onNavigate?.()}
+            className={({ isActive }) =>
+              [
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                isActive
+                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                  : "border border-transparent hover:border-gray-200",
+              ].join(" ")
+            }
+          >
+            <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+            <span className="truncate">District Team</span>
+            {/** Accent bar */}
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+            {/** Active indicator */}
+            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+          </NavLink>
+        )}
+
         {/* List dropdown */}
         <div>
           <button
@@ -616,7 +646,9 @@ export default function DistrictSidebar({
         </div>
 
         {/* Dynamic Modules */}
-        {sidebarModules.map((module) => (
+        {sidebarModules
+          .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team modules as they're handled separately
+          .map((module) => (
           <NavLink
             key={module.module_id}
             to={`${base}/${getModuleRoute(module.moduleName)}`}
