@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
@@ -265,6 +265,13 @@ export default function AfterAssemblyPanelSidebar({
     { skip: !partyId || !stateId || !partyLevelId }
   );
 
+  // Check if Team module is accessible
+  const hasTeamAccess = useMemo(() => {
+    return sidebarModules.some(module => 
+      module.moduleName.toLowerCase().includes('team')
+    );
+  }, [sidebarModules]);
+
   const formatLevelName = (name?: string | null): string => {
     if (!name) return "After Assembly";
     // PollingCenter → Polling Center
@@ -406,16 +413,19 @@ export default function AfterAssemblyPanelSidebar({
 
   const staticNavItems: NavItem[] = [
     { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-    { to: "team", label: "Team", icon: Icons.team },
+    // Team is now dynamic based on module access
+    ...(hasTeamAccess ? [{ to: "team", label: "Team", icon: Icons.team }] : []),
     { to: "child-hierarchy", label: childLevelNavLabel, icon: Icons.hierarchy },
     { to: "booths", label: "Booths", icon: Icons.booths },
   ];
 
-  const dynamicModuleItems: NavItem[] = sidebarModules.map((module) => ({
-    to: getModuleRoute(module.moduleName),
-    label: module.displayName,
-    icon: getIconForModule(module.moduleName),
-  }));
+  const dynamicModuleItems: NavItem[] = sidebarModules
+    .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team module as it's handled in static items
+    .map((module) => ({
+      to: getModuleRoute(module.moduleName),
+      label: module.displayName,
+      icon: getIconForModule(module.moduleName),
+    }));
 
 
   const navItems: NavItem[] = [

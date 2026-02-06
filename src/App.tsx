@@ -107,6 +107,7 @@ import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPa
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
+import { StateSupportersPage } from "./pages/State/supporters";
 import { StateProfile } from "./pages/State/profile";
 import PartyAdminLayout from "./layouts/PartyAdminLayout";
 import { PartyAdminDashboard } from "./pages/PartyAdmin/Dashboard";
@@ -226,6 +227,7 @@ export default function App() {
             <Route path="booth" element={<StateBoothList />} />
             <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<StateKaryakartaListing />} />
+            <Route path="supporters" element={<StateSupportersPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="profile" element={<StateProfile />} />

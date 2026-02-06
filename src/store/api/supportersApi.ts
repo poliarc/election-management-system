@@ -165,6 +165,38 @@ export const supportersApi = createApi({
       invalidatesTags: ['Supporter', 'SupporterStats'],
     }),
 
+    // Get supporters by assembly
+    getSupportersByAssembly: builder.query<
+      { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
+      { assemblyId: number; page?: number; limit?: number; search?: string }
+    >({
+      query: ({ assemblyId, page = 1, limit = 10, search }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        
+        if (search) {
+          params.append('search', search);
+        }
+        
+        return `supporters/assembly/${assemblyId}?${params.toString()}`;
+      },
+      providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            pagination: response.pagination
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch supporters');
+      },
+    }),
+
     // Get supporters by created_by user
     getSupportersByCreatedBy: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
@@ -197,6 +229,8 @@ export const supportersApi = createApi({
 export const {
   useGetSupportersQuery,
   useGetSupporterByIdQuery,
+  useGetSupportersByAssemblyQuery,
+  useLazyGetSupportersByAssemblyQuery,
   useGetSupportersByCreatedByQuery,
   useCreateSupporterMutation,
   useUpdateSupporterMutation,
