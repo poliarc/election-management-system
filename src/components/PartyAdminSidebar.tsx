@@ -3,6 +3,8 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
+import toast from 'react-hot-toast';
+import type { Supporter } from "../types/supporter";
 
 interface PartyAdminSidebarProps {
     partyId: number;
@@ -124,6 +126,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [expandedDropdowns, setExpandedDropdowns] = useState<string[]>([]);
+    const [isExporting, setIsExporting] = useState(false);
 
     const base = `/partyadmin/${partyId}`;
     const firstName = user?.firstName || user?.username || "Admin";
@@ -150,6 +153,241 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
         return children.some(child => location.pathname.includes(`${base}/${child.to}`));
     };
 
+    const handleExportSupporters = async () => {
+        const stateId = user?.state_id || 0;
+        
+        if (!stateId) {
+            toast.error('State information not found. Please login again.');
+            return;
+        }
+
+        setIsExporting(true);
+        
+        try {
+            toast.loading('Starting export...', { id: 'export-toast' });
+
+            // Check if we have a valid API base URL
+            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+            if (!apiBaseUrl) {
+                toast.error('API base URL is not configured. Please contact support.', { id: 'export-toast' });
+                return;
+            }
+
+            // Check if we have a valid token
+            const token = localStorage.getItem('auth_access_token');
+            if (!token) {
+                toast.error('Authentication token not found. Please login again.', { id: 'export-toast' });
+                return;
+            }
+
+            const exportEndpoint = `${apiBaseUrl}/api/supporters/state/${stateId}`;
+            console.log('Exporting supporters from:', exportEndpoint);
+
+            let allSupporters: Supporter[] = [];
+            let currentPage = 1;
+            const pageSize = 100; // Maximum allowed by API
+            let totalPages = 1;
+
+            // Fetch all supporters using pagination
+            do {
+                console.log(`Fetching page ${currentPage} of supporters...`);
+                
+                const params = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: pageSize.toString(),
+                });
+                
+                const exportResponse = await fetch(
+                    `${exportEndpoint}?${params.toString()}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                console.log(`Page ${currentPage} response status:`, exportResponse.status);
+
+                if (!exportResponse.ok) {
+                    let errorMessage = `HTTP ${exportResponse.status}`;
+                    try {
+                        const errorData = await exportResponse.json();
+                        errorMessage = errorData.message || errorMessage;
+                        console.error('API Error Details:', errorData);
+                    } catch {
+                        try {
+                            const errorText = await exportResponse.text();
+                            errorMessage = errorText || errorMessage;
+                        } catch {
+                            // Keep the HTTP status message
+                        }
+                    }
+                    throw new Error(`API Error on page ${currentPage}: ${errorMessage}`);
+                }
+
+                const exportData = await exportResponse.json();
+                console.log(`Page ${currentPage} data received:`, {
+                    success: exportData.success,
+                    dataCount: exportData.data?.length || 0,
+                    pagination: exportData.pagination
+                });
+                
+                if (!exportData.success) {
+                    throw new Error(exportData.message || `API returned unsuccessful response on page ${currentPage}`);
+                }
+
+                const pageData = exportData.data || [];
+                allSupporters = [...allSupporters, ...pageData];
+
+                // Update pagination info
+                if (exportData.pagination) {
+                    totalPages = exportData.pagination.pages || 1;
+                    console.log(`Page ${currentPage}/${totalPages} completed. Total supporters so far: ${allSupporters.length}`);
+                    
+                    // Update toast with progress
+                    if (totalPages > 1) {
+                        toast.loading(`Fetching page ${currentPage}/${totalPages} (${allSupporters.length} records)...`, { id: 'export-toast' });
+                    }
+                } else {
+                    // If no pagination info, assume this is the last page
+                    break;
+                }
+
+                currentPage++;
+
+            } while (currentPage <= totalPages);
+
+            console.log('All pages fetched. Total supporters to export:', allSupporters.length);
+
+            if (allSupporters.length === 0) {
+                toast.error('No supporters found to export.', { id: 'export-toast' });
+                return;
+            }
+
+            // Create CSV content with proper escaping
+            const headers = [
+                'Serial No', 'Initials', 'First Name', 'Last Name', 'Father Name', 'Age', 'Gender',
+                'Phone', 'WhatsApp', 'EPIC ID', 'Address', 'Languages', 'Religion', 'Category', 'Caste',
+                'Assembly', 'Block', 'Mandal', 'Booth', 'Created At'
+            ];
+
+            const csvRows = allSupporters.map((supporter: Supporter, index: number) => {
+                // Helper function to escape CSV values
+                const escapeCSV = (value: any, isNumeric: boolean = false) => {
+                    if (value === null || value === undefined) return '';
+                    const str = String(value);
+                    
+                    // For numeric fields like phone numbers, wrap in quotes to force text format
+                    if (isNumeric && str.length > 0) {
+                        return `"${str}"`;
+                    }
+                    
+                    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+
+                // Handle language field properly
+                let languageStr = '';
+                if (Array.isArray(supporter.language)) {
+                    languageStr = supporter.language.join('; ');
+                } else if (typeof supporter.language === 'object' && supporter.language !== null) {
+                    const langObj = supporter.language as any;
+                    languageStr = langObj.primary || '';
+                    if (langObj.secondary && Array.isArray(langObj.secondary)) {
+                        languageStr += langObj.secondary.length > 0 ? `; ${langObj.secondary.join('; ')}` : '';
+                    }
+                } else {
+                    languageStr = supporter.language || '';
+                }
+
+                return [
+                    escapeCSV(index + 1), // Serial number
+                    escapeCSV(supporter.initials),
+                    escapeCSV(supporter.first_name),
+                    escapeCSV(supporter.last_name),
+                    escapeCSV(supporter.father_name),
+                    escapeCSV(supporter.age),
+                    escapeCSV(supporter.gender),
+                    escapeCSV(supporter.phone_no, true), // Force text format for phone
+                    escapeCSV(supporter.whatsapp_no, true), // Force text format for WhatsApp
+                    escapeCSV(supporter.voter_epic_id, true), // Force text format for EPIC ID
+                    escapeCSV(supporter.address),
+                    escapeCSV(languageStr),
+                    escapeCSV(supporter.religion),
+                    escapeCSV(supporter.category),
+                    escapeCSV(supporter.caste),
+                    escapeCSV(supporter.assembly_name),
+                    escapeCSV(supporter.block_name),
+                    escapeCSV(supporter.mandal_name),
+                    escapeCSV(supporter.booth_name),
+                    escapeCSV(supporter.created_at ? new Date(supporter.created_at).toLocaleDateString() : '')
+                ].join(',');
+            });
+
+            const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+            // Create and download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // Check if blob was created successfully
+            if (blob.size === 0) {
+                throw new Error('Failed to create export file - no data to export');
+            }
+
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            // Generate filename
+            const filename = `supporters_state_${stateId}_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            URL.revokeObjectURL(url);
+            
+            console.log('Export completed successfully');
+            toast.success(`Successfully exported ${allSupporters.length} supporters to ${filename}`, { id: 'export-toast' });
+
+        } catch (error) {
+            console.error('Export failed:', error);
+            
+            // Provide more specific error messages based on the error type
+            let userMessage = 'Failed to export data. ';
+            
+            if (error instanceof Error) {
+                const errorMsg = error.message.toLowerCase();
+                
+                if (errorMsg.includes('authentication') || errorMsg.includes('token') || errorMsg.includes('401')) {
+                    userMessage += 'Please login again and try again.';
+                } else if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
+                    userMessage += 'You do not have permission to export data.';
+                } else if (errorMsg.includes('404') || errorMsg.includes('not found')) {
+                    userMessage += 'Data not found. Please try again later.';
+                } else if (errorMsg.includes('500') || errorMsg.includes('server error')) {
+                    userMessage += 'Server error occurred. Please try again later.';
+                } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                    userMessage += 'Network error. Please check your internet connection and try again.';
+                } else {
+                    userMessage += `Error: ${error.message}`;
+                }
+            } else {
+                userMessage += 'An unknown error occurred. Please try again.';
+            }
+            
+            toast.error(userMessage, { id: 'export-toast' });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     const navItems: NavItem[] = [
         { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
         { to: "levels", label: "Levels", icon: Icons.levels },
@@ -158,6 +396,28 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             to: "registration-links", label: "Manage Links", icon: Icons.link,
         },
         { to: "roles", label: "Roles", icon: Icons.levels },
+        // {
+        //     to: "other",
+        //     label: "Other",
+        //     icon: (
+        //         <svg
+        //             className={iconClass}
+        //             viewBox="0 0 24 24"
+        //             fill="none"
+        //             stroke="currentColor"
+        //         >
+        //             <path
+        //                 d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+        //                 strokeWidth={1.4}
+        //                 strokeLinecap="round"
+        //                 strokeLinejoin="round"
+        //             />
+        //         </svg>
+        //     ),
+        //     children: [
+        //         { to: "export-supporters", label: "Export Supporters" },
+        //     ],
+        // },
     ];
 
     return (
@@ -220,22 +480,52 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                         }`}>
                                         <div className="ml-4 mt-1 space-y-1">
                                             {item.children.map((child) => (
-                                                <NavLink
-                                                    key={child.to}
-                                                    to={`${base}/${child.to}`}
-                                                    onClick={() => onNavigate?.()}
-                                                    className={({ isActive }) =>
-                                                        [
-                                                            "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                                                            "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                                                            isActive
-                                                                ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
-                                                                : "border-l-2 border-transparent hover:border-gray-200",
-                                                        ].join(" ")
-                                                    }
-                                                >
-                                                    <span className="truncate">{child.label}</span>
-                                                </NavLink>
+                                                child.to === 'export-supporters' ? (
+                                                    // Export button (not a NavLink)
+                                                    <button
+                                                        key={child.to}
+                                                        onClick={handleExportSupporters}
+                                                        disabled={isExporting}
+                                                        className="w-full no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 border-l-2 border-transparent hover:border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {isExporting ? (
+                                                            <>
+                                                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                <span className="truncate">Exporting...</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    <polyline points="7,10 12,15 17,10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                    <line x1="12" y1="15" x2="12" y2="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                </svg>
+                                                                <span className="truncate">{child.label}</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    // Regular NavLink for other children
+                                                    <NavLink
+                                                        key={child.to}
+                                                        to={`${base}/${child.to}`}
+                                                        onClick={() => onNavigate?.()}
+                                                        className={({ isActive }) =>
+                                                            [
+                                                                "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                                                                "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                                                isActive
+                                                                    ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
+                                                                    : "border-l-2 border-transparent hover:border-gray-200",
+                                                            ].join(" ")
+                                                        }
+                                                    >
+                                                        <span className="truncate">{child.label}</span>
+                                                    </NavLink>
+                                                )
                                             ))}
                                         </div>
                                     </div>
