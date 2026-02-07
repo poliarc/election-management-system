@@ -227,7 +227,7 @@ const stateItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
-  // { to: "supporters", label: "Supporters", icon: Icons.supporters },
+  { to: "supporters", label: "Supporters", icon: Icons.supporters },
   // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
