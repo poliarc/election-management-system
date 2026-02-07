@@ -165,12 +165,12 @@ export const supportersApi = createApi({
       invalidatesTags: ['Supporter', 'SupporterStats'],
     }),
 
-    // Get supporters by assembly
-    getSupportersByAssembly: builder.query<
+    // Get supporters by state
+    getSupportersByState: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
-      { assemblyId: number; page?: number; limit?: number; search?: string }
+      { stateId: number; page?: number; limit?: number; search?: string; districtId?: number; assemblyId?: number; blockId?: number; userId?: number }
     >({
-      query: ({ assemblyId, page = 1, limit = 10, search }) => {
+      query: ({ stateId, page = 1, limit = 10, search, districtId, assemblyId, blockId, userId }) => {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
@@ -178,6 +178,106 @@ export const supportersApi = createApi({
         
         if (search) {
           params.append('search', search);
+        }
+        
+        if (districtId) {
+          params.append('district_id', districtId.toString());
+        }
+        
+        if (assemblyId) {
+          params.append('assembly_id', assemblyId.toString());
+        }
+        
+        if (blockId) {
+          params.append('block_id', blockId.toString());
+        }
+        
+        if (userId) {
+          params.append('created_by', userId.toString());
+        }
+        
+        return `supporters/state/${stateId}?${params.toString()}`;
+      },
+      providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            pagination: response.pagination
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch supporters');
+      },
+    }),
+
+    // Get supporters by district
+    getSupportersByDistrict: builder.query<
+      { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
+      { districtId: number; page?: number; limit?: number; search?: string; assemblyId?: number; blockId?: number; userId?: number }
+    >({
+      query: ({ districtId, page = 1, limit = 10, search, assemblyId, blockId, userId }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        
+        if (search) {
+          params.append('search', search);
+        }
+        
+        if (assemblyId) {
+          params.append('assembly_id', assemblyId.toString());
+        }
+        
+        if (blockId) {
+          params.append('block_id', blockId.toString());
+        }
+        
+        if (userId) {
+          params.append('created_by', userId.toString());
+        }
+        
+        return `supporters/district/${districtId}?${params.toString()}`;
+      },
+      providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data,
+            pagination: response.pagination
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch supporters');
+      },
+    }),
+
+    // Get supporters by assembly
+    getSupportersByAssembly: builder.query<
+      { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
+      { assemblyId: number; page?: number; limit?: number; search?: string; blockId?: number; userId?: number }
+    >({
+      query: ({ assemblyId, page = 1, limit = 10, search, blockId, userId }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        
+        if (search) {
+          params.append('search', search);
+        }
+        
+        if (blockId) {
+          params.append('block_id', blockId.toString());
+        }
+        
+        if (userId) {
+          params.append('created_by', userId.toString());
         }
         
         return `supporters/assembly/${assemblyId}?${params.toString()}`;
@@ -229,6 +329,10 @@ export const supportersApi = createApi({
 export const {
   useGetSupportersQuery,
   useGetSupporterByIdQuery,
+  useGetSupportersByStateQuery,
+  useLazyGetSupportersByStateQuery,
+  useGetSupportersByDistrictQuery,
+  useLazyGetSupportersByDistrictQuery,
   useGetSupportersByAssemblyQuery,
   useLazyGetSupportersByAssemblyQuery,
   useGetSupportersByCreatedByQuery,

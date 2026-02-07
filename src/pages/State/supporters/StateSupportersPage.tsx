@@ -1,53 +1,230 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '../../../store/hooks';
 import { useGetAssemblyByStateQuery } from '../../../store/api/assemblyApi';
-import { useGetSupportersByAssemblyQuery } from '../../../store/api/supportersApi';
+import { useGetSupportersByStateQuery, useGetSupportersByDistrictQuery, useGetSupportersByAssemblyQuery } from '../../../store/api/supportersApi';
 import type { Supporter } from '../../../types/supporter';
-import toast from 'react-hot-toast';
 
 interface AssemblyOption {
   id: number;
   levelName: string;
   displayName: string;
   stateMasterData_id?: number;
+  parentId?: number;
+}
+
+interface DistrictOption {
+  id: number;
+  levelName: string;
+  displayName: string;
+}
+
+interface BlockOption {
+  id: number;
+  levelName: string;
+  displayName: string;
+  parentAssemblyId?: number;
+}
+
+interface UserOption {
+  id: number;
+  name: string;
+  supporterCount: number;
 }
 
 export default function StateSupportersPage() {
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
+  const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
+  const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingSupporter, setViewingSupporter] = useState<Supporter | null>(null);
+  const [availableUsers, setAvailableUsers] = useState<UserOption[]>([]);
 
   const stateId = user?.state_id || selectedAssignment?.stateMasterData_id || 0;
   const partyId = user?.partyId || 0;
 
-  // Get assemblies for the state
-  const { data: assembliesData, isLoading: assembliesLoading, error: assembliesError } = useGetAssemblyByStateQuery({
+  // Get hierarchy data for the state
+  const { data: hierarchyData, isLoading: hierarchyLoading, error: hierarchyError } = useGetAssemblyByStateQuery({
     state_id: stateId,
     party_id: partyId,
   }, {
     skip: !stateId || !partyId,
   });
 
-  // Get supporters for selected assembly
-  const { data: supportersData, isLoading: supportersLoading, refetch } = useGetSupportersByAssemblyQuery({
+  // Get supporters for state, district or assembly with filters
+  const { data: stateSupportersData, isLoading: stateSupportersLoading, refetch: refetchState } = useGetSupportersByStateQuery({
+    stateId: stateId,
+    page: currentPage,
+    limit: 10,
+    search: searchTerm,
+    districtId: selectedDistrictId || undefined,
+    assemblyId: selectedAssemblyId || undefined,
+    blockId: selectedBlockId || undefined,
+    userId: selectedUserId || undefined,
+  }, {
+    skip: !stateId || selectedDistrictId > 0 || selectedAssemblyId > 0,
+  });
+
+  // Get unfiltered data for user list (without userId filter)
+  const { data: stateUsersData } = useGetSupportersByStateQuery({
+    stateId: stateId,
+    page: 1,
+    limit: 100,
+    districtId: selectedDistrictId || undefined,
+    assemblyId: selectedAssemblyId || undefined,
+    blockId: selectedBlockId || undefined,
+  }, {
+    skip: !stateId || selectedDistrictId > 0 || selectedAssemblyId > 0,
+  });
+
+  const { data: districtSupportersData, isLoading: districtSupportersLoading, refetch: refetchDistrict } = useGetSupportersByDistrictQuery({
+    districtId: selectedDistrictId,
+    page: currentPage,
+    limit: 10,
+    search: searchTerm,
+    assemblyId: selectedAssemblyId || undefined,
+    blockId: selectedBlockId || undefined,
+    userId: selectedUserId || undefined,
+  }, {
+    skip: !selectedDistrictId || selectedAssemblyId > 0,
+  });
+
+  // Get unfiltered data for user list (without userId filter)
+  const { data: districtUsersData } = useGetSupportersByDistrictQuery({
+    districtId: selectedDistrictId,
+    page: 1,
+    limit: 100,
+    assemblyId: selectedAssemblyId || undefined,
+    blockId: selectedBlockId || undefined,
+  }, {
+    skip: !selectedDistrictId || selectedAssemblyId > 0,
+  });
+
+  const { data: assemblySupportersData, isLoading: assemblySupportersLoading, refetch: refetchAssembly } = useGetSupportersByAssemblyQuery({
     assemblyId: selectedAssemblyId,
     page: currentPage,
     limit: 10,
     search: searchTerm,
+    blockId: selectedBlockId || undefined,
+    userId: selectedUserId || undefined,
   }, {
     skip: !selectedAssemblyId,
   });
 
-  const assemblies: AssemblyOption[] = assembliesData?.data?.stateHierarchy?.filter(
-    (item: any) => item.levelType === 'Assembly'
+  // Get unfiltered data for user list (without userId filter)
+  const { data: assemblyUsersData } = useGetSupportersByAssemblyQuery({
+    assemblyId: selectedAssemblyId,
+    page: 1,
+    limit: 100,
+    blockId: selectedBlockId || undefined,
+  }, {
+    skip: !selectedAssemblyId,
+  });
+
+  // Use state, district or assembly data based on selection
+  const supportersData = selectedAssemblyId > 0 
+    ? assemblySupportersData 
+    : selectedDistrictId > 0 
+      ? districtSupportersData 
+      : stateSupportersData;
+  
+  const supportersLoading = selectedAssemblyId > 0 
+    ? assemblySupportersLoading 
+    : selectedDistrictId > 0 
+      ? districtSupportersLoading 
+      : stateSupportersLoading;
+  
+  const refetch = selectedAssemblyId > 0 
+    ? refetchAssembly 
+    : selectedDistrictId > 0 
+      ? refetchDistrict 
+      : refetchState;
+
+  // Extract districts from hierarchy
+  const districts: DistrictOption[] = hierarchyData?.data?.stateHierarchy?.filter(
+    (item: any) => item.levelType === 'District'
+  ).map((item: any) => ({
+    id: item.id,
+    levelName: item.levelName,
+    displayName: item.levelName,
+  })) || [];
+
+  // Extract assemblies filtered by selected district
+  const assemblies: AssemblyOption[] = hierarchyData?.data?.stateHierarchy?.filter(
+    (item: any) => item.levelType === 'Assembly' && (!selectedDistrictId || item.ParentId === selectedDistrictId)
   ).map((item: any) => ({
     id: item.stateMasterData_id || item.id,
     levelName: item.levelName,
     displayName: item.levelName,
-    stateMasterData_id: item.stateMasterData_id || item.id
+    stateMasterData_id: item.stateMasterData_id || item.id,
+    parentId: item.ParentId
   })) || [];
+
+  // Extract blocks - show all blocks or filter by assembly/district
+  const blocks: BlockOption[] = hierarchyData?.data?.afterAssemblyHierarchy?.filter(
+    (item: any) => {
+      if (item.levelName !== 'Block') return false;
+      
+      // If assembly is selected, show only blocks from that assembly
+      if (selectedAssemblyId > 0) {
+        return item.parentAssemblyId === selectedAssemblyId;
+      }
+      
+      // If district is selected (but no assembly), show blocks from assemblies in that district
+      if (selectedDistrictId > 0) {
+        const assembly = assemblies.find(a => a.id === item.parentAssemblyId);
+        return assembly && assembly.parentId === selectedDistrictId;
+      }
+      
+      // Otherwise show all blocks
+      return true;
+    }
+  ).map((item: any) => ({
+    id: item.id,
+    levelName: item.levelName,
+    displayName: item.displayName || item.levelName,
+    parentAssemblyId: item.parentAssemblyId
+  })) || [];
+
+  // Extract unique users from supporters data (without user filter applied)
+  // We need to get users from unfiltered data to show all available users
+  useEffect(() => {
+    const usersDataSource = selectedAssemblyId > 0 
+      ? assemblyUsersData 
+      : selectedDistrictId > 0 
+        ? districtUsersData 
+        : stateUsersData;
+    
+    if (usersDataSource?.data) {
+      const userMap = new Map<number, { name: string; count: number }>();
+      usersDataSource.data.forEach((supporter: Supporter) => {
+        if (supporter.created_by && supporter.created_by_name) {
+          const existing = userMap.get(supporter.created_by);
+          if (existing) {
+            existing.count++;
+          } else {
+            userMap.set(supporter.created_by, {
+              name: supporter.created_by_name,
+              count: 1
+            });
+          }
+        }
+      });
+      
+      const usersList: UserOption[] = [];
+      userMap.forEach((value, key) => {
+        usersList.push({
+          id: key,
+          name: value.name,
+          supporterCount: value.count
+        });
+      });
+      usersList.sort((a, b) => b.supporterCount - a.supporterCount);
+      setAvailableUsers(usersList);
+    }
+  }, [selectedAssemblyId, selectedDistrictId, selectedBlockId, assemblyUsersData, districtUsersData, stateUsersData]);
 
   const supporters = supportersData?.data || [];
   const pagination = supportersData?.pagination;
@@ -55,283 +232,45 @@ export default function StateSupportersPage() {
   // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (selectedAssemblyId) {
+      if (stateId || selectedDistrictId || selectedAssemblyId) {
         setCurrentPage(1);
         refetch();
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedAssemblyId, refetch]);
+  }, [searchTerm, stateId, selectedDistrictId, selectedAssemblyId, refetch]);
 
-  const handleAssemblyChange = (assemblyId: number) => {
-    setSelectedAssemblyId(assemblyId);
+  const handleDistrictChange = (districtId: number) => {
+    setSelectedDistrictId(districtId);
+    setSelectedAssemblyId(0);
+    setSelectedBlockId(0);
+    setSelectedUserId(0);
     setCurrentPage(1);
     setSearchTerm('');
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleAssemblyChange = (assemblyId: number) => {
+    setSelectedAssemblyId(assemblyId);
+    setSelectedBlockId(0);
+    setSelectedUserId(0);
+    setCurrentPage(1);
+    setSearchTerm('');
   };
 
-  const handleExportExcel = async () => {
-    if (!selectedAssemblyId) {
-      toast.error('Please select an assembly first before exporting.');
-      return;
-    }
+  const handleBlockChange = (blockId: number) => {
+    setSelectedBlockId(blockId);
+    setSelectedUserId(0);
+    setCurrentPage(1);
+  };
 
-    const exportButton = document.querySelector('[data-export-button]') as HTMLButtonElement;
-    
-    try {
-      // Show loading state
-      if (exportButton) {
-        exportButton.disabled = true;
-        exportButton.innerHTML = `
-          <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Exporting...
-        `;
-      }
+  const handleUserChange = (userId: number) => {
+    setSelectedUserId(userId);
+    setCurrentPage(1);
+  };
 
-      // Check if we have a valid API base URL
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-      if (!apiBaseUrl) {
-        toast.error('API base URL is not configured. Please contact support.');
-        return;
-      }
-
-      // Check if we have a valid token
-      const token = localStorage.getItem('auth_access_token');
-      if (!token) {
-        toast.error('Authentication token not found. Please login again.');
-        return;
-      }
-
-      console.log('Exporting supporters for assembly:', selectedAssemblyId);
-
-      let allSupporters: Supporter[] = [];
-      let currentPage = 1;
-      const pageSize = 100; // Maximum allowed by API
-      let totalPages = 1;
-
-      // Fetch all supporters using pagination
-      do {
-        console.log(`Fetching page ${currentPage} of supporters...`);
-        
-        const exportResponse = await fetch(
-          `${apiBaseUrl}/api/supporters/assembly/${selectedAssemblyId}?page=${currentPage}&limit=${pageSize}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        console.log(`Page ${currentPage} response status:`, exportResponse.status);
-
-        if (!exportResponse.ok) {
-          let errorMessage = `HTTP ${exportResponse.status}`;
-          try {
-            const errorData = await exportResponse.json();
-            errorMessage = errorData.message || errorMessage;
-            console.error('API Error Details:', errorData);
-          } catch {
-            try {
-              const errorText = await exportResponse.text();
-              errorMessage = errorText || errorMessage;
-            } catch {
-              // Keep the HTTP status message
-            }
-          }
-          throw new Error(`API Error on page ${currentPage}: ${errorMessage}`);
-        }
-
-        const exportData = await exportResponse.json();
-        console.log(`Page ${currentPage} data received:`, {
-          success: exportData.success,
-          dataCount: exportData.data?.length || 0,
-          pagination: exportData.pagination
-        });
-        
-        if (!exportData.success) {
-          throw new Error(exportData.message || `API returned unsuccessful response on page ${currentPage}`);
-        }
-
-        const pageData = exportData.data || [];
-        allSupporters = [...allSupporters, ...pageData];
-
-        // Update pagination info
-        if (exportData.pagination) {
-          totalPages = exportData.pagination.pages || 1;
-          console.log(`Page ${currentPage}/${totalPages} completed. Total supporters so far: ${allSupporters.length}`);
-        } else {
-          // If no pagination info, assume this is the last page
-          break;
-        }
-
-        currentPage++;
-
-        // Update button text to show progress
-        if (exportButton && totalPages > 1) {
-          exportButton.innerHTML = `
-            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Page ${currentPage-1}/${totalPages} (${allSupporters.length} records)
-          `;
-        }
-
-      } while (currentPage <= totalPages);
-
-      console.log('All pages fetched. Total supporters to export:', allSupporters.length);
-
-      if (allSupporters.length === 0) {
-        toast.error('No supporters found to export for this assembly.');
-        return;
-      }
-
-      // Create CSV content with proper escaping
-      const headers = [
-        'Serial No', 'Initials', 'First Name', 'Last Name', 'Father Name', 'Age', 'Gender',
-        'Phone', 'WhatsApp', 'EPIC ID', 'Address', 'Languages', 'Religion', 'Category', 'Caste',
-        'Assembly', 'Block', 'Mandal', 'Booth', 'Created At'
-      ];
-
-      const csvRows = allSupporters.map((supporter: Supporter, index: number) => {
-        // Helper function to escape CSV values and prevent scientific notation
-        const escapeCSV = (value: any, isNumeric: boolean = false) => {
-          if (value === null || value === undefined) return '';
-          const str = String(value);
-          
-          // For numeric fields like phone numbers, add a tab character to force text format
-          if (isNumeric && str.length > 0) {
-            return `"${str}"`;
-          }
-          
-          if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-            return `"${str.replace(/"/g, '""')}"`;
-          }
-          return str;
-        };
-
-        // Handle language field properly
-        let languageStr = '';
-        if (Array.isArray(supporter.language)) {
-          languageStr = supporter.language.join('; ');
-        } else if (typeof supporter.language === 'object' && supporter.language !== null) {
-          const langObj = supporter.language as any;
-          languageStr = langObj.primary || '';
-          if (langObj.secondary && Array.isArray(langObj.secondary)) {
-            languageStr += langObj.secondary.length > 0 ? `; ${langObj.secondary.join('; ')}` : '';
-          }
-        } else {
-          languageStr = supporter.language || '';
-        }
-
-        return [
-          escapeCSV(index + 1), // Serial number
-          escapeCSV(supporter.initials),
-          escapeCSV(supporter.first_name),
-          escapeCSV(supporter.last_name),
-          escapeCSV(supporter.father_name),
-          escapeCSV(supporter.age),
-          escapeCSV(supporter.gender),
-          escapeCSV(supporter.phone_no, true), // Force text format for phone
-          escapeCSV(supporter.whatsapp_no, true), // Force text format for WhatsApp
-          escapeCSV(supporter.voter_epic_id, true), // Force text format for EPIC ID
-          escapeCSV(supporter.address),
-          escapeCSV(languageStr),
-          escapeCSV(supporter.religion),
-          escapeCSV(supporter.category),
-          escapeCSV(supporter.caste),
-          escapeCSV(supporter.assembly_name),
-          escapeCSV(supporter.block_name),
-          escapeCSV(supporter.mandal_name),
-          escapeCSV(supporter.booth_name),
-          escapeCSV(supporter.created_at ? new Date(supporter.created_at).toLocaleDateString() : '')
-        ].join(',');
-      });
-
-      const csvContent = [headers.join(','), ...csvRows].join('\n');
-
-      // Create and download CSV file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      
-      // Check if blob was created successfully
-      if (blob.size === 0) {
-        throw new Error('Failed to create export file - no data to export');
-      }
-
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      
-      // Get assembly name for filename
-      const selectedAssembly = assemblies.find(a => a.id === selectedAssemblyId);
-      const assemblyName = selectedAssembly?.levelName || `Assembly_${selectedAssemblyId}`;
-      const sanitizedAssemblyName = assemblyName.replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `supporters_${sanitizedAssemblyName}_${new Date().toISOString().split('T')[0]}.csv`;
-      
-      link.setAttribute('href', url);
-      link.setAttribute('download', filename);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up
-      URL.revokeObjectURL(url);
-      
-      console.log('Export completed successfully');
-      // Show success toast
-      toast.success(`Successfully exported ${allSupporters.length} supporters to ${filename}`);
-
-    } catch (error) {
-      console.error('Export failed:', error);
-      
-      // Provide more specific error messages based on the error type
-      let userMessage = 'Failed to export data. ';
-      
-      if (error instanceof Error) {
-        const errorMsg = error.message.toLowerCase();
-        
-        if (errorMsg.includes('authentication') || errorMsg.includes('token') || errorMsg.includes('401')) {
-          userMessage += 'Please login again and try again.';
-        } else if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
-          userMessage += 'You do not have permission to export data for this assembly.';
-        } else if (errorMsg.includes('404') || errorMsg.includes('not found')) {
-          userMessage += 'The assembly or data was not found. Please try selecting a different assembly.';
-        } else if (errorMsg.includes('500') || errorMsg.includes('server error')) {
-          userMessage += 'Server error occurred. Please try again later.';
-        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-          userMessage += 'Network error. Please check your internet connection and try again.';
-        } else if (errorMsg.includes('validation') || errorMsg.includes('too big') || errorMsg.includes('limit')) {
-          userMessage += 'API validation error. The system is now using pagination to handle large datasets.';
-        } else {
-          userMessage += `Error: ${error.message}`;
-        }
-      } else {
-        userMessage += 'An unknown error occurred. Please try again.';
-      }
-      
-      toast.error(userMessage);
-    } finally {
-      // Reset button state
-      if (exportButton) {
-        exportButton.disabled = false;
-        exportButton.innerHTML = `
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <polyline points="7,10 12,15 17,10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          Export Excel
-        `;
-      }
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const getFullName = (supporter: Supporter) => {
@@ -343,31 +282,174 @@ export default function StateSupportersPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Supporters Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Supporters Dashboard</h1>
           <p className="text-gray-600">View and manage supporters across assemblies</p>
         </div>
 
-        {/* Assembly Selection */}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+          {/* Total Supporters Card */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-xs font-medium">Total Supporters</p>
+                <p className="text-2xl font-bold mt-1">{pagination?.total || 0}</p>
+              </div>
+              <div className="bg-white/20 rounded-full p-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* District Count Card */}
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-xs font-medium">
+                  {selectedDistrictId ? 'District(Supp)' : 'Districts'}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {selectedDistrictId ? (pagination?.total || 0) : districts.length}
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Assembly Count Card */}
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-xs font-medium">
+                  {selectedAssemblyId ? 'Assembly(Supp)' : 'Assemblies'}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {selectedAssemblyId ? (pagination?.total || 0) : assemblies.length}
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Block Count Card */}
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100 text-xs font-medium">
+                  {selectedBlockId ? 'Block(Supp)' : 'Blocks'}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {selectedBlockId ? (pagination?.total || 0) : blocks.length}
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* User Count Card */}
+          <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg shadow-md p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-pink-100 text-xs font-medium">
+                  {selectedUserId ? 'User(Supp)' : 'Users'}
+                </p>
+                <p className="text-2xl font-bold mt-1">
+                  {selectedUserId ? (pagination?.total || 0) : availableUsers.length}
+                </p>
+              </div>
+              <div className="bg-white/20 rounded-full p-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Hierarchy Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between">
-            <div className="flex-1 max-w-md">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Filter Supporters</h2>
+          
+          {/* First Row: State, District, Assembly, Block, and User */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            {/* State Dropdown (Disabled) */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly *
+                State
+              </label>
+              <select
+                value={stateId}
+                disabled={true}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+              >
+                <option value={stateId}>
+                  {hierarchyData?.data?.stateHierarchy?.find((item: any) => item.id === stateId)?.levelName || 'Current State'}
+                </option>
+              </select>
+            </div>
+
+            {/* District Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select District
+              </label>
+              <select
+                value={selectedDistrictId}
+                onChange={(e) => handleDistrictChange(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                disabled={hierarchyLoading}
+              >
+                <option value={0}>
+                  {hierarchyLoading 
+                    ? 'Loading districts...' 
+                    : hierarchyError 
+                      ? 'Error loading districts' 
+                      : districts.length === 0 
+                        ? 'No districts found' 
+                        : 'All Districts'}
+                </option>
+                {districts.map((district) => (
+                  <option key={district.id} value={district.id}>
+                    {district.displayName || district.levelName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Assembly Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Assembly
               </label>
               <select
                 value={selectedAssemblyId}
                 onChange={(e) => handleAssemblyChange(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={assembliesLoading}
+                disabled={hierarchyLoading}
               >
                 <option value={0}>
-                  {assembliesLoading 
+                  {hierarchyLoading 
                     ? 'Loading assemblies...' 
-                    : assembliesError 
+                    : hierarchyError 
                       ? 'Error loading assemblies' 
                       : assemblies.length === 0 
-                        ? 'No assemblies found' 
-                        : 'Select an assembly'}
+                        ? selectedDistrictId ? 'No assemblies in district' : 'All Assemblies'
+                        : 'All Assemblies'}
                 </option>
                 {assemblies.map((assembly) => (
                   <option key={assembly.id} value={assembly.id}>
@@ -375,72 +457,93 @@ export default function StateSupportersPage() {
                   </option>
                 ))}
               </select>
-              {assembliesError && (
+              {hierarchyError && (
                 <p className="text-red-500 text-xs mt-1">
-                  Error: {(assembliesError as any)?.message || 'Failed to load assemblies'}
-                </p>
-              )}
-              {!assembliesLoading && !assembliesError && assemblies.length === 0 && (
-                <p className="text-gray-500 text-xs mt-1">
-                  No assemblies found for this state. Please check your permissions.
+                  Error: {(hierarchyError as any)?.message || 'Failed to load hierarchy'}
                 </p>
               )}
             </div>
 
-            {/* Search Supporters - Same Row */}
-            {selectedAssemblyId > 0 && (
-              <div className="flex-1 max-w-md">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Supporters
-                </label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name, phone, or EPIC ID..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            )}
+            {/* Block Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Block
+              </label>
+              <select
+                value={selectedBlockId}
+                onChange={(e) => handleBlockChange(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                disabled={blocks.length === 0}
+              >
+                <option value={0}>
+                  {blocks.length === 0 
+                    ? 'No blocks available' 
+                    : 'All Blocks'}
+                </option>
+                {blocks.map((block) => (
+                  <option key={block.id} value={block.id}>
+                    {block.displayName || block.levelName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Export Button */}
-            {selectedAssemblyId > 0 && (
-              <div className="flex gap-3">
-                <button
-                  data-export-button
-                  onClick={handleExportExcel}
-                  disabled={supportersLoading || supporters.length === 0}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-                  title={supporters.length === 0 ? "No supporters available to export" : "Export supporters to CSV file"}
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    <polyline points="7,10 12,15 17,10" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    <line x1="12" y1="15" x2="12" y2="3" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Export Excel
-                </button>
-              </div>
-            )}
+            {/* User Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filter by User
+              </label>
+              <select
+                value={selectedUserId}
+                onChange={(e) => handleUserChange(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                disabled={supportersLoading || availableUsers.length === 0}
+              >
+                <option value={0}>
+                  {availableUsers.length === 0 ? 'No users available' : 'All Users'}
+                </option>
+                {availableUsers.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} ({user.supporterCount})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Second Row: Search */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            {/* Search Supporters */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Supporters
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by name, phone, or EPIC ID..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
           </div>
         </div>
 
         {/* Supporters List */}
-        {selectedAssemblyId > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Supporters List
-                  {pagination && (
-                    <span className="ml-2 text-sm font-normal text-gray-500">
-                      ({pagination.total} total)
-                    </span>
-                  )}
-                </h2>
-              </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Supporters List
+                {pagination && (
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    ({pagination.total} total)
+                  </span>
+                )}
+              </h2>
             </div>
+          </div>
 
             {/* Loading State */}
             {supportersLoading && (
@@ -595,7 +698,6 @@ export default function StateSupportersPage() {
               </>
             )}
           </div>
-        )}
 
         {/* Supporter Details Modal */}
         {viewingSupporter && (
