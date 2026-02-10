@@ -115,6 +115,33 @@ const Icons = {
             />
         </svg>
     ),
+    report: (
+        <svg
+            className={iconClass}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+        >
+            <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <polyline
+                points="14 2 14 8 20 8"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M16 13H8M16 17H8M10 9H8"
+                strokeWidth={1.4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    ),
 };
 
 export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
@@ -155,14 +182,14 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
 
     const handleExportSupporters = async () => {
         const stateId = user?.state_id || 0;
-        
+
         if (!stateId) {
             toast.error('State information not found. Please login again.');
             return;
         }
 
         setIsExporting(true);
-        
+
         try {
             toast.loading('Starting export...', { id: 'export-toast' });
 
@@ -191,12 +218,12 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             // Fetch all supporters using pagination
             do {
                 console.log(`Fetching page ${currentPage} of supporters...`);
-                
+
                 const params = new URLSearchParams({
                     page: currentPage.toString(),
                     limit: pageSize.toString(),
                 });
-                
+
                 const exportResponse = await fetch(
                     `${exportEndpoint}?${params.toString()}`,
                     {
@@ -232,7 +259,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                     dataCount: exportData.data?.length || 0,
                     pagination: exportData.pagination
                 });
-                
+
                 if (!exportData.success) {
                     throw new Error(exportData.message || `API returned unsuccessful response on page ${currentPage}`);
                 }
@@ -244,7 +271,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                 if (exportData.pagination) {
                     totalPages = exportData.pagination.pages || 1;
                     console.log(`Page ${currentPage}/${totalPages} completed. Total supporters so far: ${allSupporters.length}`);
-                    
+
                     // Update toast with progress
                     if (totalPages > 1) {
                         toast.loading(`Fetching page ${currentPage}/${totalPages} (${allSupporters.length} records)...`, { id: 'export-toast' });
@@ -277,12 +304,12 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                 const escapeCSV = (value: any, isNumeric: boolean = false) => {
                     if (value === null || value === undefined) return '';
                     const str = String(value);
-                    
+
                     // For numeric fields like phone numbers, wrap in quotes to force text format
                     if (isNumeric && str.length > 0) {
                         return `"${str}"`;
                     }
-                    
+
                     if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
                         return `"${str.replace(/"/g, '""')}"`;
                     }
@@ -331,7 +358,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
 
             // Create and download CSV file
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            
+
             // Check if blob was created successfully
             if (blob.size === 0) {
                 throw new Error('Failed to create export file - no data to export');
@@ -339,32 +366,32 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
 
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
-            
+
             // Generate filename
             const filename = `supporters_state_${stateId}_${new Date().toISOString().split('T')[0]}.csv`;
-            
+
             link.setAttribute('href', url);
             link.setAttribute('download', filename);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             // Clean up
             URL.revokeObjectURL(url);
-            
+
             console.log('Export completed successfully');
             toast.success(`Successfully exported ${allSupporters.length} supporters to ${filename}`, { id: 'export-toast' });
 
         } catch (error) {
             console.error('Export failed:', error);
-            
+
             // Provide more specific error messages based on the error type
             let userMessage = 'Failed to export data. ';
-            
+
             if (error instanceof Error) {
                 const errorMsg = error.message.toLowerCase();
-                
+
                 if (errorMsg.includes('authentication') || errorMsg.includes('token') || errorMsg.includes('401')) {
                     userMessage += 'Please login again and try again.';
                 } else if (errorMsg.includes('403') || errorMsg.includes('forbidden')) {
@@ -381,7 +408,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             } else {
                 userMessage += 'An unknown error occurred. Please try again.';
             }
-            
+
             toast.error(userMessage, { id: 'export-toast' });
         } finally {
             setIsExporting(false);
@@ -392,6 +419,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
         { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
         { to: "levels", label: "Levels", icon: Icons.levels },
         { to: "users", label: "Users", icon: Icons.users },
+        { to: "login-report", label: "Login Report", icon: Icons.report },
         {
             to: "registration-links", label: "Manage Links", icon: Icons.link,
         },
