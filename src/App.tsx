@@ -116,6 +116,7 @@ import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
 import { DynamicLinkGenerator } from "./pages/PartyAdmin/DynamicLinkGenerator";
 import { RegistrationLinksManager } from "./pages/PartyAdmin/RegistrationLinksManager";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
+import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
 import { PublicRegistration } from "./pages/PublicRegistration";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
@@ -178,6 +179,7 @@ export default function App() {
             <Route path="dynamic-links" element={<DynamicLinkGenerator />} />
             <Route path="registration-links" element={<RegistrationLinksManager />} />
             <Route path="roles" element={<PartyAdminRoles />} />
+            <Route path="login-report" element={<LoginReportPage />} />
           </Route>
 
           {/* Level Admin Routes */}

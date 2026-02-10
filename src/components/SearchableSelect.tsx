@@ -11,6 +11,7 @@ interface SearchableSelectProps {
     options: Option[];
     value: string | number | null;
     onChange: (value: string | number | null) => void;
+    onSearch?: (term: string) => void;
     placeholder: string;
     className?: string;
     disabled?: boolean;
@@ -21,6 +22,7 @@ export default function SearchableSelect({
     options,
     value,
     onChange,
+    onSearch,
     placeholder,
     className = '',
     disabled = false,
@@ -31,6 +33,16 @@ export default function SearchableSelect({
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
+
+    // Notify parent of search change
+    useEffect(() => {
+        if (onSearch) {
+            const timer = setTimeout(() => {
+                onSearch(searchTerm);
+            }, 300); // 300ms debounce
+            return () => clearTimeout(timer);
+        }
+    }, [searchTerm, onSearch]);
 
     // Filter options based on search term
     const filteredOptions = options.filter(option =>
