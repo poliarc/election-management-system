@@ -196,6 +196,11 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ visitor, onClose }) => {
           party_id: getPartyId(),
         }) as CreateVisitorRequest;
         await createVisitor(createData).unwrap();
+        // Open WhatsApp in new window with pre-filled message
+        const phone = `91${formData.phone}`;
+        const message = encodeURIComponent('Hi,\nClick on this link to join the whatsapp group');
+        const url = `https://wa.me/${phone}?text=${message}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
       onClose();
     } catch (error: any) {
