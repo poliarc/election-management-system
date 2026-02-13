@@ -17,12 +17,15 @@ export default function AssignedReports() {
     const currentPath = window.location.pathname;
     const isSubLevel = currentPath.includes('/sublevel/');
     const isAfterAssembly = currentPath.includes('/afterassembly/');
+    const isAssembly = currentPath.includes('/assembly');
 
     const basePath = isSubLevel
         ? `/sublevel/${levelId}/vic`
         : isAfterAssembly
             ? `/afterassembly/${levelId}/vic`
-            : `/vic`;
+            : isAssembly
+                ? `/assembly/vic`
+                : `/vic`;
 
     const { data, isLoading, error } = useGetAssignedReportsQuery({
         page,
@@ -96,7 +99,7 @@ export default function AssignedReports() {
     }
 
     return (
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between items-center">
