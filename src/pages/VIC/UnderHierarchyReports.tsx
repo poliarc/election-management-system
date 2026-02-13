@@ -12,12 +12,15 @@ const UnderHierarchyReports: React.FC = () => {
     const currentPath = window.location.pathname;
     const isSubLevel = currentPath.includes('/sublevel/');
     const isAfterAssembly = currentPath.includes('/afterassembly/');
+    const isAssembly = currentPath.includes('/assembly');
 
     const basePath = isSubLevel
         ? `/sublevel/${levelId}/vic`
         : isAfterAssembly
             ? `/afterassembly/${levelId}/vic`
-            : `/vic`;
+            : isAssembly
+                ? `/assembly/vic`
+                : `/vic`;
 
     // State for filters and pagination
     const [filters, setFilters] = useState({
@@ -146,7 +149,7 @@ const UnderHierarchyReports: React.FC = () => {
     }
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

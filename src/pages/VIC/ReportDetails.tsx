@@ -15,12 +15,15 @@ export default function ReportDetails() {
     const currentPath = window.location.pathname;
     const isSubLevel = currentPath.includes('/sublevel/');
     const isAfterAssembly = currentPath.includes('/afterassembly/');
+    const isAssembly = currentPath.includes('/assembly');
 
     const basePath = isSubLevel
         ? `/sublevel/${levelId}/vic`
         : isAfterAssembly
             ? `/afterassembly/${levelId}/vic`
-            : `/vic`;
+            : isAssembly
+                ? `/assembly/vic`
+                : `/vic`;
 
     const [actionForm, setActionForm] = useState({
         action: "approve" as "approve" | "reject" | "forward" | "resolve",
@@ -244,7 +247,7 @@ export default function ReportDetails() {
 
     if (isLoading) {
         return (
-            <div className="p-6">
+            <div className="p-3 sm:p-4 lg:p-6">
                 <div className="animate-pulse space-y-4">
                     <div className="h-8 bg-gray-200 rounded w-1/4"></div>
                     <div className="h-64 bg-gray-200 rounded"></div>
@@ -255,7 +258,7 @@ export default function ReportDetails() {
 
     if (error || !report) {
         return (
-            <div className="p-6">
+            <div className="p-3 sm:p-4 lg:p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p className="text-red-800">Report not found or failed to load.</p>
                 </div>
@@ -264,8 +267,9 @@ export default function ReportDetails() {
     }
 
     return (
-        <div className="p-3 sm:p-6 max-w-6xl mx-auto">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-3 sm:p-4 lg:p-6">
+            <div className="max-w-6xl mx-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 {/* Header */}
                 <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
@@ -657,6 +661,7 @@ export default function ReportDetails() {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

@@ -11,6 +11,31 @@ interface DynamicLevelListProps {
     parentLevelName?: string;
 }
 
+// Helper function to limit concurrent API calls
+const limitConcurrency = async <T,>(
+    items: T[],
+    asyncFn: (item: T) => Promise<any>,
+    limit: number = 20  // Increased to 20 for maximum performance
+): Promise<any[]> => {
+    const results: any[] = [];
+    const executing: Promise<any>[] = [];
+
+    for (const item of items) {
+        const promise = asyncFn(item).then((result) => {
+            executing.splice(executing.indexOf(promise), 1);
+            return result;
+        });
+        results.push(promise);
+        executing.push(promise);
+
+        if (executing.length >= limit) {
+            await Promise.race(executing);
+        }
+    }
+
+    return Promise.all(results);
+};
+
 export default function DynamicLevelList({
     levelName,
     displayLevelName }: DynamicLevelListProps) {
@@ -502,10 +527,11 @@ export default function DynamicLevelList({
                     `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
                 );
 
-                // Step 2: Fetch all assemblies for each district
+                // Step 2: Fetch all assemblies for each district (limit to 8 concurrent requests)
                 const assemblies = (
-                    await Promise.all(
-                        districts.map(async (district: any) => {
+                    await limitConcurrency(
+                        districts,
+                        async (district: any) => {
                             const assembliesData = await fetchAllPages(
                                 `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id}`
                             );
@@ -514,14 +540,16 @@ export default function DynamicLevelList({
                                 districtId: district.location_id || district.id,
                                 districtName: district.location_name,
                             }));
-                        })
+                        },
+                        8
                     )
                 ).flat();
 
-                // Step 3: Fetch all after-assembly levels for each assembly (flexible approach)
+                // Step 3: Fetch all after-assembly levels for each assembly (flexible approach, limit to 8 concurrent)
                 const afterAssemblyLevels = (
-                    await Promise.all(
-                        assemblies.map(async (assembly: any) => {
+                    await limitConcurrency(
+                        assemblies,
+                        async (assembly: any) => {
                             const res = await fetch(
                                 `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id || assembly.id}`,
                                 { headers: { Authorization: `Bearer ${token}` } }
@@ -534,7 +562,8 @@ export default function DynamicLevelList({
                                 districtId: assembly.districtId,
                                 districtName: assembly.districtName,
                             }));
-                        })
+                        },
+                        8
                     )
                 ).flat();
 
@@ -551,10 +580,11 @@ export default function DynamicLevelList({
                         levelItems = directAssemblyChildren;
                     } else {
                         // This level might be a child of another after-assembly level
-                        // Fetch children of all after-assembly levels and build proper hierarchy
+                        // Fetch children of all after-assembly levels and build proper hierarchy (limit to 15 concurrent)
                         levelItems = (
-                            await Promise.all(
-                                afterAssemblyLevels.map(async (parentLevel: any) => {
+                            await limitConcurrency(
+                                afterAssemblyLevels,
+                                async (parentLevel: any) => {
                                     const childrenData = await fetchAllPages(
                                         `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
                                     );
@@ -575,15 +605,17 @@ export default function DynamicLevelList({
                                             [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                             [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         }));
-                                })
+                                },
+                                15
                             )
                         ).flat();
                     }
                 } else if (levelName === "Mandal") {
-                    // Step 4: Fetch all mandals for each after-assembly level
+                    // Step 4: Fetch all mandals for each after-assembly level (limit to 15 concurrent)
                     levelItems = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
+                        await limitConcurrency(
+                            afterAssemblyLevels,
+                            async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
                                 );
@@ -604,14 +636,16 @@ export default function DynamicLevelList({
                                         [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                         [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                     }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
                 } else if (levelName === "PollingCenter") {
-                    // Step 4: Fetch mandals first, then polling centers
+                    // Step 4: Fetch mandals first, then polling centers (limit to 15 concurrent)
                     const mandals = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
+                        await limitConcurrency(
+                            afterAssemblyLevels,
+                            async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
                                 );
@@ -627,14 +661,16 @@ export default function DynamicLevelList({
                                         districtId: parentLevel.districtId,
                                         districtName: parentLevel.districtName,
                                     }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
 
-                    // Step 5: Fetch polling centers for each mandal
+                    // Step 5: Fetch polling centers for each mandal (limit to 15 concurrent)
                     levelItems = (
-                        await Promise.all(
-                            mandals.map(async (mandal: any) => {
+                        await limitConcurrency(
+                            mandals,
+                            async (mandal: any) => {
                                 const pollingCentersData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
                                 );
@@ -654,14 +690,16 @@ export default function DynamicLevelList({
                                     districtId: mandal.districtId,
                                     districtName: mandal.districtName,
                                 }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
                 } else if (levelName === "Booth") {
-                    // For booths, we need to go through the full hierarchy
+                    // For booths, we need to go through the full hierarchy (limit to 15 concurrent)
                     const mandals = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
+                        await limitConcurrency(
+                            afterAssemblyLevels,
+                            async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
                                 );
@@ -677,13 +715,15 @@ export default function DynamicLevelList({
                                         districtId: parentLevel.districtId,
                                         districtName: parentLevel.districtName,
                                     }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
-                    // Get all children of mandals (both polling centers and direct booths)
+                    // Get all children of mandals (both polling centers and direct booths, limit to 15 concurrent)
                     const allMandalChildren = (
-                        await Promise.all(
-                            mandals.map(async (mandal: any) => {
+                        await limitConcurrency(
+                            mandals,
+                            async (mandal: any) => {
                                 const childrenData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
                                 );
@@ -699,7 +739,8 @@ export default function DynamicLevelList({
                                     districtId: mandal.districtId,
                                     districtName: mandal.districtName,
                                 }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
 
@@ -711,10 +752,11 @@ export default function DynamicLevelList({
                         (item: any) => item.levelName === "Booth"
                     );
 
-                    // Get booths from polling centers
+                    // Get booths from polling centers (limit to 15 concurrent)
                     const pollingCenterBooths = (
-                        await Promise.all(
-                            pollingCenters.map(async (pc: any) => {
+                        await limitConcurrency(
+                            pollingCenters,
+                            async (pc: any) => {
                                 const boothsData = await fetchAllPages(
                                     `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pc.id}`
                                 );
@@ -732,7 +774,8 @@ export default function DynamicLevelList({
                                     districtId: pc.districtId,
                                     districtName: pc.districtName,
                                 }));
-                            })
+                            },
+                            15
                         )
                     ).flat();
 
@@ -904,8 +947,10 @@ export default function DynamicLevelList({
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
-                <div className="flex items-center justify-center h-64">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="flex flex-col items-center justify-center h-64">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p className="text-gray-700 text-base font-medium">Loading {displayLevelName} data...</p>
+                    <p className="text-gray-500 text-sm mt-2">Please wait, fetching data from server</p>
                 </div>
             </div>
         );
