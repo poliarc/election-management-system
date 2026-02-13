@@ -79,7 +79,8 @@ export interface ProfileData {
   profileImage?: string;
   partyName?: string;
   role?: string;
-  role_name: string
+  role_name: string;
+  WhatsAppUrl?: string | null;
 }
 
 // Update profile payload structure
@@ -201,7 +202,16 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ['Profile'],
     }),
+    updateWhatsAppUrl: builder.mutation<ProfileData, { id: number | string; WhatsAppUrl: string }>({
+      query: ({ id, WhatsAppUrl }) => ({
+        url: `/users/update/${id}`,
+        method: 'PUT',
+        body: { WhatsAppUrl },
+      }),
+      transformResponse: (response: { success: boolean; message: string; data: ProfileData }) => response.data,
+      invalidatesTags: ['Profile'],
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation, useToggleUserStatusMutation } = profileApi;
+export const { useGetProfileQuery, useUpdateProfileMutation, useToggleUserStatusMutation, useUpdateWhatsAppUrlMutation } = profileApi;
