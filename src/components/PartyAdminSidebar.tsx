@@ -3,8 +3,6 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout } from "../store/authSlice";
-import toast from 'react-hot-toast';
-import type { Supporter } from "../types/supporter";
 
 interface PartyAdminSidebarProps {
     partyId: number;
