@@ -144,7 +144,7 @@ export default function DistrictUserManagement() {
         user.first_name.toLowerCase().includes(q) ||
         user.last_name.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q) ||
-        user.mobile_number.includes(userSearchTerm)
+        (user.mobile_number || "").includes(userSearchTerm)
     );
   }, [selectedDistrict, userSearchTerm]);
 
@@ -172,7 +172,7 @@ export default function DistrictUserManagement() {
         user.first_name.toLowerCase().includes(q) ||
         user.last_name.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q) ||
-        user.contact_no.includes(userSearchTerm)
+        (user.contact_no || "").includes(userSearchTerm)
     );
   }, [unassignedUsers, userSearchTerm]);
 
