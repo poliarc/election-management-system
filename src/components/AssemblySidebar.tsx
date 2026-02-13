@@ -236,6 +236,21 @@ const Icons = {
       />
     </svg>
   ),
+  vic: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   profile: (
     <svg
       className={iconClass}
@@ -525,11 +540,11 @@ export default function AssemblySidebar({
 
   // Check if Assembly Team module is accessible
   const hasAssemblyTeamAccess = useMemo(() => {
-    return sidebarModules.some(module => 
+    return sidebarModules.some(module =>
       module.moduleName.toLowerCase().includes('assembly team') ||
-      (module.moduleName.toLowerCase().includes('team') && 
-       !module.moduleName.toLowerCase().includes('state') &&
-       !module.moduleName.toLowerCase().includes('district'))
+      (module.moduleName.toLowerCase().includes('team') &&
+        !module.moduleName.toLowerCase().includes('state') &&
+        !module.moduleName.toLowerCase().includes('district'))
     );
   }, [sidebarModules]);
 
@@ -673,6 +688,7 @@ export default function AssemblySidebar({
     isVoterReportPathActive
   );
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
+  const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
 
   // Get all Assembly assignments
   let sameTypeAssignments: StateAssignment[] = [];
@@ -1061,28 +1077,28 @@ export default function AssemblySidebar({
         {sidebarModules
           .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team modules as they're handled separately
           .map((module) => (
-          <NavLink
-            key={module.module_id}
-            to={`${base}/${getModuleRoute(module.moduleName)}`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
-            <span className="truncate">{module.displayName}</span>
-            {/** Accent bar */}
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        ))}
+            <NavLink
+              key={module.module_id}
+              to={`${base}/${getModuleRoute(module.moduleName)}`}
+              onClick={() => onNavigate?.()}
+              className={({ isActive }) =>
+                [
+                  "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  isActive
+                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
+                    : "border border-transparent hover:border-gray-200",
+                ].join(" ")
+              }
+            >
+              <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
+              <span className="truncate">{module.displayName}</span>
+              {/** Accent bar */}
+              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+              {/** Active indicator */}
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+            </NavLink>
+          ))}
 
         {/* Supporters */}
         <NavLink
@@ -1224,6 +1240,112 @@ export default function AssemblySidebar({
                   <span className="truncate">{vr.label}</span>
                 </NavLink>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* VIC Dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={vicDropdownOpen}
+            onClick={() => setVicDropdownOpen(!vicDropdownOpen)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              vicDropdownOpen
+                ? "bg-gray-50 ring-1 ring-indigo-200"
+                : "border border-transparent hover:border-gray-200",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.vic}
+              <span className="text-black">VIC</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                vicDropdownOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {vicDropdownOpen && (
+            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+              <NavLink
+                to={`${base}/vic/send-report`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-50 ring-1 ring-indigo-200"
+                      : "border border-transparent hover:border-gray-200",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600">{Icons.vic}</span>
+                <span className="truncate">Send Report</span>
+              </NavLink>
+              <NavLink
+                to={`${base}/vic/my-reports`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-50 ring-1 ring-indigo-200"
+                      : "border border-transparent hover:border-gray-200",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600">{Icons.vic}</span>
+                <span className="truncate">My Reports</span>
+              </NavLink>
+              <NavLink
+                to={`${base}/vic/assigned-reports`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-50 ring-1 ring-indigo-200"
+                      : "border border-transparent hover:border-gray-200",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600">{Icons.vic}</span>
+                <span className="truncate">Assigned Reports</span>
+              </NavLink>
+              <NavLink
+                to={`${base}/vic/under-hierarchy-reports`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-50 ring-1 ring-indigo-200"
+                      : "border border-transparent hover:border-gray-200",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600">{Icons.vic}</span>
+                <span className="truncate">Under Hierarchy Reports</span>
+              </NavLink>
             </div>
           )}
         </div>

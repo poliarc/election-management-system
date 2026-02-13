@@ -115,6 +115,7 @@ import { PartyAdminLevels } from "./pages/PartyAdmin/Levels";
 import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
 import { DynamicLinkGenerator } from "./pages/PartyAdmin/DynamicLinkGenerator";
 import { RegistrationLinksManager } from "./pages/PartyAdmin/RegistrationLinksManager";
+import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
 import { PublicRegistration } from "./pages/PublicRegistration";
@@ -180,6 +181,7 @@ export default function App() {
             <Route path="registration-links" element={<RegistrationLinksManager />} />
             <Route path="roles" element={<PartyAdminRoles />} />
             <Route path="login-report" element={<LoginReportPage />} />
+            <Route path="export-supporters" element={<ExportSupportersPage />} />
           </Route>
 
           {/* Level Admin Routes */}
@@ -394,6 +396,15 @@ export default function App() {
               path="booth-management/polling-support"
               element={<PollingSupportTeamPage />}
             />
+            {/* VIC Routes */}
+            <Route path="vic/send-report" element={<SendReport />} />
+            <Route path="vic/my-reports" element={<MyReports />} />
+            <Route path="vic/assigned-reports" element={<AssignedReports />} />
+            <Route
+              path="vic/under-hierarchy-reports"
+              element={<UnderHierarchyReports />}
+            />
+            <Route path="vic/report-details/:id" element={<ReportDetails />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>

@@ -124,22 +124,22 @@ export default function StateSupportersPage() {
   });
 
   // Use state, district or assembly data based on selection
-  const supportersData = selectedAssemblyId > 0 
-    ? assemblySupportersData 
-    : selectedDistrictId > 0 
-      ? districtSupportersData 
+  const supportersData = selectedAssemblyId > 0
+    ? assemblySupportersData
+    : selectedDistrictId > 0
+      ? districtSupportersData
       : stateSupportersData;
-  
-  const supportersLoading = selectedAssemblyId > 0 
-    ? assemblySupportersLoading 
-    : selectedDistrictId > 0 
-      ? districtSupportersLoading 
+
+  const supportersLoading = selectedAssemblyId > 0
+    ? assemblySupportersLoading
+    : selectedDistrictId > 0
+      ? districtSupportersLoading
       : stateSupportersLoading;
-  
-  const refetch = selectedAssemblyId > 0 
-    ? refetchAssembly 
-    : selectedDistrictId > 0 
-      ? refetchDistrict 
+
+  const refetch = selectedAssemblyId > 0
+    ? refetchAssembly
+    : selectedDistrictId > 0
+      ? refetchDistrict
       : refetchState;
 
   // Extract districts from hierarchy
@@ -166,18 +166,15 @@ export default function StateSupportersPage() {
   const blocks: BlockOption[] = hierarchyData?.data?.afterAssemblyHierarchy?.filter(
     (item: any) => {
       if (item.levelName !== 'Block') return false;
-      
       // If assembly is selected, show only blocks from that assembly
       if (selectedAssemblyId > 0) {
         return item.parentAssemblyId === selectedAssemblyId;
       }
-      
       // If district is selected (but no assembly), show blocks from assemblies in that district
       if (selectedDistrictId > 0) {
         const assembly = assemblies.find(a => a.id === item.parentAssemblyId);
         return assembly && assembly.parentId === selectedDistrictId;
       }
-      
       // Otherwise show all blocks
       return true;
     }
@@ -191,15 +188,89 @@ export default function StateSupportersPage() {
   // Extract unique users from supporters data (without user filter applied)
   // We need to get users from unfiltered data to show all available users
   useEffect(() => {
-    const usersDataSource = selectedAssemblyId > 0 
-      ? assemblyUsersData 
-      : selectedDistrictId > 0 
-        ? districtUsersData 
-        : stateUsersData;
-    
-    if (usersDataSource?.data) {
+    const fetchAllUsersWithCounts = async () => {
+      const usersDataSource = selectedAssemblyId > 0
+        ? assemblyUsersData
+        : selectedDistrictId > 0
+          ? districtUsersData
+          : stateUsersData;
+
+      console.log('🔍 Fetching user counts with filters:', {
+        selectedAssemblyId,
+        selectedDistrictId,
+        selectedBlockId,
+        dataSource: selectedAssemblyId > 0 ? 'assembly' : selectedDistrictId > 0 ? 'district' : 'state',
+        usersDataAvailable: !!usersDataSource?.data,
+        initialDataLength: usersDataSource?.data?.length || 0,
+        pagination: usersDataSource?.pagination
+      });
+
+      if (!usersDataSource?.data) {
+        setAvailableUsers([]);
+        return;
+      }
+
+      // If we have pagination info and there are more pages, fetch all pages
+      const pagination = usersDataSource.pagination;
+      let allSupporters = [...usersDataSource.data];
+
+      // Fetch remaining pages if needed
+      if (pagination && pagination.pages > 1) {
+        try {
+          const remainingPages = [];
+          // Fetch all pages (no limit) to get accurate counts
+          for (let page = 2; page <= pagination.pages; page++) {
+            remainingPages.push(page);
+          }
+
+          console.log(`📄 Fetching ${remainingPages.length} additional pages (total ${pagination.pages} pages)...`);
+
+          // Fetch all remaining pages concurrently
+          const fetchPromises = remainingPages.map(async (page) => {
+            const params: any = {
+              page,
+              limit: 100,
+              blockId: selectedBlockId || undefined,
+            };
+
+            if (selectedAssemblyId > 0) {
+              params.assemblyId = selectedAssemblyId;
+            } else if (selectedDistrictId > 0) {
+              params.districtId = selectedDistrictId;
+            } else {
+              params.stateId = stateId;
+            }
+
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/supporters/${selectedAssemblyId > 0
+                ? `assembly/${selectedAssemblyId}`
+                : selectedDistrictId > 0
+                  ? `district/${selectedDistrictId}`
+                  : `state/${stateId}`
+              }?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]))}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('auth_access_token')}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+
+            const data = await response.json();
+            return data.success ? data.data : [];
+          });
+
+          const additionalPages = await Promise.all(fetchPromises);
+          allSupporters = [...allSupporters, ...additionalPages.flat()];
+          console.log(`✅ Fetched total ${allSupporters.length} supporters from all pages`);
+        } catch (error) {
+          console.error('❌ Error fetching additional pages for user counts:', error);
+        }
+      }
+
+      // Now count supporters per user from all fetched data
       const userMap = new Map<number, { name: string; count: number }>();
-      usersDataSource.data.forEach((supporter: Supporter) => {
+      allSupporters.forEach((supporter: Supporter) => {
         if (supporter.created_by && supporter.created_by_name) {
           const existing = userMap.get(supporter.created_by);
           if (existing) {
@@ -212,7 +283,6 @@ export default function StateSupportersPage() {
           }
         }
       });
-      
       const usersList: UserOption[] = [];
       userMap.forEach((value, key) => {
         usersList.push({
@@ -222,9 +292,23 @@ export default function StateSupportersPage() {
         });
       });
       usersList.sort((a, b) => b.supporterCount - a.supporterCount);
+
+      console.log('📊 User Counts Calculated:', {
+        totalSupportersFetched: allSupporters.length,
+        totalUsers: usersList.length,
+        topUsers: usersList.slice(0, 5),
+        filters: {
+          district: selectedDistrictId,
+          assembly: selectedAssemblyId,
+          block: selectedBlockId
+        }
+      });
+
       setAvailableUsers(usersList);
-    }
-  }, [selectedAssemblyId, selectedDistrictId, selectedBlockId, assemblyUsersData, districtUsersData, stateUsersData]);
+    };
+
+    fetchAllUsersWithCounts();
+  }, [selectedAssemblyId, selectedDistrictId, selectedBlockId, assemblyUsersData, districtUsersData, stateUsersData, stateId]);
 
   const supporters = supportersData?.data || [];
   const pagination = supportersData?.pagination;
@@ -384,7 +468,6 @@ export default function StateSupportersPage() {
         {/* Hierarchy Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Filter Supporters</h2>
-          
           {/* First Row: State, District, Assembly, Block, and User */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
             {/* State Dropdown (Disabled) */}
@@ -415,12 +498,12 @@ export default function StateSupportersPage() {
                 disabled={hierarchyLoading}
               >
                 <option value={0}>
-                  {hierarchyLoading 
-                    ? 'Loading districts...' 
-                    : hierarchyError 
-                      ? 'Error loading districts' 
-                      : districts.length === 0 
-                        ? 'No districts found' 
+                  {hierarchyLoading
+                    ? 'Loading districts...'
+                    : hierarchyError
+                      ? 'Error loading districts'
+                      : districts.length === 0
+                        ? 'No districts found'
                         : 'All Districts'}
                 </option>
                 {districts.map((district) => (
@@ -443,11 +526,11 @@ export default function StateSupportersPage() {
                 disabled={hierarchyLoading}
               >
                 <option value={0}>
-                  {hierarchyLoading 
-                    ? 'Loading assemblies...' 
-                    : hierarchyError 
-                      ? 'Error loading assemblies' 
-                      : assemblies.length === 0 
+                  {hierarchyLoading
+                    ? 'Loading assemblies...'
+                    : hierarchyError
+                      ? 'Error loading assemblies'
+                      : assemblies.length === 0
                         ? selectedDistrictId ? 'No assemblies in district' : 'All Assemblies'
                         : 'All Assemblies'}
                 </option>
@@ -476,8 +559,8 @@ export default function StateSupportersPage() {
                 disabled={blocks.length === 0}
               >
                 <option value={0}>
-                  {blocks.length === 0 
-                    ? 'No blocks available' 
+                  {blocks.length === 0
+                    ? 'No blocks available'
                     : 'All Blocks'}
                 </option>
                 {blocks.map((block) => (
@@ -545,159 +628,158 @@ export default function StateSupportersPage() {
             </div>
           </div>
 
-            {/* Loading State */}
-            {supportersLoading && (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading supporters...</p>
-              </div>
-            )}
+          {/* Loading State */}
+          {supportersLoading && (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">Loading supporters...</p>
+            </div>
+          )}
 
-            {/* Empty State */}
-            {!supportersLoading && supporters.length === 0 && (
-              <div className="p-8 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No supporters found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {searchTerm ? 'Try adjusting your search criteria.' : 'No supporters have been added for this assembly yet.'}
-                </p>
-              </div>
-            )}
+          {/* Empty State */}
+          {!supportersLoading && supporters.length === 0 && (
+            <div className="p-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No supporters found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {searchTerm ? 'Try adjusting your search criteria.' : 'No supporters have been added for this assembly yet.'}
+              </p>
+            </div>
+          )}
 
-            {/* Supporters Table */}
-            {!supportersLoading && supporters.length > 0 && (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Supporter
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Contact
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Demographics
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Location
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {supporters.map((supporter) => (
-                        <tr key={supporter.supporter_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {getFullName(supporter)}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Father: {supporter.father_name}
-                              </div>
-                              {supporter.voter_epic_id && (
-                                <div className="text-xs text-gray-400">
-                                  EPIC: {supporter.voter_epic_id}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{supporter.phone_no}</div>
-                            {supporter.whatsapp_no && (
-                              <div className="text-sm text-gray-500">WA: {supporter.whatsapp_no}</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {supporter.gender}, Age {supporter.age}
+          {/* Supporters Table */}
+          {!supportersLoading && supporters.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supporter
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Demographics
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Location
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {supporters.map((supporter) => (
+                      <tr key={supporter.supporter_id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {getFullName(supporter)}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {supporter.religion} - {supporter.category}
+                              Father: {supporter.father_name}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{supporter.assembly_name}</div>
-                            {supporter.block_name && (
-                              <div className="text-sm text-gray-500">{supporter.block_name}</div>
+                            {supporter.voter_epic_id && (
+                              <div className="text-xs text-gray-400">
+                                EPIC: {supporter.voter_epic_id}
+                              </div>
                             )}
-                            {supporter.mandal_name && (
-                              <div className="text-xs text-gray-400">{supporter.mandal_name}</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(supporter.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                              onClick={() => setViewingSupporter(supporter)}
-                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
-                            >
-                              View Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{supporter.phone_no}</div>
+                          {supporter.whatsapp_no && (
+                            <div className="text-sm text-gray-500">WA: {supporter.whatsapp_no}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {supporter.gender}, Age {supporter.age}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {supporter.religion} - {supporter.category}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{supporter.assembly_name}</div>
+                          {supporter.block_name && (
+                            <div className="text-sm text-gray-500">{supporter.block_name}</div>
+                          )}
+                          {supporter.mandal_name && (
+                            <div className="text-xs text-gray-400">{supporter.mandal_name}</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(supporter.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => setViewingSupporter(supporter)}
+                            className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                {/* Pagination */}
-                {pagination && pagination.pages > 1 && (
-                  <div className="px-6 py-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700">
-                        Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                        {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                        {pagination.total} results
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handlePageChange(pagination.page - 1)}
-                          disabled={pagination.page <= 1}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Previous
-                        </button>
-                        {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                          const page = i + 1;
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => handlePageChange(page)}
-                              className={`px-3 py-1 text-sm border rounded-md ${
-                                page === pagination.page
-                                  ? 'bg-indigo-600 text-white border-indigo-600'
-                                  : 'border-gray-300 hover:bg-gray-50'
+              {/* Pagination */}
+              {pagination && pagination.pages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">
+                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                      {pagination.total} results
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePageChange(pagination.page - 1)}
+                        disabled={pagination.page <= 1}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                        const page = i + 1;
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-1 text-sm border rounded-md ${page === pagination.page
+                              ? 'bg-indigo-600 text-white border-indigo-600'
+                              : 'border-gray-300 hover:bg-gray-50'
                               }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        })}
-                        <button
-                          onClick={() => handlePageChange(pagination.page + 1)}
-                          disabled={pagination.page >= pagination.pages}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Next
-                        </button>
-                      </div>
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                      <button
+                        onClick={() => handlePageChange(pagination.page + 1)}
+                        disabled={pagination.page >= pagination.pages}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
-                )}
-              </>
-            )}
-          </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Supporter Details Modal */}
         {viewingSupporter && (
@@ -714,7 +796,6 @@ export default function StateSupportersPage() {
                   </svg>
                 </button>
               </div>
-              
               <div className="px-6 py-4 space-y-6">
                 {/* Personal Information */}
                 <div>
@@ -789,8 +870,8 @@ export default function StateSupportersPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-500">Languages</label>
                       <p className="text-sm text-gray-900">
-                        {Array.isArray(viewingSupporter.language) 
-                          ? viewingSupporter.language.join(', ') 
+                        {Array.isArray(viewingSupporter.language)
+                          ? viewingSupporter.language.join(', ')
                           : typeof viewingSupporter.language === 'object' && viewingSupporter.language !== null
                             ? `${(viewingSupporter.language as any).primary}${(viewingSupporter.language as any).secondary ? `, ${(viewingSupporter.language as any).secondary.join(', ')}` : ''}`
                             : viewingSupporter.language || 'Not specified'}
@@ -885,3 +966,4 @@ export default function StateSupportersPage() {
     </div>
   );
 }
+
