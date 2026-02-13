@@ -48,12 +48,15 @@ export default function MyReports() {
     const currentPath = window.location.pathname;
     const isSubLevel = currentPath.includes('/sublevel/');
     const isAfterAssembly = currentPath.includes('/afterassembly/');
+    const isAssembly = currentPath.includes('/assembly');
 
     const basePath = isSubLevel
         ? `/sublevel/${levelId}/vic`
         : isAfterAssembly
             ? `/afterassembly/${levelId}/vic`
-            : `/vic`;
+            : isAssembly
+                ? `/assembly/vic`
+                : `/vic`;
 
     const { data, isLoading, error, refetch } = useGetMyReportsQuery({
         page,
@@ -300,7 +303,7 @@ export default function MyReports() {
     }
 
     return (
-        <div className="p-3 sm:p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
