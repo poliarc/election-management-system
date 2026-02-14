@@ -47,9 +47,11 @@ export default function DynamicLevelList({
     const [itemsPerPage] = useState(20);
 
     // Reset all filters when levelName changes (navigation to different level)
+    // But preserve parent filters (District, Assembly) to maintain data visibility
     useEffect(() => {
         setSearchTerm("");
-        setSelectedFilters({});
+        // Don't reset selectedFilters - preserve parent filters
+        // setSelectedFilters({});
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
@@ -227,7 +229,7 @@ export default function DynamicLevelList({
         const levelIndex = hierarchyOrder.indexOf(levelName);
         const newFilters = { ...selectedFilters };
         const newFilterOptions = { ...dynamicFilterOptions };
-        
+
         // Remove all filters after the changed one
         visibleFilters.forEach((filter) => {
             if (hierarchyOrder.indexOf(filter) > levelIndex) {
@@ -236,13 +238,13 @@ export default function DynamicLevelList({
                 delete newFilterOptions[filter];
             }
         });
-        
+
         if (value > 0) {
             newFilters[levelName] = value;
         } else {
             delete newFilters[levelName];
         }
-        
+
         setSelectedFilters(newFilters);
         setDynamicFilterOptions(newFilterOptions);
         setCurrentPage(1);
@@ -252,7 +254,7 @@ export default function DynamicLevelList({
     useEffect(() => {
         const populateFilterOptions = async () => {
             const newFilterOptions = { ...dynamicFilterOptions };
-            
+
             // First, always fetch District options (children of State)
             if (!newFilterOptions["District"] || newFilterOptions["District"].length === 0) {
                 if (stateInfo.stateId) {
@@ -270,15 +272,15 @@ export default function DynamicLevelList({
                     }
                 }
             }
-            
+
             // Fetch options for each selected filter
             for (let i = 0; i < visibleFilters.length; i++) {
                 const currentLevel = visibleFilters[i];
                 const selectedId = selectedFilters[currentLevel];
-                
+
                 if (selectedId && selectedId > 0) {
                     const nextLevel = visibleFilters[i + 1];
-                    
+
                     // Determine which API to use based on current level
                     if (nextLevel) {
                         if (currentLevel === "District") {
@@ -327,7 +329,7 @@ export default function DynamicLevelList({
                                     );
                                     // Get the parent item to inherit assembly information
                                     const parentItem = newFilterOptions[currentLevel]?.find(item => item.id === selectedId);
-                                    
+
                                     newFilterOptions[nextLevel] = childrenData.map((item: any) => ({
                                         ...item,
                                         parentLevelId: selectedId,
@@ -346,12 +348,24 @@ export default function DynamicLevelList({
                     }
                 }
             }
-            
+
             setDynamicFilterOptions(newFilterOptions);
         };
-        
+
         populateFilterOptions();
     }, [stateInfo.stateId, selectedFilters]);
+
+    // Auto-select first district when districts are loaded
+    useEffect(() => {
+        if (dynamicFilterOptions["District"] &&
+            dynamicFilterOptions["District"].length > 0 &&
+            !selectedFilters["District"]) {
+            setSelectedFilters(prev => ({
+                ...prev,
+                District: dynamicFilterOptions["District"][0].id
+            }));
+        }
+    }, [dynamicFilterOptions["District"]]);
 
     const fetchAllPages = async (url: string) => {
         let allData: any[] = [];
@@ -399,21 +413,21 @@ export default function DynamicLevelList({
                     if (filterLevel === "Assembly") {
                         return item.assemblyId === selectedIdForFilter;
                     }
-                    
+
                     // For District filter, check districtId - strict matching only
                     if (filterLevel === "District") {
                         return item.districtId === selectedIdForFilter;
                     }
-                    
+
                     // For other levels, use strict hierarchy checking
                     // First check direct parent relationship
                     if (item.parentLevelId === selectedIdForFilter) return true;
-                    
+
                     // Check if the item has this level's id in specific property names
                     const levelKey = filterLevel.toLowerCase();
                     if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
                     if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
-                    
+
                     // For after-assembly levels, ensure we only match items that belong to the correct assembly
                     // This prevents cross-assembly contamination
                     if (filterLevel !== "Assembly" && filterLevel !== "District") {
@@ -422,13 +436,13 @@ export default function DynamicLevelList({
                         if (selectedAssemblyId && item.assemblyId !== selectedAssemblyId) {
                             return false;
                         }
-                        
+
                         // Check parent hierarchy but only for direct relationships
                         if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) {
                             return true;
                         }
                     }
-                    
+
                     return false;
                 });
             }
@@ -441,18 +455,51 @@ export default function DynamicLevelList({
 
     // Initialize user counts from API data when allLevelItems is loaded
     useEffect(() => {
-        if (allLevelItems.length > 0) {
-            const initialUserCounts: Record<number, number> = { ...itemUserCounts };
+        const initializeUserCounts = async () => {
+            if (allLevelItems.length === 0) return;
 
+            // Reset user counts - don't preserve old counts
+            const initialUserCounts: Record<number, number> = {};
+
+            // First, try to use counts from API response
             allLevelItems.forEach(item => {
-                // Only set initial count if we don't already have a count for this item
-                if (!(item.id in initialUserCounts) && item.user_count !== undefined) {
-                    initialUserCounts[item.id] = item.user_count || 0;
+                const count = item.user_count ?? item.userCount;
+                if (count !== undefined) {
+                    initialUserCounts[item.id] = count;
                 }
             });
 
+            // Set initial counts (even if some are missing)
             setItemUserCounts(initialUserCounts);
-        }
+
+            // For items without user_count, fetch them in batches
+            const itemsNeedingCounts = allLevelItems.filter(
+                item => initialUserCounts[item.id] === undefined
+            );
+
+            if (itemsNeedingCounts.length > 0) {
+                // Fetch counts in batches of 10
+                const batchSize = 10;
+                for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
+                    const batch = itemsNeedingCounts.slice(i, i + batchSize);
+                    const promises = batch.map(async (item) => {
+                        const count = await fetchUserCount(item.id);
+                        return { id: item.id, count };
+                    });
+
+                    const results = await Promise.all(promises);
+                    const batchCounts: Record<number, number> = {};
+                    results.forEach(({ id, count }) => {
+                        batchCounts[id] = count;
+                    });
+
+                    // Update counts incrementally
+                    setItemUserCounts(prev => ({ ...prev, ...batchCounts }));
+                }
+            }
+        };
+
+        initializeUserCounts();
     }, [allLevelItems]);
 
     // Fetch parent information for all items using the after-assembly API
@@ -479,76 +526,77 @@ export default function DynamicLevelList({
         fetchAllParentInfo();
     }, [levelItems]);
 
-    // Fetch user counts for all items
-    useEffect(() => {
-        const fetchAllUserCounts = async () => {
-            if (levelItems.length === 0) return;
+    // Fetch user counts for all items - DISABLED for performance
+    // User counts will be fetched on-demand when user expands an item
+    // useEffect(() => {
+    //     const fetchAllUserCounts = async () => {
+    //         if (levelItems.length === 0) return;
 
-            const userCounts: Record<number, number> = { ...itemUserCounts }; // Preserve existing counts
+    //         // Reset user counts when filters change - don't preserve old counts
+    //         const userCounts: Record<number, number> = {};
 
-            // Only fetch counts for items that don't have counts yet
-            const itemsNeedingCounts = levelItems.filter(item => !(item.id in itemUserCounts));
+    //         // Only fetch counts for items that don't have counts yet
+    //         const itemsNeedingCounts = levelItems.filter(item => !(item.id in itemUserCounts));
 
-            if (itemsNeedingCounts.length === 0) return;
+    //         if (itemsNeedingCounts.length === 0) return;
 
-            // Fetch user counts in batches to avoid overwhelming the API
-            const batchSize = 10;
-            for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
-                const batch = itemsNeedingCounts.slice(i, i + batchSize);
-                const promises = batch.map(async (item) => {
-                    const count = await fetchUserCount(item.id);
-                    return { id: item.id, count };
-                });
+    //         // Fetch user counts in batches to avoid overwhelming the API
+    //         const batchSize = 10;
+    //         for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
+    //             const batch = itemsNeedingCounts.slice(i, i + batchSize);
+    //             const promises = batch.map(async (item) => {
+    //                 const count = await fetchUserCount(item.id);
+    //                 return { id: item.id, count };
+    //             });
 
-                const results = await Promise.all(promises);
-                results.forEach(({ id, count }) => {
-                    userCounts[id] = count;
-                });
-            }
+    //             const results = await Promise.all(promises);
+    //             results.forEach(({ id, count }) => {
+    //                 userCounts[id] = count;
+    //             });
+    //         }
 
-            setItemUserCounts(userCounts);
-        };
+    //         setItemUserCounts(userCounts);
+    //     };
 
-        fetchAllUserCounts();
-    }, [levelItems]); // Remove itemUserCounts from dependency to avoid infinite loop
+    //     fetchAllUserCounts();
+    // }, [levelItems]); // Remove itemUserCounts from dependency to avoid infinite loop
 
     // Fetch all items for the current level - following the same pattern as existing files
     useEffect(() => {
         const fetchAllLevelItems = async () => {
             if (!stateInfo.stateId) return;
 
+            // Don't fetch data until at least District filter is selected
+            if (!selectedFilters["District"]) return;
+
             setIsLoading(true);
             try {
                 const token = localStorage.getItem("auth_access_token");
                 let levelItems: any[] = [];
 
-                // Step 1: Fetch all districts
-                const districts = await fetchAllPages(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
+                // Only fetch data for the selected district
+                const selectedDistrictId = selectedFilters["District"];
+
+                // Step 1: Fetch assemblies for the selected district only
+                const assemblies = await fetchAllPages(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedDistrictId}`
                 );
 
-                // Step 2: Fetch all assemblies for each district (limit to 8 concurrent requests)
-                const assemblies = (
-                    await limitConcurrency(
-                        districts,
-                        async (district: any) => {
-                            const assembliesData = await fetchAllPages(
-                                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id}`
-                            );
-                            return assembliesData.map((assembly: any) => ({
-                                ...assembly,
-                                districtId: district.location_id || district.id,
-                                districtName: district.location_name,
-                            }));
-                        },
-                        8
-                    )
-                ).flat();
+                const assembliesWithDistrict = assemblies.map((assembly: any) => ({
+                    ...assembly,
+                    districtId: selectedDistrictId,
+                    districtName: dynamicFilterOptions["District"]?.find(d => d.id === selectedDistrictId)?.displayName || "Unknown"
+                }));
 
-                // Step 3: Fetch all after-assembly levels for each assembly (flexible approach, limit to 8 concurrent)
+                // If Assembly filter is selected, filter assemblies
+                const filteredAssemblies = selectedFilters["Assembly"]
+                    ? assembliesWithDistrict.filter((a: any) => (a.location_id || a.id) === selectedFilters["Assembly"])
+                    : assembliesWithDistrict;
+
+                // Step 2: Fetch after-assembly levels for filtered assemblies only (limit to 8 concurrent)
                 const afterAssemblyLevels = (
                     await limitConcurrency(
-                        assemblies,
+                        filteredAssemblies,
                         async (assembly: any) => {
                             const res = await fetch(
                                 `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id || assembly.id}`,
@@ -571,19 +619,21 @@ export default function DynamicLevelList({
                 if (levelName === "Block" || levelName === "Ward" || levelName === "Zone" || levelName === "Sector") {
                     // Check if this level is a direct child of Assembly
                     const directAssemblyChildren = afterAssemblyLevels.filter(level =>
-                        level.levelName === levelName &&
-                        level.parentAssemblyId &&
-                        !level.parentId
+                        level.levelName === levelName
                     );
 
                     if (directAssemblyChildren.length > 0) {
                         levelItems = directAssemblyChildren;
                     } else {
                         // This level might be a child of another after-assembly level
-                        // Fetch children of all after-assembly levels and build proper hierarchy (limit to 15 concurrent)
+                        // Only fetch from relevant parent levels (reduce unnecessary API calls)
+                        const relevantParents = afterAssemblyLevels.filter(level =>
+                            level.levelName !== levelName // Don't fetch children of same level
+                        );
+
                         levelItems = (
                             await limitConcurrency(
-                                afterAssemblyLevels,
+                                relevantParents,
                                 async (parentLevel: any) => {
                                     const childrenData = await fetchAllPages(
                                         `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
@@ -606,12 +656,12 @@ export default function DynamicLevelList({
                                             [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         }));
                                 },
-                                15
+                                10 // Reduced from 15 to 10 for better control
                             )
                         ).flat();
                     }
                 } else if (levelName === "Mandal") {
-                    // Step 4: Fetch all mandals for each after-assembly level (limit to 15 concurrent)
+                    // Step 4: Fetch all mandals for each after-assembly level (limit to 10 concurrent)
                     levelItems = (
                         await limitConcurrency(
                             afterAssemblyLevels,
@@ -796,7 +846,7 @@ export default function DynamicLevelList({
         };
 
         fetchAllLevelItems();
-    }, [stateInfo.stateId, levelName]);    // Handle items without users filter
+    }, [stateInfo.stateId, levelName, selectedFilters["District"], selectedFilters["Assembly"], dynamicFilterOptions["District"]]);    // Handle items without users filter
     const handleItemsWithoutUsersClick = () => {
         const itemsWithoutUsersCount = levelItems.filter(
             (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
@@ -1181,7 +1231,7 @@ export default function DynamicLevelList({
                                 const parentFilterLevel = visibleFilters[visibleFilters.indexOf(filterLevel) - 1];
                                 const parentSelected = selectedFilters[parentFilterLevel];
                                 const isDisabled = !!(parentFilterLevel && (!parentSelected || parentSelected === 0));
-                                
+
                                 return (
                                     <div key={filterLevel}>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1558,7 +1608,7 @@ export default function DynamicLevelList({
                                                                     </svg>
                                                                 </button>
                                                                 <span className="text-sm font-medium text-gray-900">
-                                                                    {itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)}
+                                                                    {itemUserCounts[item.id] ?? 0}
                                                                 </span>
                                                             </div>
                                                         </td>
