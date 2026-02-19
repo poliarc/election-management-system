@@ -100,36 +100,48 @@ export default function AddSupporterPage() {
     }
   }, [selectedAssignment]);
 
-  // Show WhatsApp URL modal when profile has no WhatsAppUrl
+  // Show WhatsApp URL modal when profile has no WhatsAppUrl (optional - user can skip)
   useEffect(() => {
-    if (profile && !profile.WhatsAppUrl?.trim() && !savedWhatsAppUrl) {
+    if (profile && !profile.WhatsAppUrl?.trim() && !savedWhatsAppUrl && showWhatsAppModal === false) {
+      // Only show modal once on initial load if no URL is set
       setShowWhatsAppModal(true);
     }
     if (profile?.WhatsAppUrl?.trim()) {
       setWhatsappUrlInput(profile.WhatsAppUrl);
     }
-  }, [profile?.WhatsAppUrl, savedWhatsAppUrl]);
+  }, [profile?.WhatsAppUrl]);
 
   const handleSaveWhatsAppUrl = async () => {
     const url = whatsappUrlInput.trim();
-    if (!url) {
-      setWhatsappUrlError('WhatsApp group URL is required');
-      return;
-    }
-    if (url.length > 1000) {
+    if (url && url.length > 1000) {
       setWhatsappUrlError('URL must be at most 1000 characters');
       return;
     }
     setWhatsappUrlError('');
-    if (!profile?.user_id) return;
+    if (!profile?.user_id) {
+      toast.error('User ID not found. Please refresh the page.');
+      return;
+    }
     try {
-      await updateWhatsAppUrl({ id: profile.user_id, WhatsAppUrl: url }).unwrap();
+      console.log('Saving WhatsApp URL:', { userId: profile.user_id, url });
+      const result = await updateWhatsAppUrl({ id: profile.user_id, WhatsAppUrl: url }).unwrap();
+      console.log('WhatsApp URL saved successfully:', result);
       setSavedWhatsAppUrl(url);
       setShowWhatsAppModal(false);
-      toast.success('WhatsApp group URL saved.');
+      if (url) {
+        toast.success('WhatsApp group URL saved successfully!');
+      } else {
+        toast.success('You can add supporters without WhatsApp URL.');
+      }
     } catch (err: any) {
-      toast.error(err?.data?.message || 'Failed to save WhatsApp URL.');
+      console.error('Failed to save WhatsApp URL:', err);
+      toast.error(err?.data?.error?.message || err?.data?.message || 'Failed to save WhatsApp URL.');
     }
+  };
+
+  const handleCancelWhatsAppModal = () => {
+    setShowWhatsAppModal(false);
+    setWhatsappUrlError('');
   };
 
   const effectiveWhatsAppUrl = savedWhatsAppUrl || profile?.WhatsAppUrl?.trim() || null;
@@ -449,13 +461,13 @@ export default function AddSupporterPage() {
 
   return (
     <div className="p-6">
-      {/* WhatsApp Group URL modal - user must enter URL first; then they can add supporters and get redirected to WhatsApp on success */}
+      {/* WhatsApp Group URL modal - optional, user can skip and add supporters without URL */}
       {showWhatsAppModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Group URL (required)</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Group URL (Optional)</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Enter your WhatsApp group invite link first. It will be saved to your profile. When you add a new supporter with a WhatsApp number, you will be redirected to WhatsApp to send them this group link.
+              Enter your WhatsApp group invite link. When you add a new supporter with a WhatsApp number, you will be redirected to WhatsApp to send them this group link. You can skip this and add supporters without a group URL.
             </p>
             <input
               type="url"
@@ -470,22 +482,20 @@ export default function AddSupporterPage() {
             />
             {whatsappUrlError && <p className="text-red-500 text-xs mt-1">{whatsappUrlError}</p>}
             <div className="flex justify-end gap-2 mt-4">
-              {effectiveWhatsAppUrl && (
-                <button
-                  type="button"
-                  onClick={() => setShowWhatsAppModal(false)}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleCancelWhatsAppModal}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Skip
+              </button>
               <button
                 type="button"
                 onClick={handleSaveWhatsAppUrl}
                 disabled={isSavingWhatsAppUrl}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
-                {isSavingWhatsAppUrl ? 'Saving...' : 'Save & continue'}
+                {isSavingWhatsAppUrl ? 'Saving...' : whatsappUrlInput.trim() ? 'Save & continue' : 'Continue without URL'}
               </button>
             </div>
           </div>
@@ -528,24 +538,11 @@ export default function AddSupporterPage() {
         </div>
         {effectiveWhatsAppUrl && (
           <p className="text-sm text-gray-500 mb-4">
-            The WhatsApp group URL above is saved to your profile and will be used when you add a new supporter (they will be redirected to WhatsApp with this link). Use the button to update it anytime.
+            WhatsApp group URL is saved. When you add a supporter with a WhatsApp number, you will be redirected to WhatsApp to send them the group link. Click the button above to update the URL anytime.
           </p>
         )}
 
-        {/* Require WhatsApp URL first: show form only after user has set it */}
-        {!effectiveWhatsAppUrl ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-            <p className="text-amber-800 font-medium mb-2">Set your WhatsApp group URL first</p>
-            <p className="text-amber-700 text-sm mb-4">You need to enter your WhatsApp group link above before adding supporters. After you add a supporter with a WhatsApp number, you will be redirected to WhatsApp to send them the group link.</p>
-            <button
-              type="button"
-              onClick={() => setShowWhatsAppModal(true)}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-            >
-              Enter WhatsApp group URL
-            </button>
-          </div>
-        ) : (
+        {/* Form is always available - no need to set WhatsApp URL first */}
         <>
         {/* Form */}
         <div className="bg-white rounded-lg shadow p-6">
@@ -1027,7 +1024,6 @@ export default function AddSupporterPage() {
           </form>
         </div>
         </>
-        )}
       </div>
     </div>
   );

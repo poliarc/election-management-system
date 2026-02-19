@@ -44,6 +44,7 @@ interface LoginSessionParams {
     date_to?: string;
     user_id?: number;
     state_id?: number;
+    district_id?: number;
 }
 
 interface UserLoginReportData {
@@ -70,6 +71,7 @@ interface UserReportResponse {
         last_name: string;
         email: string;
         username: string;
+        last_login_time?: string;
     };
     data: UserLoginReportData[];
 }
@@ -100,28 +102,13 @@ export const loginSessionApi = createApi({
                 if (params?.date_from) queryParams.date_from = params.date_from;
                 if (params?.date_to) queryParams.date_to = params.date_to;
                 if (params?.user_id) queryParams.user_id = params.user_id;
-
-                // If state_id is provided, use the specific endpoint if API requires it, 
-                // or just pass as param. Based on docs 'Get Login Sessions by Party and State' is strict /party-state/:partyId/:stateId
-                // But generally filtering is easier with params. 
-                // Let's stick to the /by-party endpoint and add state_id as query param if the backend supports it,
-                // OR conditionally switch format. 
-                // The prompt says "perticlae state select pe ske login sessions nikle".
-                // Looking at docs: 
-                // # 7. Get Login Sessions by Party and State -> /by-party-state/:party_id/:state_id
-                // So we should probably use that endpoint if state_id is present.
-                // However, switching URLs dynamically in one query definition is tricky with keeping types clean.
-                // Let's modify the URL construction logic.
+                if (params?.district_id) queryParams.district_id = params.district_id;
 
                 let url = `/login-sessions/by-party/${partyId}`;
 
-                // Check if the caller passed state_id in params (we need to add it to LoginSessionParams interface first)
-                // TypeScript hack: we will cast params to any for now inside the function, assume it's there. 
-                // Proper way is to update interface.
-                const stateId = (params as any)?.state_id;
-
-                if (stateId) {
-                    url = `/login-sessions/by-party-state/${partyId}/${stateId}`;
+                // If state_id is provided, use the party-state endpoint
+                if (params?.state_id) {
+                    url = `/login-sessions/by-party-state/${partyId}/${params.state_id}`;
                 }
 
                 return {

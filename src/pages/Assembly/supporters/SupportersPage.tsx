@@ -1,16 +1,190 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { SupporterList, SupporterStats } from './index';
 import type { Supporter } from '../../../types/supporter';
+import { useAppSelector } from '../../../store/hooks';
 
 export default function SupportersPage() {
   const navigate = useNavigate();
+  const { user, selectedAssignment } = useAppSelector((s) => s.auth);
   const [viewingSupporter, setViewingSupporter] = useState<Supporter | null>(null);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [phoneModalSupporter, setPhoneModalSupporter] = useState<Supporter | null>(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showBlockSelectionModal, setShowBlockSelectionModal] = useState(false);
+  const [selectedBlockForLink, setSelectedBlockForLink] = useState<number>(0);
+  const [selectedMandalForLink, setSelectedMandalForLink] = useState<number>(0);
+  const [selectedBoothForLink, setSelectedBoothForLink] = useState<number>(0);
+  const [blocks, setBlocks] = useState<any[]>([]);
+  const [mandals, setMandals] = useState<any[]>([]);
+  const [booths, setBooths] = useState<any[]>([]);
+  const [loadingBlocks, setLoadingBlocks] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState('');
 
   const handleCreate = () => {
     navigate('/assembly/supporters/add');
+  };
+
+  const handleGenerateLink = async () => {
+    // First show block selection modal
+    setShowBlockSelectionModal(true);
+    setLoadingBlocks(true);
+    
+    try {
+      // Fetch hierarchy for the assembly
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/campaigns/hierarchy?state_id=${user?.state_id || selectedAssignment?.stateMasterData_id || 0}&party_id=${user?.partyId || 0}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_access_token')}`
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          const afterAssemblyData = result.data?.afterAssemblyHierarchy || [];
+          const assemblyBlocks = afterAssemblyData.filter((h: any) =>
+            h.levelName === 'Block' && h.parentAssemblyId === (selectedAssignment?.stateMasterData_id || 0)
+          );
+          setBlocks(assemblyBlocks);
+          
+          // Also get mandals directly under assembly (for when no block is selected)
+          const assemblyMandals = afterAssemblyData.filter((h: any) =>
+            h.levelName === 'Mandal' && h.parentAssemblyId === (selectedAssignment?.stateMasterData_id || 0)
+          );
+          setMandals(assemblyMandals);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch hierarchy:', error);
+      toast.error('Failed to load hierarchy data');
+    } finally {
+      setLoadingBlocks(false);
+    }
+  };
+
+  const handleBlockChange = (blockId: number) => {
+    setSelectedBlockForLink(blockId);
+    setSelectedMandalForLink(0);
+    setSelectedBoothForLink(0);
+    
+    if (blockId > 0) {
+      // Filter mandals under selected block
+      fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/campaigns/hierarchy?state_id=${user?.state_id || selectedAssignment?.stateMasterData_id || 0}&party_id=${user?.partyId || 0}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_access_token')}`
+          }
+        }
+      ).then(res => res.json()).then(result => {
+        if (result.success) {
+          const afterAssemblyData = result.data?.afterAssemblyHierarchy || [];
+          const filteredMandals = afterAssemblyData.filter((h: any) =>
+            h.levelName === 'Mandal' && h.parentId === blockId
+          );
+          setMandals(filteredMandals);
+        }
+      });
+    } else {
+      // Show assembly-level mandals
+      fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/campaigns/hierarchy?state_id=${user?.state_id || selectedAssignment?.stateMasterData_id || 0}&party_id=${user?.partyId || 0}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_access_token')}`
+          }
+        }
+      ).then(res => res.json()).then(result => {
+        if (result.success) {
+          const afterAssemblyData = result.data?.afterAssemblyHierarchy || [];
+          const assemblyMandals = afterAssemblyData.filter((h: any) =>
+            h.levelName === 'Mandal' && h.parentAssemblyId === (selectedAssignment?.stateMasterData_id || 0)
+          );
+          setMandals(assemblyMandals);
+        }
+      });
+    }
+    setBooths([]);
+  };
+
+  const handleMandalChange = (mandalId: number) => {
+    setSelectedMandalForLink(mandalId);
+    setSelectedBoothForLink(0);
+    
+    if (mandalId > 0) {
+      // Fetch booths under selected mandal
+      fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/campaigns/hierarchy?state_id=${user?.state_id || selectedAssignment?.stateMasterData_id || 0}&party_id=${user?.partyId || 0}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_access_token')}`
+          }
+        }
+      ).then(res => res.json()).then(result => {
+        if (result.success) {
+          const afterAssemblyData = result.data?.afterAssemblyHierarchy || [];
+          const filteredBooths = afterAssemblyData.filter((h: any) =>
+            h.levelName === 'Booth' && h.parentId === mandalId
+          );
+          setBooths(filteredBooths);
+        }
+      });
+    } else {
+      setBooths([]);
+    }
+  };
+
+  const handleConfirmBlockAndGenerateLink = () => {
+    const selectedBlock = blocks.find(b => b.id === selectedBlockForLink);
+    const selectedMandal = mandals.find(m => m.id === selectedMandalForLink);
+    const selectedBooth = booths.find(b => b.id === selectedBoothForLink);
+    
+    // Generate public registration link with user's information including optional hierarchy
+    const params = new URLSearchParams({
+      party_id: (user?.partyId || 0).toString(),
+      party_name: user?.partyName || 'Party',
+      state_id: (user?.state_id || selectedAssignment?.stateMasterData_id || 0).toString(),
+      state_name: user?.stateName || selectedAssignment?.stateName || 'State',
+      district_id: (selectedAssignment?.parentId || 0).toString(),
+      district_name: selectedAssignment?.parentLevelName || selectedAssignment?.districtName || 'District',
+      assembly_id: (selectedAssignment?.stateMasterData_id || 0).toString(),
+      assembly_name: selectedAssignment?.levelName || selectedAssignment?.displayName || 'Assembly',
+      created_by: (user?.id || 0).toString(),
+      created_by_name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+    });
+
+    // Add optional hierarchy levels
+    if (selectedBlockForLink > 0) {
+      params.append('block_id', selectedBlockForLink.toString());
+      params.append('block_name', selectedBlock?.displayName || selectedBlock?.levelName || 'Block');
+    }
+    if (selectedMandalForLink > 0) {
+      params.append('mandal_id', selectedMandalForLink.toString());
+      params.append('mandal_name', selectedMandal?.displayName || selectedMandal?.levelName || 'Mandal');
+    }
+    if (selectedBoothForLink > 0) {
+      params.append('booth_id', selectedBoothForLink.toString());
+      params.append('booth_name', selectedBooth?.displayName || selectedBooth?.levelName || 'Booth');
+    }
+
+    const link = `${window.location.origin}/supporter/register?${params.toString()}`;
+    setGeneratedLink(link);
+    setShowBlockSelectionModal(false);
+    setShowLinkModal(true);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    toast.success('Link copied to clipboard!');
+  };
+
+  const handleCloseLinkModal = () => {
+    setShowLinkModal(false);
+    setGeneratedLink('');
   };
 
   const handleEdit = (supporter: Supporter) => {
@@ -65,15 +239,27 @@ export default function SupportersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Supporters</h1>
           <p className="text-gray-600">Manage your supporters database</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M12 5v14m-7-7h14" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Add Supporter
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleGenerateLink}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            title="Generate a public link to share for supporter registration"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Generate Public Link
+          </button>
+          <button
+            onClick={handleCreate}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 5v14m-7-7h14" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Add Supporter
+          </button>
+        </div>
       </div>
 
       <SupporterStats />
@@ -83,6 +269,258 @@ export default function SupportersPage() {
         onView={handleView}
         onShowPhone={handleShowPhone}
       />
+
+      {/* Block Selection Modal */}
+      {showBlockSelectionModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Select Location for Registration Link</h3>
+                <p className="text-sm text-gray-600 mt-1">Choose hierarchy levels for the registration link</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowBlockSelectionModal(false);
+                  setSelectedBlockForLink(0);
+                  setSelectedMandalForLink(0);
+                  setSelectedBoothForLink(0);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6L6 18M6 6l12 12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {loadingBlocks ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
+                  <p className="mt-2 text-sm text-gray-500">Loading hierarchy...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Pre-filled Location (Disabled) */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Pre-filled Location</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                        <input
+                          type="text"
+                          value={user?.stateName || selectedAssignment?.stateName || 'State'}
+                          disabled
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">District</label>
+                        <input
+                          type="text"
+                          value={selectedAssignment?.parentLevelName || selectedAssignment?.districtName || 'District'}
+                          disabled
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Assembly</label>
+                        <input
+                          type="text"
+                          value={selectedAssignment?.levelName || selectedAssignment?.displayName || 'Assembly'}
+                          disabled
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hierarchy Selection */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Hierarchy Levels</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Block Dropdown - Required */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Block <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedBlockForLink}
+                          onChange={(e) => handleBlockChange(parseInt(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value={0}>Select Block</option>
+                          {blocks.map((block) => (
+                            <option key={block.id} value={block.id}>
+                              {block.displayName || block.levelName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Mandal Dropdown */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Mandal <span className="text-gray-400">(Optional)</span>
+                        </label>
+                        <select
+                          value={selectedMandalForLink}
+                          onChange={(e) => handleMandalChange(parseInt(e.target.value))}
+                          disabled={mandals.length === 0}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                        >
+                          <option value={0}>Select Mandal</option>
+                          {mandals.map((mandal) => (
+                            <option key={mandal.id} value={mandal.id}>
+                              {mandal.displayName || mandal.levelName}
+                            </option>
+                          ))}
+                        </select>
+                        {mandals.length === 0 && (
+                          <p className="text-xs text-gray-500 mt-1">No mandals available</p>
+                        )}
+                      </div>
+
+                      {/* Booth Dropdown */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Booth <span className="text-gray-400">(Optional)</span>
+                        </label>
+                        <select
+                          value={selectedBoothForLink}
+                          onChange={(e) => setSelectedBoothForLink(parseInt(e.target.value))}
+                          disabled={booths.length === 0}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                        >
+                          <option value={0}>Select Booth</option>
+                          {booths.map((booth) => (
+                            <option key={booth.id} value={booth.id}>
+                              {booth.displayName || booth.levelName}
+                            </option>
+                          ))}
+                        </select>
+                        {booths.length === 0 && selectedMandalForLink === 0 && (
+                          <p className="text-xs text-gray-500 mt-1">Select a mandal first</p>
+                        )}
+                        {booths.length === 0 && selectedMandalForLink > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">No booths available</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <svg className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" strokeWidth={2} />
+                        <path d="M12 16v-4M12 8h.01" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm text-blue-800">
+                        Block selection is required. Mandal and Booth are optional. Supporters registered through this link will be pre-filled with the selected levels.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setShowBlockSelectionModal(false);
+                        setSelectedBlockForLink(0);
+                        setSelectedMandalForLink(0);
+                        setSelectedBoothForLink(0);
+                      }}
+                      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmBlockAndGenerateLink}
+                      disabled={selectedBlockForLink === 0}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Generate Link
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Link Generation Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Public Supporter Registration Link</h3>
+                <p className="text-sm text-gray-600 mt-1">Share this link to allow others to register supporters on your behalf</p>
+              </div>
+              <button
+                onClick={handleCloseLinkModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6L6 18M6 6l12 12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Generated Link:</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={generatedLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-mono"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" strokeWidth={2} />
+                    <path d="M12 16v-4M12 8h.01" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">How it works:</p>
+                    <ul className="list-disc list-inside space-y-1 text-blue-700">
+                      <li>Share this link via WhatsApp, SMS, or social media</li>
+                      <li>Anyone with the link can register supporters</li>
+                      <li>All supporters registered through this link will be credited to you</li>
+                      <li>The link contains your assembly and user information</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={handleCloseLinkModal}
+                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {viewingSupporter && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
