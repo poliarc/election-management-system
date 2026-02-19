@@ -15,6 +15,7 @@ import {
     Users,
     Search
 } from "lucide-react";
+// Import login session API hooks with updated types
 import { useGetLoginSessionsByPartyQuery, useGetUserLoginReportQuery } from "../../../store/api/loginSessionApi";
 import { useGetUsersByPartyQuery } from "../../../store/api/partyUserApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
@@ -33,6 +34,7 @@ export const LoginReportPage: React.FC = () => {
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
     const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
+    const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
 
     // --- State for User Report ---
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
@@ -52,6 +54,15 @@ export const LoginReportPage: React.FC = () => {
 
     const stateOptions = states.map(s => ({ value: s.id, label: s.levelName }));
 
+    // Filter districts based on selected state
+    const districts = stateMasterData.filter(
+        (item) => item.levelType === "District" && 
+        item.isActive === 1 && 
+        (!selectedStateId || item.ParentId === selectedStateId)
+    );
+
+    const districtOptions = districts.map(d => ({ value: d.id, label: d.levelName }));
+
     // Sessions Query
     const { data: sessionsData, isLoading: isSessionsLoading, isFetching: isSessionsFetching } = useGetLoginSessionsByPartyQuery(
         {
@@ -63,6 +74,7 @@ export const LoginReportPage: React.FC = () => {
                 ...(dateFrom && { date_from: dateFrom }),
                 ...(dateTo && { date_to: `${dateTo} 23:59:59` }),
                 ...(selectedStateId && { state_id: selectedStateId }),
+                ...(selectedDistrictId && { district_id: selectedDistrictId }),
             },
         },
         { skip: !partyId || mode !== "sessions" }
@@ -108,7 +120,14 @@ export const LoginReportPage: React.FC = () => {
     );
 
     const sessions = useMemo(() => {
-        const data = sessionsData?.data || [];
+        let data = sessionsData?.data || [];
+        
+        // Filter by district if selected (frontend filtering as backend doesn't support it yet)
+        if (selectedDistrictId) {
+            data = data.filter(s => s.district_id === selectedDistrictId);
+        }
+        
+        // Filter by search text
         if (!userSearch) return data;
         const lowerSearch = userSearch.toLowerCase();
         return data.filter(s =>
@@ -117,7 +136,7 @@ export const LoginReportPage: React.FC = () => {
             (s.username && s.username.toLowerCase().includes(lowerSearch)) ||
             (s.user_email && s.user_email.toLowerCase().includes(lowerSearch))
         );
-    }, [sessionsData, userSearch]);
+    }, [sessionsData, userSearch, selectedDistrictId]);
 
     const pagination = sessionsData?.pagination;
 
@@ -186,7 +205,7 @@ export const LoginReportPage: React.FC = () => {
                 <>
                     {/* Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                             {/* State Filter */}
                             <div className="w-full">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -197,9 +216,27 @@ export const LoginReportPage: React.FC = () => {
                                     value={selectedStateId}
                                     onChange={(val) => {
                                         setSelectedStateId(val as number);
+                                        setSelectedDistrictId(null); // Reset district when state changes
                                         setPage(1);
                                     }}
                                     placeholder="Select State"
+                                />
+                            </div>
+
+                            {/* District Filter */}
+                            <div className="w-full">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Filter by District {!selectedStateId}
+                                </label>
+                                <SearchableSelect
+                                    options={districtOptions}
+                                    value={selectedDistrictId}
+                                    onChange={(val) => {
+                                        setSelectedDistrictId(val as number);
+                                        setPage(1);
+                                    }}
+                                    placeholder="Select District"
+                                    disabled={!selectedStateId || districtOptions.length === 0}
                                 />
                             </div>
 
@@ -620,6 +657,35 @@ export const LoginReportPage: React.FC = () => {
                                 </div>
                             ) : userReportData ? (
                                 <div className="space-y-6">
+                                    {/* User Info Card */}
+                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-shrink-0 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl">
+                                                    {(userReportData.user.first_name?.[0] || "U").toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-xl font-bold text-gray-900">
+                                                        {userReportData.user.first_name} {userReportData.user.last_name}
+                                                    </h2>
+                                                    <p className="text-sm text-gray-600">{userReportData.user.email}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">@{userReportData.user.username}</p>
+                                                </div>
+                                            </div>
+                                            {userReportData.user.last_login_time && (
+                                                <div className="text-right">
+                                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Last Login</p>
+                                                    <p className="text-sm font-semibold text-gray-900 mt-1">
+                                                        {format(new Date(userReportData.user.last_login_time), "MMM d, yyyy")}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600">
+                                                        {format(new Date(userReportData.user.last_login_time), "h:mm a")}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     {/* Summary Cards */}
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">

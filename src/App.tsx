@@ -120,6 +120,7 @@ import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
 import { PublicRegistration } from "./pages/PublicRegistration";
+import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
@@ -163,6 +164,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<PublicRegistration />} />
+        <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />

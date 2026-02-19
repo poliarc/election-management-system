@@ -453,9 +453,7 @@ export default function StateSupportersPage() {
           <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-pink-100 text-xs font-medium">
-                  {selectedUserId ? 'User(Supp)' : 'Users'}
-                </p>
+                
                 <p className="text-2xl font-bold mt-1">
                   {selectedUserId ? (pagination?.total || 0) : availableUsers.length}
                 </p>
@@ -579,7 +577,7 @@ export default function StateSupportersPage() {
             {/* User Dropdown */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by User
+                Filter
               </label>
               <select
                 value={selectedUserId}
