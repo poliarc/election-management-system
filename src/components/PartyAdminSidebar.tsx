@@ -205,7 +205,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                 </svg>
             ),
             children: [
-                { to: "export-supporters", label: "Export Supporters" },
+                { to: "export-supporters", label: "Export" },
             ],
         },
     ];

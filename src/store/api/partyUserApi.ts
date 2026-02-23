@@ -49,6 +49,7 @@ interface BackendUser {
     isActive: number; // 0 or 1
     isSuperAdmin: number; // 0 or 1
     created_on: string;
+    last_login_time?: string;
 }
 
 // Transform backend user to frontend User type
@@ -69,6 +70,7 @@ function transformUser(backendUser: BackendUser): User {
         districtName: backendUser.districtName,
         isActive: backendUser.isActive === 1,
         created_at: backendUser.created_on,
+        last_login_time: backendUser.last_login_time,
     };
 }
 

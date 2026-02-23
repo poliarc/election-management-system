@@ -125,9 +125,9 @@ export const ExportSupportersPage: React.FC = () => {
 
             // Create CSV content
             const headers = [
-                'Serial No', 'Initials', 'First Name', 'Last Name', 'Father Name', 'Age', 'Gender',
-                'Phone', 'WhatsApp', 'EPIC ID', 'Address', 'Languages', 'Religion', 'Category', 'Caste',
-                'Assembly', 'Block', 'Mandal', 'Booth', 'Created At'
+                'Serial No', 'Created By', 'Assembly', 'Initials', 'First Name', 'Last Name', 'Father Name', 'Age', 'Gender',
+                'Phone', 'WhatsApp', 'EPIC ID', 'Languages', 'Religion', 'Category', 'Caste',
+                 'Block', 'Mandal', 'Booth', 'Created At', 'Address',
             ];
 
             const csvRows = allSupporters.map((supporter: Supporter, index: number) => {
@@ -160,6 +160,8 @@ export const ExportSupportersPage: React.FC = () => {
 
                 return [
                     escapeCSV(index + 1),
+                    escapeCSV(supporter.created_by_name || 'Unknown'),
+                    escapeCSV(supporter.assembly_name),
                     escapeCSV(supporter.initials),
                     escapeCSV(supporter.first_name),
                     escapeCSV(supporter.last_name),
@@ -169,16 +171,15 @@ export const ExportSupportersPage: React.FC = () => {
                     escapeCSV(supporter.phone_no, true),
                     escapeCSV(supporter.whatsapp_no, true),
                     escapeCSV(supporter.voter_epic_id, true),
-                    escapeCSV(supporter.address),
                     escapeCSV(languageStr),
                     escapeCSV(supporter.religion),
                     escapeCSV(supporter.category),
                     escapeCSV(supporter.caste),
-                    escapeCSV(supporter.assembly_name),
                     escapeCSV(supporter.block_name),
                     escapeCSV(supporter.mandal_name),
                     escapeCSV(supporter.booth_name),
-                    escapeCSV(supporter.created_at ? new Date(supporter.created_at).toLocaleDateString() : '')
+                    escapeCSV(supporter.created_at ? new Date(supporter.created_at).toLocaleDateString() : ''),
+                     escapeCSV(supporter.address),
                 ].join(',');
             });
 
@@ -244,11 +245,11 @@ export const ExportSupportersPage: React.FC = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Export Supporters</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Export</h1>
                 <p className="text-gray-600 mt-2">
                     Select a state to export all supporters data
                 </p>
-            </div>
+            </div>  
 
             {/* States Grid */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -297,7 +298,7 @@ export const ExportSupportersPage: React.FC = () => {
                                     ) : (
                                         <>
                                             <Download className="w-4 h-4" />
-                                            <span>Export Supporters</span>
+                                            <span>Export</span>
                                         </>
                                     )}
                                 </button>

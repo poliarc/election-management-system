@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithAuth } from '../baseQuery';
 
 // Profile data structure from backend
 export interface ProfileData {
@@ -79,7 +80,8 @@ export interface ProfileData {
   profileImage?: string;
   partyName?: string;
   role?: string;
-  role_name: string
+  role_name: string;
+  WhatsAppUrl?: string | null;
 }
 
 // Update profile payload structure
@@ -160,16 +162,7 @@ export interface UpdateProfilePayload {
 
 export const profileApi = createApi({
   reducerPath: 'profileApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${import.meta.env.VITE_API_BASE_URL}/api`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('auth_access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuth,
   tagTypes: ['Profile'],
   endpoints: (builder) => ({
     getProfile: builder.query<ProfileData, void>({
@@ -201,7 +194,20 @@ export const profileApi = createApi({
       }),
       invalidatesTags: ['Profile'],
     }),
+    updateWhatsAppUrl: builder.mutation<ProfileData, { id: number | string; WhatsAppUrl: string }>({
+      query: ({ id, WhatsAppUrl }) => ({
+        url: `/users/update/${id}`,
+        method: 'PUT',
+        body: { WhatsAppUrl },
+        headers: { 'Content-Type': 'application/json' },
+      }),
+      transformResponse: (response: { success: boolean; message: string; data: ProfileData }) => {
+        console.log('updateWhatsAppUrl response:', response);
+        return response.data;
+      },
+      invalidatesTags: ['Profile'],
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation, useToggleUserStatusMutation } = profileApi;
+export const { useGetProfileQuery, useUpdateProfileMutation, useToggleUserStatusMutation, useUpdateWhatsAppUrlMutation } = profileApi;

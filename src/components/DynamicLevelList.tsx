@@ -47,9 +47,9 @@ export default function DynamicLevelList({
     const [itemsPerPage] = useState(20);
 
     // Reset all filters when levelName changes (navigation to different level)
+    // Clear both selected filters AND filter options for fresh start
     useEffect(() => {
         setSearchTerm("");
-        setSelectedFilters({});
         setSelectedLevelFilter("");
         setCurrentPage(1);
         setShowItemsWithoutUsers(false);
@@ -59,6 +59,10 @@ export default function DynamicLevelList({
         setAllLevelItems([]);
         setParentInfo({});
         setItemUserCounts({});
+
+        // Clear selected filters AND filter options for fresh start on each page
+        setSelectedFilters({});
+        setDynamicFilterOptions({});
     }, [levelName]);
 
     // // Function to reset all filters manually
@@ -95,73 +99,6 @@ export default function DynamicLevelList({
 
     // State for parent information
     const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
-
-    // Function to fetch parent details using the after-assembly API (which returns parentDetails)
-    const fetchParentDetailsFromAPI = async (itemId: number) => {
-        try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                    },
-                }
-            );
-            const data = await response.json();
-
-            if (data.success && data.data?.parentDetails) {
-                const parentDetails = data.data.parentDetails;
-                setParentInfo(prev => ({
-                    ...prev,
-                    [parentDetails.id]: {
-                        id: parentDetails.id,
-                        displayName: parentDetails.displayName,
-                        levelName: parentDetails.levelName,
-                    }
-                }));
-                return parentDetails;
-            }
-        } catch (error) {
-            console.error(`Error fetching parent details for item ${itemId}:`, error);
-        }
-        return null;
-    };
-
-    // Function to fetch user count for an item
-    const fetchUserCount = async (itemId: number) => {
-        try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                    },
-                }
-            );
-            const data = await response.json();
-
-            if (data.success && data.data?.users) {
-                // Store parent information from parentDetails if available
-                if (data.data.parentDetails) {
-                    const parentDetails = data.data.parentDetails;
-                    setParentInfo(prev => ({
-                        ...prev,
-                        [parentDetails.id]: {
-                            id: parentDetails.id,
-                            displayName: parentDetails.displayName,
-                            levelName: parentDetails.levelName,
-                        }
-                    }));
-                }
-
-                return data.data.users.length;
-            }
-            return 0;
-        } catch (error) {
-            console.error(`Error fetching user count for item ${itemId}:`, error);
-            return 0;
-        }
-    };
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -237,18 +174,15 @@ export default function DynamicLevelList({
             }
         });
 
-        if (value > 0) {
-            newFilters[levelName] = value;
-        } else {
-            delete newFilters[levelName];
-        }
+        // Always set the value (even if 0 for "All")
+        newFilters[levelName] = value;
 
         setSelectedFilters(newFilters);
         setDynamicFilterOptions(newFilterOptions);
         setCurrentPage(1);
     };
 
-    // Fetch filter options for each level based on parent selections
+    // Fetch filter options for each level based on parent selections - OPTIMIZED
     useEffect(() => {
         const populateFilterOptions = async () => {
             const newFilterOptions = { ...dynamicFilterOptions };
@@ -271,78 +205,61 @@ export default function DynamicLevelList({
                 }
             }
 
-            // Fetch options for each selected filter
-            for (let i = 0; i < visibleFilters.length; i++) {
-                const currentLevel = visibleFilters[i];
-                const selectedId = selectedFilters[currentLevel];
+            // Fetch options ONLY for the next level after the last selected filter (not all levels)
+            const lastSelectedFilterIndex = visibleFilters.findIndex(f => !selectedFilters[f]);
+            
+            if (lastSelectedFilterIndex >= 0) {
+                const currentLevelToFetch = lastSelectedFilterIndex > 0 
+                    ? visibleFilters[lastSelectedFilterIndex - 1] 
+                    : "District";
+                const currentLevelId = selectedFilters[currentLevelToFetch];
+                const nextLevelToFetch = visibleFilters[lastSelectedFilterIndex];
 
-                if (selectedId && selectedId > 0) {
-                    const nextLevel = visibleFilters[i + 1];
-
-                    // Determine which API to use based on current level
-                    if (nextLevel) {
-                        if (currentLevel === "District") {
+                if (currentLevelId && currentLevelId > 0 && nextLevelToFetch) {
+                    try {
+                        if (currentLevelToFetch === "District" && nextLevelToFetch === "Assembly") {
                             // Fetch Assemblies from state hierarchy API
-                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => !x.parentLevelId)) {
-                                try {
-                                    const assemblyData = await fetchAllPages(
-                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${selectedId}`
-                                    );
-                                    newFilterOptions[nextLevel] = assemblyData.map((a: any) => ({
-                                        id: a.location_id || a.id,
-                                        displayName: a.location_name,
-                                        levelName: "Assembly",
-                                        parentLevelId: selectedId
-                                    }));
-                                } catch (error) {
-                                    console.error(`Error fetching ${nextLevel}:`, error);
-                                }
-                            }
-                        } else if (currentLevel === "Assembly") {
+                            const assemblyData = await fetchAllPages(
+                                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${currentLevelId}`
+                            );
+                            newFilterOptions[nextLevelToFetch] = assemblyData.map((a: any) => ({
+                                id: a.location_id || a.id,
+                                displayName: a.location_name,
+                                levelName: "Assembly",
+                                parentLevelId: currentLevelId
+                            }));
+                        } else if (currentLevelToFetch === "Assembly") {
                             // Fetch after-assembly direct children
-                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => x.parentLevelId !== selectedId)) {
-                                try {
-                                    const response = await fetch(
-                                        `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${selectedId}`,
-                                        { headers: { Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` } }
-                                    );
-                                    const data = await response.json();
-                                    // Ensure each item has the correct assembly association
-                                    newFilterOptions[nextLevel] = (data.data || []).map((item: any) => ({
-                                        ...item,
-                                        parentLevelId: selectedId,
-                                        assemblyId: selectedId, // Explicitly set assembly ID
-                                        assemblyName: dynamicFilterOptions["Assembly"]?.find(a => a.id === selectedId)?.displayName || "Unknown"
-                                    }));
-                                } catch (error) {
-                                    console.error(`Error fetching ${nextLevel}:`, error);
-                                }
-                            }
+                            const response = await fetch(
+                                `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${currentLevelId}`,
+                                { headers: { Authorization: `Bearer ${localStorage.getItem("auth_access_token")}` } }
+                            );
+                            const data = await response.json();
+                            newFilterOptions[nextLevelToFetch] = (data.data || []).map((item: any) => ({
+                                ...item,
+                                parentLevelId: currentLevelId,
+                                assemblyId: currentLevelId,
+                                assemblyName: newFilterOptions["Assembly"]?.find(a => a.id === currentLevelId)?.displayName || "Unknown"
+                            }));
                         } else {
                             // Fetch after-assembly hierarchy children for other levels
-                            if (!newFilterOptions[nextLevel] || newFilterOptions[nextLevel].some(x => x.parentLevelId !== selectedId)) {
-                                try {
-                                    const childrenData = await fetchAllPages(
-                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${selectedId}`
-                                    );
-                                    // Get the parent item to inherit assembly information
-                                    const parentItem = newFilterOptions[currentLevel]?.find(item => item.id === selectedId);
+                            const childrenData = await fetchAllPages(
+                                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${currentLevelId}`
+                            );
+                            const parentItem = newFilterOptions[currentLevelToFetch]?.find(item => item.id === currentLevelId);
 
-                                    newFilterOptions[nextLevel] = childrenData.map((item: any) => ({
-                                        ...item,
-                                        parentLevelId: selectedId,
-                                        levelName: item.levelName || nextLevel,
-                                        // Inherit assembly information from parent
-                                        assemblyId: parentItem?.assemblyId || item.assemblyId,
-                                        assemblyName: parentItem?.assemblyName || item.assemblyName,
-                                        districtId: parentItem?.districtId || item.districtId,
-                                        districtName: parentItem?.districtName || item.districtName
-                                    }));
-                                } catch (error) {
-                                    console.error(`Error fetching ${nextLevel}:`, error);
-                                }
-                            }
+                            newFilterOptions[nextLevelToFetch] = childrenData.map((item: any) => ({
+                                ...item,
+                                parentLevelId: currentLevelId,
+                                levelName: item.levelName || nextLevelToFetch,
+                                assemblyId: parentItem?.assemblyId || item.assemblyId,
+                                assemblyName: parentItem?.assemblyName || item.assemblyName,
+                                districtId: parentItem?.districtId || item.districtId,
+                                districtName: parentItem?.districtName || item.districtName
+                            }));
                         }
+                    } catch (error) {
+                        console.error(`Error fetching ${nextLevelToFetch}:`, error);
                     }
                 }
             }
@@ -353,13 +270,60 @@ export default function DynamicLevelList({
         populateFilterOptions();
     }, [stateInfo.stateId, selectedFilters]);
 
-    const fetchAllPages = async (url: string) => {
+    // Auto-select first district when districts are loaded
+    // BUT: Don't override if user has manually selected "All Districts" (value = 0)
+    useEffect(() => {
+        if (dynamicFilterOptions["District"] &&
+            dynamicFilterOptions["District"].length > 0 &&
+            selectedFilters["District"] === undefined) { // Only auto-select if undefined, not if 0
+            setSelectedFilters(prev => ({
+                ...prev,
+                District: dynamicFilterOptions["District"][0].id
+            }));
+        }
+    }, [dynamicFilterOptions["District"]]);
+
+    // Auto-select first option for each subsequent filter level (Assembly, Block, Mandal, etc.)
+    // BUT: Don't override if user has manually selected "All" (value = 0)
+    useEffect(() => {
+        const newSelections: Record<string, number> = {};
+        let hasUpdates = false;
+
+        visibleFilters.forEach((level, index) => {
+            const filterOptions = dynamicFilterOptions[level];
+            const isSelected = selectedFilters[level] !== undefined; // Check if defined (could be 0 or positive number)
+            const parentLevel = index > 0 ? visibleFilters[index - 1] : null;
+            const isParentSelected = !parentLevel || selectedFilters[parentLevel] !== undefined;
+
+            // Skip auto-selecting PollingCenter if viewing Booth level
+            // (booths exist both directly under Mandal and under PollingCenter)
+            if (levelName === "Booth" && level === "PollingCenter") {
+                return;
+            }
+
+            // Auto-select first option if: has options, not selected (undefined), and parent is selected
+            if (filterOptions && filterOptions.length > 0 && !isSelected && isParentSelected) {
+                newSelections[level] = filterOptions[0].id;
+                hasUpdates = true;
+            }
+        });
+
+        // Only update state once if there are any updates to make
+        if (hasUpdates) {
+            setSelectedFilters(prev => ({
+                ...prev,
+                ...newSelections
+            }));
+        }
+    }, [dynamicFilterOptions, visibleFilters, levelName]);
+
+    const fetchAllPages = async (url: string, pageSize: number = 100) => {
         let allData: any[] = [];
         let page = 1;
         let hasMore = true;
 
         while (hasMore) {
-            const response = await fetch(`${url}?page=${page}&limit=50`, {
+            const response = await fetch(`${url}?page=${page}&limit=${pageSize}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`
                 }
@@ -371,11 +335,11 @@ export default function DynamicLevelList({
             if (data.success && data.data?.children && data.data.children.length > 0) {
                 currentPageData = data.data.children;
                 allData = allData.concat(currentPageData);
-                hasMore = currentPageData.length === 50;
+                hasMore = currentPageData.length === pageSize;
             } else if (data.success && data.children && data.children.length > 0) {
                 currentPageData = data.children;
                 allData = allData.concat(currentPageData);
-                hasMore = currentPageData.length === 50;
+                hasMore = currentPageData.length === pageSize;
             } else {
                 hasMore = false;
             }
@@ -403,6 +367,13 @@ export default function DynamicLevelList({
                     // For District filter, check districtId - strict matching only
                     if (filterLevel === "District") {
                         return item.districtId === selectedIdForFilter;
+                    }
+
+                    // Special handling for PollingCenter when viewing Booths
+                    // Include both direct booths under mandal AND booths under the selected polling center
+                    if (filterLevel === "PollingCenter" && levelName === "Booth") {
+                        // Include booths under this polling center OR direct booths (no pollingCenterId)
+                        return item.pollingCenterId === selectedIdForFilter || !item.pollingCenterId;
                     }
 
                     // For other levels, use strict hierarchy checking
@@ -440,115 +411,175 @@ export default function DynamicLevelList({
     const levelItems = getCurrentLevelItems();
 
     // Initialize user counts from API data when allLevelItems is loaded
+    // OPTIMIZED: Only extract counts that are already in the API response, don't fetch on page load
     useEffect(() => {
-        if (allLevelItems.length > 0) {
-            const initialUserCounts: Record<number, number> = { ...itemUserCounts };
+        const initializeUserCounts = () => {
+            if (allLevelItems.length === 0) return;
 
+            // Reset user counts - use only counts from API response
+            const initialUserCounts: Record<number, number> = {};
+
+            // Extract counts that are already in API response
             allLevelItems.forEach(item => {
-                // Only set initial count if we don't already have a count for this item
-                if (!(item.id in initialUserCounts) && item.user_count !== undefined) {
-                    initialUserCounts[item.id] = item.user_count || 0;
+                const count = item.user_count ?? item.userCount;
+                // Only set if count is explicitly provided in API response
+                if (count !== undefined && count !== null) {
+                    initialUserCounts[item.id] = count;
                 }
             });
 
+            // Set initial counts (don't fetch missing ones - wait for user interaction)
             setItemUserCounts(initialUserCounts);
-        }
-    }, [allLevelItems]);
-
-    // Fetch parent information for all items using the after-assembly API
-    useEffect(() => {
-        const fetchAllParentInfo = async () => {
-            if (levelItems.length === 0) return;
-
-            // Get items that don't have parent info yet
-            const itemsNeedingParentInfo = levelItems.filter(item => {
-                const parentId = item.parentId || item.parent_id;
-                return parentId && !parentInfo[parentId];
-            });
-
-            if (itemsNeedingParentInfo.length === 0) return;
-
-            // Fetch parent details using the after-assembly API in batches
-            const batchSize = 5;
-            for (let i = 0; i < itemsNeedingParentInfo.length; i += batchSize) {
-                const batch = itemsNeedingParentInfo.slice(i, i + batchSize);
-                await Promise.all(batch.map(item => fetchParentDetailsFromAPI(item.id)));
-            }
         };
 
-        fetchAllParentInfo();
-    }, [levelItems]);
+        initializeUserCounts();
+    }, [allLevelItems]);
 
-    // Fetch user counts for all items
+    // Lazy fetch user counts for items without counts (after initial render)
     useEffect(() => {
-        const fetchAllUserCounts = async () => {
+        const lazyFetchUserCounts = async () => {
             if (levelItems.length === 0) return;
 
-            const userCounts: Record<number, number> = { ...itemUserCounts }; // Preserve existing counts
-
-            // Only fetch counts for items that don't have counts yet
-            const itemsNeedingCounts = levelItems.filter(item => !(item.id in itemUserCounts));
+            // Find items without user counts
+            const itemsNeedingCounts = levelItems.filter(
+                item => itemUserCounts[item.id] === undefined && item.user_count === undefined
+            );
 
             if (itemsNeedingCounts.length === 0) return;
 
-            // Fetch user counts in batches to avoid overwhelming the API
-            const batchSize = 10;
-            for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
-                const batch = itemsNeedingCounts.slice(i, i + batchSize);
-                const promises = batch.map(async (item) => {
-                    const count = await fetchUserCount(item.id);
-                    return { id: item.id, count };
-                });
+            // Add a small delay to avoid overwhelming the API on page load
+            const timer = setTimeout(async () => {
+                // Fetch counts in small batches (max 5 concurrent)
+                const batchSize = 5;
+                for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
+                    const batch = itemsNeedingCounts.slice(i, i + batchSize);
+                    const countPromises = batch.map(async (item) => {
+                        try {
+                            const response = await fetch(
+                                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${item.id}`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                                    },
+                                }
+                            );
+                            const data = await response.json();
+                            if (data.success && data.data?.users) {
+                                return { id: item.id, count: data.data.users.length };
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching user count for item ${item.id}:`, error);
+                        }
+                        return { id: item.id, count: 0 };
+                    });
 
-                const results = await Promise.all(promises);
-                results.forEach(({ id, count }) => {
-                    userCounts[id] = count;
-                });
-            }
+                    const results = await Promise.all(countPromises);
+                    // Update counts in state
+                    setItemUserCounts(prev => {
+                        const newCounts = { ...prev };
+                        results.forEach(({ id, count }) => {
+                            newCounts[id] = count;
+                        });
+                        return newCounts;
+                    });
+                }
+            }, 800); // Small delay to let page render first
 
-            setItemUserCounts(userCounts);
+            return () => clearTimeout(timer);
         };
 
-        fetchAllUserCounts();
-    }, [levelItems]); // Remove itemUserCounts from dependency to avoid infinite loop
+        lazyFetchUserCounts();
+    }, [levelItems]);
 
-    // Fetch all items for the current level - following the same pattern as existing files
+    // Fetch user counts for all items - DISABLED for performance
+    // User counts will be fetched on-demand when user expands an item
+    // useEffect(() => {
+    //     const fetchAllUserCounts = async () => {
+    //         if (levelItems.length === 0) return;
+
+    //         // Reset user counts when filters change - don't preserve old counts
+    //         const userCounts: Record<number, number> = {};
+
+    //         // Only fetch counts for items that don't have counts yet
+    //         const itemsNeedingCounts = levelItems.filter(item => !(item.id in itemUserCounts));
+
+    //         if (itemsNeedingCounts.length === 0) return;
+
+    //         // Fetch user counts in batches to avoid overwhelming the API
+    //         const batchSize = 10;
+    //         for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
+    //             const batch = itemsNeedingCounts.slice(i, i + batchSize);
+    //             const promises = batch.map(async (item) => {
+    //                 const count = await fetchUserCount(item.id);
+    //                 return { id: item.id, count };
+    //             });
+
+    //             const results = await Promise.all(promises);
+    //             results.forEach(({ id, count }) => {
+    //                 userCounts[id] = count;
+    //             });
+    //         }
+
+    //         setItemUserCounts(userCounts);
+    //     };
+
+    //     fetchAllUserCounts();
+    // }, [levelItems]); // Remove itemUserCounts from dependency to avoid infinite loop
+
+    // Fetch all items for the current level - OPTIMIZED for better performance
     useEffect(() => {
         const fetchAllLevelItems = async () => {
             if (!stateInfo.stateId) return;
+
+            // Don't fetch data until at least District filter options are loaded
+            // Allow fetching even if "All Districts" (value = 0) is selected
+            if (!dynamicFilterOptions["District"] || dynamicFilterOptions["District"].length === 0) return;
 
             setIsLoading(true);
             try {
                 const token = localStorage.getItem("auth_access_token");
                 let levelItems: any[] = [];
 
-                // Step 1: Fetch all districts
-                const districts = await fetchAllPages(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${stateInfo.stateId}`
-                );
+                // Fetch for selected district OR all districts if "All" is selected
+                const selectedDistrictId = selectedFilters["District"];
+                const districtsToFetch = selectedDistrictId && selectedDistrictId > 0
+                    ? [dynamicFilterOptions["District"].find(d => d.id === selectedDistrictId)]
+                    : dynamicFilterOptions["District"]; // Fetch all districts
 
-                // Step 2: Fetch all assemblies for each district (limit to 8 concurrent requests)
-                const assemblies = (
-                    await limitConcurrency(
-                        districts,
-                        async (district: any) => {
-                            const assembliesData = await fetchAllPages(
-                                `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.location_id || district.id}`
-                            );
-                            return assembliesData.map((assembly: any) => ({
-                                ...assembly,
-                                districtId: district.location_id || district.id,
-                                districtName: district.location_name,
-                            }));
-                        },
-                        8
-                    )
-                ).flat();
+                // Step 1: Fetch assemblies for selected/all districts
+                let selectedAssemblies: any[] = [];
+                
+                if (selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0) {
+                    // If specific assembly is selected, use it directly
+                    const assemblyOptions = dynamicFilterOptions["Assembly"] || [];
+                    const selected = assemblyOptions.find(a => a.id === selectedFilters["Assembly"]);
+                    if (selected) {
+                        selectedAssemblies = [{ 
+                            location_id: selected.id, 
+                            location_name: selected.displayName,
+                            districtId: selected.parentLevelId,
+                            districtName: dynamicFilterOptions["District"]?.find(d => d.id === selected.parentLevelId)?.displayName || "Unknown"
+                        }];
+                    }
+                } else {
+                    // Fetch assemblies for all selected districts
+                    for (const district of districtsToFetch.filter(Boolean)) {
+                        const assemblies = await fetchAllPages(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-state-hierarchies/hierarchy/children/${district.id}`,
+                            100
+                        );
+                        selectedAssemblies.push(...assemblies.map((assembly: any) => ({
+                            ...assembly,
+                            districtId: district.id,
+                            districtName: district.displayName
+                        })));
+                    }
+                }
 
-                // Step 3: Fetch all after-assembly levels for each assembly (flexible approach, limit to 8 concurrent)
+                // Step 2: Fetch after-assembly levels for selected assemblies only (limit to 3 concurrent)
                 const afterAssemblyLevels = (
                     await limitConcurrency(
-                        assemblies,
+                        selectedAssemblies,
                         async (assembly: any) => {
                             const res = await fetch(
                                 `${import.meta.env.VITE_API_BASE_URL}/api/after-assembly-data/assembly/${assembly.location_id || assembly.id}`,
@@ -563,7 +594,7 @@ export default function DynamicLevelList({
                                 districtName: assembly.districtName,
                             }));
                         },
-                        8
+                        3  // Reduced from 8 to 3 for better control
                     )
                 ).flat();
 
@@ -571,22 +602,24 @@ export default function DynamicLevelList({
                 if (levelName === "Block" || levelName === "Ward" || levelName === "Zone" || levelName === "Sector") {
                     // Check if this level is a direct child of Assembly
                     const directAssemblyChildren = afterAssemblyLevels.filter(level =>
-                        level.levelName === levelName &&
-                        level.parentAssemblyId &&
-                        !level.parentId
+                        level.levelName === levelName
                     );
 
                     if (directAssemblyChildren.length > 0) {
                         levelItems = directAssemblyChildren;
                     } else {
                         // This level might be a child of another after-assembly level
-                        // Fetch children of all after-assembly levels and build proper hierarchy (limit to 15 concurrent)
+                        const relevantParents = afterAssemblyLevels.filter(level =>
+                            level.levelName !== levelName
+                        );
+
                         levelItems = (
                             await limitConcurrency(
-                                afterAssemblyLevels,
+                                relevantParents,
                                 async (parentLevel: any) => {
                                     const childrenData = await fetchAllPages(
-                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`,
+                                        100
                                     );
                                     return childrenData
                                         .filter((child: any) => child.levelName === levelName)
@@ -599,25 +632,23 @@ export default function DynamicLevelList({
                                             assemblyName: parentLevel.assemblyName,
                                             districtId: parentLevel.districtId,
                                             districtName: parentLevel.districtName,
-                                            // Add parent hierarchy chain for better filtering - simplified
                                             parentHierarchy: [parentLevel.id],
-                                            // Add all parent level names for proper display
                                             [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                             [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                         }));
                                 },
-                                15
+                                3  // Reduced from 10 to 3
                             )
                         ).flat();
                     }
                 } else if (levelName === "Mandal") {
-                    // Step 4: Fetch all mandals for each after-assembly level (limit to 15 concurrent)
                     levelItems = (
                         await limitConcurrency(
                             afterAssemblyLevels,
                             async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`,
+                                    100
                                 );
                                 return mandalsData
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
@@ -630,24 +661,22 @@ export default function DynamicLevelList({
                                         assemblyName: parentLevel.assemblyName,
                                         districtId: parentLevel.districtId,
                                         districtName: parentLevel.districtName,
-                                        // Add parent hierarchy chain for better filtering - simplified
                                         parentHierarchy: [parentLevel.id],
-                                        // Add all parent level names for proper display
                                         [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
                                         [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
                                     }));
                             },
-                            15
+                            3  // Reduced from 15 to 3
                         )
                     ).flat();
                 } else if (levelName === "PollingCenter") {
-                    // Step 4: Fetch mandals first, then polling centers (limit to 15 concurrent)
                     const mandals = (
                         await limitConcurrency(
                             afterAssemblyLevels,
                             async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`,
+                                    100
                                 );
                                 return mandalsData
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
@@ -662,17 +691,17 @@ export default function DynamicLevelList({
                                         districtName: parentLevel.districtName,
                                     }));
                             },
-                            15
+                            3  // Reduced from 15 to 3
                         )
                     ).flat();
 
-                    // Step 5: Fetch polling centers for each mandal (limit to 15 concurrent)
                     levelItems = (
                         await limitConcurrency(
                             mandals,
                             async (mandal: any) => {
                                 const pollingCentersData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`,
+                                    100
                                 );
                                 const filteredChildren = pollingCentersData.filter(
                                     (item: any) => item.levelName !== "Booth"
@@ -691,17 +720,17 @@ export default function DynamicLevelList({
                                     districtName: mandal.districtName,
                                 }));
                             },
-                            15
+                            3  // Reduced from 15 to 3
                         )
                     ).flat();
                 } else if (levelName === "Booth") {
-                    // For booths, we need to go through the full hierarchy (limit to 15 concurrent)
                     const mandals = (
                         await limitConcurrency(
                             afterAssemblyLevels,
                             async (parentLevel: any) => {
                                 const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
+                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`,
+                                    100
                                 );
                                 return mandalsData
                                     .filter((mandal: any) => mandal.levelName === "Mandal")
@@ -716,33 +745,44 @@ export default function DynamicLevelList({
                                         districtName: parentLevel.districtName,
                                     }));
                             },
-                            15
+                            3  // Reduced from 15 to 3
                         )
                     ).flat();
-                    // Get all children of mandals (both polling centers and direct booths, limit to 15 concurrent)
-                    const allMandalChildren = (
-                        await limitConcurrency(
-                            mandals,
-                            async (mandal: any) => {
-                                const childrenData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
-                                );
-                                return childrenData.map((child: any) => ({
-                                    ...child,
-                                    mandalId: mandal.id,
-                                    mandalName: mandal.displayName,
-                                    parentLevelId: mandal.parentLevelId,
-                                    parentLevelName: mandal.parentLevelName,
-                                    parentLevelType: mandal.parentLevelType,
-                                    assemblyId: mandal.assemblyId,
-                                    assemblyName: mandal.assemblyName,
-                                    districtId: mandal.districtId,
-                                    districtName: mandal.districtName,
-                                }));
-                            },
-                            15
-                        )
-                    ).flat();
+                    
+                    // If Mandal filter is selected, only fetch children of that mandal
+                    // Otherwise, fetch for all mandals (but limit to reasonable batch size)
+                    const mandalsToFetch = selectedFilters["Mandal"]
+                        ? mandals.filter((m: any) => m.id === selectedFilters["Mandal"])
+                        : mandals;
+
+                    // OPTIMIZATION: Skip fetching if no mandals to fetch
+                    let allMandalChildren: any[] = [];
+                    if (mandalsToFetch.length > 0) {
+                        allMandalChildren = (
+                            await limitConcurrency(
+                                mandalsToFetch,
+                                async (mandal: any) => {
+                                    const childrenData = await fetchAllPages(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`,
+                                        100
+                                    );
+                                    return childrenData.map((child: any) => ({
+                                        ...child,
+                                        mandalId: mandal.id,
+                                        mandalName: mandal.displayName,
+                                        parentLevelId: mandal.parentLevelId,
+                                        parentLevelName: mandal.parentLevelName,
+                                        parentLevelType: mandal.parentLevelType,
+                                        assemblyId: mandal.assemblyId,
+                                        assemblyName: mandal.assemblyName,
+                                        districtId: mandal.districtId,
+                                        districtName: mandal.districtName,
+                                    }));
+                                },
+                                3  // Reduced from 15 to 3
+                            )
+                        ).flat();
+                    }
 
                     // Separate polling centers and direct booths
                     const pollingCenters = allMandalChildren.filter(
@@ -752,21 +792,26 @@ export default function DynamicLevelList({
                         (item: any) => item.levelName === "Booth"
                     );
 
-                    // Get booths from polling centers (limit to 15 concurrent)
-                    const pollingCenterBooths = (
-                        await limitConcurrency(
-                            pollingCenters,
-                            async (pc: any) => {
-                                const boothsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pc.id}`
-                                );
-                                return boothsData.map((booth: any) => ({
-                                    ...booth,
-                                    pollingCenterId: pc.id,
-                                    pollingCenterName: pc.displayName,
-                                    mandalId: pc.mandalId,
-                                    mandalName: pc.mandalName,
-                                    parentLevelId: pc.parentLevelId,
+                    // Only fetch booths from polling centers if:
+                    // 1. No Mandal filter selected (showing all booths), OR
+                    // 2. Mandal filter selected but no direct booths found (need to check polling centers)
+                    let pollingCenterBooths: any[] = [];
+                    if (pollingCenters.length > 0 && (!selectedFilters["Mandal"] || directBooths.length === 0)) {
+                        pollingCenterBooths = (
+                            await limitConcurrency(
+                                pollingCenters,
+                                async (pc: any) => {
+                                    const boothsData = await fetchAllPages(
+                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pc.id}`,
+                                        100
+                                    );
+                                    return boothsData.map((booth: any) => ({
+                                        ...booth,
+                                        pollingCenterId: pc.id,
+                                        pollingCenterName: pc.displayName,
+                                        mandalId: pc.mandalId,
+                                        mandalName: pc.mandalName,
+                                        parentLevelId: pc.parentLevelId,
                                     parentLevelName: pc.parentLevelName,
                                     parentLevelType: pc.parentLevelType,
                                     assemblyId: pc.assemblyId,
@@ -775,14 +820,13 @@ export default function DynamicLevelList({
                                     districtName: pc.districtName,
                                 }));
                             },
-                            15
+                            3  // Reduced from 15 to 3
                         )
                     ).flat();
+                    }
 
                     levelItems = [...directBooths, ...pollingCenterBooths];
                 } else {
-                    // For other levels - this is handled in the first condition above
-                    // All levels after assembly are handled dynamically
                     levelItems = [];
                 }
 
@@ -796,7 +840,7 @@ export default function DynamicLevelList({
         };
 
         fetchAllLevelItems();
-    }, [stateInfo.stateId, levelName]);    // Handle items without users filter
+    }, [stateInfo.stateId, levelName, selectedFilters["District"], selectedFilters["Assembly"], selectedFilters["Block"], selectedFilters["Mandal"]]);    // Handle items without users filter
     const handleItemsWithoutUsersClick = () => {
         const itemsWithoutUsersCount = levelItems.filter(
             (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
@@ -1053,8 +1097,12 @@ export default function DynamicLevelList({
                                                 )}
                                             </p>
                                             <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                                                {Object.values(itemUserCounts).reduce((sum, count) => sum + count, 0) ||
-                                                    levelItems.reduce((sum, item) => sum + (item.user_count || 0), 0)}
+                                                {levelItems.reduce((sum, item) => {
+                                                    const count = itemUserCounts[item.id] !== undefined 
+                                                        ? itemUserCounts[item.id] 
+                                                        : (item.user_count || 0);
+                                                    return sum + count;
+                                                }, 0)}
                                             </p>
                                         </div>
                                         <div className="bg-green-50 rounded-full p-1.5">
@@ -1328,6 +1376,13 @@ export default function DynamicLevelList({
                                                 {visibleFilters.length > 0 && (
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                                         {(() => {
+                                                            // Special handling for Booth - show Mandal or PollingCenter
+                                                            if (levelName === "Booth" && paginatedItems.length > 0) {
+                                                                const firstItem = paginatedItems[0];
+                                                                if (firstItem.pollingCenterName) return "PollingCenter";
+                                                                if (firstItem.mandalName) return "Mandal";
+                                                            }
+
                                                             // Get the actual parent level name from first item's parent info
                                                             if (paginatedItems.length > 0) {
                                                                 const firstItem = paginatedItems[0];
@@ -1383,6 +1438,16 @@ export default function DynamicLevelList({
 
                                                                         if (parent) {
                                                                             return parent.displayName || parent.levelName || "N/A";
+                                                                        }
+
+                                                                        // Special handling for Booth - show Mandal or PollingCenter based on what's available
+                                                                        if (levelName === "Booth") {
+                                                                            if (item.pollingCenterName) {
+                                                                                return item.pollingCenterName;
+                                                                            }
+                                                                            if (item.mandalName) {
+                                                                                return item.mandalName;
+                                                                            }
                                                                         }
 
                                                                         // Try to get parent name from item's parentLevelName first
@@ -1558,7 +1623,7 @@ export default function DynamicLevelList({
                                                                     </svg>
                                                                 </button>
                                                                 <span className="text-sm font-medium text-gray-900">
-                                                                    {itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)}
+                                                                    {itemUserCounts[item.id] ?? 0}
                                                                 </span>
                                                             </div>
                                                         </td>
