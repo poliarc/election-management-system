@@ -14,6 +14,7 @@ export type User = {
   districtName?: string;
   isActive: boolean;
   created_at: string;
+  last_login_time?: string;
 };
 
 export type UserForm = {

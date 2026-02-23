@@ -83,6 +83,7 @@ import { UserPage } from "./pages/Admin/users/UserPage";
 import { ModuleMasterPage, ModuleAccessPage } from "./pages/Admin/module";
 import PdfToExcel from "./pages/Admin/PdfToExcel";
 import AdminOverview from "./pages/Admin/Overview";
+import { ElectionSetup } from "./pages/Admin/ElectionSetup";
 import StateLayout from "./layouts/StateLayout";
 import StateOverview from "./pages/State/Dashboard";
 import StateTeamListing from "./pages/State/state-team";
@@ -119,6 +120,7 @@ import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
 import { PublicRegistration } from "./pages/PublicRegistration";
+import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
@@ -162,6 +164,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<PublicRegistration />} />
+        <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
@@ -211,6 +214,7 @@ export default function App() {
             />
             <Route path="role" element={<RolePage />} />
             <Route path="users" element={<UserPage />} />
+            <Route path="election-setup" element={<ElectionSetup />} />
             <Route path="module-master" element={<ModuleMasterPage />} />
             <Route path="module-access" element={<ModuleAccessPage />} />
             <Route path="pdf-to-excel" element={<PdfToExcel />} />

@@ -68,6 +68,27 @@ const Icons = {
       />
     </svg>
   ),
+  election: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 11l3 3L22 4"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   settings: (
     <svg
       className={iconClass}
@@ -118,6 +139,7 @@ const adminItems: NavItem[] = [
   { to: "party-master", label: "Party Master", icon: Icons.partyType },
   { to: "party-type", label: "Party Type", icon: Icons.partyType },
   { to: "users", label: "Users", icon: Icons.users },
+  { to: "election-setup", label: "Election Setup", icon: Icons.election },
   { to: "module-master", label: "Module Master", icon: Icons.settings },
   { to: "module-access", label: "Module Access", icon: Icons.settings },
   { to: "pdf-to-excel", label: "PDF to Excel", icon: Icons.pdfToExcel },
