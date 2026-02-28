@@ -289,10 +289,20 @@ export const supportersApi = createApi({
     // Get supporters by created_by user
     getSupportersByCreatedBy: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
-      { createdBy: number; page?: number; limit?: number }
+      { createdBy: number; page?: number; limit?: number; search?: string }
     >({
-      query: ({ createdBy, page = 1, limit = 10 }) =>
-        `supporters/created-by/${createdBy}?page=${page}&limit=${limit}`,
+      query: ({ createdBy, page = 1, limit = 10, search }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+        
+        if (search) {
+          params.append('search', search);
+        }
+        
+        return `supporters/created-by/${createdBy}?${params.toString()}`;
+      },
       providesTags: ['Supporter'],
       transformResponse: (response: any) => {
         // Handle the API response structure
@@ -305,6 +315,34 @@ export const supportersApi = createApi({
           };
         }
         throw new Error(response.message || 'Failed to fetch supporters');
+      },
+    }),
+
+    // Get creators list with supporter counts
+    getCreatorsList: builder.query<
+      { success: boolean; message: string; data: Array<{ user_id: number; first_name: string; last_name: string; full_name: string; supporters_count: number }> },
+      { party_id?: number; state_id?: number; district_id?: number; assembly_id?: number; block_id?: number }
+    >({
+      query: (filters) => {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== 0) {
+            params.append(key, String(value));
+          }
+        });
+        return `supporters/creators-list?${params.toString()}`;
+      },
+      providesTags: ['Supporter'],
+      transformResponse: (response: any) => {
+        // Handle the API response structure
+        if (response.success) {
+          return {
+            success: response.success,
+            message: response.message,
+            data: response.data
+          };
+        }
+        throw new Error(response.message || 'Failed to fetch creators list');
       },
     }),
 
@@ -325,6 +363,7 @@ export const {
   useGetSupportersByAssemblyQuery,
   useLazyGetSupportersByAssemblyQuery,
   useGetSupportersByCreatedByQuery,
+  useGetCreatorsListQuery,
   useCreateSupporterMutation,
   useUpdateSupporterMutation,
   useToggleSupporterStatusMutation,

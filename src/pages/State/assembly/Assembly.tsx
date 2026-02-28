@@ -1,30 +1,17 @@
-import { useEffect, useState } from "react";
-import {
-  useHierarchyData,
-  useAllDistrictsAssemblyData,
-} from "../../../hooks/useHierarchyData";
+import { useEffect, useState, useMemo } from "react";
+import { useGetAssemblyLevelDashboardQuery } from "../../../store/api/stateMasterApi";
+import type { AssemblyItem } from "../../../store/api/stateMasterApi";
 import HierarchyTable from "../../../components/HierarchyTable";
 import UploadVotersModal from "../../../components/UploadVotersModal";
 import UploadDraftVotersModal from "../../../components/UploadDraftVotersModal";
-import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 import * as XLSX from "xlsx";
-import type {
-  HierarchyChild,
-  EnhancedHierarchyChild,
-} from "../../../types/hierarchy";
+import type { EnhancedHierarchyChild } from "../../../types/hierarchy";
 
 export default function StateAssembly() {
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateName, setStateName] = useState<string>("");
   const [partyId, setPartyId] = useState<number | null>(null);
-  const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
-  const [selectedDistrictName, setSelectedDistrictName] = useState<string>("");
-  const [selectedDistrictParentId, setSelectedDistrictParentId] = useState<
-    number | null
-  >(null);
-  const [assemblies, setAssemblies] = useState<HierarchyChild[]>([]);
-  const [selectedAssemblyId, setSelectedAssemblyId] = useState<string>("");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedAssembly, setSelectedAssembly] = useState<{
     id: number;
@@ -39,19 +26,11 @@ export default function StateAssembly() {
   } | null>(null);
   const [draftModalOpen, setDraftModalOpen] = useState(false);
 
-  // New state variables for enhanced filtering
-  const [showAllDistricts, setShowAllDistricts] = useState<boolean>(true);
+  // Filter and pagination state
   const [searchInput, setSearchInput] = useState<string>("");
-  const [sortBy, setSortBy] = useState<
-    "location_name" | "total_users" | "active_users"
-  >("location_name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // State for filtering assemblies without users
   const [showAssembliesWithoutUsers, setShowAssembliesWithoutUsers] =
     useState(false);
-  // State for filtering assemblies WITH users
   const [showAssignedUsers, setShowAssignedUsers] = useState(false);
 
   // Get state info from localStorage
@@ -87,165 +66,154 @@ export default function StateAssembly() {
     }
   }, []);
 
-  // Fetch districts when state is available
-  useEffect(() => {
-    const loadDistricts = async () => {
-      if (!stateId) return;
+  // Fetch assembly data using Redux with server-side pagination
+  // When filters are active, fetch all data for client-side filtering
+  const shouldFetchAll = showAssembliesWithoutUsers || showAssignedUsers;
+  
+  const { data: dashboardData, isLoading: loading, error } = useGetAssemblyLevelDashboardQuery(
+    {
+      state_id: stateId!,
+      districtId: selectedDistrictId ? parseInt(selectedDistrictId) : undefined,
+      page: shouldFetchAll ? 1 : currentPage,
+      limit: shouldFetchAll ? 1000 : 25, // Fetch all when filtering
+      search: searchInput,
+    },
+    {
+      skip: !stateId,
+    }
+  );
 
-      try {
-        const response = await fetchHierarchyChildren(stateId, {
-          page: 1,
-          limit: 1000, // Get all districts
-        });
+  const metaData = dashboardData?.data?.metaData;
+  const pagination = dashboardData?.data?.pagination;
+  const districts = dashboardData?.data?.districts || [];
+  const assembliesData = dashboardData?.data?.assemblies || [];
 
-        if (response.success) {
-          setDistricts(response.data.children);
-        }
-      } catch (err) {
-        console.error("Error fetching districts:", err);
-      }
-    };
+  // Transform AssemblyItem[] to EnhancedHierarchyChild[]
+  const transformedData: EnhancedHierarchyChild[] = useMemo(() => {
+    return assembliesData.map((assembly: AssemblyItem) => ({
+      location_id: assembly.assemblyId,
+      location_name: assembly.assemblyName,
+      location_type: "Assembly" as const,
+      parent_id: assembly.districtId,
+      total_users: assembly.userCount,
+      active_users: assembly.activeUserCount,
+      district_id: assembly.districtId,
+      district_name: assembly.districtName,
+      has_users: assembly.userCount > 0,
+      users: assembly.users.map((user) => ({
+        districtName: assembly.districtName,
+        assignment_id: user.assignment_id,
+        user_id: user.user_id,
+        user_name: user.user_name,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        mobile_number: user.mobile_number,
+        party: user.party,
+        party_name: user.party?.party_name || "",
+        user_state: "",
+        user_district: assembly.districtName,
+        party_id: user.party?.party_id || 0,
+        is_active: user.is_active,
+        assignment_active: user.assignment_active,
+        assigned_at: user.assigned_at,
+        assignment_updated_at: user.assignment_updated_at,
+        user_created_at: user.assigned_at,
+        role_name: user.role_name || "",
+        user_active: user.user_active,
+      })),
+    }));
+  }, [assembliesData]);
 
-    loadDistricts();
-  }, [stateId]);
+  // Client-side filtering for "without users" and "assigned users" filters only
+  const filteredData = useMemo(() => {
+    let filtered = [...transformedData];
 
-  // Don't auto-select first district - start with all districts view
-  // This is removed to support the new default behavior of showing all assemblies
-
-  // Fetch assemblies when district is selected
-  useEffect(() => {
-    const loadAssemblies = async () => {
-      if (!selectedDistrictId) {
-        setAssemblies([]);
-        return;
-      }
-
-      try {
-        const response = await fetchHierarchyChildren(
-          Number(selectedDistrictId),
-          {
-            page: 1,
-            limit: 1000, // Get all assemblies
-          }
-        );
-
-        if (response.success) {
-          setAssemblies(response.data.children);
-        }
-      } catch (err) {
-        console.error("Error fetching assemblies:", err);
-      }
-    };
-
-    loadAssemblies();
-  }, [selectedDistrictId]);
-
-  // Enhanced filter handlers
-  const handleDistrictChange = (districtId: string) => {
-    if (districtId === "") {
-      // Show all districts
-      setShowAllDistricts(true);
-      setSelectedDistrictId("");
-      setSelectedDistrictName("");
-      setSelectedDistrictParentId(null);
-    } else {
-      // Show specific district
-      setShowAllDistricts(false);
-      setSelectedDistrictId(districtId);
-      const district = districts.find(
-        (d) => d.location_id.toString() === districtId
-      );
-      setSelectedDistrictName(district?.location_name || "");
-      setSelectedDistrictParentId(district?.parent_id || null);
+    // Apply assemblies without users filter
+    if (showAssembliesWithoutUsers) {
+      filtered = filtered.filter((item) => item.total_users === 0);
     }
 
-    setSelectedAssemblyId(""); // Clear assembly selection when district changes
-    setCurrentPage(1); // Reset to page 1 when filter changes
+    // Apply assigned users filter
+    if (showAssignedUsers) {
+      filtered = filtered.filter((item) => item.total_users > 0);
+    }
 
-    console.log("District filter changed:", {
-      districtId,
-      showAllDistricts: districtId === "",
-    });
-  };
+    return filtered;
+  }, [transformedData, showAssembliesWithoutUsers, showAssignedUsers]);
 
-  const handleAssemblyChange = (assemblyId: string) => {
-    setSelectedAssemblyId(assemblyId);
-    setCurrentPage(1); // Reset to page 1 when filter changes
+  // Pagination - use API pagination data or client-side pagination when filtering
+  const itemsPerPage = 25;
+  
+  // When filters are active, use client-side pagination
+  const paginatedData = useMemo(() => {
+    if (shouldFetchAll) {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return filteredData.slice(startIndex, endIndex);
+    }
+    return filteredData;
+  }, [filteredData, currentPage, itemsPerPage, shouldFetchAll]);
+  
+  const totalItems = shouldFetchAll 
+    ? filteredData.length 
+    : (pagination?.total || metaData?.totalAssemblies || 0);
+  const currentPageFromAPI = shouldFetchAll ? currentPage : (pagination?.page || currentPage);
+
+  // Handle filter changes
+  const handleDistrictChange = (districtId: string) => {
+    setSelectedDistrictId(districtId);
+    setCurrentPage(1);
   };
 
   const handleSearchChange = (search: string) => {
     setSearchInput(search);
-    setCurrentPage(1); // Reset to page 1 when search changes
+    setCurrentPage(1);
   };
 
-  // Handle assemblies without users filter
   const handleAssembliesWithoutUsersClick = () => {
+    const assembliesWithoutUsers = metaData?.assembliesWithoutUsers || 0;
     if (assembliesWithoutUsers > 0) {
       const newValue = !showAssembliesWithoutUsers;
       setShowAssembliesWithoutUsers(newValue);
       if (newValue) {
-        setShowAssignedUsers(false); // Mutually exclusive
+        setShowAssignedUsers(false);
       }
-      setCurrentPage(1); // Reset to page 1
+      setCurrentPage(1);
     }
   };
 
   const handleAssignedUsersClick = () => {
+    const totalUsers = metaData?.totalUsers || 0;
     if (totalUsers > 0) {
       const newValue = !showAssignedUsers;
       setShowAssignedUsers(newValue);
       if (newValue) {
-        setShowAssembliesWithoutUsers(false); // Mutually exclusive
+        setShowAssembliesWithoutUsers(false);
       }
-      setCurrentPage(1); // Reset to page 1
+      setCurrentPage(1);
     }
   };
 
   const handleSort = (
-    sortBy: "location_name" | "total_users" | "active_users",
-    order: "asc" | "desc"
+    _newSortBy: "location_name" | "total_users" | "active_users",
+    _newOrder: "asc" | "desc"
   ) => {
-    setSortBy(sortBy);
-    setSortOrder(order);
+    // Note: Sorting should be handled by API in future
+    // For now, this is a no-op
   };
 
   const handleUploadVoters = (assemblyId: number, assemblyName: string) => {
-    // Find the assembly in the data to get its parent_id (which is the district)
-    const assembly = data.find((item) => item.location_id === assemblyId);
-
-    let districtIdFromAssembly: number;
-    let actualStateId: number;
-
-    if (showAllDistricts && "district_id" in assembly!) {
-      // In all-districts mode, use the district_id from enhanced data
-      const enhancedAssembly = assembly as EnhancedHierarchyChild;
-      districtIdFromAssembly = enhancedAssembly.district_id;
-      actualStateId = stateId!;
-    } else {
-      // In single-district mode, use the existing logic
-      districtIdFromAssembly =
-        assembly?.parent_id || Number(selectedDistrictId);
-      actualStateId = selectedDistrictParentId || stateId!;
-    }
-
-    console.log("Upload Voters clicked:", {
-      assemblyId,
-      assemblyName,
-      stateId,
-      actualStateId,
-      selectedDistrictId,
-      selectedDistrictParentId,
-      districtIdFromAssembly,
-      showAllDistricts,
-    });
-
-    if (!actualStateId) {
-      alert("State ID is missing. Please refresh the page.");
+    // Use transformedData instead of filteredData to find assembly
+    const assembly = transformedData.find((item) => item.location_id === assemblyId);
+    
+    if (!assembly) {
+      alert("Assembly not found. Please try again.");
       return;
     }
 
-    if (!districtIdFromAssembly) {
-      alert("District ID is missing. Please try again.");
+    if (!stateId) {
+      alert("State ID is missing. Please refresh the page.");
       return;
     }
 
@@ -260,29 +228,20 @@ export default function StateAssembly() {
     assemblyId: number,
     assemblyName: string
   ) => {
-    const assembly = data.find((item) => item.location_id === assemblyId);
+    // Use transformedData instead of filteredData to find assembly
+    const assembly = transformedData.find((item) => item.location_id === assemblyId);
 
-    let districtIdFromAssembly: number | null = null;
-    let districtNameFromAssembly: string | undefined;
-    if (showAllDistricts && assembly && "district_id" in assembly) {
-      districtIdFromAssembly = (assembly as EnhancedHierarchyChild).district_id;
-      districtNameFromAssembly = (assembly as EnhancedHierarchyChild)
-        .district_name;
-    } else {
-      districtIdFromAssembly =
-        assembly?.parent_id || Number(selectedDistrictId) || null;
-      districtNameFromAssembly = selectedDistrictName;
+    if (!assembly) {
+      alert("Assembly not found. Please try again.");
+      return;
     }
 
-    const resolvedStateId = selectedDistrictParentId || stateId;
-
-    if (!resolvedStateId) {
+    if (!stateId) {
       alert("State ID is missing. Please refresh the page.");
       return;
     }
 
-    const resolvedPartyId = partyId;
-    if (!resolvedPartyId) {
+    if (!partyId) {
       alert("Party ID is missing. Please refresh or select a party.");
       return;
     }
@@ -290,9 +249,9 @@ export default function StateAssembly() {
     setSelectedDraftAssembly({
       id: assemblyId,
       name: assemblyName,
-      districtId: districtIdFromAssembly,
-      stateId: resolvedStateId,
-      districtName: districtNameFromAssembly,
+      districtId: assembly.district_id,
+      stateId: stateId,
+      districtName: assembly.district_name,
     });
     setDraftModalOpen(true);
   };
@@ -304,126 +263,44 @@ export default function StateAssembly() {
 
   // Excel export function
   const exportToExcel = () => {
-    // Use allAssembliesData for export to get all assemblies with district information
-    const dataToExport = showAllDistricts ? allAssembliesData : data;
-
-    // Prepare data for Excel export
-    const excelData = dataToExport.map((assembly, index) => ({
+    const excelData = filteredData.map((assembly, index) => ({
       "S.No": index + 1,
       "State Name": stateName || "",
-      "District Name":
-        showAllDistricts && "district_name" in assembly
-          ? (assembly as EnhancedHierarchyChild).district_name
-          : selectedDistrictName || "",
+      "District Name": assembly.district_name || "",
       "Assembly Name": assembly.location_name || "",
     }));
 
-    // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(excelData);
 
-    // Set column widths
     const colWidths = [
-      { wch: 8 }, // S.No
-      { wch: 20 }, // State Name
-      { wch: 25 }, // District Name
-      { wch: 30 }, // Assembly Name
+      { wch: 8 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 30 },
     ];
     ws["!cols"] = colWidths;
 
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, "Assemblies");
 
-    // Generate filename with current date
     const currentDate = new Date().toISOString().split("T")[0];
     const filename = `Assembly_List_${stateName.replace(
       /\s+/g,
       "_"
     )}_${currentDate}.xlsx`;
 
-    // Save file
     XLSX.writeFile(wb, filename);
   };
-
-  // Use different hooks based on whether showing all districts or specific district
-  const {
-    data: singleDistrictData,
-    loading: singleDistrictLoading,
-    error: singleDistrictError,
-    parentName,
-  } = useHierarchyData(
-    !showAllDistricts && selectedDistrictId ? Number(selectedDistrictId) : null,
-    25 // Items per page
-  );
-
-  const {
-    allAssembliesData,
-    loading: allDistrictsLoading,
-    error: allDistrictsError,
-  } = useAllDistrictsAssemblyData(
-    stateId,
-    districts,
-    searchInput,
-    sortBy,
-    sortOrder,
-    "all"
-  );
-
-  // Determine which data to use based on current mode
-  const data = showAllDistricts ? allAssembliesData : singleDistrictData;
-  const loading = showAllDistricts
-    ? allDistrictsLoading
-    : singleDistrictLoading;
-  const error = showAllDistricts ? allDistrictsError : singleDistrictError;
-
-  // Filter data based on selected assembly and apply pagination for single district view
-  let filteredData: (HierarchyChild | EnhancedHierarchyChild)[] = data;
-
-  if (selectedAssemblyId) {
-    filteredData = data.filter(
-      (item) => item.location_id.toString() === selectedAssemblyId
-    );
-  }
-
-  // Apply search filter for single district view (all districts view handles search in the hook)
-  if (!showAllDistricts && searchInput) {
-    filteredData = filteredData.filter((item) =>
-      item.location_name.toLowerCase().includes(searchInput.toLowerCase())
-    );
-  }
-
-  // Apply assemblies without users filter
-  if (showAssembliesWithoutUsers) {
-    filteredData = filteredData.filter((item) => item.total_users === 0);
-  }
-  
-  // Apply assigned users filter
-  if (showAssignedUsers) {
-    filteredData = filteredData.filter((item) => item.total_users > 0);
-  }
-
-  // Calculate pagination for filtered data
-  const itemsPerPage = 25;
-  const totalFilteredItems = filteredData.length;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-
-  // Calculate summary statistics based on current data source
-  const statsData = showAllDistricts ? allAssembliesData : assemblies;
-  const totalUsers = statsData.reduce(
-    (sum, assembly) => sum + assembly.total_users,
-    0
-  );
-  const assembliesWithoutUsers = statsData.filter(
-    (assembly) => assembly.total_users === 0
-  ).length;
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
+
+  const totalAssemblies = metaData?.totalAssemblies || 0;
+  const totalUsers = metaData?.totalUsers || 0;
+  const assembliesWithoutUsers = metaData?.assembliesWithoutUsers || 0;
 
   return (
     <div className="p-2 bg-gray-50 min-h-screen">
@@ -435,7 +312,7 @@ export default function StateAssembly() {
               Assembly List
             </h1>
             <p className="text-sky-100 mt-1 text-xs sm:text-sm">
-              {selectedDistrictName || stateName || parentName}
+              {stateName}
             </p>
           </div>
 
@@ -443,7 +320,7 @@ export default function StateAssembly() {
           <div className="flex items-center gap-4">
             <button
               onClick={exportToExcel}
-              disabled={statsData.length === 0}
+              disabled={filteredData.length === 0}
               className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
               title="Export all assemblies to Excel"
             >
@@ -460,7 +337,7 @@ export default function StateAssembly() {
                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              Export Excel ({statsData.length})
+              Export Excel ({filteredData.length})
             </button>
           </div>
 
@@ -472,7 +349,7 @@ export default function StateAssembly() {
                   Total Assemblies
                 </p>
                 <p className="text-xl sm:text-2xl font-semibold mt-1">
-                  {formatNumber(statsData.length)}
+                  {formatNumber(totalAssemblies)}
                 </p>
               </div>
               <div className="bg-blue-50 rounded-full p-1.5">
@@ -492,7 +369,7 @@ export default function StateAssembly() {
               </div>
             </div>
 
-            {/* Total Users Card - Now Clickable */}
+            {/* Total Users Card - Clickable */}
             <div 
               onClick={handleAssignedUsersClick}
               className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
@@ -623,36 +500,34 @@ export default function StateAssembly() {
       <HierarchyTable
         data={paginatedData}
         loading={loading}
-        error={error}
+        error={error ? "Failed to load assemblies" : null}
         searchInput={searchInput}
         onSearchChange={handleSearchChange}
         onSort={handleSort}
         onPageChange={setCurrentPage}
-        currentPage={currentPage}
-        totalItems={totalFilteredItems}
+        currentPage={currentPageFromAPI}
+        totalItems={totalItems}
         itemsPerPage={itemsPerPage}
         title="Assembly List"
-        emptyMessage={
-          showAllDistricts
-            ? "No assemblies found"
-            : selectedDistrictId
-            ? "No assemblies found for this district"
-            : "Please select a district to view assemblies"
-        }
-        stateName={stateName || parentName}
-        districtName={selectedDistrictName}
-        districts={districts}
+        emptyMessage="No assemblies found"
+        stateName={stateName}
+        districts={districts.map((d) => ({
+          location_id: d.districtId,
+          location_name: d.districtName,
+          location_type: "District" as const,
+          parent_id: stateId,
+          total_users: 0,
+          active_users: 0,
+          users: [],
+        }))}
         selectedDistrict={selectedDistrictId}
         onDistrictChange={handleDistrictChange}
-        assemblies={assemblies}
-        selectedAssembly={selectedAssemblyId}
-        onAssemblyChange={handleAssemblyChange}
         showUploadVotersButton={true}
         onUploadVoters={handleUploadVoters}
         showUploadDraftVotersButton={true}
         onUploadDraftVoters={handleUploadDraftVoters}
         hideHeader={true}
-        showAllDistricts={showAllDistricts}
+        showAllDistricts={true}
         hideActiveUsersColumn={true}
       />
 
@@ -662,13 +537,10 @@ export default function StateAssembly() {
           onClose={handleCloseUploadModal}
           stateId={stateId || 0}
           districtId={(() => {
-            const assembly = data.find(
+            const assembly = transformedData.find(
               (item) => item.location_id === selectedAssembly.id
             );
-            if (showAllDistricts && assembly && "district_id" in assembly) {
-              return (assembly as EnhancedHierarchyChild).district_id;
-            }
-            return Number(selectedDistrictId) || assembly?.parent_id || 0;
+            return assembly?.district_id || 0;
           })()}
           assemblyId={selectedAssembly.id}
           assemblyName={selectedAssembly.name}
