@@ -107,8 +107,15 @@ export const dynamicLevelApi = createApi({
                 // Add optional filter parameters
                 if (districtId && districtId > 0) params.districtId = districtId;
                 if (assemblyId && assemblyId > 0) params.assemblyId = assemblyId;
-                if (blockId && blockId > 0) params.blockId = blockId;
-                if (mandalId && mandalId > 0) params.mandalId = mandalId;
+                
+                // After assembly, use afterAssemblyId for any after-assembly level
+                // Priority: mandalId > blockId (last selected level wins)
+                // This works for any level after assembly (Block, Mandal, PollingCenter, Ward, Zone, Sector, etc.)
+                if (mandalId && mandalId > 0) {
+                    params.afterAssemblyId = mandalId;
+                } else if (blockId && blockId > 0) {
+                    params.afterAssemblyId = blockId;
+                }
                 
                 return {
                     url: `/dynamicLevel/${stateId}`,
