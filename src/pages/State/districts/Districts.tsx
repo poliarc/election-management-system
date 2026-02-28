@@ -1,75 +1,153 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHierarchyData } from "../../../hooks/useHierarchyData";
+import { useAppSelector } from "../../../store/hooks";
+import { useGetStateLevelDashboardQuery } from "../../../store/api/stateMasterApi";
+import type { DistrictChild } from "../../../store/api/stateMasterApi";
 import HierarchyTable from "../../../components/HierarchyTable";
-import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
-import type { HierarchyChild } from "../../../types/hierarchy";
+import type { HierarchyChild, HierarchyUser } from "../../../types/hierarchy";
 
 export default function StateDistricts() {
   const navigate = useNavigate();
-  const [stateId, setStateId] = useState<number | null>(null);
-  const [stateName, setStateName] = useState<string>("");
-  const [districts, setDistricts] = useState<HierarchyChild[]>([]);
+  const { user, selectedAssignment } = useAppSelector((s) => s.auth);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
-  const [allDistricts, setAllDistricts] = useState<HierarchyChild[]>([]);
-  const [localPage, setLocalPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [sortBy, setSortBy] = useState<"location_name" | "total_users" | "active_users">("location_name");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [showDistrictsWithoutUsers, setShowDistrictsWithoutUsers] = useState(false);
   const [showAssignedUsers, setShowAssignedUsers] = useState(false);
 
-  // Get state info from localStorage
-  useEffect(() => {
-    try {
-      const authState = localStorage.getItem("auth_state");
-      if (authState) {
-        const parsed = JSON.parse(authState);
-        const selectedAssignment = parsed.selectedAssignment;
+  const stateId = user?.state_id || selectedAssignment?.stateMasterData_id || 0;
+  const stateName = selectedAssignment?.levelName || "";
 
-        if (selectedAssignment && selectedAssignment.levelType === "State") {
-          setStateId(selectedAssignment.stateMasterData_id);
-          setStateName(selectedAssignment.levelName);
-        }
+  // Fetch data using Redux
+  const { data: dashboardData, isLoading: loading, error } = useGetStateLevelDashboardQuery({
+    state_id: stateId,
+    districtId: selectedDistrictId ? parseInt(selectedDistrictId) : undefined,
+    page: currentPage,
+    limit: 10,
+    sort_by: sortBy,
+    order: order,
+    search: searchInput,
+  }, {
+    skip: !stateId,
+  });
+
+  const data = dashboardData?.data?.data?.children || [];
+  const allDistricts = dashboardData?.data?.districtList || [];
+  const totalChildren = dashboardData?.data?.pagination?.total || 0;
+  const parentName = dashboardData?.data?.data?.parent?.location_name || "";
+  const totalCount = dashboardData?.data?.totalCount;
+
+  // Transform DistrictChild[] to HierarchyChild[]
+  const transformedData: HierarchyChild[] = data.map((district: DistrictChild) => ({
+    location_id: district.location_id,
+    location_name: district.location_name,
+    location_type: district.location_type as HierarchyChild["location_type"],
+    parent_id: district.parent_id,
+    total_users: district.total_users,
+    active_users: district.active_users,
+    users: district.users.map((user): HierarchyUser => ({
+      districtName: district.location_name,
+      assignment_id: user.assignment_id,
+      user_id: user.user_id,
+      user_name: user.user_name,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      mobile_number: user.mobile_number,
+      party: user.party,
+      party_name: user.party?.party_name || "",
+      user_state: "",
+      user_district: district.location_name,
+      party_id: user.party?.party_id || 0,
+      is_active: user.is_active,
+      assignment_active: user.assignment_active,
+      assigned_at: user.assigned_at,
+      assignment_updated_at: user.assignment_updated_at,
+      user_created_at: user.user_created_at,
+      role_name: user.role_name || "",
+      user_active: user.user_active,
+    })),
+  }));
+
+  // Handle district selection
+  const handleDistrictChange = (districtId: string) => {
+    setSelectedDistrictId(districtId);
+    setShowDistrictsWithoutUsers(false);
+    setShowAssignedUsers(false);
+    setCurrentPage(1);
+  };
+
+  // Handle districts without users filter
+  const handleDistrictsWithoutUsersClick = () => {
+    const districtsWithoutUsers = totalCount?.districtWithoutUserCount || 0;
+    if (districtsWithoutUsers > 0) {
+      const newValue = !showDistrictsWithoutUsers;
+      setShowDistrictsWithoutUsers(newValue);
+      
+      if (newValue) {
+        setShowAssignedUsers(false);
+        setSelectedDistrictId("");
       }
-    } catch (err) {
-      console.error("Error reading state info:", err);
+      
+      setCurrentPage(1);
     }
-  }, []);
+  };
 
-  // Fetch all districts for dropdown and filtering
-  useEffect(() => {
-    const loadDistricts = async () => {
-      if (!stateId) return;
-
-      try {
-        const response = await fetchHierarchyChildren(stateId, {
-          page: 1,
-          limit: 1000, // Get all districts
-        });
-
-        if (response.success) {
-          setDistricts(response.data.children);
-          setAllDistricts(response.data.children);
-        }
-      } catch (err) {
-        console.error("Error fetching districts:", err);
+  const handleAssignedUsersClick = () => {
+    const totalUsers = totalCount?.userCount || 0;
+    if (totalUsers > 0) {
+      const newValue = !showAssignedUsers;
+      setShowAssignedUsers(newValue);
+      
+      if (newValue) {
+        setShowDistrictsWithoutUsers(false);
+        setSelectedDistrictId("");
       }
-    };
+      
+      setCurrentPage(1);
+    }
+  };
 
-    loadDistricts();
-  }, [stateId]);
+  const handleSort = (
+    newSortBy: "location_name" | "total_users" | "active_users",
+    newOrder: "asc" | "desc"
+  ) => {
+    setSortBy(newSortBy);
+    setOrder(newOrder);
+  };
 
-  const {
-    data,
-    loading,
-    error,
-    totalChildren,
-    parentName,
-    setPage,
-    setSearchInput,
-    searchInput,
-    setSortBy,
-    setOrder,
-    currentPage,
-  } = useHierarchyData(stateId, 10);
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Memoized filtered data
+  const { paginatedData, filteredTotal } = useMemo(() => {
+    if (showDistrictsWithoutUsers) {
+      const filtered = transformedData.filter((item) => item.total_users === 0);
+      return {
+        paginatedData: filtered,
+        filteredTotal: filtered.length,
+      };
+    } else if (showAssignedUsers) {
+      const filtered = transformedData.filter((item) => item.total_users > 0);
+      return {
+        paginatedData: filtered,
+        filteredTotal: filtered.length,
+      };
+    } else {
+      return {
+        paginatedData: transformedData,
+        filteredTotal: totalChildren,
+      };
+    }
+  }, [showDistrictsWithoutUsers, showAssignedUsers, transformedData, totalChildren]);
+
+  // Calculate summary statistics
+  const totalUsers = totalCount?.userCount || 0;
+  const districtsWithoutUsers = totalCount?.districtWithoutUserCount || 0;
 
   const handleAssignUsers = (districtId: string, districtName: string) => {
     navigate(
@@ -78,120 +156,6 @@ export default function StateDistricts() {
       )}&stateId=${stateId}`
     );
   };
-
-  // Handle district selection
-  const handleDistrictChange = (districtId: string) => {
-    setSelectedDistrictId(districtId);
-    setShowDistrictsWithoutUsers(false); // Reset districts without users filter
-    setShowAssignedUsers(false); // Reset assigned users filter
-    setLocalPage(1); // Reset to page 1 when filter changes
-  };
-
-  // Handle districts without users filter
-  const handleDistrictsWithoutUsersClick = () => {
-    if (districtsWithoutUsers > 0) {
-      const newValue = !showDistrictsWithoutUsers;
-      setShowDistrictsWithoutUsers(newValue);
-      
-      if (newValue) {
-        setShowAssignedUsers(false); // Mutually exclusive
-        setSelectedDistrictId(""); // Reset district selection
-      }
-      
-      setLocalPage(1); // Reset to page 1
-    }
-  };
-
-  const handleAssignedUsersClick = () => {
-    if (totalUsers > 0) {
-      const newValue = !showAssignedUsers;
-      setShowAssignedUsers(newValue);
-      
-      if (newValue) {
-        setShowDistrictsWithoutUsers(false); // Mutually exclusive
-        setSelectedDistrictId(""); // Reset district selection
-      }
-      
-      setLocalPage(1); // Reset to page 1
-    }
-  };
-
-  const handleSort = (
-    sortBy: "location_name" | "total_users" | "active_users",
-    order: "asc" | "desc"
-  ) => {
-    setSortBy(sortBy);
-    setOrder(order);
-  };
-
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    if (selectedDistrictId || showDistrictsWithoutUsers || showAssignedUsers) {
-      setLocalPage(page);
-    } else {
-      setPage(page);
-    }
-  };
-
-  // Memoized filtered and paginated data
-  const { paginatedData, filteredTotal, currentPageToUse } = useMemo(() => {
-    if (selectedDistrictId) {
-      // When filtering by specific district, use all districts and apply client-side pagination
-      const filtered = allDistricts.filter((item) =>
-        item.location_id.toString() === selectedDistrictId
-      );
-
-      const itemsPerPage = 10;
-      const startIndex = (localPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginated = filtered.slice(startIndex, endIndex);
-
-      return {
-        paginatedData: paginated,
-        filteredTotal: filtered.length,
-        currentPageToUse: localPage
-      };
-    } else if (showDistrictsWithoutUsers) {
-      // When filtering districts without users, use all districts and apply client-side pagination
-      const filtered = allDistricts.filter((item) => item.total_users === 0);
-
-      const itemsPerPage = 10;
-      const startIndex = (localPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginated = filtered.slice(startIndex, endIndex);
-
-      return {
-        paginatedData: paginated,
-        filteredTotal: filtered.length,
-        currentPageToUse: localPage
-      };
-    } else if (showAssignedUsers) {
-      // When filtering districts WITH users
-      const filtered = allDistricts.filter((item) => item.total_users > 0);
-
-      const itemsPerPage = 10;
-      const startIndex = (localPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginated = filtered.slice(startIndex, endIndex);
-
-      return {
-        paginatedData: paginated,
-        filteredTotal: filtered.length,
-        currentPageToUse: localPage
-      };
-    } else {
-      // When not filtering, use server-side pagination
-      return {
-        paginatedData: data,
-        filteredTotal: totalChildren,
-        currentPageToUse: currentPage
-      };
-    }
-  }, [selectedDistrictId, showDistrictsWithoutUsers, showAssignedUsers, allDistricts, data, totalChildren, localPage, currentPage]);
-
-  // Calculate summary statistics from all districts (not just current page)
-  const totalUsers = districts.reduce((sum, district) => sum + district.total_users, 0);
-  const districtsWithoutUsers = districts.filter(district => district.total_users === 0).length;
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -298,18 +262,26 @@ export default function StateDistricts() {
       <HierarchyTable
         data={paginatedData}
         loading={loading}
-        error={error}
+        error={error ? "Failed to load districts" : null}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         onSort={handleSort}
         onPageChange={handlePageChange}
-        currentPage={currentPageToUse}
+        currentPage={currentPage}
         totalItems={filteredTotal}
         itemsPerPage={10}
         title="District List"
         emptyMessage="No districts found for this state"
         stateName={stateName || parentName}
-        districts={districts}
+        districts={allDistricts.map((d): HierarchyChild => ({
+          location_id: d.id,
+          location_name: d.levelName,
+          location_type: d.levelType as HierarchyChild["location_type"],
+          parent_id: d.ParentId,
+          total_users: 0,
+          active_users: 0,
+          users: []
+        }))}
         selectedDistrict={selectedDistrictId}
         onDistrictChange={handleDistrictChange}
         onAssignUsers={handleAssignUsers}

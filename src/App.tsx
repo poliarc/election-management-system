@@ -31,6 +31,7 @@ import AssemblyAssignedEvents from "./pages/Assembly/assigned-events/AssignedEve
 import BlockAssignedEvents from "./pages/Block/assigned-events/AssignedEvents";
 import AssemblyDashboard from "./pages/Assembly/Dashboard";
 import AssemblyTeam from "./pages/Assembly/AssemblyTeam";
+import AssemblyCreateUser from "./pages/Assembly/CreateUser";
 import AssemblyForm20 from "./pages/Assembly/Form20";
 import BlockList from "./pages/Assembly/block/BlockList";
 import CreateBlock from "./pages/Assembly/block/CreateBlock";
@@ -108,7 +109,7 @@ import { CampaignReportsPage } from "./modules/campaigns/pages/CampaignReportsPa
 import { PartyTypePage } from "./pages/Admin/partyType";
 import { PartyMasterPage } from "./pages/Admin/partyMaster/PartyMasterPage";
 import PartyLevelManagementPage from "./pages/Admin/partyWiseLevel/PartyLevelManagementPage";
-import { StateSupportersPage } from "./pages/State/supporters";
+import { StateSupportersPage, StateUserWiseSupportersPage } from "./pages/State/supporters";
 import { StateProfile } from "./pages/State/profile";
 import PartyAdminLayout from "./layouts/PartyAdminLayout";
 import { PartyAdminDashboard } from "./pages/PartyAdmin/Dashboard";
@@ -214,6 +215,7 @@ export default function App() {
             />
             <Route path="role" element={<RolePage />} />
             <Route path="users" element={<UserPage />} />
+            <Route path="create-user" element={<UserPage />} />
             <Route path="election-setup" element={<ElectionSetup />} />
             <Route path="module-master" element={<ModuleMasterPage />} />
             <Route path="module-access" element={<ModuleAccessPage />} />
@@ -236,6 +238,7 @@ export default function App() {
             <Route path="dynamic-level/:levelName" element={<DynamicLevelPage />} />
             <Route path="karyakarta" element={<StateKaryakartaListing />} />
             <Route path="supporters" element={<StateSupportersPage />} />
+            <Route path="user-wise-supporters" element={<StateUserWiseSupportersPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="profile" element={<StateProfile />} />
@@ -349,6 +352,8 @@ export default function App() {
               element={<FamilyLabelsPage />}
             />
             <Route path="team" element={<AssemblyTeam />} />
+            <Route path="users" element={<AssemblyCreateUser />} />
+            <Route path="create-user" element={<AssemblyCreateUser />} />
             <Route path="visitors" element={<VisitorsPage />} />
             <Route path="supporters" element={<SupportersPage />} />
             <Route path="supporters/add" element={<AddSupporterPage />} />

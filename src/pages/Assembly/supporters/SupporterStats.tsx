@@ -1,4 +1,4 @@
-import { useGetSupportersByCreatedByQuery } from '../../../store/api/supportersApi';
+import { useGetSupporterStatsQuery } from '../../../store/api/supportersApi';
 import { useAppSelector } from '../../../store/hooks';
 
 export default function SupporterStats() {
@@ -35,85 +35,27 @@ export default function SupporterStats() {
 
   const currentUserId = getUserId();
 
-  // Use the same query as the listing to get supporters data
-  const { data: supportersData, isLoading, error } = useGetSupportersByCreatedByQuery(
+  // Use the proper stats API endpoint that returns aggregated stats
+  const { data: statsResponse, isLoading, error } = useGetSupporterStatsQuery(
     {
-      createdBy: currentUserId,
-      page: 1,
-      limit: 100, // API maximum limit is 100
+      created_by: currentUserId,
     },
     {
       skip: !currentUserId,
     }
   );
 
-  console.log('SupportersData for stats:', supportersData);
-  console.log('Stats loading state:', isLoading);
-  console.log('Stats error:', error);
-  console.log('Current user ID:', currentUserId);
-  console.log('Skip query?', !currentUserId);
-  console.log('Auth user from Redux:', user);
-  console.log('localStorage auth_user:', localStorage.getItem('auth_user'));
-
-  // Calculate stats from the supporters data
-  const calculateStats = () => {
-    if (!supportersData?.data || !Array.isArray(supportersData.data)) {
-      return {
-        total_supporters: 0,
-        active_supporters: 0,
-        inactive_supporters: 0,
-        supporters_with_epic: 0,
-        supporters_with_whatsapp: 0,
-        today_supporters: 0,
-        week_supporters: 0,
-        month_supporters: 0,
-      };
-    }
-
-    const supporters = supportersData.data;
-    const today = new Date();
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    return {
-      total_supporters: supporters.length,
-      active_supporters: supporters.filter(s => s.isActive).length,
-      inactive_supporters: supporters.filter(s => !s.isActive).length,
-      supporters_with_epic: supporters.filter(s => s.voter_epic_id && s.voter_epic_id.trim()).length,
-      supporters_with_whatsapp: supporters.filter(s => s.whatsapp_no && s.whatsapp_no.trim()).length,
-      today_supporters: supporters.filter(s => {
-        try {
-          const createdDate = new Date(s.created_at);
-          return createdDate.toDateString() === today.toDateString();
-        } catch (e) {
-          return false;
-        }
-      }).length,
-      week_supporters: supporters.filter(s => {
-        try {
-          const createdDate = new Date(s.created_at);
-          return createdDate >= weekAgo;
-        } catch (e) {
-          return false;
-        }
-      }).length,
-      month_supporters: supporters.filter(s => {
-        try {
-          const createdDate = new Date(s.created_at);
-          return createdDate >= monthAgo;
-        } catch (e) {
-          return false;
-        }
-      }).length,
-    };
+  // Extract stats from the API response
+  const stats = statsResponse?.overview || {
+    total_supporters: 0,
+    active_supporters: 0,
+    inactive_supporters: 0,
+    supporters_with_epic: 0,
+    supporters_with_whatsapp: 0,
+    today_supporters: 0,
+    week_supporters: 0,
+    month_supporters: 0,
   };
-
-  const stats = calculateStats();
-
-  // Add debug info to see what's happening
-  console.log('Final stats calculated:', stats);
-  console.log('Has supporters data:', !!supportersData?.data);
-  console.log('Supporters count:', supportersData?.data?.length || 0);
 
   if (isLoading) {
     return (
@@ -129,40 +71,6 @@ export default function SupporterStats() {
   }
 
   if (error && !isLoading) {
-    console.error('Stats API Error:', error);
-
-    // If we have some data despite the error, show stats with a warning
-    if (supportersData?.data) {
-      const stats = calculateStats();
-      return (
-        <div className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-yellow-800 text-sm">
-              ⚠️ Stats loaded with warnings. Some data may be incomplete.
-            </p>
-          </div>
-          {/* Show stats normally */}
-          <div className="space-y-6">
-            {/* Main Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Supporters</p>
-                    <p className="text-3xl font-bold text-gray-900">{stats.total_supporters.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-blue-500 rounded-full p-3 text-white text-xl">
-                    👥
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Only show error if we have no data at all
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <p className="text-red-600">Failed to load supporter statistics</p>
@@ -175,11 +83,8 @@ export default function SupporterStats() {
     );
   }
 
-  // If no error and no loading, but also no data, show empty stats instead of error
-  if (!isLoading && !error && (!supportersData || !supportersData.data)) {
-    console.log('No data available, showing empty stats');
-    const emptyStats = calculateStats(); // This will return zeros
-
+  // If no error and no loading, but also no data, show empty stats
+  if (!isLoading && !error && !statsResponse) {
     return (
       <div className="space-y-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -194,7 +99,7 @@ export default function SupporterStats() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Supporters</p>
-                <p className="text-3xl font-bold text-gray-900">{emptyStats.total_supporters.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-900">0</p>
               </div>
               <div className="bg-blue-500 rounded-full p-3 text-white text-xl">
                 👥
@@ -229,15 +134,6 @@ export default function SupporterStats() {
 
   return (
     <div className="space-y-6">
-      {/* Show pagination info if there are more supporters */}
-      {supportersData?.pagination && supportersData.pagination.total > 100 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p className="text-yellow-800 text-sm">
-            ℹ️ Showing stats for first 100 supporters out of {supportersData.pagination.total.toLocaleString()} total.
-          </p>
-        </div>
-      )}
-
       {/* All Stats Cards in One Row - Responsive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Supporters Card */}
