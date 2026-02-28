@@ -236,6 +236,26 @@ export default function DynamicLevelList({
 
     const visibleFilters = getVisibleFilters();
 
+    // Helper function to get the last selected after-assembly level ID
+    // This works for any level after Assembly (Block, Mandal, PollingCenter, Ward, Zone, Sector, Booth, etc.)
+    const getAfterAssemblyId = () => {
+        // Find the last selected filter that comes after Assembly in hierarchy
+        const assemblyIndex = hierarchyOrder.indexOf("Assembly");
+        
+        // Iterate through visible filters in reverse order to find the last selected after-assembly level
+        for (let i = visibleFilters.length - 1; i >= 0; i--) {
+            const filterLevel = visibleFilters[i];
+            const filterLevelIndex = hierarchyOrder.indexOf(filterLevel);
+            
+            // Check if this level is after Assembly and has a selected value
+            if (filterLevelIndex > assemblyIndex && selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
+                return selectedFilters[filterLevel];
+            }
+        }
+        
+        return null;
+    };
+
     // Handle dynamic filter change
     const handleFilterChange = (levelName: string, value: number) => {
         // Reset all dependent filters when a filter changes
@@ -558,18 +578,31 @@ export default function DynamicLevelList({
             const allItems: any[] = [];
             
             for (let page = 1; page <= totalPagesNeeded; page++) {
+                // Build query parameters dynamically
+                const queryParams: Record<string, string> = {
+                    partyId: partyId.toString(),
+                    levelName: levelName,
+                    page: page.toString(),
+                    limit: limit.toString(),
+                };
+                
+                // Add district and assembly filters
+                if (selectedFilters["District"] && selectedFilters["District"] > 0) {
+                    queryParams.districtId = selectedFilters["District"].toString();
+                }
+                if (selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0) {
+                    queryParams.assemblyId = selectedFilters["Assembly"].toString();
+                }
+                
+                // Add afterAssemblyId for any level after Assembly (dynamic)
+                const afterAssemblyId = getAfterAssemblyId();
+                if (afterAssemblyId) {
+                    queryParams.afterAssemblyId = afterAssemblyId.toString();
+                }
+                
                 const response = await fetch(
                     `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevel/${stateId}?` +
-                    new URLSearchParams({
-                        partyId: partyId.toString(),
-                        levelName: levelName,
-                        page: page.toString(),
-                        limit: limit.toString(),
-                        ...(selectedFilters["District"] && selectedFilters["District"] > 0 ? { districtId: selectedFilters["District"].toString() } : {}),
-                        ...(selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0 ? { assemblyId: selectedFilters["Assembly"].toString() } : {}),
-                        ...(selectedFilters["Block"] && selectedFilters["Block"] > 0 ? { blockId: selectedFilters["Block"].toString() } : {}),
-                        ...(selectedFilters["Mandal"] && selectedFilters["Mandal"] > 0 ? { mandalId: selectedFilters["Mandal"].toString() } : {}),
-                    }),
+                    new URLSearchParams(queryParams),
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
@@ -741,18 +774,31 @@ export default function DynamicLevelList({
             const allItems: any[] = [];
             
             for (let page = 1; page <= totalPagesNeeded; page++) {
+                // Build query parameters dynamically
+                const queryParams: Record<string, string> = {
+                    partyId: partyId.toString(),
+                    levelName: levelName,
+                    page: page.toString(),
+                    limit: limit.toString(),
+                };
+                
+                // Add district and assembly filters
+                if (selectedFilters["District"] && selectedFilters["District"] > 0) {
+                    queryParams.districtId = selectedFilters["District"].toString();
+                }
+                if (selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0) {
+                    queryParams.assemblyId = selectedFilters["Assembly"].toString();
+                }
+                
+                // Add afterAssemblyId for any level after Assembly (dynamic)
+                const afterAssemblyId = getAfterAssemblyId();
+                if (afterAssemblyId) {
+                    queryParams.afterAssemblyId = afterAssemblyId.toString();
+                }
+                
                 const response = await fetch(
                     `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevel/${stateId}?` +
-                    new URLSearchParams({
-                        partyId: partyId.toString(),
-                        levelName: levelName,
-                        page: page.toString(),
-                        limit: limit.toString(),
-                        ...(selectedFilters["District"] && selectedFilters["District"] > 0 ? { districtId: selectedFilters["District"].toString() } : {}),
-                        ...(selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0 ? { assemblyId: selectedFilters["Assembly"].toString() } : {}),
-                        ...(selectedFilters["Block"] && selectedFilters["Block"] > 0 ? { blockId: selectedFilters["Block"].toString() } : {}),
-                        ...(selectedFilters["Mandal"] && selectedFilters["Mandal"] > 0 ? { mandalId: selectedFilters["Mandal"].toString() } : {}),
-                    }),
+                    new URLSearchParams(queryParams),
                     {
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
