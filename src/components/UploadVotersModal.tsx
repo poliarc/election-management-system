@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { useUploadVotersMutation } from "../store/api/votersApi";
-import * as XLSX from "xlsx";
 
 interface UploadVotersModalProps {
     isOpen: boolean;
@@ -115,68 +114,13 @@ export default function UploadVotersModal({
     };
 
     const handleDownloadTemplate = () => {
-        const VOTER_HEADERS = [
-            "state_code",
-            "state_name_eng",
-            "state_name_hi",
-            "distt_name_en",
-            "distt_name_hi",
-            "pc_no",
-            "pc_name_en",
-            "pc_name_v1",
-            "ac_no",
-            "ac_name_en",
-            "ac_name_v1",
-            "part_no",
-            "section_no",
-            "ps_name_en",
-            "ps_name_hin",
-            "ps_loc_en",
-            "ps_loc_hin",
-            "town_village_name_eng",
-            "town_village_name_hin",
-            "ward_no",
-            "tehsil_eng",
-            "tehsil_hi",
-            "police_station_en",
-            "police_station_hi",
-            "pincode",
-            "sl_no_in_part",
-            "ward_elec_id",
-            "voter_id_epic_no",
-            "voter_full_name_en",
-            "voter_full_name_hi",
-            "relative_full_name_en",
-            "relative_full_name_hi",
-            "house_no_eng",
-            "house_no_hi",
-            "gender",
-            "age",
-            "m_section_name",
-            "voter_first_name_en",
-            "voter_last_name_en",
-            "voter_first_name_hi",
-            "voter_last_name_hi",
-            "relative_first_name_en",
-            "relative_last_name_en",
-            "relative_first_name_hi",
-            "relative_last_name_hi",
-            "relation",
-            "contact_number1",
-            "contact_number2",
-        ];
-
-        // Create a new workbook
-        const wb = XLSX.utils.book_new();
-
-        // Create worksheet with headers
-        const ws = XLSX.utils.aoa_to_sheet([VOTER_HEADERS]);
-
-        // Add worksheet to workbook
-        XLSX.utils.book_append_sheet(wb, ws, "Voters");
-
-        // Generate Excel file and trigger download
-        XLSX.writeFile(wb, "voter_upload_template.xlsx");
+        // Create a link element to download the pre-existing Excel file
+        const link = document.createElement('a');
+        link.href = '/Voter_Sample_Data.xlsx';
+        link.download = 'Voter_Sample_Data.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
