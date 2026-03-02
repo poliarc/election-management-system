@@ -118,7 +118,7 @@ export const dynamicLevelApi = createApi({
                 }
                 
                 return {
-                    url: `/dynamicLevel/${stateId}`,
+                    url: `/dynamicLevelV2/${stateId}`,
                     params,
                 };
             },
