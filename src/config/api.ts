@@ -11,6 +11,9 @@ export const API_CONFIG = {
     PHONE_PASSWORD_RESET_VERIFY_OTP: "/api/phone-password-reset/verify-otp",
     PHONE_PASSWORD_RESET_RESEND_OTP: "/api/phone-password-reset/resend-otp",
     PHONE_PASSWORD_RESET_RESET: "/api/phone-password-reset/reset-password",
+    MOBILE_LOGIN_SEND_OTP: "/api/mobile-login/send-otp",
+    MOBILE_LOGIN_VERIFY_OTP: "/api/mobile-login/verify-otp",
+    MOBILE_LOGIN_RESEND_OTP: "/api/mobile-login/resend-otp",
   },
   TIMEOUT: 30000,
 } as const;

@@ -123,6 +123,74 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    otpLogin: (state, action: PayloadAction<any>) => {
+      // Handle OTP login response (directly set all auth state from OTP verification response)
+      const data = action.payload;
+
+      // Transform and store user
+      state.user = authApi.transformApiUser(data.user, data.userType);
+
+      // Extract state_id from additional sources if not already present
+      if (!state.user.state_id) {
+        let extractedStateId: number | undefined;
+
+        if (data.levelAdminDetails && data.levelAdminDetails.length > 0) {
+          const firstLevelAdmin = data.levelAdminDetails[0];
+          extractedStateId = firstLevelAdmin.state_id;
+        }
+
+        if (!extractedStateId && data.stateAssignments && data.stateAssignments.length > 0) {
+          const firstStateAssignment = data.stateAssignments[0];
+          extractedStateId = firstStateAssignment.stateMasterData_id;
+        }
+
+        if (extractedStateId) {
+          state.user = {
+            ...state.user,
+            state_id: extractedStateId
+          };
+        }
+      }
+
+      // Store tokens
+      state.accessToken = data.accessToken;
+      state.refreshToken = data.refreshToken;
+
+      // Store role flags
+      state.isPartyAdmin = data.isPartyAdmin;
+      state.isLevelAdmin = data.isLevelAdmin;
+      state.hasStateAssignments = data.hasStateAssignments;
+
+      // Transform and store panel assignments
+      state.partyAdminPanels = authApi.transformPartyAdminPanels(data.partyAdminDetails);
+      state.levelAdminPanels = authApi.transformLevelAdminPanels(data.levelAdminDetails);
+      state.stateAssignments = data.stateAssignments;
+
+      // Store permissions
+      state.permissions = data.permissions;
+
+      // Persist to storage
+      storage.setToken('access', data.accessToken);
+      storage.setToken('refresh', data.refreshToken);
+      storage.setUser(state.user);
+
+      storage.setAuthState({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isPartyAdmin: state.isPartyAdmin,
+        isLevelAdmin: state.isLevelAdmin,
+        hasStateAssignments: state.hasStateAssignments,
+        partyAdminPanels: state.partyAdminPanels,
+        levelAdminPanels: state.levelAdminPanels,
+        stateAssignments: state.stateAssignments,
+        permissions: state.permissions,
+        selectedAssignment: state.selectedAssignment,
+      });
+
+      state.loading = false;
+      state.error = null;
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -313,5 +381,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setSelectedAssignment, clearSelectedAssignment } = authSlice.actions;
+export const { logout, setSelectedAssignment, clearSelectedAssignment, otpLogin } = authSlice.actions;
 export default authSlice.reducer;
