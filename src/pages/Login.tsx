@@ -2,12 +2,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { login, logout } from "../store/authSlice";
-import { useLocation, Link } from "react-router-dom";
+import { logout, otpLogin } from "../store/authSlice";
+import { useLocation } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import VersionDisplay from "../components/VersionDisplay";
+import { API_CONFIG, getApiUrl } from "../config/api";
 
 // Accept either a valid email or a phone number (+ optional country code, 10-15 digits)
 const identifierSchema = z
@@ -23,7 +24,7 @@ const identifierSchema = z
 
 const schema = z.object({
   identifier: identifierSchema,
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  // password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -36,9 +37,33 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
-  const [showPassword, setShowPassword] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false); // track send request
+  // separate digits for better UI
+  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(0); // seconds remaining for OTP validity
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [previousAccessToken, setPreviousAccessToken] = useState<string | null>(null);
+  const identifier = watch("identifier");
+
+  // when otpSent becomes true start countdown and focus first OTP input
+  useEffect(() => {
+    if (otpSent) {
+      setTimer(600); // 10 minutes in seconds
+      setTimeout(() => otpRefs.current[0]?.focus(), 0);
+    }
+  }, [otpSent]);
+
+  // countdown timer
+  useEffect(() => {
+    if (timer > 0) {
+      const id = setTimeout(() => setTimer(timer - 1), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [timer]);
 
   // Handle logout parameter on component mount
   useEffect(() => {
@@ -67,8 +92,106 @@ export default function LoginPage() {
     return <RoleRedirect />;
   }
 
-  const onSubmit = (data: FormData) => {
-    dispatch(login(data));
+  // helper to verify OTP using provided value
+  const verifyOtp = async (otpValue: string, identifierValue: string) => {
+    if (otpValue.length !== 6) {
+      toast.error("OTP must be 6 digits");
+      return;
+    }
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOBILE_LOGIN_VERIFY_OTP), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: identifierValue,
+          otp: otpValue,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        dispatch(otpLogin(result.data));
+        // Success toast will be shown by useEffect when accessToken is set
+      } else {
+        toast.error(result.message || "Invalid OTP");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to verify OTP");
+      console.error("Verify OTP Error:", error);
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    if (!otpSent) {
+      // Send OTP
+      setSendingOtp(true);
+      try {
+        const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOBILE_LOGIN_SEND_OTP), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            identifier: data.identifier,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setOtpSent(true);
+          setOtpDigits(["", "", "", "", "", ""]);
+          setOtp("");
+          toast.success(result.message || "OTP sent successfully");
+        } else {
+          // backend may return error object with message
+          const errMsg = result.error?.message || result.message || "Failed to send OTP";
+          toast.error(errMsg);
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Failed to send OTP");
+        console.error("Send OTP Error:", error);
+      } finally {
+        setSendingOtp(false);
+      }
+    } else {
+      // Verify OTP and Login
+      await verifyOtp(otp, data.identifier);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    const identifier = watch("identifier");
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOBILE_LOGIN_RESEND_OTP), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: identifier,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // reset digits when resending
+        setOtpDigits(["", "", "", "", "", ""]);
+        setOtp("");
+        setTimer(600);
+        setTimeout(() => otpRefs.current[0]?.focus(), 0);
+        toast.success(result.message || "OTP resent successfully");
+      } else {
+        toast.error(result.message || "Failed to resend OTP");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend OTP");
+      console.error("Resend OTP Error:", error);
+    }
   };
 
   return (
@@ -188,7 +311,8 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <div className="group">
+              {/* Password Field - Commented Out */}
+              {/* <div className="group">
                 <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200 transition-colors">
                   Password
                 </label>
@@ -236,7 +360,54 @@ export default function LoginPage() {
                     {errors.password.message}
                   </p>
                 )}
-              </div>
+              </div> */}
+
+              {/* OTP Field - Appears after OTP is sent */}
+              {otpSent && (
+                <div className="group animate-fade-in-up">
+                  {/* timer display above boxes moved below now */}
+
+                  <div className="flex justify-center gap-2">
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => { otpRefs.current[idx] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          const newDigits = [...otpDigits];
+                          newDigits[idx] = val;
+                          setOtpDigits(newDigits);
+                          if (val && idx < 5) {
+                            otpRefs.current[idx + 1]?.focus();
+                          }
+                          const combined = newDigits.join("");
+                          setOtp(combined);
+                          // if all six digits entered, auto-submit using helper
+                          if (combined.length === 6) {
+                            verifyOtp(combined, identifier);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Backspace" && !otpDigits[idx] && idx > 0) {
+                            otpRefs.current[idx - 1]?.focus();
+                          }
+                        }}
+                        className="w-10 h-10 text-center rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500 text-xl font-bold"
+                      />
+                    ))}
+                  </div>
+                  {/* timer display below boxes */}
+                  {timer > 0 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                      Expires in {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {error && (
                 <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 animate-shake">
@@ -259,11 +430,11 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={(sendingOtp && !otpSent) || loading || !identifier || (otpSent && otp.length < 6)}
                 className="w-full relative overflow-hidden rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  {loading ? (
+                  {(sendingOtp && !otpSent) || loading ? (
                     <>
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                         <circle
@@ -281,11 +452,11 @@ export default function LoginPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Signing in...
+                      {otpSent ? "Verifying..." : (sendingOtp ? "Sending..." : "Sending OTP...")}
                     </>
                   ) : (
                     <>
-                      Sign In
+                      {otpSent ? "Verify OTP" : "Send OTP"}
                       <svg
                         className="w-5 h-5 group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -304,10 +475,36 @@ export default function LoginPage() {
                 </span>
                 <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
+
+              {/* Reset OTP Button - Show when OTP is already sent */}
+              {otpSent && (
+                <div className="flex justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    className="px-6 rounded-xl border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:border-indigo-400 dark:text-indigo-400 font-semibold py-2 text-sm transition-all duration-300"
+                  >
+                    Resend OTP
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtp("");
+                      setOtpDigits(["", "", "", "", "", ""]);
+                      setTimer(0);
+                    }}
+                    className="px-6 rounded-xl border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold py-2 text-sm transition-all duration-300"
+                  >
+                    Back
+                  </button>
+                </div>
+              )}
             </form>
 
             <div className="mt-4 text-center">
-              <Link to="/forgot-password" className="text-sm text-indigo-600 hover:underline">Forgot password?</Link>
+              {/* Forgot Password Button - Commented Out */}
+              {/* <Link to="/forgot-password" className="text-sm text-indigo-600 hover:underline">Forgot password?</Link> */}
             </div>
           </div>
 
