@@ -158,6 +158,7 @@ import {
   UnderHierarchyReports,
   ReportDetails,
 } from "./pages/VIC";
+import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
 
 export default function App() {
   return (
@@ -414,6 +415,8 @@ export default function App() {
               element={<UnderHierarchyReports />}
             />
             <Route path="vic/report-details/:id" element={<ReportDetails />} />
+            {/* Event Master Routes */}
+            <Route path="events" element={<EventsStats />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
