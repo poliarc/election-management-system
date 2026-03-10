@@ -6,6 +6,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRedirect from "./routes/RoleRedirect";
 import NotFound from "./pages/NotFound";
 import PanelSelect from "./pages/PanelSelect";
+import UpdatePasswordPage from "./pages/UpdatePassword";
 import PanelAdminLayout from "./layouts/PanelAdminLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import DistrictLayout from "./layouts/DistrictLayout";
@@ -127,6 +128,7 @@ import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
 import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
 import ChatPage from "./pages/Chat/ChatPage";
+// import { ThemeSettings } from "./pages/Settings";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
 import {
   SubLevelPanelDashboard,
@@ -158,6 +160,7 @@ import {
   UnderHierarchyReports,
   ReportDetails,
 } from "./pages/VIC";
+import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
 
 export default function App() {
   return (
@@ -172,12 +175,14 @@ export default function App() {
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
           <Route path="profile" element={<GeneralProfile />} />
+          {/* <Route path="settings/theme" element={<ThemeSettings />} /> */}
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
 
           {/* Party Admin Routes */}
           <Route path="partyadmin/:partyId" element={<PartyAdminLayout />}>
             <Route index element={<PartyAdminDashboard />} />
             <Route path="dashboard" element={<PartyAdminDashboard />} />
+            <Route path="events" element={<EventsStats />} />
             <Route path="levels" element={<PartyAdminLevels />} />
             <Route path="levels/:stateId" element={<PartyAdminLevels />} />
             <Route path="users" element={<PartyAdminUsers />} />
@@ -186,6 +191,7 @@ export default function App() {
             <Route path="roles" element={<PartyAdminRoles />} />
             <Route path="login-report" element={<LoginReportPage />} />
             <Route path="export-supporters" element={<ExportSupportersPage />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 
           {/* Level Admin Routes */}
@@ -202,6 +208,7 @@ export default function App() {
               path="assembly-hierarchy"
               element={<AssemblyHierarchyManager />}
             />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
@@ -220,6 +227,7 @@ export default function App() {
             <Route path="module-master" element={<ModuleMasterPage />} />
             <Route path="module-access" element={<ModuleAccessPage />} />
             <Route path="pdf-to-excel" element={<PdfToExcel />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
@@ -242,6 +250,7 @@ export default function App() {
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="profile" element={<StateProfile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
@@ -266,6 +275,7 @@ export default function App() {
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="initiatives" element={<DistrictInitiatives />} />
             <Route path="profile" element={<DistrictProfile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
@@ -415,6 +425,7 @@ export default function App() {
             />
             <Route path="vic/report-details/:id" element={<ReportDetails />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
             <Route index element={<BlockDashboard />} />
@@ -428,6 +439,7 @@ export default function App() {
             <Route path="mandal/users" element={<ViewMandalUsers />} />
             <Route path="assigned-events" element={<BlockAssignedEvents />} />
             <Route path="profile" element={<BlockProfile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 
           {/* After Assembly Panel Routes */}
@@ -445,6 +457,7 @@ export default function App() {
             <Route path="assign-user" element={<AfterAssemblyAssignUser />} />
             <Route path="booths" element={<AfterAssemblyBooths />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<AfterAssemblySearchVoter />} />
             <Route
@@ -476,6 +489,7 @@ export default function App() {
             <Route path="booth-voters" element={<SubLevelBoothVoters />} />
             <Route path="form-20" element={<SubLevelForm20 />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<SubLevelSearchVoter />} />
             <Route
@@ -542,3 +556,5 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+

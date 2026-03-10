@@ -201,3 +201,22 @@ export async function resetPassword(
     apiPayload
   );
 }
+export async function verifyOtpAndResetPasswordPhone(
+  request: ResetPasswordRequest
+): Promise<ResetPasswordResponse> {
+  if (!isPhoneNumber(request.identifier)) {
+    throw new Error("Phone number is required for this API");
+  }
+
+  const apiPayload = {
+    phone_number: request.identifier,
+    otp: request.otp,
+    new_password: request.newPassword,
+    confirm_password: request.confirmPassword,
+  };
+
+  return apiRequest<ResetPasswordResponse>(
+    API_CONFIG.ENDPOINTS.PHONE_PASSWORD_RESET_VERIFY_AND_RESET,
+    apiPayload
+  );
+}

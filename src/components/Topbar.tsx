@@ -256,6 +256,34 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     }
   };
 
+  const getUpdatePasswordRoute = () => {
+    if (location.pathname.startsWith("/state")) return "/state/update-password";
+    if (location.pathname.startsWith("/district")) return "/district/update-password";
+    if (location.pathname.startsWith("/assembly")) return "/assembly/update-password";
+    if (location.pathname.startsWith("/block")) return "/block/update-password";
+    if (location.pathname.startsWith("/afterassembly/")) {
+      const levelId = selectedAssignment?.afterAssemblyData_id || location.pathname.split("/")[2];
+      if (levelId) return `/afterassembly/${levelId}/update-password`;
+    }
+    if (location.pathname.startsWith("/sublevel/")) {
+      const levelId = selectedAssignment?.afterAssemblyData_id || location.pathname.split("/")[2];
+      if (levelId) return `/sublevel/${levelId}/update-password`;
+    }
+    if (location.pathname.startsWith("/partyadmin/")) {
+      const parts = location.pathname.split("/");
+      const partyId = parts[2];
+      if (partyId) return `/partyadmin/${partyId}/update-password`;
+    }
+    if (location.pathname.startsWith("/leveladmin/")) {
+      const parts = location.pathname.split("/");
+      const levelId = parts[2];
+      if (levelId) return `/leveladmin/${levelId}/update-password`;
+    }
+    if (location.pathname.startsWith("/admin")) return "/admin/update-password";
+    const profileRoute = getProfileRoute();
+    return profileRoute.replace("/profile", "/update-password");
+  };
+
   // Helper: map a permissions item into a full StateAssignment
   const mapPermissionToAssignment = (item: any, source?: string): StateAssignment => {
     if (!item) return {} as StateAssignment;
@@ -811,6 +839,33 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     </>
                   )} */}
 
+                  <NavLink
+                    to={getUpdatePasswordRoute()}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      [
+                        "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
+                        isActive
+                          ? "bg-gray-50 text-gray-900"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                      ].join(" ")
+                    }
+                  >
+                    <svg
+                      className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path
+                        d="M8 11V7a4 4 0 1 1 8 0v4m-9 0h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2Z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="text-xs sm:text-sm">Update Password</span>
+                  </NavLink>
                   {/* Divider before logout */}
                   <div className="my-2 border-t border-gray-200" />
 
@@ -847,6 +902,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
       </div>
+
+
     </header>
   );
 }
+
+
+
+
+

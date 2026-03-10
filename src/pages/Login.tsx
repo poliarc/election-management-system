@@ -2,10 +2,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { login, logout } from "../store/authSlice";
+import { logout, login } from "../store/authSlice";
 import { useLocation, Link } from "react-router-dom";
 import RoleRedirect from "../routes/RoleRedirect";
-import { useState, useEffect } from "react";
+import { useState, useEffect /*, useRef */ } from "react";
 import toast from "react-hot-toast";
 import VersionDisplay from "../components/VersionDisplay";
 
@@ -36,9 +36,24 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
-  const [showPassword, setShowPassword] = useState(false);
   const [previousAccessToken, setPreviousAccessToken] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const identifier = watch("identifier");
+
+  // OTP state (commented out)
+  /*
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false); // track send request
+  // separate digits for better UI
+  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(0); // seconds remaining for OTP validity
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  */
+
+
 
   // Handle logout parameter on component mount
   useEffect(() => {
@@ -62,14 +77,104 @@ export default function LoginPage() {
     }
   }, [accessToken, previousAccessToken]);
 
+  // OTP effects (commented out)
+  /*
+  // when otpSent becomes true start countdown and focus first OTP input
+  useEffect(() => {
+    if (otpSent) {
+      setTimer(600); // 10 minutes in seconds
+      setTimeout(() => otpRefs.current[0]?.focus(), 0);
+    }
+  }, [otpSent]);
+
+  // countdown timer
+  useEffect(() => {
+    if (timer > 0) {
+      const id = setTimeout(() => setTimer(timer - 1), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [timer]);
+  */
+
   // Redirect if already logged in
   if (accessToken) {
     return <RoleRedirect />;
   }
 
-  const onSubmit = (data: FormData) => {
+
+
+  const onSubmit = async (data: FormData) => {
+    // use traditional login with password
     dispatch(login(data));
   };
+
+  // OTP helpers (commented out)
+  /*
+  // helper to verify OTP using provided value
+  const verifyOtp = async (otpValue: string, identifierValue: string) => {
+    if (otpValue.length !== 6) {
+      toast.error("OTP must be 6 digits");
+      return;
+    }
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOBILE_LOGIN_VERIFY_OTP), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: identifierValue,
+          otp: otpValue,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        dispatch(otpLogin(result.data));
+        // Success toast will be shown by useEffect when accessToken is set
+      } else {
+        toast.error(result.message || "Invalid OTP");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to verify OTP");
+      console.error("Verify OTP Error:", error);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    const identifier = watch("identifier");
+    try {
+      const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.MOBILE_LOGIN_RESEND_OTP), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          identifier: identifier,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // reset digits when resending
+        setOtpDigits(["", "", "", "", "", ""]);
+        setOtp("");
+        setTimer(600);
+        setTimeout(() => otpRefs.current[0]?.focus(), 0);
+        toast.success(result.message || "OTP resent successfully");
+      } else {
+        toast.error(result.message || "Failed to resend OTP");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend OTP");
+      console.error("Resend OTP Error:", error);
+    }
+  };
+  */
+
+
 
   return (
     <div className="min-h-screen flex overflow-hidden">
@@ -188,6 +293,50 @@ export default function LoginPage() {
                 )}
               </div>
 
+              {/* OTP field (commented out) */}
+              {/*
+              {otpSent && (
+                <div className="group animate-fade-in-up">
+                  <div className="flex justify-center gap-2">
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => { otpRefs.current[idx] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          const newDigits = [...otpDigits];
+                          newDigits[idx] = val;
+                          setOtpDigits(newDigits);
+                          if (val && idx < 5) {
+                            otpRefs.current[idx + 1]?.focus();
+                          }
+                          const combined = newDigits.join("");
+                          setOtp(combined);
+                          if (combined.length === 6) {
+                            verifyOtp(combined, identifier);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Backspace" && !otpDigits[idx] && idx > 0) {
+                            otpRefs.current[idx - 1]?.focus();
+                          }
+                        }}
+                        className="w-10 h-10 text-center rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-indigo-500 text-xl font-bold"
+                      />
+                    ))}
+                  </div>
+                  {timer > 0 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                      Expires in {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")}
+                    </p>
+                  )}
+                </div>
+              )}
+              */}
               <div className="group">
                 <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200 transition-colors">
                   Password
@@ -210,7 +359,7 @@ export default function LoginPage() {
                     {...register("password")}
                     autoComplete="current-password"
                     placeholder="Enter your password"
-                    className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-12 pr-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 hover:border-gray-300"
+                    className="w-full rounded-xl border-2 border_gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-12 pr-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 hover:border-gray-300"
                   />
                   <button
                     type="button"
@@ -257,13 +406,14 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {/* original OTP-aware button (commented out)
               <button
                 type="submit"
-                disabled={loading}
+                disabled={(sendingOtp && !otpSent) || loading || !identifier || (otpSent && otp.length < 6)}
                 className="w-full relative overflow-hidden rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  {loading ? (
+                  {(sendingOtp && !otpSent) || loading ? (
                     <>
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                         <circle
@@ -281,11 +431,11 @@ export default function LoginPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Signing in...
+                      {otpSent ? "Verifying..." : (sendingOtp ? "Sending..." : "Sending OTP...")}
                     </>
                   ) : (
                     <>
-                      Sign In
+                      {otpSent ? "Verify OTP" : "Send OTP"}
                       <svg
                         className="w-5 h-5 group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -304,6 +454,55 @@ export default function LoginPage() {
                 </span>
                 <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
+              */}
+              <button
+                type="submit"
+                disabled={loading || !identifier || !watch("password")}
+                className="w-full relative overflow-hidden rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none group"
+              >                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      Logging in...
+                    </>
+                  ) : (
+                    <>
+                      Login
+                      <svg
+                        className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </span>
+                <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </button>
+
+
             </form>
 
             <div className="mt-4 text-center">

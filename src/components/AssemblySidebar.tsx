@@ -325,6 +325,36 @@ const Icons = {
       />
     </svg>
   ),
+  eventLog: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m-.01 4h.01"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  eventStats: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M3 3v18a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2zm9 4v10m-4-6v6m8-8v12"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 // Top-level items (excluding team - will be dynamic)
@@ -918,7 +948,7 @@ export default function AssemblySidebar({
         )}
 
         {/* Users - Same access as Assembly Team */}
-        {hasAssemblyTeamAccess && (
+        {/* {hasAssemblyTeamAccess && (
           <NavLink
             to={`${base}/users`}
             onClick={() => onNavigate?.()}
@@ -934,15 +964,15 @@ export default function AssemblySidebar({
           >
             <span className="text-indigo-600 shrink-0">{Icons.team}</span>
             <span className="truncate">Users</span>
-            {/** Accent bar */}
+            {/** Accent bar 
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
+            {/** Active indicator 
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
-        )}
+        )} */}
 
         {/* Create User - Same access as Assembly Team */}
-        {hasAssemblyTeamAccess && (
+        {/* {hasAssemblyTeamAccess && (
           <NavLink
             to={`${base}/create-user`}
             onClick={() => onNavigate?.()}
@@ -972,12 +1002,12 @@ export default function AssemblySidebar({
               </svg>
             </span>
             <span className="truncate">Create User</span>
-            {/** Accent bar */}
+            {/** Accent bar 
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
+            {/** Active indicator 
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
-        )}
+        )} */}
 
         {/* List dropdown */}
         <div>
