@@ -128,6 +128,7 @@ import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
 import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
 import ChatPage from "./pages/Chat/ChatPage";
+// import { ThemeSettings } from "./pages/Settings";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
 import {
   SubLevelPanelDashboard,
@@ -174,12 +175,14 @@ export default function App() {
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
           <Route path="profile" element={<GeneralProfile />} />
+          {/* <Route path="settings/theme" element={<ThemeSettings />} /> */}
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
 
           {/* Party Admin Routes */}
           <Route path="partyadmin/:partyId" element={<PartyAdminLayout />}>
             <Route index element={<PartyAdminDashboard />} />
             <Route path="dashboard" element={<PartyAdminDashboard />} />
+            <Route path="events" element={<EventsStats />} />
             <Route path="levels" element={<PartyAdminLevels />} />
             <Route path="levels/:stateId" element={<PartyAdminLevels />} />
             <Route path="users" element={<PartyAdminUsers />} />

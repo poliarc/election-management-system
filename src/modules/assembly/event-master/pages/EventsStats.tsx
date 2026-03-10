@@ -60,9 +60,9 @@ export default function EventsStats() {
     search: "",
   });
   const [expandedSections, setExpandedSections] = useState({
-    eventType: true,
-    eventModule: true,
-    topUsers: true,
+    eventType: false,
+    eventModule: false,
+    topUsers: false,
   });
 
   // Fetch stats
@@ -178,12 +178,20 @@ export default function EventsStats() {
           [section]: !prev[section]
         }))
       }
-      className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition"
+      className={`w-full flex items-center justify-between p-4 rounded-lg shadow hover:shadow-md transition ${
+        expandedSections[section]
+          ? 'bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-500 dark:border-indigo-400'
+          : 'bg-white dark:bg-gray-800 border-2 border-transparent'
+      }`}
     >
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h2>
+      <h2 className={`text-lg font-bold transition ${
+        expandedSections[section]
+          ? 'text-indigo-700 dark:text-indigo-300'
+          : 'text-gray-900 dark:text-white'
+      }`}>{title}</h2>
       <svg
-        className={`w-5 h-5 text-gray-600 dark:text-gray-400 transform transition ${
-          expandedSections[section] ? 'rotate-180' : ''
+        className={`w-6 h-6 transition-transform duration-300 ${
+          expandedSections[section] ? 'text-indigo-600 dark:text-indigo-400 rotate-180' : 'text-gray-600 dark:text-gray-400'
         }`}
         fill="none"
         stroke="currentColor"
@@ -201,10 +209,10 @@ export default function EventsStats() {
         <div className="mb-8 flex items-start justify-between gap-8">
           <div className="flex-shrink-0">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Event Management
+              User Activity 
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Overview of system activities and events
+              Overview of system activities
             </p>
           </div>
           {!loadingStats && stats && (
@@ -267,11 +275,12 @@ export default function EventsStats() {
 
         {/* Collapsible Stats Sections */}
         {!loadingStats && stats && (
-          <>
-            <div className="mb-4">
-              <ToggleSection title="Events by Type" section="eventType" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Events by Type */}
+            <div>
+              <ToggleSection title="Access Report By Type" section="eventType" />
               {expandedSections.eventType && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.by_event_type.map((item) => (
                       <div
@@ -287,10 +296,11 @@ export default function EventsStats() {
               )}
             </div>
 
-            <div className="mb-4">
-              <ToggleSection title="Events by Module" section="eventModule" />
+            {/* Events by Module */}
+            <div>
+              <ToggleSection title="Access Report By Module" section="eventModule" />
               {expandedSections.eventModule && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.by_module.map((item) => (
                       <div
@@ -306,10 +316,11 @@ export default function EventsStats() {
               )}
             </div>
 
-            <div className="mb-6">
+            {/* Top Active Users */}
+            <div>
               <ToggleSection title="Top Active Users" section="topUsers" />
               {expandedSections.topUsers && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.top_active_users.map((userStat, index) => (
                       <div
@@ -329,7 +340,7 @@ export default function EventsStats() {
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
 
         {/* Filter Section */}
