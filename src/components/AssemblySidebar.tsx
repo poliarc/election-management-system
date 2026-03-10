@@ -360,7 +360,6 @@ const Icons = {
 // Top-level items (excluding team - will be dynamic)
 const assemblyItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  { to: "events", label: "Events", icon: Icons.eventLog },
 ];
 
 // Dropdown items under "List" - These will be replaced by dynamic levels from API
@@ -949,7 +948,7 @@ export default function AssemblySidebar({
         )}
 
         {/* Users - Same access as Assembly Team */}
-        {hasAssemblyTeamAccess && (
+        {/* {hasAssemblyTeamAccess && (
           <NavLink
             to={`${base}/users`}
             onClick={() => onNavigate?.()}
@@ -965,15 +964,15 @@ export default function AssemblySidebar({
           >
             <span className="text-indigo-600 shrink-0">{Icons.team}</span>
             <span className="truncate">Users</span>
-            {/** Accent bar */}
+            {/** Accent bar 
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
+            {/** Active indicator 
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
-        )}
+        )} */}
 
         {/* Create User - Same access as Assembly Team */}
-        {hasAssemblyTeamAccess && (
+        {/* {hasAssemblyTeamAccess && (
           <NavLink
             to={`${base}/create-user`}
             onClick={() => onNavigate?.()}
@@ -1003,12 +1002,12 @@ export default function AssemblySidebar({
               </svg>
             </span>
             <span className="truncate">Create User</span>
-            {/** Accent bar */}
+            {/** Accent bar 
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
+            {/** Active indicator 
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
-        )}
+        )} */}
 
         {/* List dropdown */}
         <div>
