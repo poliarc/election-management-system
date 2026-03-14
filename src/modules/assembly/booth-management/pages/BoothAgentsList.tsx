@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
 import type { BoothAgent, BoothAgentCategory } from "../types";
 import { BoothAgentForm } from "../components/BoothAgentForm";
@@ -22,12 +24,37 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
 
+  // Get assembly ID from Redux store
+  const selectedAssignment = useSelector(
+    (state: RootState) => state.auth.selectedAssignment
+  );
+  
+  const user = useSelector((state: RootState) => state.auth.user);
+  
+  // Get assembly ID based on level type
+  // For Assembly level: use stateMasterData_id directly
+  // For levels below Assembly: use parentAssemblyId
+  const assemblyId =
+    selectedAssignment?.levelType === "Assembly"
+      ? selectedAssignment?.stateMasterData_id
+      : selectedAssignment?.parentAssemblyId;
+
+  // Get party ID from user
+  const partyId = user?.partyId;
+
   useEffect(() => {
-    fetchAgents();
+    if (assemblyId && partyId) {
+      fetchAgents();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, search, statusFilter, page]);
+  }, [category, search, statusFilter, page, assemblyId, partyId]);
 
   const fetchAgents = async () => {
+    if (!assemblyId || !partyId) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = {
@@ -35,16 +62,20 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
         limit,
         search: search || undefined,
         status: statusFilter === "all" ? undefined : statusFilter,
+        category: category || undefined,
+        partyId, // Add party ID filter
       };
 
-      const response = category
-        ? await boothAgentApi.getAgentsByCategory(category, params)
-        : await boothAgentApi.getAllAgents(params);
+      // Use assembly-specific BLA API
+      const response = await boothAgentApi.getAgentsByAssembly(
+        assemblyId,
+        params
+      );
 
       setAgents(response.data);
       setTotalPages(response.pagination?.totalPages || 1);
     } catch (error) {
-      console.error("Failed to fetch agents:", error);
+      // Error handled silently
     } finally {
       setLoading(false);
     }
@@ -57,7 +88,6 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
       await boothAgentApi.deleteAgent(id);
       fetchAgents();
     } catch (error) {
-      console.error("Failed to delete agent:", error);
       alert("Failed to delete agent");
     }
   };
@@ -67,15 +97,11 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
       await boothAgentApi.toggleStatus(id, currentStatus === 1 ? 0 : 1);
       fetchAgents();
     } catch (error) {
-      console.error("Failed to toggle status:", error);
       alert("Failed to toggle status");
     }
   };
 
   const handleEdit = (agent: BoothAgent) => {
-    console.log("🔧 Editing agent:", agent);
-    console.log("🔧 Agent polling_center_id:", agent.polling_center_id);
-    console.log("🔧 Agent booth_id:", agent.booth_id);
     setEditingAgent(agent);
     setShowForm(true);
   };
@@ -90,6 +116,18 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({
     setShowForm(false);
     setEditingAgent(null);
   };
+
+  if (!assemblyId || !partyId) {
+    return (
+      <div className="bg-white rounded-lg border p-6">
+        <div className="text-center text-red-600">
+          {!assemblyId
+            ? "No assembly selected. Please select an assembly first."
+            : "Party information not found. Please login again."}
+        </div>
+      </div>
+    );
+  }
 
   if (showForm) {
     return (
