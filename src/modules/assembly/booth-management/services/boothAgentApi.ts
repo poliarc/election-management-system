@@ -11,372 +11,255 @@ import type {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const BASE_PATH = "/api/booth-agents";
 
-// Get auth token from localStorage
 const getAuthToken = () => {
-  const token = localStorage.getItem('auth_access_token');
-
-  // Return token with Bearer prefix if exists
+  const token = localStorage.getItem("auth_access_token");
   if (token) {
-    // If token already has Bearer prefix, return as is
-    if (token.startsWith("Bearer ")) {
-      return token;
-    }
-    return `Bearer ${token}`;
+    return token.startsWith("Bearer ") ? token : `Bearer ${token}`;
   }
-
   return "";
 };
 
-// Create axios instance with auth
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-// Add auth token to requests
 apiClient.interceptors.request.use((config) => {
   const token = getAuthToken();
-  if (token) {
-    config.headers.Authorization = token;
-  }
+  if (token) config.headers.Authorization = token;
   return config;
 });
 
-// Handle response errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access - token expired or invalid
-      handleTokenExpiration();
-    }
+    if (error.response?.status === 401) handleTokenExpiration();
     return Promise.reject(error);
   }
 );
 
 export const boothAgentApi = {
-  // Create booth agent (JSON only - no files)
-  createAgent: async (
-    data: BoothAgentFormData
-  ): Promise<ApiResponse<BoothAgent>> => {
-    // No files - send as JSON to preserve number types
+  // Create booth agent (JSON - no files)
+  createAgent: async (data: BoothAgentFormData): Promise<ApiResponse<BoothAgent>> => {
     const jsonData: Record<string, unknown> = {};
-
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        jsonData[key] = value;
-      }
+      if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
     });
-
-    const response = await axios.post(
-      `${API_BASE_URL}${BASE_PATH}/create`,
-      jsonData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: getAuthToken(),
-        },
-      }
-    );
+    const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
+      headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+    });
     return response.data;
   },
 
-  // Create booth agent with files (FormData) - Hybrid approach
-  createAgentWithFiles: async (
-    formData: FormData
-  ): Promise<ApiResponse<BoothAgent>> => {
-    // Log FormData for debugging
-    console.log("🔍 API: Sending FormData to backend:");
-    for (const [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value, typeof value);
-    }
-
-    // Extract numeric fields and non-file fields to send as JSON
+  // Create booth agent with files (FormData)
+  createAgentWithFiles: async (formData: FormData): Promise<ApiResponse<BoothAgent>> => {
     const jsonData: Record<string, unknown> = {};
     const fileFormData = new FormData();
     let hasFiles = false;
 
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
-        // Keep files in FormData
         fileFormData.append(key, value);
         hasFiles = true;
-        console.log(`📁 File field: ${key}`);
       } else if (key === "polling_center_id" || key === "booth_id") {
-        // Convert numeric fields to actual numbers for JSON
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue > 0) {
-          jsonData[key] = numValue; // Store as actual number
-          console.log(
-            `🔢 Numeric field: ${key} = ${numValue} (${typeof numValue})`
-          );
-        } else {
-          console.log(`⚠️ Skipping invalid ${key}: ${value}`);
-        }
+        if (!isNaN(numValue) && numValue > 0) jsonData[key] = numValue;
       } else {
-        // Add other fields to JSON
-        if (value !== undefined && value !== null && value !== "") {
-          jsonData[key] = value;
-          console.log(`📝 Text field: ${key} = ${value}`);
-        }
+        if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
       }
     }
 
-    // If we have files, create agent first with JSON, then upload files
     if (hasFiles) {
-      console.log("🔧 Step 1: Creating agent with JSON data:", jsonData);
-
-      // Step 1: Create agent with JSON data (no files)
-      const createResponse = await axios.post(
-        `${API_BASE_URL}${BASE_PATH}/create`,
-        jsonData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-
+      const createResponse = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
+        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+      });
       const agentId = createResponse.data.data?.agent_id;
-      if (!agentId) {
-        throw new Error("Failed to get agent ID from create response");
-      }
+      if (!agentId) throw new Error("Failed to get agent ID from create response");
 
-      console.log("🔧 Step 2: Uploading files for agent ID:", agentId);
-
-      // Step 2: Upload files using update endpoint
-      const updateResponse = await axios.put(
-        `${API_BASE_URL}${BASE_PATH}/update/${agentId}`,
-        fileFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-
+      const updateResponse = await axios.put(`${API_BASE_URL}${BASE_PATH}/${agentId}`, fileFormData, {
+        headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
+      });
       return updateResponse.data;
     } else {
-      // No files, send as pure JSON
-      console.log("🔧 No files, sending as JSON:", jsonData);
-      const response = await axios.post(
-        `${API_BASE_URL}${BASE_PATH}/create`,
-        jsonData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
+      const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
+        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+      });
       return response.data;
     }
   },
 
-  // Get all booth agents with filters
-  getAllAgents: async (
-    params?: PaginationParams
-  ): Promise<ApiResponse<BoothAgent[]>> => {
-    const response = await apiClient.get(`${BASE_PATH}/all`, { params });
+  // Get all booth agents
+  getAllAgents: async (params?: PaginationParams): Promise<ApiResponse<BoothAgent[]>> => {
+    const response = await apiClient.get(`${BASE_PATH}`, { params });
+    return response.data;
+  },
+
+  // Get agents by assembly with party filter
+  getAgentsByAssembly: async (assemblyId: number, params?: PaginationParams): Promise<ApiResponse<BoothAgent[]>> => {
+    const response = await apiClient.get(`${BASE_PATH}/assembly/${assemblyId}`, { params });
     return response.data;
   },
 
   // Get agents by category
-  getAgentsByCategory: async (
-    category: string,
-    params?: PaginationParams
-  ): Promise<ApiResponse<BoothAgent[]>> => {
-    const response = await apiClient.get(
-      `${BASE_PATH}/category/${encodeURIComponent(category)}`,
-      {
-        params,
-      }
-    );
+  getAgentsByCategory: async (category: string, params?: PaginationParams): Promise<ApiResponse<BoothAgent[]>> => {
+    const response = await apiClient.get(`${BASE_PATH}`, { params: { ...params, category } });
     return response.data;
   },
 
   // Get single booth agent
   getAgentById: async (id: number): Promise<ApiResponse<BoothAgent>> => {
-    const response = await apiClient.get(`${BASE_PATH}/single/${id}`);
+    const response = await apiClient.get(`${BASE_PATH}/${id}`);
     return response.data;
   },
 
-  // Update booth agent (JSON only - no files)
-  updateAgent: async (
-    id: number,
-    data: Partial<BoothAgentFormData>
-  ): Promise<ApiResponse<BoothAgent>> => {
-    // No files - send as JSON to preserve number types
+  // Update booth agent (JSON - no files)
+  updateAgent: async (id: number, data: Partial<BoothAgentFormData>): Promise<ApiResponse<BoothAgent>> => {
     const jsonData: Record<string, unknown> = {};
-
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        jsonData[key] = value;
-      }
+      if (value !== undefined && value !== null) jsonData[key] = value;
     });
-
-    const response = await axios.put(
-      `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-      jsonData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: getAuthToken(),
-        },
-      }
-    );
+    const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, jsonData, {
+      headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+    });
     return response.data;
   },
 
-  // Update booth agent with files (FormData) - Hybrid approach
-  updateAgentWithFiles: async (
-    id: number,
-    formData: FormData
-  ): Promise<ApiResponse<BoothAgent>> => {
-    // Log FormData for debugging
-    console.log("🔍 API: Sending FormData to backend for update:");
-    for (const [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value, typeof value);
-    }
-
-    // Extract numeric fields and non-file fields to send as JSON
+  // Update booth agent with files
+  updateAgentWithFiles: async (id: number, formData: FormData): Promise<ApiResponse<BoothAgent>> => {
     const jsonData: Record<string, unknown> = {};
     const fileFormData = new FormData();
     let hasFiles = false;
 
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
-        // Keep files in FormData
         fileFormData.append(key, value);
         hasFiles = true;
-        console.log(`📁 File field: ${key}`);
       } else if (key === "polling_center_id" || key === "booth_id") {
-        // Convert numeric fields to actual numbers for JSON
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue > 0) {
-          jsonData[key] = numValue; // Store as actual number
-          console.log(
-            `🔢 Numeric field: ${key} = ${numValue} (${typeof numValue})`
-          );
-        } else {
-          console.log(`⚠️ Skipping invalid ${key}: ${value}`);
-        }
+        if (!isNaN(numValue) && numValue > 0) jsonData[key] = numValue;
       } else {
-        // Add other fields to JSON
-        if (value !== undefined && value !== null && value !== "") {
-          jsonData[key] = value;
-          console.log(`📝 Text field: ${key} = ${value}`);
-        }
+        if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
       }
     }
 
-    // For updates, try the hybrid approach first, fallback to two-step if needed
-    if (hasFiles && Object.keys(jsonData).length > 0) {
-      // Try hybrid approach: JSON data + files in FormData
+    if (hasFiles) {
       fileFormData.append("data", JSON.stringify(jsonData));
-      console.log("🔧 Sending hybrid FormData + JSON for update:", jsonData);
-
       try {
-        const response = await axios.put(
-          `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-          fileFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: getAuthToken(),
-            },
-          }
-        );
+        const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, fileFormData, {
+          headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
+        });
         return response.data;
-      } catch (err) {
-        console.warn("Hybrid approach failed, trying two-step update...", err);
-
-        // Fallback: Update JSON data first, then files
+      } catch {
         if (Object.keys(jsonData).length > 0) {
-          await axios.put(
-            `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-            jsonData,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: getAuthToken(),
-              },
-            }
-          );
+          await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, jsonData, {
+            headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+          });
         }
-
-        // Then update files
-        const response = await axios.put(
-          `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-          fileFormData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: getAuthToken(),
-            },
-          }
-        );
+        const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, fileFormData, {
+          headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
+        });
         return response.data;
       }
-    } else if (hasFiles) {
-      // Only files, no other data
-      console.log("🔧 Sending only files for update");
-      const response = await axios.put(
-        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-        fileFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
-      return response.data;
     } else {
-      // No files, send as pure JSON
-      console.log("🔧 No files, sending update as JSON:", jsonData);
-      const response = await axios.put(
-        `${API_BASE_URL}${BASE_PATH}/update/${id}`,
-        jsonData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: getAuthToken(),
-          },
-        }
-      );
+      const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, jsonData, {
+        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+      });
       return response.data;
     }
   },
 
   // Toggle agent status
-  toggleStatus: async (
-    id: number,
-    status: number
-  ): Promise<ApiResponse<BoothAgent>> => {
-    const response = await apiClient.patch(`${BASE_PATH}/${id}/toggle-status`, {
-      status,
-    });
+  toggleStatus: async (id: number, status: number): Promise<ApiResponse<BoothAgent>> => {
+    const response = await apiClient.patch(`${BASE_PATH}/${id}/status`, { status });
     return response.data;
   },
 
   // Delete booth agent
   deleteAgent: async (id: number): Promise<ApiResponse<null>> => {
-    const response = await apiClient.delete(`${BASE_PATH}/delete/${id}`);
+    const response = await apiClient.delete(`${BASE_PATH}/${id}`);
     return response.data;
   },
 
-  // Get polling centers hierarchy
-  getPollingCentersHierarchy: async (
-    assemblyId: number
-  ): Promise<ApiResponse<PollingCenter[]>> => {
+  // Get polling centers by assembly
+  getPollingCentersByAssembly: async (assemblyId: number): Promise<ApiResponse<PollingCenter[]>> => {
+    const response = await apiClient.get(`${BASE_PATH}/polling-centers/${assemblyId}`);
+
+    const rawData = response.data;
+    let allChildren: Record<string, unknown>[] = [];
+
+    if (Array.isArray(rawData)) {
+      allChildren = rawData;
+    } else if (Array.isArray(rawData?.data)) {
+      allChildren = rawData.data;
+    } else if (Array.isArray(rawData?.children)) {
+      allChildren = rawData.children;
+    }
+
+    const pollingCenters = allChildren.filter((item) => {
+      const name = String(item.levelName || item.display_level_name || "").toLowerCase();
+      return name.includes("polling");
+    });
+
+    return {
+      success: true,
+      message: "Polling centers retrieved",
+      data: pollingCenters.map((pc) => ({
+        id: pc.id as number,
+        displayName: String(pc.displayName || pc.levelName || ""),
+        levelName: String(pc.levelName || ""),
+        parentId: (pc.parentId as number) || 0,
+        parentAssemblyId: (pc.parentAssemblyId as number) || null,
+        partyLevelId: (pc.partyLevelId as number) || 0,
+        isActive: (pc.isActive as number) || 1,
+        created_at: String(pc.created_at || ""),
+        updated_at: String(pc.updated_at || ""),
+        booths: [],
+        boothCount: 0,
+      })),
+    };
+  },
+
+  // Get booths by polling center - uses hierarchy children API
+  getBoothsByPollingCenter: async (pollingCenterId: number): Promise<ApiResponse<PollingCenter[]>> => {
     const response = await apiClient.get(
-      `${BASE_PATH}/hierarchy/${assemblyId}`
+      `/user-after-assembly-hierarchy/hierarchy/children/${pollingCenterId}`
     );
-    return response.data;
+
+    const rawData = response.data;
+    let children: Record<string, unknown>[] = [];
+
+    if (Array.isArray(rawData)) {
+      children = rawData;
+    } else if (Array.isArray(rawData?.children)) {
+      children = rawData.children;
+    } else if (Array.isArray(rawData?.data)) {
+      children = rawData.data;
+    }
+
+    return {
+      success: true,
+      message: "Booths retrieved",
+      data: children.map((booth) => ({
+        id: booth.id as number,
+        displayName: String(booth.displayName || booth.levelName || ""),
+        levelName: String(booth.levelName || ""),
+        parentId: (booth.parentId as number) || 0,
+        parentAssemblyId: (booth.parentAssemblyId as number) || null,
+        partyLevelId: (booth.partyLevelId as number) || 0,
+        isActive: (booth.isActive as number) || 1,
+        created_at: String(booth.created_at || ""),
+        updated_at: String(booth.updated_at || ""),
+        booths: [],
+        boothCount: 0,
+      })),
+    };
+  },
+
+  // Get polling centers hierarchy
+  getPollingCentersHierarchy: async (assemblyId: number): Promise<ApiResponse<PollingCenter[]>> => {
+    const response = await apiClient.get(`/user-after-assembly-hierarchy/after-assembly/${assemblyId}`);
+    const rawData = response.data;
+    const data = Array.isArray(rawData) ? rawData : (rawData?.data || rawData?.children || []);
+    return { success: true, message: "Hierarchy retrieved", data };
   },
 };
