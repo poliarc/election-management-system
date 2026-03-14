@@ -29,6 +29,10 @@ export interface BoothAgent {
   laptop?: "Yes" | "No";
   twoWheeler?: "Yes" | "No";
   fourWheeler?: "Yes" | "No";
+  state_id?: number;
+  district_id?: number;
+  assembly_id?: number;
+  party_id?: number;
   polling_center_id?: number;
   polling_center_name?: string;
   booth_id?: number;
@@ -37,6 +41,12 @@ export interface BoothAgent {
   isDelete: number;
   created_at: string;
   updated_at: string;
+  // Additional fields from API response
+  state_name?: string;
+  district_name?: string;
+  assembly_name?: string;
+  party_name?: string;
+  booth_name?: string;
 }
 
 export interface BoothAgentFormData {
@@ -56,6 +66,8 @@ export interface BoothAgentFormData {
   laptop?: "Yes" | "No";
   twoWheeler?: "Yes" | "No";
   fourWheeler?: "Yes" | "No";
+  assembly_id?: number;
+  party_id?: number;
   polling_center_id?: number;
   booth_id?: number;
   status?: number;
@@ -95,7 +107,13 @@ export interface PaginationParams {
   category?: string;
   role?: string;
   status?: boolean | string;
+  state_id?: number;
+  district_id?: number;
+  assembly_id?: number;
+  party_id?: number;
+  partyId?: number; // Alternative naming for party filter
   polling_center_id?: number;
+  booth_id?: number;
   sort_by?: string;
   order?: "asc" | "desc";
 }

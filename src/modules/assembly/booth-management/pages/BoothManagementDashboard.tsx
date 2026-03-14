@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
 import type { BoothAgent } from "../types";
 
@@ -15,23 +17,66 @@ export const BoothManagementDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [recentAgents, setRecentAgents] = useState<BoothAgent[]>([]);
 
+  // Get assembly ID from Redux store
+  const selectedAssignment = useSelector(
+    (state: RootState) => state.auth.selectedAssignment
+  );
+  
+  const user = useSelector((state: RootState) => state.auth.user);
+  
+  // Get assembly ID based on level type
+  // For Assembly level: use stateMasterData_id directly
+  // For levels below Assembly: use parentAssemblyId
+  const assemblyId =
+    selectedAssignment?.levelType === "Assembly"
+      ? selectedAssignment?.stateMasterData_id
+      : selectedAssignment?.parentAssemblyId;
+
+  // Get party ID from user
+  const partyId = user?.partyId;
+
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (assemblyId && partyId) {
+      fetchDashboardData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assemblyId, partyId]);
 
   const fetchDashboardData = async () => {
+    if (!assemblyId || !partyId) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const [allRes, insideRes, outsideRes, supportRes] = await Promise.all([
-        boothAgentApi.getAllAgents({
+      // Fetch all agents for this assembly with party filter
+      const [allRes, insideRes, outsideRes, supportRes, activeRes] = await Promise.all([
+        boothAgentApi.getAgentsByAssembly(assemblyId, {
           limit: 5,
           sort_by: "created_at",
           order: "desc",
+          partyId,
         }),
-        boothAgentApi.getAgentsByCategory("Booth Inside Team", { limit: 1 }),
-        boothAgentApi.getAgentsByCategory("Booth Outside Team", { limit: 1 }),
-        boothAgentApi.getAgentsByCategory("Polling Center Support Team", {
+        boothAgentApi.getAgentsByAssembly(assemblyId, {
+          category: "Booth Inside Team",
           limit: 1,
+          partyId,
+        }),
+        boothAgentApi.getAgentsByAssembly(assemblyId, {
+          category: "Booth Outside Team",
+          limit: 1,
+          partyId,
+        }),
+        boothAgentApi.getAgentsByAssembly(assemblyId, {
+          category: "Polling Center Support Team",
+          limit: 1,
+          partyId,
+        }),
+        boothAgentApi.getAgentsByAssembly(assemblyId, {
+          status: "1",
+          limit: 1,
+          partyId,
         }),
       ]);
 
@@ -41,12 +86,6 @@ export const BoothManagementDashboard: React.FC = () => {
       const boothInside = insideRes.pagination?.total || 0;
       const boothOutside = outsideRes.pagination?.total || 0;
       const pollingSupport = supportRes.pagination?.total || 0;
-
-      // Calculate active/inactive from all agents
-      const activeRes = await boothAgentApi.getAllAgents({
-        status: "1",
-        limit: 1,
-      });
       const active = activeRes.pagination?.total || 0;
 
       setStats({
@@ -83,6 +122,18 @@ export const BoothManagementDashboard: React.FC = () => {
       <p className="text-3xl font-bold">{value}</p>
     </Link>
   );
+
+  if (!assemblyId || !partyId) {
+    return (
+      <div className="bg-white rounded-lg border p-6">
+        <div className="text-center text-red-600">
+          {!assemblyId
+            ? "No assembly selected. Please select an assembly first."
+            : "Party information not found. Please login again."}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
