@@ -1,6 +1,9 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import { useAppSelector } from "../../../store/hooks";
-import { useGetUsersByPartyAndStateQuery } from "../../../store/api/assemblyApi";
+import {
+  useGetUsersByAssemblyIdQuery,
+  useGetUsersByPartyAndStateQuery,
+} from "../../../store/api/assemblyApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 
@@ -34,6 +37,7 @@ type CommunicationRecord = {
 };
 
 export default function UserCommunication() {
+  const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
   const { user } = useAppSelector((s) => s.auth);
   const [activeTab, setActiveTab] = useState<"send" | "history">("send");
   const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
@@ -49,11 +53,11 @@ export default function UserCommunication() {
 
   // Communication history state
   const [communications, setCommunications] = useState<CommunicationRecord[]>(
-    []
+    [],
   );
   const [communicationsLoading, setCommunicationsLoading] = useState(false);
   const [communicationsError, setCommunicationsError] = useState<string | null>(
-    null
+    null,
   );
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLimit] = useState(10);
@@ -119,7 +123,7 @@ export default function UserCommunication() {
         let matchingState = stateMasterData.find(
           (state) =>
             state.levelName.toLowerCase().trim() ===
-            userStateName.toLowerCase().trim()
+            userStateName.toLowerCase().trim(),
         );
 
         // If exact match not found, try partial matches
@@ -131,7 +135,7 @@ export default function UserCommunication() {
                 .includes(userStateName.toLowerCase().trim()) ||
               userStateName
                 .toLowerCase()
-                .includes(state.levelName.toLowerCase().trim())
+                .includes(state.levelName.toLowerCase().trim()),
           );
         }
 
@@ -198,10 +202,10 @@ export default function UserCommunication() {
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
+              "auth_access_token",
             )}`,
           },
-        }
+        },
       );
 
       const result = await response.json();
@@ -211,11 +215,11 @@ export default function UserCommunication() {
 
       setCommunications(result.data || []);
       setHistoryPagination(
-        result.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 }
+        result.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 },
       );
     } catch (err) {
       setCommunicationsError(
-        err instanceof Error ? err.message : "Failed to load communications"
+        err instanceof Error ? err.message : "Failed to load communications",
       );
     } finally {
       setCommunicationsLoading(false);
@@ -244,16 +248,38 @@ export default function UserCommunication() {
     },
     {
       skip: profileLoading || stateLoading,
-    }
+    },
   );
+
+const assemblyId = selectedAssignment?.stateMasterData_id;
+
+const {
+  data: assemblyUsers,
+  error: assemblyUsersError,
+  isLoading: assemblyUsersLoading,
+  isFetching: assemblyDataFetch
+} = useGetUsersByAssemblyIdQuery(
+  {
+    assemblyId: assemblyId as number,
+    page: currentPage,
+    limit: pageSize,
+    search: searchTerm,
+  },
+  {
+    skip: !assemblyId // prevents invalid API call
+  }
+);
+
+  // Assembly users Data
+  const assemblyUsersData = assemblyUsers?.users;
 
   // Use party state users data
   const usersData = partyStateUsersData;
   const isLoading = partyStateLoading;
   const apiError = partyStateError;
 
-  const users = usersData?.users || [];
-  const pagination = usersData?.pagination || {
+  const users = assemblyUsersData || [];
+  const pagination = assemblyUsers?.pagination || {
     page: 1,
     limit: 20,
     total: 0,
@@ -303,7 +329,7 @@ export default function UserCommunication() {
       }
 
       const selectedUsersList = users.filter((user) =>
-        selectedUsers.has(user.user_id)
+        selectedUsers.has(user.user_id),
       );
 
       const payload = {
@@ -319,12 +345,12 @@ export default function UserCommunication() {
           method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
+              "auth_access_token",
             )}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -359,7 +385,7 @@ export default function UserCommunication() {
 
   const handleHistoryFilterChange = (
     key: keyof typeof historyFilters,
-    value: string
+    value: string,
   ) => {
     setHistoryFilters((prev) => ({
       ...prev,
@@ -386,6 +412,9 @@ export default function UserCommunication() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  console.log(assemblyUsersLoading, 'assemblyUsersLoading');
+  
 
   if (profileLoading || stateLoading) {
     return (
@@ -463,6 +492,7 @@ export default function UserCommunication() {
       {/* API Error */}
       {(error ||
         (activeTab === "send" && apiError) ||
+        (activeTab === "send" && assemblyUsersError) ||
         (activeTab === "history" && communicationsError)) && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
@@ -598,7 +628,7 @@ export default function UserCommunication() {
             </div>
 
             {/* Loading State */}
-            {isLoading ? (
+            {isLoading || assemblyUsersLoading || assemblyDataFetch ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 <p className="mt-2 text-gray-600">Loading users...</p>
@@ -661,7 +691,6 @@ export default function UserCommunication() {
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Phone Number
                           </th>
-                          
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -683,7 +712,7 @@ export default function UserCommunication() {
                                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                               />
                             </td>
-                             <td className="px-4 py-3 whitespace-nowrap">
+                            <td className="px-4 py-3 whitespace-nowrap">
                               <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                                 {user.stateName}
                               </span>
@@ -700,7 +729,7 @@ export default function UserCommunication() {
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
                               <div className="text-sm text-gray-600">
-                                {user.role}
+                                {user.userRole || `N/A`}
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
@@ -708,7 +737,6 @@ export default function UserCommunication() {
                                 {user.contact_no}
                               </div>
                             </td>
-                           
                           </tr>
                         ))}
                       </tbody>
@@ -774,7 +802,7 @@ export default function UserCommunication() {
                                 {pageNum}
                               </button>
                             );
-                          }
+                          },
                         )}
                       </div>
 
@@ -978,7 +1006,7 @@ export default function UserCommunication() {
                             </span>
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                                comm.status
+                                comm.status,
                               )}`}
                             >
                               {comm.status}
