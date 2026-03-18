@@ -768,7 +768,7 @@ export default function AssemblySidebar({
     window.dispatchEvent(new Event("assignmentChanged"));
 
     // Navigate to assembly dashboard
-    navigate("/assembly/dashboard");
+    // navigate("/assembly/dashboard");
   };
 
   return (
