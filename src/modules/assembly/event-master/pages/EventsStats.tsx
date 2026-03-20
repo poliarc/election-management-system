@@ -204,9 +204,9 @@ export default function EventsStats() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         {/* Header */}
-        <div className="mb-8 flex items-start justify-between gap-8">
+        <div className="mb-1 flex items-start justify-between gap-8">
           <div className="flex-shrink-0">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               User Activity 
@@ -275,7 +275,7 @@ export default function EventsStats() {
 
         {/* Collapsible Stats Sections */}
         {!loadingStats && stats && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-1">
             {/* Events by Type */}
             <div>
               <ToggleSection title="Access Report By Type" section="eventType" />
@@ -329,7 +329,7 @@ export default function EventsStats() {
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-white bg-indigo-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                            #{index + 1}
+                            {index + 1}
                           </span>
                           <span className="text-gray-900 dark:text-white text-sm">{userStat.user_full_name}</span>
                         </div>
@@ -344,12 +344,11 @@ export default function EventsStats() {
         )}
 
         {/* Filter Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Filters</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Event Type
+                Activity Type
               </label>
               <select
                 name="event_type"
@@ -370,7 +369,7 @@ export default function EventsStats() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Event Module
+                Activity Module
               </label>
               <input
                 type="text"
@@ -445,7 +444,7 @@ export default function EventsStats() {
             </div>
           ) : events.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400">No events found</p>
+              <p className="text-gray-500 dark:text-gray-400">No Activity found</p>
             </div>
           ) : (
             <>
@@ -454,7 +453,7 @@ export default function EventsStats() {
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Event
+                        Activity
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Type
