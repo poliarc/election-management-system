@@ -4,8 +4,10 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
 import type { BoothAgent } from "../types";
+import { useTranslation } from "react-i18next";
 
 export const BoothManagementDashboard: React.FC = () => {
+  const {t} = useTranslation();
   const [stats, setStats] = useState({
     total: 0,
     boothInside: 0,
@@ -118,7 +120,7 @@ export const BoothManagementDashboard: React.FC = () => {
       to={link}
       className={`block p-6 rounded-lg border-2 ${color} hover:shadow-lg transition-shadow`}
     >
-      <h3 className="text-sm font-medium text-gray-600 mb-2">{title}</h3>
+      <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-2">{title}</h3>
       <p className="text-3xl font-bold">{value}</p>
     </Link>
   );
@@ -138,7 +140,7 @@ export const BoothManagementDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading dashboard...</div>
+        <div className="text-[var(--text-secondary)]">{t("Booth_Management_Dash.Loading_dashboard")}</div>
       </div>
     );
   }
@@ -146,12 +148,12 @@ export const BoothManagementDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Booth Management Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t("Booth_Management_Dash.Booth_Management_Dashboard")}</h1>
         <Link
           to="/assembly/booth-management/agents"
           className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
         >
-          View All Agents
+          {t("Booth_Management_Dash.View_All_Agents")}
         </Link>
       </div>
 
@@ -196,35 +198,35 @@ export const BoothManagementDashboard: React.FC = () => {
       </div>
 
       {/* Recent Agents */}
-      <div className="bg-white rounded-lg border p-6">
-        <h2 className="text-lg font-semibold mb-4">Recent Agents</h2>
+      <div className="bg-[var(--bg-color)] rounded-lg border p-6">
+        <h2 className="text-lg font-semibold mb-4">{t("Booth_Management_Dash.Recent_Agents")}</h2>
         {recentAgents.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No agents found</p>
+          <p className="text-[var(--text-secondary)] text-center py-8">{t("Booth_Management_Dash.No_agents_found")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--bg-color)]">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Name
+                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
+                    {t("Booth_Management_Dash.Name")}
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Category
+                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
+                    {t("Booth_Management_Dash.Category")}
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Role
+                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
+                    {t("Booth_Management_Dash.Role")}
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Phone
+                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
+                    {t("Booth_Management_Dash.Phone")}
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                    Status
+                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
+                    {t("Booth_Management_Dash.Status")}
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {recentAgents.map((agent) => (
-                  <tr key={agent.agent_id} className="hover:bg-gray-50">
+                  <tr key={agent.agent_id} className="hover:bg-[var(--bg-color)]">
                     <td className="px-4 py-3 text-sm">{agent.name}</td>
                     <td className="px-4 py-3 text-sm">{agent.category}</td>
                     <td className="px-4 py-3 text-sm">{agent.role}</td>
@@ -254,30 +256,33 @@ export const BoothManagementDashboard: React.FC = () => {
           to="/assembly/booth-management/inside"
           className="p-6 border-2 border-blue-200 rounded-lg hover:shadow-lg transition-shadow"
         >
-          <h3 className="font-semibold text-lg mb-2">Booth Inside Team</h3>
-          <p className="text-sm text-gray-600">
-            Manage Booth Agents and Table Coordinators
+          <h3 className="font-semibold text-lg mb-2">{t("Booth_Management_Dash.Booth_Inside_Team")}</h3>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t("Booth_Management_Dash.Desc")}
           </p>
         </Link>
         <Link
           to="/assembly/booth-management/outside"
           className="p-6 border-2 border-green-200 rounded-lg hover:shadow-lg transition-shadow"
         >
-          <h3 className="font-semibold text-lg mb-2">Booth Outside Team</h3>
-          <p className="text-sm text-gray-600">
-            Manage Voter Field Coordination
+          <h3 className="font-semibold text-lg mb-2">{t("Booth_Management_Dash.Desc1")}</h3>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t("Booth_Management_Dash.Desc2")}
           </p>
         </Link>
         <Link
           to="/assembly/booth-management/polling-support"
           className="p-6 border-2 border-purple-200 rounded-lg hover:shadow-lg transition-shadow"
         >
-          <h3 className="font-semibold text-lg mb-2">Polling Center Support</h3>
-          <p className="text-sm text-gray-600">
-            Manage Polling Center, Water & Food Incharge
+          <h3 className="font-semibold text-lg mb-2">{t("Booth_Management_Dash.Desc3")}</h3>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t("Booth_Management_Dash.Desc4")}
           </p>
         </Link>
       </div>
     </div>
   );
 };
+
+
+

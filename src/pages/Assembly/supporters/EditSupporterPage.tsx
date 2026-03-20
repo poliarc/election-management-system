@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from "react-i18next";
 import {
   useGetSupporterByIdQuery,
   useUpdateSupporterMutation,
@@ -43,6 +44,7 @@ const RELIGION_CATEGORIES = {
 };
 
 export default function EditSupporterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const supporterId = parseInt(id || '0');
@@ -315,57 +317,57 @@ export default function EditSupporterPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.initials.trim()) {
-      newErrors.initials = 'Initials is required';
+      newErrors.initials = t("editSupporter.errInitialsRequired");
     }
 
     if (!formData.first_name.trim()) {
-      newErrors.first_name = 'First name is required';
+      newErrors.first_name = t("editSupporter.errFirstNameRequired");
     }
 
     if (!formData.last_name.trim()) {
-      newErrors.last_name = 'Last name is required';
+      newErrors.last_name = t("editSupporter.errLastNameRequired");
     }
 
     if (!formData.father_name.trim()) {
-      newErrors.father_name = 'Father name is required';
+      newErrors.father_name = t("editSupporter.errFatherNameRequired");
     }
 
     if (!formData.date_of_birth.trim()) {
-      newErrors.date_of_birth = 'Date of birth is required';
+      newErrors.date_of_birth = t("editSupporter.errDateOfBirthRequired");
     }
 
     if (!formData.gender.trim()) {
-      newErrors.gender = 'Gender is required';
+      newErrors.gender = t("editSupporter.errGenderRequired");
     }
 
     if (!formData.phone_no.trim()) {
-      newErrors.phone_no = 'Phone number is required';
+      newErrors.phone_no = t("editSupporter.errPhoneRequired");
     } else if (!/^\d{10}$/.test(formData.phone_no)) {
-      newErrors.phone_no = 'Phone number must be exactly 10 digits';
+      newErrors.phone_no = t("editSupporter.errPhoneMustBe10Digits");
     }
 
     if (formData.whatsapp_no && !/^\d{10}$/.test(formData.whatsapp_no)) {
-      newErrors.whatsapp_no = 'WhatsApp number must be exactly 10 digits';
+      newErrors.whatsapp_no = t("editSupporter.errWhatsAppMustBe10Digits");
     }
 
     if (formData.voter_epic_id && !/^[A-Z0-9]{10}$/.test(formData.voter_epic_id)) {
-      newErrors.voter_epic_id = 'EPIC ID must be exactly 10 alphanumeric characters';
+      newErrors.voter_epic_id = t("editSupporter.errEpicIdMustBe10Chars");
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
+      newErrors.address = t("editSupporter.errAddressRequired");
     }
 
     if (formData.language.length === 0) {
-      newErrors.language = 'At least one language must be selected';
+      newErrors.language = t("editSupporter.errAtLeastOneLanguage");
     }
 
     if (!formData.religion.trim()) {
-      newErrors.religion = 'Religion is required';
+      newErrors.religion = t("editSupporter.errReligionRequired");
     }
 
     if (!formData.category.trim()) {
-      newErrors.category = 'Category is required';
+      newErrors.category = t("editSupporter.errCategoryRequired");
     }
 
     setErrors(newErrors);
@@ -419,7 +421,7 @@ export default function EditSupporterPage() {
         booth_id: formData.booth_id || undefined,
       };
       await updateSupporter({ id: supporterId, data: updateData }).unwrap();
-      toast.success('Supporter updated successfully!');
+      toast.success(t("editSupporter.toastSupporterUpdated"));
       navigate('/assembly/supporters');
     } catch (error: any) {
       console.error('Failed to update supporter:', error);
@@ -447,11 +449,11 @@ export default function EditSupporterPage() {
         if (errorMessages.length === 1) {
           toast.error(error.data.errors[0].message);
         } else {
-          toast.error(`Validation failed: ${errorMessages.length} errors found`);
+          toast.error(t("editSupporter.toastValidationFailedCount", { count: errorMessages.length }));
         }
       } else {
         // Generic error message
-        toast.error('Failed to update supporter. Please try again.');
+        toast.error(t("editSupporter.toastFailedToUpdateSupporter"));
       }
     }
   };
@@ -460,7 +462,7 @@ export default function EditSupporterPage() {
     return (
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
             <div className="animate-pulse space-y-4">
               <div className="h-4 bg-gray-200 rounded w-1/4"></div>
               <div className="space-y-3">
@@ -479,13 +481,13 @@ export default function EditSupporterPage() {
     return (
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-red-600">Supporter not found</p>
+          <div className="bg-[var(--bg-card)] rounded-lg shadow p-6 text-center">
+            <p className="text-red-600">{t("editSupporter.supporterNotFound")}</p>
             <button
               onClick={() => navigate('/assembly/supporters')}
               className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
-              Back to Supporters
+              {t("editSupporter.btnBackToSupporters")}
             </button>
           </div>
         </div>
@@ -499,30 +501,30 @@ export default function EditSupporterPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Supporter</h1>
-            <p className="text-gray-600">Update supporter information</p>
+            <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("editSupporter.title")}</h1>
+            <p className="text-[var(--text-secondary)]">{t("editSupporter.subtitle")}</p>
           </div>
           <button
             onClick={() => navigate('/assembly/supporters')}
-            className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-color)] flex items-center gap-2"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M19 12H5m7-7-7 7 7 7" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Back to Supporters
+            {t("editSupporter.btnBackToSupporters")}
           </button>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Initials */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Initials *
                   </label>
                   <select
@@ -531,6 +533,8 @@ export default function EditSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.initials ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("editSupporter.lblInitialsRequired")}
+                    title={t("editSupporter.lblInitialsRequired")}
                   >
                     <option value="">Select Initials</option>
                     {INITIALS_OPTIONS.map((initial) => (
@@ -544,7 +548,7 @@ export default function EditSupporterPage() {
 
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     First Name *
                   </label>
                   <input
@@ -561,7 +565,7 @@ export default function EditSupporterPage() {
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Last Name *
                   </label>
                   <input
@@ -578,7 +582,7 @@ export default function EditSupporterPage() {
 
                 {/* Father's Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Father's Name *
                   </label>
                   <input
@@ -595,7 +599,7 @@ export default function EditSupporterPage() {
 
                 {/* Date of Birth */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Date of Birth *
                   </label>
                   <input
@@ -605,13 +609,15 @@ export default function EditSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("editSupporter.lblDateOfBirthRequired")}
+                    title={t("editSupporter.lblDateOfBirthRequired")}
                   />
                   {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
                 </div>
 
                 {/* Age - Auto-calculated */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Age
                   </label>
                   <input
@@ -619,15 +625,15 @@ export default function EditSupporterPage() {
                     name="age"
                     value={formData.age}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     placeholder="Auto-calculated"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Automatically calculated from date of birth</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Automatically calculated from date of birth</p>
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Gender *
                   </label>
                   <select
@@ -636,6 +642,8 @@ export default function EditSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.gender ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("editSupporter.lblGenderRequired")}
+                    title={t("editSupporter.lblGenderRequired")}
                   >
                     <option value="">Select Gender</option>
                     {GENDER_OPTIONS.map((gender) => (
@@ -649,7 +657,7 @@ export default function EditSupporterPage() {
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Phone Number *
                   </label>
                   <input
@@ -667,7 +675,7 @@ export default function EditSupporterPage() {
 
                 {/* WhatsApp Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     WhatsApp Number
                   </label>
                   <input
@@ -685,7 +693,7 @@ export default function EditSupporterPage() {
 
                 {/* EPIC ID */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     EPIC ID
                   </label>
                   <input
@@ -706,12 +714,12 @@ export default function EditSupporterPage() {
 
             {/* Language and Religion Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Language & Religion Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Language & Religion Information</h3>
 
               {/* Language Selection */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Languages * <span className="text-gray-500">(Select multiple)</span>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Languages * <span className="text-[var(--text-secondary)]">(Select multiple)</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 border border-gray-300 rounded-lg">
                   {LANGUAGE_OPTIONS.map((language) => (
@@ -722,7 +730,7 @@ export default function EditSupporterPage() {
                         onChange={() => handleLanguageChange(language)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">{language}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{language}</span>
                     </label>
                   ))}
                 </div>
@@ -732,7 +740,7 @@ export default function EditSupporterPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Religion */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Religion *
                   </label>
                   <select
@@ -741,6 +749,8 @@ export default function EditSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.religion ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("editSupporter.lblReligionRequired")}
+                    title={t("editSupporter.lblReligionRequired")}
                   >
                     <option value="">Select Religion</option>
                     {RELIGION_OPTIONS.map((religion) => (
@@ -754,7 +764,7 @@ export default function EditSupporterPage() {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Category *
                   </label>
                   <select
@@ -762,8 +772,10 @@ export default function EditSupporterPage() {
                     value={formData.category}
                     onChange={handleInputChange}
                     disabled={!formData.religion}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)] ${errors.category ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("editSupporter.lblCategoryRequired")}
+                    title={t("editSupporter.lblCategoryRequired")}
                   >
                     <option value="">Select Category</option>
                     {getAvailableCategories().map((category) => (
@@ -778,7 +790,7 @@ export default function EditSupporterPage() {
                 {/* Caste (only for Hindu religion) */}
                 {shouldShowCaste && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Caste
                     </label>
                     <select
@@ -786,6 +798,8 @@ export default function EditSupporterPage() {
                       value={formData.caste}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      aria-label={t("editSupporter.lblCaste")}
+                      title={t("editSupporter.lblCaste")}
                     >
                       <option value="">Select Caste</option>
                       {getAvailableCastes().map((caste) => (
@@ -800,7 +814,7 @@ export default function EditSupporterPage() {
                 {/* Custom Category Input for Others */}
                 {formData.religion === 'Others' && formData.category === 'Others' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Specify Category
                     </label>
                     <input
@@ -810,6 +824,8 @@ export default function EditSupporterPage() {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Enter category"
+                      aria-label={t("editSupporter.phEnterCategory")}
+                      title={t("editSupporter.phEnterCategory")}
                     />
                   </div>
                 )}
@@ -818,39 +834,39 @@ export default function EditSupporterPage() {
 
             {/* Location Information - Editable */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Location Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">State</label>
                   <input
                     type="text"
                     value={supporter?.state_name || ''}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">District</label>
                   <input
                     type="text"
                     value={supporter?.district_name || ''}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assembly</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Assembly</label>
                   <input
                     type="text"
                     value={supporter?.assembly_name || ''}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Block Dropdown */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Block
                   </label>
                   <select
@@ -858,7 +874,10 @@ export default function EditSupporterPage() {
                     value={formData.block_id}
                     onChange={handleInputChange}
                     disabled={!isBlockDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("editSupporter.lblBlock")}
+                    title={t("editSupporter.lblBlock")}
+                    data-testid="block_id"
                   >
                     <option value={0}>Select Block</option>
                     {blocks.map((block) => (
@@ -867,21 +886,24 @@ export default function EditSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading blocks...</p>}
-                  {hierarchyData && blocks.length === 0 && <p className="text-xs text-gray-500 mt-1">No blocks available</p>}
+                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading blocks...</p>}
+                  {hierarchyData && blocks.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No blocks available</p>}
                 </div>
 
                 {/* Mandal Dropdown - Optional */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mandal <span className="text-gray-400">(Optional)</span>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Mandal <span className="text-[var(--text-secondary)]">(Optional)</span>
                   </label>
                   <select
                     name="mandal_id"
                     value={formData.mandal_id}
                     onChange={handleInputChange}
                     disabled={!isMandalDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("editSupporter.lblMandalOptional")}
+                    title={t("editSupporter.lblMandalOptional")}
+                    data-testid="mandal_id"
                   >
                     <option value={0}>Select Mandal</option>
                     {mandals.map((mandal) => (
@@ -890,21 +912,24 @@ export default function EditSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading mandals...</p>}
-                  {hierarchyData && mandals.length === 0 && <p className="text-xs text-gray-500 mt-1">No mandals available</p>}
+                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading mandals...</p>}
+                  {hierarchyData && mandals.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No mandals available</p>}
                 </div>
 
                 {/* Booth Dropdown - Optional */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Booth <span className="text-gray-400">(Optional)</span>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Booth <span className="text-[var(--text-secondary)]">(Optional)</span>
                   </label>
                   <select
                     name="booth_id"
                     value={formData.booth_id}
                     onChange={handleInputChange}
                     disabled={!isBoothDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("editSupporter.lblBoothOptional")}
+                    title={t("editSupporter.lblBoothOptional")}
+                    data-testid="booth_id"
                   >
                     <option value={0}>Select Booth</option>
                     {booths.map((booth) => (
@@ -913,18 +938,18 @@ export default function EditSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {!hierarchyData && <p className="text-xs text-gray-500 mt-1">Loading booths...</p>}
-                  {hierarchyData && booths.length === 0 && <p className="text-xs text-gray-500 mt-1">No booths available</p>}
+                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading booths...</p>}
+                  {hierarchyData && booths.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available</p>}
                 </div>
               </div>
             </div>
 
             {/* Address and Remarks */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Additional Information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Address *
                   </label>
                   <textarea
@@ -940,7 +965,7 @@ export default function EditSupporterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Remarks
                   </label>
                   <textarea
@@ -956,11 +981,11 @@ export default function EditSupporterPage() {
             </div>
 
             {/* Form Actions */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--border-color)]">
               <button
                 type="button"
                 onClick={() => navigate('/assembly/supporters')}
-                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
               >
                 Cancel
               </button>
@@ -984,3 +1009,6 @@ export default function EditSupporterPage() {
     </div>
   );
 }
+
+
+

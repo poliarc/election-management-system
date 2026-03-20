@@ -86,7 +86,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--bg-color)] rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header Image */}
         <div className="relative h-56 sm:h-64 md:h-80">
           <CampaignImageSlider
@@ -103,7 +103,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 bg-white bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
+            className="absolute top-4 right-4 bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
           >
             <X className="w-5 h-5 text-white" />
           </button>
@@ -135,7 +135,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
               <span className="text-2xl">
                 {getCategoryIcon(notification.category)}
               </span>
-              <span className="text-white text-sm bg-white bg-opacity-20 backdrop-blur-sm px-2 py-1 rounded-md">
+              <span className="text-white text-sm bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm px-2 py-1 rounded-md">
                 {notification.category.charAt(0).toUpperCase() +
                   notification.category.slice(1)}
               </span>
@@ -154,9 +154,9 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
               <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-blue-600 font-medium">Date</p>
-                <div className="flex items-center gap-2 text-gray-900 font-semibold">
+                <div className="flex items-center gap-2 text-[var(--text-color)] font-semibold">
                   <span>{formatDate(notification.startDate)}</span>
-                  <span className="mx-1 text-gray-500">-</span>
+                  <span className="mx-1 text-[var(--text-secondary)]">-</span>
                   <span>{formatDate(notification.endDate)}</span>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
               <Clock className="w-6 h-6 text-green-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-green-600 font-medium">Time</p>
-                <p className="text-gray-900 font-semibold">
+                <p className="text-[var(--text-color)] font-semibold">
                   {notification.time}
                 </p>
               </div>
@@ -176,7 +176,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
               <MapPin className="w-6 h-6 text-red-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-red-600 font-medium">Location</p>
-                <p className="text-gray-900 font-semibold">
+                <p className="text-[var(--text-color)] font-semibold">
                   {notification.location}
                 </p>
               </div>
@@ -189,10 +189,10 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
             <div className="space-y-6">
               {/* Description */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3 text-lg">
+                <h3 className="font-semibold text-[var(--text-color)] mb-3 text-lg">
                   Description
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-[var(--text-secondary)] leading-relaxed">
                   {notification.description}
                 </p>
               </div>
@@ -202,12 +202,12 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
           {/* Action Buttons */}
           {campaignHasEnded ? (
             /* Campaign has ended - show message */
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center max-w-lg mx-auto">
-              <div className="flex items-center justify-center gap-3 text-gray-600 mb-2">
+            <div className="bg-[var(--bg-color)] border border-[var(--text-color)]/10 rounded-xl p-6 text-center max-w-lg mx-auto">
+              <div className="flex items-center justify-center gap-3 text-[var(--text-secondary)] mb-2">
                 <AlertCircle className="w-6 h-6" />
                 <span className="font-semibold text-lg">Campaign has ended</span>
               </div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-[var(--text-secondary)] text-sm">
                 This campaign ended on {new Date(notification.endDate).toLocaleDateString()}.
                 No further actions can be taken.
               </p>
@@ -240,7 +240,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                       <button
                         onClick={() => setShowDeclineModal(true)}
                         disabled={isUpdating}
-                        className="flex-1 bg-gray-100 text-gray-700 py-4 px-8 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-gray-100 text-[var(--text-secondary)] py-4 px-8 rounded-xl font-semibold hover:bg-[var(--text-color)]/5 transition-all duration-200 flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <X className="w-6 h-6" />
                         Decline
@@ -292,7 +292,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
 
                   {onSendReport && (
                     <div className="mt-6">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-center">
+                      <h4 className="font-semibold text-[var(--text-color)] mb-4 text-center">
                         Submit New Report
                       </h4>
                       <form
@@ -304,7 +304,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                         className="space-y-4"
                       >
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Number of Attendees
                           </label>
                           <input
@@ -317,7 +317,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Report Date
                           </label>
                           <input
@@ -329,7 +329,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Description
                           </label>
                           <textarea
@@ -341,7 +341,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Images (Optional)
                           </label>
                           <input
@@ -351,7 +351,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
                             accept="image/*"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-[var(--text-secondary)] mt-1">
                             You can select multiple images
                           </p>
                         </div>
@@ -396,3 +396,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
     </div>
   );
 };
+
+
+
+

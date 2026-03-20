@@ -328,7 +328,7 @@ export const ExportSupportersPage: React.FC = () => {
         : "";
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-[var(--bg-main)] min-h-screen">
             {modalState.open && (
                 <ExportModal
                     stateName={modalStateName}
@@ -338,8 +338,8 @@ export const ExportSupportersPage: React.FC = () => {
             )}
 
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Export</h1>
-                <p className="text-gray-600 mt-2">Select a state to export all supporters data</p>
+                <h1 className="text-3xl font-bold text-[var(--text-color)]">Export</h1>
+                <p className="text-[var(--text-secondary)] mt-2">Select a state to export all supporters data</p>
             </div>
 
             {/* Progress bar with cancel */}
@@ -367,31 +367,31 @@ export const ExportSupportersPage: React.FC = () => {
                 </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                        <span className="ml-3 text-gray-600">Loading states...</span>
+                        <span className="ml-3 text-[var(--text-secondary)]">Loading states...</span>
                     </div>
                 ) : states.length === 0 ? (
                     <div className="text-center py-12">
-                        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500">No states available.</p>
+                        <MapPin className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3" />
+                        <p className="text-[var(--text-secondary)]">No states available.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {states.map((state) => (
                             <div
                                 key={state.id}
-                                className="p-5 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all"
+                                className="p-5 border border-[var(--border-color)] rounded-lg hover:border-indigo-300 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
                                         <MapPin className="w-6 h-6 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-gray-900 text-lg">{state.levelName}</p>
-                                        <p className="text-sm text-gray-500">State ID: {state.id}</p>
+                                        <p className="font-semibold text-[var(--text-color)] text-lg">{state.levelName}</p>
+                                        <p className="text-sm text-[var(--text-secondary)]">State ID: {state.id}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -430,3 +430,5 @@ export const ExportSupportersPage: React.FC = () => {
         </div>
     );
 };
+
+

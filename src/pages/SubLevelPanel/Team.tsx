@@ -120,13 +120,13 @@ export default function SubLevelPanelTeam() {
     };
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
-            <div className="bg-white rounded-lg shadow-md p-3 mb-1">
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">Team Management</h1>
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 mb-1">
+                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Team Management</h1>
 
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
@@ -145,89 +145,89 @@ export default function SubLevelPanelTeam() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-teal-600"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden overflow-x-auto">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--bg-main)]">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     S.No
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     User ID
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     State
                                 </th>
-                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {/* <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Assembly Name
                                 </th> */}
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Display Name
                                 </th>
                                 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Name
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Designation
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Email
                                 </th>
 
 
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Action
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={9} className="px-6 py-12 text-center text-[var(--text-secondary)]">
                                         No team members found
                                     </td>
                                 </tr>
                             ) : (
                                 paginatedUsers.map((user, index) => (
-                                    <tr key={user.user_id || user.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <tr key={user.user_id || user.id} className="hover:bg-[var(--text-color)]/5">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                                             {startIndex + index + 1}
                                         </td>
                                          <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-sm text-[var(--text-secondary)]">
                                                 {user.user_id || "N/A"}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.stateName || "N/A"}</div>
+                                            <div className="text-sm text-[var(--text-color)]">{user.stateName || "N/A"}</div>
                                         </td>
                                         {/* <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
+                                            <div className="text-sm text-[var(--text-color)]">
                                                 {user.assemblyName || user.assembly_name || user.parentAssemblyName || user.parentId || "N/A"}
                                             </div>
                                         </td> */}
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
+                                            <div className="text-sm text-[var(--text-color)]">
                                                 {user.displayName || user.blockName || user.block_name || user.levelName || "N/A"}
                                             </div>
                                         </td>
                                        
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">
+                                            <div className="text-sm font-medium text-[var(--text-color)]">
                                                 {user.first_name} {user.last_name}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
+                                            <div className="text-sm text-[var(--text-color)]">
                                                 {user.role_name || user.designation || user.role || "N/A"}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500">{user.email}</div>
+                                            <div className="text-sm text-[var(--text-secondary)]">{user.email}</div>
                                         </td>
 
 
@@ -273,7 +273,7 @@ export default function SubLevelPanelTeam() {
                                                         setOpenDropdown(openDropdown === user.user_id ? null : user.user_id);
                                                     }}
                                                     disabled={toggleLoading === user.user_id}
-                                                    className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
+                                                    className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50"
                                                 >
                                                     {toggleLoading === user.user_id ? (
                                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-600"></div>
@@ -286,7 +286,7 @@ export default function SubLevelPanelTeam() {
 
                                                 {openDropdown === user.user_id && (
                                                     <div
-                                                        className={`absolute right-0 z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg max-h-32 overflow-y-auto ${index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
+                                                        className={`absolute right-0 z-50 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md shadow-lg max-h-32 overflow-y-auto ${index >= paginatedUsers.length - 2 ? 'transform -translate-y-full -mt-2' : ''
                                                             }`}
                                                     >
                                                         <button
@@ -316,7 +316,7 @@ export default function SubLevelPanelTeam() {
 
                                                                 toggleUserStatus(user.user_id, currentStatus);
                                                             }}
-                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                            className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 flex items-center"
                                                         >
                                                             {(() => {
                                                                 // Use same robust status checking for dropdown display
@@ -366,21 +366,21 @@ export default function SubLevelPanelTeam() {
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
                             <button
                                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Previous
                             </button>
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-[var(--text-secondary)]">
                                 Page {currentPage} of {totalPages} ({filteredUsers.length} users)
                             </span>
                             <button
                                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Next
                             </button>
@@ -393,3 +393,7 @@ export default function SubLevelPanelTeam() {
         </div>
     );
 }
+
+
+
+

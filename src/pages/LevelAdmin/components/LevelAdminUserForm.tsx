@@ -127,15 +127,15 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
     const activeRoles = roles.filter((role) => role.isActive === 1);
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
+            <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-[var(--text-color)]">
                         {isEditing ? "Edit User" : "Create New User"}
                     </h2>
                     <button
                         onClick={onCancel}
-                        className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-md hover:bg-gray-100"
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-md hover:bg-[var(--text-color)]/5"
                         title="Cancel"
                     >
                         <X className="w-5 h-5" />
@@ -148,7 +148,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                     {/* Name Fields - Row 1 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 First Name *
                             </label>
                             <input
@@ -171,7 +171,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Last Name *
                             </label>
                             <input
@@ -197,7 +197,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                     {/* Email and Contact - Row 2 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Email Address *
                             </label>
                             <input
@@ -220,7 +220,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Contact Number
                             </label>
                             <input
@@ -245,10 +245,10 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
 
                     {/* Password - Row 3 */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Password {!isEditing && "*"}
                             {isEditing && (
-                                <span className="text-sm text-gray-500 font-normal">
+                                <span className="text-sm text-[var(--text-secondary)] font-normal">
                                     {" "}(Leave empty to keep current password)
                                 </span>
                             )}
@@ -273,7 +273,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                             >
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
@@ -288,31 +288,31 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                     {/* Party and State - Row 4 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Party
                             </label>
                             <input
                                 type="text"
                                 value={partyName}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 Party is automatically assigned
                             </p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 State
                             </label>
                             <input
                                 type="text"
                                 value={stateName}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 State is automatically assigned
                             </p>
                         </div>
@@ -321,12 +321,12 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                     {/* District and Role - Row 5 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 District *
                             </label>
                             {isLoadingDistricts ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading districts...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
                                 </div>
                             ) : (
                                 <select
@@ -361,12 +361,12 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Role
                             </label>
                             {isLoadingRoles ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading roles...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading roles...</span>
                                 </div>
                             ) : (
                                 <select
@@ -391,13 +391,13 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
 
                     {/* Status Toggle - Row 6 */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
                             User Status
                         </label>
                         <button
                             type="button"
                             onClick={() => setValue("isActive", !watchIsActive)}
-                            className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors w-full"
+                            className="flex items-center gap-3 p-3 border rounded-lg hover:bg-[var(--text-color)]/5 transition-colors w-full"
                         >
                             <div className="flex items-center gap-2">
                                 {watchIsActive ? (
@@ -409,15 +409,15 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                                     </>
                                 ) : (
                                     <>
-                                        <ToggleLeft className="w-6 h-6 text-gray-400" />
-                                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        <ToggleLeft className="w-6 h-6 text-[var(--text-secondary)]" />
+                                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-[var(--text-color)]">
                                             Inactive
                                         </span>
                                     </>
                                 )}
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-[var(--text-secondary)]">
                                     Click to {watchIsActive ? "deactivate" : "activate"} this user
                                 </p>
                             </div>
@@ -426,11 +426,11 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-[var(--border-color)]">
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                     >
                         Cancel
                     </button>
@@ -456,3 +456,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
         </div>
     );
 };
+
+
+
+

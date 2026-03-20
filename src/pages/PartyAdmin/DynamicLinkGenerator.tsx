@@ -115,47 +115,47 @@ export const DynamicLinkGenerator: React.FC = () => {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                         <Link className="text-blue-600" />
                         Dynamic Registration Links
                     </h1>
-                    <p className="text-gray-600 mt-2">
+                    <p className="text-[var(--text-secondary)] mt-2">
                         Create custom registration links for {currentParty?.partyName || "your party"}
                         with pre-filled party and location information
                     </p>
                 </div>
 
                 {/* Link Generator Form */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 mb-6">
+                    <h2 className="text-xl font-semibold text-[var(--text-color)] mb-4">
                         Generate Registration Link
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Party Info - Read Only */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Party
                             </label>
                             <input
                                 type="text"
                                 value={currentParty?.partyName || ""}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 Party is automatically set for this admin panel
                             </p>
                         </div>
 
                         {/* State Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 State *
                             </label>
                             {isLoadingStates ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading states...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading states...</span>
                                 </div>
                             ) : (
                                 <select
@@ -175,12 +175,12 @@ export const DynamicLinkGenerator: React.FC = () => {
 
                         {/* District Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 District (Optional)
                             </label>
                             {isLoadingStates ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading districts...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
                                 </div>
                             ) : (
                                 <select
@@ -198,7 +198,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                 </select>
                             )}
                             {!selectedStateId && (
-                                <p className="text-gray-500 text-xs mt-1">
+                                <p className="text-[var(--text-secondary)] text-xs mt-1">
                                     Please select a state first
                                 </p>
                             )}
@@ -206,7 +206,7 @@ export const DynamicLinkGenerator: React.FC = () => {
 
                         {/* Expiration Date */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Expiration Date & Time (Optional)
                             </label>
                             <input
@@ -217,7 +217,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                 min={new Date().toISOString().slice(0, 16)}
                                 placeholder={defaultExpiration}
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 Leave empty for default 30-day expiration
                             </p>
                         </div>
@@ -247,19 +247,19 @@ export const DynamicLinkGenerator: React.FC = () => {
 
                 {/* Generated Link Display */}
                 {generatedLink && (
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
+                        <h2 className="text-xl font-semibold text-[var(--text-color)] mb-4">
                             Generated Registration Link
                         </h2>
 
                         {/* Link Preview */}
-                        <div className="bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+                        <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-md p-4 mb-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-700 mb-1">
+                                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
                                         Registration Link:
                                     </p>
-                                    <p className="text-sm text-gray-600 break-all">
+                                    <p className="text-sm text-[var(--text-secondary)] break-all">
                                         {generatedLink}
                                     </p>
                                 </div>

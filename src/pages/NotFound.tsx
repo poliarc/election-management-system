@@ -33,10 +33,10 @@ export default function NotFound() {
 
           {/* Content */}
           <div className="space-y-4">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-4xl sm:text-5xl font-bold text-[var(--text-color)] dark:text-white">
               Coming Soon
             </h1>
-            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-[var(--text-secondary)] dark:text-gray-300 max-w-md mx-auto leading-relaxed">
               This page is under development. We're working hard to bring it live shortly.
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button
               onClick={() => navigate(-1)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-all shadow-sm hover:shadow dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 border border-[var(--border-color)] transition-all shadow-sm hover:shadow dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
             >
               <svg
                 className="w-5 h-5"
@@ -92,7 +92,7 @@ export default function NotFound() {
 
           {/* Help Text */}
           <div className="pt-8">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
               Stay tuned for updates!
             </p>
           </div>
@@ -101,3 +101,6 @@ export default function NotFound() {
     </div>
   );
 }
+
+
+

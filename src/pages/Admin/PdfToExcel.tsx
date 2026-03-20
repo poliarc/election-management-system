@@ -72,12 +72,12 @@ export default function PdfToExcel() {
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-6">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">
                         PDF to Excel Converter
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-[var(--text-secondary)]">
                         Convert your PDF documents to Excel spreadsheets with ease
                     </p>
                 </div>
@@ -98,7 +98,7 @@ export default function PdfToExcel() {
                             className="cursor-pointer flex flex-col items-center"
                         >
                             <svg
-                                className="w-12 h-12 text-gray-400 mb-3"
+                                className="w-12 h-12 text-[var(--text-secondary)] mb-3"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -110,10 +110,10 @@ export default function PdfToExcel() {
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                                 />
                             </svg>
-                            <span className="text-sm font-medium text-gray-700 mb-1">
+                            <span className="text-sm font-medium text-[var(--text-secondary)] mb-1">
                                 Click to upload PDF file
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-[var(--text-secondary)]">
                                 or drag and drop your file here
                             </span>
                         </label>
@@ -135,8 +135,8 @@ export default function PdfToExcel() {
                                     />
                                 </svg>
                                 <div>
-                                    <p className="font-medium text-gray-900">{file.name}</p>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="font-medium text-[var(--text-color)]">{file.name}</p>
+                                    <p className="text-sm text-[var(--text-secondary)]">
                                         {(file.size / 1024).toFixed(2)} KB
                                     </p>
                                 </div>
@@ -259,9 +259,9 @@ export default function PdfToExcel() {
                     )}
 
                     {/* Instructions */}
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <h3 className="font-medium text-gray-900 mb-2">How to use:</h3>
-                        <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
+                    <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
+                        <h3 className="font-medium text-[var(--text-color)] mb-2">How to use:</h3>
+                        <ol className="list-decimal list-inside space-y-1 text-sm text-[var(--text-secondary)]">
                             <li>Click the upload area or drag and drop a PDF file</li>
                             <li>Click "Convert to Excel" button</li>
                             <li>The Excel file will be automatically downloaded</li>
@@ -272,3 +272,5 @@ export default function PdfToExcel() {
         </div>
     );
 }
+
+

@@ -158,14 +158,14 @@ export const LoginReportPage: React.FC = () => {
                 );
             case "BLOCKED":
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                         <AlertOctagon className="w-3 h-3 mr-1" />
                         Blocked
                     </span>
                 );
             default:
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                         {status}
                     </span>
                 );
@@ -173,26 +173,26 @@ export const LoginReportPage: React.FC = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Login Activity Report</h1>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">Login Activity Report</h1>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">
                         Monitor login sessions and security events for your party members.
                     </p>
                 </div>
-                <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex bg-[var(--bg-card)] p-1 rounded-lg border border-[var(--border-color)] shadow-sm">
                     <button
                         onClick={() => setMode("sessions")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "sessions" ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:text-gray-900"}`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "sessions" ? "bg-indigo-50 text-indigo-700" : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"}`}
                     >
                         <TableIcon className="w-4 h-4 inline-block mr-2" />
                         Session Logs
                     </button>
                     <button
                         onClick={() => setMode("user-report")}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "user-report" ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:text-gray-900"}`}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "user-report" ? "bg-indigo-50 text-indigo-700" : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"}`}
                     >
                         <BarChart3 className="w-4 h-4 inline-block mr-2" />
                         User Analytics
@@ -204,11 +204,11 @@ export const LoginReportPage: React.FC = () => {
                 // --- SESSIONS LOG VIEW ---
                 <>
                     {/* Filters */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-4 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                             {/* State Filter */}
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     Filter by State
                                 </label>
                                 <SearchableSelect
@@ -225,7 +225,7 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* District Filter */}
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     Filter by District {!selectedStateId}
                                 </label>
                                 <SearchableSelect
@@ -241,18 +241,18 @@ export const LoginReportPage: React.FC = () => {
                             </div>
 
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     Status
                                 </label>
                                 <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                                     <select
                                         value={statusFilter}
                                         onChange={(e) => {
                                             setStatusFilter(e.target.value as any);
                                             setPage(1);
                                         }}
-                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none"
+                                        className="w-full pl-9 pr-4 py-2 bg-[var(--bg-main)] border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none"
                                     >
                                         <option value="">All Statuses</option>
                                         <option value="SUCCESS">Success</option>
@@ -263,11 +263,11 @@ export const LoginReportPage: React.FC = () => {
                             </div>
 
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     From Date
                                 </label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                                     <input
                                         type="date"
                                         value={dateFrom}
@@ -275,17 +275,17 @@ export const LoginReportPage: React.FC = () => {
                                             setDateFrom(e.target.value);
                                             setPage(1);
                                         }}
-                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        className="w-full pl-9 pr-4 py-2 bg-[var(--bg-main)] border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                     />
                                 </div>
                             </div>
 
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     To Date
                                 </label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                                     <input
                                         type="date"
                                         value={dateTo}
@@ -293,21 +293,21 @@ export const LoginReportPage: React.FC = () => {
                                             setDateTo(e.target.value);
                                             setPage(1);
                                         }}
-                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        className="w-full pl-9 pr-4 py-2 bg-[var(--bg-main)] border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                     />
                                 </div>
                             </div>
 
                             <div className="w-full">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                     Search
                                 </label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                                     <input
                                         type="text"
                                         placeholder="Name, Username, Email"
-                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                        className="w-full pl-9 pr-4 py-2 bg-[var(--bg-main)] border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                         value={userSearch}
                                         onChange={(e) => setUserSearch(e.target.value)}
                                     />
@@ -317,19 +317,19 @@ export const LoginReportPage: React.FC = () => {
                     </div>
 
                     {/* Table Content */}
-                    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-opacity duration-200 ${isSessionsFetching ? 'opacity-70 pointer-events-none' : ''}`}>
+                    <div className={`bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden transition-opacity duration-200 ${isSessionsFetching ? 'opacity-70 pointer-events-none' : ''}`}>
                         {isSessionsLoading ? (
                             <div className="p-8 text-center">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                                <p className="mt-2 text-sm text-gray-500">Loading sessions...</p>
+                                <p className="mt-2 text-sm text-[var(--text-secondary)]">Loading sessions...</p>
                             </div>
                         ) : sessions.length === 0 ? (
                             <div className="p-12 text-center">
                                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                                    <Shield className="w-8 h-8 text-gray-400" />
+                                    <Shield className="w-8 h-8 text-[var(--text-secondary)]" />
                                 </div>
-                                <h3 className="text-lg font-medium text-gray-900">No login sessions found</h3>
-                                <p className="mt-1 text-gray-500 max-w-sm mx-auto">
+                                <h3 className="text-lg font-medium text-[var(--text-color)]">No login sessions found</h3>
+                                <p className="mt-1 text-[var(--text-secondary)] max-w-sm mx-auto">
                                     No login activity matches your current filters. Try adjusting criteria.
                                 </p>
                             </div>
@@ -337,20 +337,20 @@ export const LoginReportPage: React.FC = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-200">
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                        <tr className="bg-[var(--bg-main)] border-b border-[var(--border-color)]">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 User
                                             </th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Device / IP
                                             </th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Location
                                             </th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Time
                                             </th>
                                         </tr>
@@ -359,7 +359,7 @@ export const LoginReportPage: React.FC = () => {
                                         {sessions.map((session) => (
                                             <tr
                                                 key={session.id}
-                                                className="hover:bg-gray-50 transition-colors"
+                                                className="hover:bg-[var(--text-color)]/5 transition-colors"
                                             >
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center">
@@ -367,10 +367,10 @@ export const LoginReportPage: React.FC = () => {
                                                             {(session.first_name?.[0] || session.username?.[0] || "U").toUpperCase()}
                                                         </div>
                                                         <div className="ml-3">
-                                                            <p className="text-sm font-medium text-gray-900">
+                                                            <p className="text-sm font-medium text-[var(--text-color)]">
                                                                 {session.first_name ? `${session.first_name} ${session.last_name || ''}` : session.username}
                                                             </p>
-                                                            <p className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                            <p className="text-xs text-[var(--text-secondary)] truncate max-w-[150px]">
                                                                 {session.username}
                                                             </p>
                                                         </div>
@@ -388,12 +388,12 @@ export const LoginReportPage: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center text-xs text-gray-900 font-medium">
-                                                            <Globe className="w-3 h-3 mr-1.5 text-gray-400" />
+                                                        <div className="flex items-center text-xs text-[var(--text-color)] font-medium">
+                                                            <Globe className="w-3 h-3 mr-1.5 text-[var(--text-secondary)]" />
                                                             {session.ip_address}
                                                         </div>
-                                                        <div className="flex items-center text-xs text-gray-500" title={session.user_agent}>
-                                                            <Smartphone className="w-3 h-3 mr-1.5 text-gray-400" />
+                                                        <div className="flex items-center text-xs text-[var(--text-secondary)]" title={session.user_agent}>
+                                                            <Smartphone className="w-3 h-3 mr-1.5 text-[var(--text-secondary)]" />
                                                             <span className="truncate max-w-[200px]">
                                                                 {session.user_agent}
                                                             </span>
@@ -402,17 +402,17 @@ export const LoginReportPage: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm text-gray-600">
+                                                        <span className="text-sm text-[var(--text-secondary)]">
                                                             {session.country_code || "Unknown"}
                                                         </span>
-                                                        {session.stateName && <span className="text-xs text-gray-400">{session.stateName}</span>}
+                                                        {session.stateName && <span className="text-xs text-[var(--text-secondary)]">{session.stateName}</span>}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900">
+                                                    <div className="text-sm text-[var(--text-color)]">
                                                         {format(new Date(session.created_at), "MMM d, yyyy")}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-[var(--text-secondary)]">
                                                         {format(new Date(session.created_at), "h:mm a")}
                                                     </div>
                                                 </td>
@@ -425,8 +425,8 @@ export const LoginReportPage: React.FC = () => {
 
                         {/* Pagination */}
                         {pagination && pagination.totalPages > 1 && (
-                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                                <div className="text-sm text-gray-500">
+                            <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
+                                <div className="text-sm text-[var(--text-secondary)]">
                                     Showing <span className="font-medium">{(page - 1) * 50 + 1}</span> to{" "}
                                     <span className="font-medium">
                                         {Math.min(page * 50, pagination.total)}
@@ -437,14 +437,14 @@ export const LoginReportPage: React.FC = () => {
                                     <button
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Previous
                                     </button>
                                     <button
                                         onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                                         disabled={page === pagination.totalPages}
-                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Next
                                     </button>
@@ -460,14 +460,14 @@ export const LoginReportPage: React.FC = () => {
                     {!selectedUserId ? (
                         <>
                             {/* User List Controls */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                            <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-4 mb-6">
                                 <div className="max-w-md">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                         Search User
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <UserIcon className="h-4 w-4 text-gray-400" />
+                                            <UserIcon className="h-4 w-4 text-[var(--text-secondary)]" />
                                         </div>
                                         <input
                                             type="text"
@@ -477,26 +477,26 @@ export const LoginReportPage: React.FC = () => {
                                                 setUserPage(1);
                                             }}
                                             placeholder="Search by name, email or mobile..."
-                                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+                                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-[var(--bg-card)] placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             {/* User Table */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden">
                                 {isUsersLoading ? (
                                     <div className="p-8 text-center">
                                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                                        <p className="mt-2 text-sm text-gray-500">Loading users...</p>
+                                        <p className="mt-2 text-sm text-[var(--text-secondary)]">Loading users...</p>
                                     </div>
                                 ) : (usersResponse?.data || []).length === 0 ? (
                                     <div className="p-12 text-center">
                                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                                            <Users className="w-8 h-8 text-gray-400" />
+                                            <Users className="w-8 h-8 text-[var(--text-secondary)]" />
                                         </div>
-                                        <h3 className="text-lg font-medium text-gray-900">No users found</h3>
-                                        <p className="mt-1 text-gray-500">
+                                        <h3 className="text-lg font-medium text-[var(--text-color)]">No users found</h3>
+                                        <p className="mt-1 text-[var(--text-secondary)]">
                                             Try adjusting your search terms.
                                         </p>
                                     </div>
@@ -505,31 +505,31 @@ export const LoginReportPage: React.FC = () => {
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
-                                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                    <tr className="bg-[var(--bg-main)] border-b border-[var(--border-color)]">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             User Name
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             Role
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             Email / Contact
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                                                             Action
                                                         </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {(usersResponse?.data || []).map((user) => (
-                                                        <tr key={user.user_id} className="hover:bg-gray-50 transition-colors">
+                                                        <tr key={user.user_id} className="hover:bg-[var(--text-color)]/5 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center">
                                                                     <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
                                                                         {(user.first_name?.[0] || "U").toUpperCase()}
                                                                     </div>
                                                                     <div className="ml-3">
-                                                                        <p className="text-sm font-medium text-gray-900">
+                                                                        <p className="text-sm font-medium text-[var(--text-color)]">
                                                                             {user.first_name} {user.last_name}
                                                                         </p>
                                                                     </div>
@@ -541,8 +541,8 @@ export const LoginReportPage: React.FC = () => {
                                                                 </span>
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <div className="text-sm text-gray-900">{user.email}</div>
-                                                                <div className="text-xs text-gray-500">{user.contact_no}</div>
+                                                                <div className="text-sm text-[var(--text-color)]">{user.email}</div>
+                                                                <div className="text-xs text-[var(--text-secondary)]">{user.contact_no}</div>
                                                             </td>
                                                             <td className="px-6 py-4 text-right">
                                                                 <button
@@ -560,22 +560,22 @@ export const LoginReportPage: React.FC = () => {
 
                                         {/* Pagination */}
                                         {usersResponse?.pagination && usersResponse.pagination.totalPages > 1 && (
-                                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                                                <div className="text-sm text-gray-500">
+                                            <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
+                                                <div className="text-sm text-[var(--text-secondary)]">
                                                     Page <span className="font-medium">{userPage}</span> of <span className="font-medium">{usersResponse.pagination.totalPages}</span>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setUserPage((p) => Math.max(1, p - 1))}
                                                         disabled={userPage === 1}
-                                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                     >
                                                         Previous
                                                     </button>
                                                     <button
                                                         onClick={() => setUserPage((p) => Math.min(usersResponse.pagination!.totalPages, p + 1))}
                                                         disabled={userPage === usersResponse.pagination!.totalPages}
-                                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                     >
                                                         Next
                                                     </button>
@@ -592,7 +592,7 @@ export const LoginReportPage: React.FC = () => {
                             <div className="mb-4">
                                 <button
                                     onClick={() => setSelectedUserId(null)}
-                                    className="text-sm text-gray-500 hover:text-gray-900 flex items-center transition-colors"
+                                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-color)] flex items-center transition-colors"
                                 >
                                     ← Back to Users List
                                 </button>
@@ -600,10 +600,10 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* Controls */}
                             {/* Controls */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                            <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-4 mb-6">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="w-full md:w-72">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
                                             Select User to View
                                         </label>
                                         <SearchableSelect
@@ -622,13 +622,13 @@ export const LoginReportPage: React.FC = () => {
 
                                     <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto md:justify-end">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium text-gray-500 whitespace-nowrap">Report Type:</span>
+                                            <span className="text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">Report Type:</span>
                                             <div className="flex bg-gray-100 p-1 rounded-lg">
                                                 {(['daily', 'weekly', 'monthly'] as const).map((type) => (
                                                     <button
                                                         key={type}
                                                         onClick={() => setReportType(type)}
-                                                        className={`px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-all ${reportType === type ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                                        className={`px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-all ${reportType === type ? 'bg-[var(--bg-card)] text-indigo-700 shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
                                                     >
                                                         {type}
                                                     </button>
@@ -637,7 +637,7 @@ export const LoginReportPage: React.FC = () => {
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium text-gray-500 whitespace-nowrap">Date:</span>
+                                            <span className="text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">Date:</span>
                                             <input
                                                 type="date"
                                                 value={reportDate}
@@ -651,34 +651,34 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* Report Display */}
                             {isReportLoading ? (
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                                <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-12 text-center">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-                                    <p className="mt-2 text-sm text-gray-500">Generating report...</p>
+                                    <p className="mt-2 text-sm text-[var(--text-secondary)]">Generating report...</p>
                                 </div>
                             ) : userReportData ? (
                                 <div className="space-y-6">
                                     {/* User Info Card */}
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                    <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-6">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-4">
                                                 <div className="flex-shrink-0 h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl">
                                                     {(userReportData.user.first_name?.[0] || "U").toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <h2 className="text-xl font-bold text-gray-900">
+                                                    <h2 className="text-xl font-bold text-[var(--text-color)]">
                                                         {userReportData.user.first_name} {userReportData.user.last_name}
                                                     </h2>
-                                                    <p className="text-sm text-gray-600">{userReportData.user.email}</p>
-                                                    <p className="text-xs text-gray-500 mt-1">@{userReportData.user.username}</p>
+                                                    <p className="text-sm text-[var(--text-secondary)]">{userReportData.user.email}</p>
+                                                    <p className="text-xs text-[var(--text-secondary)] mt-1">@{userReportData.user.username}</p>
                                                 </div>
                                             </div>
                                             {userReportData.user.last_login_time && (
                                                 <div className="text-right">
-                                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Last Login</p>
-                                                    <p className="text-sm font-semibold text-gray-900 mt-1">
+                                                    <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Last Login</p>
+                                                    <p className="text-sm font-semibold text-[var(--text-color)] mt-1">
                                                         {format(new Date(userReportData.user.last_login_time), "MMM d, yyyy")}
                                                     </p>
-                                                    <p className="text-xs text-gray-600">
+                                                    <p className="text-xs text-[var(--text-secondary)]">
                                                         {format(new Date(userReportData.user.last_login_time), "h:mm a")}
                                                     </p>
                                                 </div>
@@ -688,26 +688,26 @@ export const LoginReportPage: React.FC = () => {
 
                                     {/* Summary Cards */}
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Logins</p>
-                                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                        <div className="bg-[var(--bg-card)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+                                            <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Total Logins</p>
+                                            <p className="text-2xl font-bold text-[var(--text-color)] mt-1">
                                                 {userReportData.data.reduce((acc, curr) => acc + Number(curr.total_logins), 0)}
                                             </p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Successful</p>
+                                        <div className="bg-[var(--bg-card)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+                                            <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Successful</p>
                                             <p className="text-2xl font-bold text-green-600 mt-1">
                                                 {userReportData.data.reduce((acc, curr) => acc + Number(curr.successful_logins), 0)}
                                             </p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Failed</p>
+                                        <div className="bg-[var(--bg-card)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+                                            <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Failed</p>
                                             <p className="text-2xl font-bold text-red-600 mt-1">
                                                 {userReportData.data.reduce((acc, curr) => acc + Number(curr.failed_logins), 0)}
                                             </p>
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Unique IPs</p>
+                                        <div className="bg-[var(--bg-card)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+                                            <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">Unique IPs</p>
                                             <p className="text-2xl font-bold text-purple-600 mt-1">
                                                 {userReportData.data.reduce((acc, curr) => acc + Number(curr.unique_ips), 0)}
                                             </p>
@@ -715,35 +715,35 @@ export const LoginReportPage: React.FC = () => {
                                     </div>
 
                                     {/* Detailed Table */}
-                                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                                            <h3 className="font-medium text-gray-900">
+                                    <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
+                                            <h3 className="font-medium text-[var(--text-color)]">
                                                 Detailed Breakdown ({reportType})
                                             </h3>
-                                            <span className="text-sm text-gray-500">
+                                            <span className="text-sm text-[var(--text-secondary)]">
                                                 {userReportData.user.first_name} {userReportData.user.last_name}
                                             </span>
                                         </div>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
-                                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                    <tr className="bg-[var(--bg-main)] border-b border-[var(--border-color)]">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             Time Period
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                                                             Total
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                                                             Success
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                                                             Failed
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                                                             Unique IPs
                                                         </th>
-                                                        <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                        <th className="px-6 py-3 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             Visual
                                                         </th>
                                                     </tr>
@@ -760,11 +760,11 @@ export const LoginReportPage: React.FC = () => {
                                                         const percentage = (row.total_logins / maxLogins) * 100;
 
                                                         return (
-                                                            <tr key={idx} className="hover:bg-gray-50">
-                                                                <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                                                            <tr key={idx} className="hover:bg-[var(--text-color)]/5">
+                                                                <td className="px-6 py-4 text-sm text-[var(--text-color)] font-medium">
                                                                     {label}
                                                                 </td>
-                                                                <td className="px-6 py-4 text-sm text-gray-600 text-right">
+                                                                <td className="px-6 py-4 text-sm text-[var(--text-secondary)] text-right">
                                                                     {row.total_logins}
                                                                 </td>
                                                                 <td className="px-6 py-4 text-sm text-green-600 text-right font-medium">
@@ -773,7 +773,7 @@ export const LoginReportPage: React.FC = () => {
                                                                 <td className="px-6 py-4 text-sm text-red-600 text-right font-medium">
                                                                     {row.failed_logins}
                                                                 </td>
-                                                                <td className="px-6 py-4 text-sm text-gray-600 text-right">
+                                                                <td className="px-6 py-4 text-sm text-[var(--text-secondary)] text-right">
                                                                     {row.unique_ips}
                                                                 </td>
                                                                 <td className="px-6 py-4 w-48">
@@ -793,12 +793,12 @@ export const LoginReportPage: React.FC = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                                <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-12 text-center">
                                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-4">
                                         <AlertOctagon className="w-8 h-8 text-red-400" />
                                     </div>
-                                    <h3 className="text-lg font-medium text-gray-900">Failed to load report</h3>
-                                    <p className="mt-1 text-gray-500">
+                                    <h3 className="text-lg font-medium text-[var(--text-color)]">Failed to load report</h3>
+                                    <p className="mt-1 text-[var(--text-secondary)]">
                                         Please try again later or select a different user.
                                     </p>
                                 </div>
@@ -810,4 +810,8 @@ export const LoginReportPage: React.FC = () => {
         </div>
     );
 };
+
+
+
+
 

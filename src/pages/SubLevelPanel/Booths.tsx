@@ -60,13 +60,13 @@ export default function SubLevelBooths() {
     const totalPages = Math.ceil(filteredBooths.length / itemsPerPage);
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
-            <div className="bg-white rounded-lg shadow-md p-3 mb-1">
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">Booth Management</h1>
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 mb-1">
+                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Booth Management</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Filter by Parent Level
                         </label>
                         <select
@@ -86,12 +86,12 @@ export default function SubLevelBooths() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             Search Booths
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-5 w-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
@@ -116,34 +116,34 @@ export default function SubLevelBooths() {
                 </div>
             ) : (
                 <>
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden overflow-x-auto">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[var(--bg-main)]">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Level</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booth Range</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booth Numbers</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Booths</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">S.No</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Parent Level</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Parent Type</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Booth Range</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Booth Numbers</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Total Booths</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                 {currentItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-12 text-center text-[var(--text-secondary)]">
                                             No booths found
                                         </td>
                                     </tr>
                                 ) : (
                                     currentItems.map((booth, index) => (
-                                        <tr key={booth.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <tr key={booth.id} className="hover:bg-[var(--text-color)]/5">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                                                 {indexOfFirstItem + index + 1}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{booth.parentLevelName}</div>
+                                                <div className="text-sm font-medium text-[var(--text-color)]">{booth.parentLevelName}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-teal-100 text-teal-800">
@@ -151,12 +151,12 @@ export default function SubLevelBooths() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
+                                                <div className="text-sm text-[var(--text-color)]">
                                                     {booth.boothFrom} - {booth.boothTo}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900">
+                                                <div className="text-sm text-[var(--text-color)]">
                                                     {booth.boothNumbers && booth.boothNumbers.length > 0 ? (
                                                         <div className="flex flex-wrap gap-1">
                                                             {booth.boothNumbers.map((number: number, idx: number) => (
@@ -169,12 +169,12 @@ export default function SubLevelBooths() {
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <span className="text-gray-400 italic">No booth numbers</span>
+                                                        <span className="text-[var(--text-secondary)] italic">No booth numbers</span>
                                                     )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-semibold text-gray-900">
+                                                <div className="text-sm font-semibold text-[var(--text-color)]">
                                                     {booth.boothNumbers?.length || 0}
                                                 </div>
                                             </td>
@@ -193,8 +193,8 @@ export default function SubLevelBooths() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg mt-4">
-                            <div className="text-sm text-gray-700">
+                        <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6 rounded-b-lg mt-4">
+                            <div className="text-sm text-[var(--text-secondary)]">
                                 Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
                                 <span className="font-medium">{Math.min(indexOfLastItem, filteredBooths.length)}</span> of{' '}
                                 <span className="font-medium">{filteredBooths.length}</span> results
@@ -203,7 +203,7 @@ export default function SubLevelBooths() {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
                                     Previous
                                 </button>
@@ -213,7 +213,7 @@ export default function SubLevelBooths() {
                                         onClick={() => setCurrentPage(i + 1)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium ${currentPage === i + 1
                                             ? 'bg-teal-600 text-white'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            : 'text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5'
                                             }`}
                                     >
                                         {i + 1}
@@ -222,7 +222,7 @@ export default function SubLevelBooths() {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
                                     Next
                                 </button>
@@ -234,3 +234,7 @@ export default function SubLevelBooths() {
         </div>
     );
 }
+
+
+
+

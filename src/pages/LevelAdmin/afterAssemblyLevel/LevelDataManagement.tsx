@@ -303,9 +303,9 @@ export default function LevelDataManagement() {
         <div className="p-1 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
             {/* Header */}
             <div className="mb-6">
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-                    <h1 className="text-3xl font-bold text-gray-800">Level Data Management</h1>
-                    <p className="text-gray-600 mt-2">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                    <h1 className="text-3xl font-bold text-[var(--text-color)]">Level Data Management</h1>
+                    <p className="text-[var(--text-secondary)] mt-2">
                         Create and manage sub-levels for assemblies in {currentPanel.metadata?.stateName}
                     </p>
                 </div>
@@ -315,7 +315,7 @@ export default function LevelDataManagement() {
             <div className="mb-6">
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
@@ -324,7 +324,7 @@ export default function LevelDataManagement() {
                         placeholder="Search districts, assemblies, or levels..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
+                        className="w-full pl-11 pr-4 py-3 bg-[var(--bg-card)] border-2 border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
                     />
                 </div>
             </div>
@@ -332,7 +332,7 @@ export default function LevelDataManagement() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Districts */}
                 <div className="lg:col-span-3">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
                             <h2 className="text-lg font-bold text-white">Districts</h2>
                         </div>
@@ -342,7 +342,7 @@ export default function LevelDataManagement() {
                                     <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mx-auto"></div>
                                 </div>
                             ) : filteredDistricts.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No districts found</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">No districts found</div>
                             ) : (
                                 filteredDistricts.map((district) => (
                                     <button
@@ -358,7 +358,7 @@ export default function LevelDataManagement() {
                                     >
                                         <p className={`font-semibold ${selectedDistrict?.location_id === district.location_id
                                             ? "text-blue-700"
-                                            : "text-gray-900"
+                                            : "text-[var(--text-color)]"
                                             }`}>
                                             {district.location_name}
                                         </p>
@@ -371,19 +371,19 @@ export default function LevelDataManagement() {
 
                 {/* Assemblies */}
                 <div className="lg:col-span-3">
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4">
                             <h2 className="text-lg font-bold text-white">Assemblies</h2>
                         </div>
                         <div className="max-h-[600px] overflow-y-auto">
                             {!selectedDistrict ? (
-                                <div className="p-8 text-center text-gray-500">Select a district</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">Select a district</div>
                             ) : assembliesLoading ? (
                                 <div className="p-8 text-center">
                                     <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-indigo-600 mx-auto"></div>
                                 </div>
                             ) : filteredAssemblies.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No assemblies found</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">No assemblies found</div>
                             ) : (
                                 filteredAssemblies.map((assembly) => (
                                     <button
@@ -396,7 +396,7 @@ export default function LevelDataManagement() {
                                     >
                                         <p className={`font-semibold ${selectedAssembly?.location_id === assembly.location_id
                                             ? "text-indigo-700"
-                                            : "text-gray-900"
+                                            : "text-[var(--text-color)]"
                                             }`}>
                                             {assembly.location_name}
                                         </p>
@@ -410,19 +410,19 @@ export default function LevelDataManagement() {
                 {/* Level Data */}
                 <div className="lg:col-span-6">
                     {!selectedAssembly ? (
-                        <div className="bg-white rounded-xl shadow-lg p-16 text-center border border-gray-100">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-16 text-center border border-gray-100">
                             <div className="max-w-md mx-auto">
                                 <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
                                     <svg className="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">Select an Assembly</h3>
-                                <p className="text-gray-500">Choose a district and assembly to manage level data</p>
+                                <h3 className="text-xl font-bold text-[var(--text-color)] mb-2">Select an Assembly</h3>
+                                <p className="text-[var(--text-secondary)]">Choose a district and assembly to manage level data</p>
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                             <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
                                 <div className="flex justify-between items-center">
                                     <div className="text-white">
@@ -431,7 +431,7 @@ export default function LevelDataManagement() {
                                     </div>
                                     <button
                                         onClick={() => setShowCreateModal(true)}
-                                        className="flex items-center px-5 py-2.5 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-all font-semibold shadow-md"
+                                        className="flex items-center px-5 py-2.5 bg-[var(--bg-card)] text-purple-600 rounded-lg hover:bg-purple-50 transition-all font-semibold shadow-md"
                                     >
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -448,25 +448,25 @@ export default function LevelDataManagement() {
                                     </div>
                                 ) : filteredLevelData.length === 0 ? (
                                     <div className="p-12 text-center">
-                                        <p className="text-gray-500">No level data found. Create one to get started.</p>
+                                        <p className="text-[var(--text-secondary)]">No level data found. Create one to get started.</p>
                                     </div>
                                 ) : (
                                     <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
+                                        <thead className="bg-[var(--bg-main)]">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Name</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Party Level</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Level Name</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Display Name</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Party Level</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                             {filteredLevelData.map((data) => (
-                                                <tr key={data.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{data.levelName}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-600">{data.displayName}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-600">{data.partyLevelName}</td>
+                                                <tr key={data.id} className="hover:bg-[var(--text-color)]/5">
+                                                    <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">{data.levelName}</td>
+                                                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{data.displayName}</td>
+                                                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{data.partyLevelName}</td>
                                                     <td className="px-6 py-4 text-sm">
                                                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${data.isActive === 1
                                                             ? "bg-green-100 text-green-800"
@@ -513,18 +513,18 @@ export default function LevelDataManagement() {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Create Level Data</h3>
+                <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">Create Level Data</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Level Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Level Name</label>
                                 <input
                                     type="text"
                                     value={formData.levelName}
                                     readOnly
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                     placeholder="e.g., Block, Mandal"
                                 />
                             </div>
@@ -532,18 +532,18 @@ export default function LevelDataManagement() {
                             {currentPanel?.metadata?.parentLevelName &&
                                 currentPanel.metadata.parentLevelName.toLowerCase() !== "assembly" && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Parent Level</label>
                                         <input
                                             type="text"
                                             value={currentPanel.metadata.parentLevelName}
                                             readOnly
                                             disabled
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                         />
                                     </div>
                                 )}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Display Name</label>
                                 <input
                                     type="text"
                                     value={formData.displayName}
@@ -559,7 +559,7 @@ export default function LevelDataManagement() {
                                     setShowCreateModal(false);
                                     setFormData({ levelName: currentPanel?.name || "", displayName: "" });
                                 }}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -576,22 +576,22 @@ export default function LevelDataManagement() {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Level Data</h3>
+                <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">Edit Level Data</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Level Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Level Name</label>
                                 <input
                                     type="text"
                                     value={formData.levelName}
                                     readOnly
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Display Name</label>
                                 <input
                                     type="text"
                                     value={formData.displayName}
@@ -607,7 +607,7 @@ export default function LevelDataManagement() {
                                     setEditingData(null);
                                     setFormData({ levelName: "", displayName: "" });
                                 }}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -635,3 +635,7 @@ export default function LevelDataManagement() {
         </div>
     );
 }
+
+
+
+

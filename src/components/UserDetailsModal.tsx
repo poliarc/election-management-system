@@ -250,7 +250,7 @@ export default function UserDetailsModal({
     return (
         <div className="fixed inset-0 z-[9999] overflow-y-auto backdrop-blur-sm bg-black/30">
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className="relative w-full max-w-6xl bg-white rounded-lg shadow-xl">
+                <div className="relative w-full max-w-6xl bg-[var(--bg-card)] rounded-lg shadow-xl">
                     {/* Header */}
                     <div className="bg-blue-600 px-6 py-4 rounded-t-lg flex items-center justify-between">
                         <div>
@@ -268,7 +268,7 @@ export default function UserDetailsModal({
                     </div>
 
                     {/* Search and Filter */}
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
                         <div className="flex gap-4">
                             <div className="flex-1">
                                 <input
@@ -289,7 +289,7 @@ export default function UserDetailsModal({
                                 <option value="inactive">Inactive Only</option>
                             </select>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-[var(--text-secondary)] mt-2">
                             Showing {filteredUsers.length} of {users.length} users
                         </p>
                     </div>
@@ -298,57 +298,57 @@ export default function UserDetailsModal({
                     <div className="px-6 py-4 max-h-[500px] overflow-y-auto">
                         {filteredUsers.length === 0 ? (
                             <div className="text-center py-12">
-                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
-                                <p className="mt-4 text-gray-600">No users found</p>
+                                <p className="mt-4 text-[var(--text-secondary)]">No users found</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-[var(--bg-main)]">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">S.No</th>
                                             {shouldShowParentColumn() && (
-                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{getParentColumnHeader()}</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{getParentColumnHeader()}</th>
                                             )}
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">{getCurrentLocationColumnHeader()}</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Designation</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Phone Number</th>
-                                            {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Party</th> */}
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{getCurrentLocationColumnHeader()}</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Name</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Designation</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Phone Number</th>
+                                            {/* <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Party</th> */}
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</th>
+                                            <th className="px-4 py-3 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                         {filteredUsers.map((user, index) => (
-                                            <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
+                                            <tr key={user.assignment_id || index} className="hover:bg-[var(--text-color)]/5">
+                                                <td className="px-4 py-3 text-sm text-[var(--text-color)]">{index + 1}</td>
                                                 {shouldShowParentColumn() && (
-                                                    <td className="px-4 py-3 text-sm text-gray-600">
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                                                        <div className="text-sm font-medium text-[var(--text-color)]">
                                                             {getParentLocationName()}
                                                         </div>
                                                     </td>
                                                 )}
-                                                <td className="px-4 py-3 text-sm text-gray-600">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                                                    <div className="text-sm font-medium text-[var(--text-color)]">
                                                         {getCurrentLocationName()}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                <td className="px-4 py-3 text-sm font-medium text-[var(--text-color)]">
                                                     {user.first_name} {user.last_name}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">{user.role || user.designation || 'N/A'}</td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{user.role || user.designation || 'N/A'}</td>
+                                                <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                                                     {(() => {
                                                         const phone = user.mobile_number || user.contact_no || user.phone;
                                                         console.log(`Phone for user ${user.user_id}:`, { mobile_number: user.mobile_number, contact_no: user.contact_no, phone: user.phone, result: phone });
                                                         return phone || 'N/A';
                                                     })()}
                                                 </td>
-                                                {/* <td className="px-4 py-3 text-sm text-gray-600">
+                                                {/* <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                                                     {(() => {
                                                         const party = user.party?.party_name || user.party_name || user.partyName;
                                                         console.log(`Party for user ${user.user_id}:`, { party_obj: user.party, party_name: user.party_name, partyName: user.partyName, result: party });
@@ -402,23 +402,23 @@ export default function UserDetailsModal({
                                                         <button
                                                             onClick={() => setOpenMenuId(openMenuId === user.user_id ? null : user.user_id)}
                                                             disabled={deletingUserId === user.user_id}
-                                                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+                                                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                                                             title="More actions"
                                                         >
                                                             {deletingUserId === user.user_id ? (
-                                                                <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
+                                                                <svg className="animate-spin h-4 w-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24">
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                                 </svg>
                                                             ) : (
-                                                                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                                 </svg>
                                                             )}
                                                         </button>
 
                                                         {openMenuId === user.user_id && (
-                                                            <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
+                                                            <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
                                                                 <div className="py-1" role="menu">
                                                                     <button
                                                                         onClick={() => {
@@ -447,9 +447,9 @@ export default function UserDetailsModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 rounded-b-lg flex justify-between items-center">
-                        <p className="text-sm text-gray-600">
-                            Total Users: <span className="font-semibold text-gray-900">{users.length}</span>
+                    <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)] rounded-b-lg flex justify-between items-center">
+                        <p className="text-sm text-[var(--text-secondary)]">
+                            Total Users: <span className="font-semibold text-[var(--text-color)]">{users.length}</span>
                         </p>
                         <button
                             onClick={onClose}
@@ -464,27 +464,27 @@ export default function UserDetailsModal({
             {/* Confirmation Modal */}
             {showConfirmModal && userToDelete && (
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
                         <div className="p-6">
                             <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
                                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
+                            <h3 className="mt-4 text-lg font-semibold text-[var(--text-color)] text-center">
                                 Confirm Deletion
                             </h3>
-                            <p className="mt-2 text-sm text-gray-600 text-center">
+                            <p className="mt-2 text-sm text-[var(--text-secondary)] text-center">
                                 Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{locationName}</span>?
                             </p>
-                            <p className="mt-2 text-xs text-gray-500 text-center">
+                            <p className="mt-2 text-xs text-[var(--text-secondary)] text-center">
                                 This action will unassign the user from this location.
                             </p>
                         </div>
-                        <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
+                        <div className="bg-[var(--bg-main)] px-6 py-4 flex gap-3 rounded-b-lg">
                             <button
                                 onClick={handleCancelDelete}
-                                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                             >
                                 Cancel
                             </button>
@@ -502,3 +502,6 @@ export default function UserDetailsModal({
         </div>
     );
 }
+
+
+

@@ -64,7 +64,7 @@ export const ToggleButton: React.FC<ToggleButtonProps> = ({
         >
             <span
                 className={`
-                    inline-block rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out
+                    inline-block rounded-full bg-[var(--bg-card)] shadow transform transition-transform duration-200 ease-in-out
                     ${thumbSizeClasses[size]}
                     ${translateClasses[size]}
                     ${loading ? 'animate-pulse' : ''}
@@ -72,7 +72,7 @@ export const ToggleButton: React.FC<ToggleButtonProps> = ({
             />
             {loading && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full animate-spin border border-gray-400 border-t-transparent" />
+                    <div className="w-2 h-2 bg-[var(--bg-card)] rounded-full animate-spin border border-gray-400 border-t-transparent" />
                 </div>
             )}
         </button>

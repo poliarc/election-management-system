@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const LabharthiListPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -122,7 +124,7 @@ const LabharthiListPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    No assembly selected. Please select an assembly first.
+                    {t("LabharthiListPage.No_assembly_selected")}
                 </div>
             </div>
         );
@@ -132,31 +134,31 @@ const LabharthiListPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Labharthi List
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("LabharthiListPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View voters filtered by labharthi status, state, and center
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("LabharthiListPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("LabharthiListPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("LabharthiListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -169,11 +171,11 @@ const LabharthiListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Labharthi Status
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("LabharthiListPage.Labharthi_Status")}
                                 </label>
                                 <select
                                     value={labharthiStatus}
@@ -183,14 +185,14 @@ const LabharthiListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="all">All Voters</option>
-                                    <option value="in_person">Labharthi In Person</option>
-                                    <option value="not_in_person">Not Labharthi In Person</option>
+                                    <option value="all">{t("LabharthiListPage.All_Voters")}</option>
+                                    <option value="in_person">{t("LabharthiListPage.Labharthi_In_Person")}</option>
+                                    <option value="not_in_person">{t("LabharthiListPage.Not_Labharthi_In_Person")}</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Labharthi State
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("LabharthiListPage.Labharthi_State")}
                                 </label>
                                 <select
                                     value={selectedState}
@@ -200,7 +202,7 @@ const LabharthiListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">All States</option>
+                                    <option value="">{t("LabharthiListPage.All_States")}</option>
                                     {uniqueStates.map((state) => (
                                         <option key={state} value={state}>
                                             {state}
@@ -209,8 +211,8 @@ const LabharthiListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Labharthi Center
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("LabharthiListPage.Labharthi_Center")}
                                 </label>
                                 <select
                                     value={selectedCenter}
@@ -220,7 +222,7 @@ const LabharthiListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">All Centers</option>
+                                    <option value="">{t("LabharthiListPage.All_Centers")}</option>
                                     {uniqueCenters.map((center) => (
                                         <option key={center} value={center}>
                                             {center}
@@ -229,8 +231,8 @@ const LabharthiListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("LabharthiListPage.Part_No_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -243,8 +245,8 @@ const LabharthiListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("LabharthiListPage.Part_No_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -257,14 +259,14 @@ const LabharthiListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("LabharthiListPage.Reset")}
                                 </button>
                             </div>
                         </div>
@@ -272,24 +274,24 @@ const LabharthiListPage: React.FC = () => {
 
                     {isLoading ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Loading...</div>
+                            <div className="text-[var(--text-secondary)]">{t("LabharthiListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className={`mb-1 text-sm text-gray-600 p-3 rounded-lg border ${labharthiStatus === "in_person"
+                            <div className={`mb-1 text-sm text-[var(--text-secondary)] p-3 rounded-lg border ${labharthiStatus === "in_person"
                                 ? "bg-emerald-50 border-emerald-200"
                                 : labharthiStatus === "not_in_person"
                                     ? "bg-rose-50 border-rose-200"
-                                    : "bg-gray-50 border-gray-200"
+                                    : "bg-[var(--bg-main)] border-[var(--border-color)]"
                                 }`}>
-                                Found {filteredVoters.length} voters
+                                {t("LabharthiListPage.Found")} {filteredVoters.length} {t("LabharthiListPage.voters")}
                                 {labharthiStatus !== "all" && (
-                                    <span> • Status: {labharthiStatus === "in_person" ? "Labharthi In Person" : "Not Labharthi In Person"}</span>
+                                    <span> • {t("LabharthiListPage.Status")}: {labharthiStatus === "in_person" ? "Labharthi In Person" : "Not Labharthi In Person"}</span>
                                 )}
-                                {selectedState && <span> • State: {selectedState}</span>}
-                                {selectedCenter && <span> • Center: {selectedCenter}</span>}
+                                {selectedState && <span> • {t("LabharthiListPage.State")}: {selectedState}</span>}
+                                {selectedCenter && <span> • {t("LabharthiListPage.Center")}: {selectedCenter}</span>}
                                 {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • {t("LabharthiListPage.Part_No")}: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
@@ -299,9 +301,9 @@ const LabharthiListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
-                                        Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("LabharthiListPage.Showing_page")} {page} {t("LabharthiListPage.of")} {totalPages} • {totalVoters.toLocaleString()} {t("LabharthiListPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -309,14 +311,14 @@ const LabharthiListPage: React.FC = () => {
                                             disabled={page === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Previous
+                                            {t("LabharthiListPage.Previous")}
                                         </button>
                                         <button
                                             onClick={() => setPage(page + 1)}
                                             disabled={page === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Next
+                                            {t("LabharthiListPage.Next")}
                                         </button>
                                     </div>
                                 </div>
@@ -330,3 +332,5 @@ const LabharthiListPage: React.FC = () => {
 };
 
 export default LabharthiListPage;
+
+

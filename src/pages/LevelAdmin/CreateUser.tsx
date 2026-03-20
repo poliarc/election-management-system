@@ -484,11 +484,11 @@ export const LevelAdminCreateUser: React.FC = () => {
         <div className="mb-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                 <Users className="text-blue-600" />
                 User Management
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-[var(--text-secondary)] mt-1">
                 Manage users for {partyName} - {stateName}
               </p>
             </div>
@@ -580,7 +580,7 @@ export const LevelAdminCreateUser: React.FC = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="bg-white rounded-lg shadow-md p-4 mt-1">
+              <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 mt-1">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() =>
@@ -590,11 +590,11 @@ export const LevelAdminCreateUser: React.FC = () => {
                       }))
                     }
                     disabled={searchParams.page === 1}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-[var(--text-secondary)]">
                     Page {searchParams.page || 1} of {totalPages} ({totalUsers}{" "}
                     total users)
                   </span>
@@ -606,7 +606,7 @@ export const LevelAdminCreateUser: React.FC = () => {
                       }))
                     }
                     disabled={searchParams.page === totalPages}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>
@@ -633,11 +633,11 @@ export const LevelAdminCreateUser: React.FC = () => {
 
         {/* Loading Overlay - Only show for first page load */}
         {!showForm && isLoadingUsers && searchParams.page === 1 && (
-          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-40">
-            <div className="bg-white rounded-lg p-6 shadow-xl">
+          <div className="fixed inset-0 bg-[var(--bg-card)]/30 backdrop-blur-sm flex items-center justify-center z-40">
+            <div className="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="text-gray-700">Loading users...</span>
+                <span className="text-[var(--text-secondary)]">Loading users...</span>
               </div>
             </div>
           </div>
@@ -645,8 +645,8 @@ export const LevelAdminCreateUser: React.FC = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && userToDelete && (
-          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="fixed inset-0 bg-[var(--bg-card)]/30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="shrink-0">
@@ -655,12 +655,12 @@ export const LevelAdminCreateUser: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
                       Delete User
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                       Are you sure you want to delete{" "}
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-[var(--text-color)]">
                         {userToDelete.first_name} {userToDelete.last_name}
                       </span>
                       ? This action cannot be undone and will permanently remove
@@ -672,7 +672,7 @@ export const LevelAdminCreateUser: React.FC = () => {
                 <div className="mt-6 flex justify-end gap-3">
                   <button
                     onClick={cancelDeleteUser}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                   >
                     Cancel
                   </button>
@@ -699,3 +699,6 @@ export const LevelAdminCreateUser: React.FC = () => {
     </div>
   );
 };
+
+
+

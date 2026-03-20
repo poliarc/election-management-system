@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import type { VoterList } from "../../../types/voter";
 import { EllipsisVertical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
     voters: VoterList[];
@@ -13,6 +14,7 @@ export const VoterListTable: React.FC<Props> = ({
     onEdit,
     language,
 }) => {
+    const { t } = useTranslation();
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
     const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -62,26 +64,26 @@ export const VoterListTable: React.FC<Props> = ({
     };
 
     return (
-        <div className="overflow-x-auto w-full rounded-lg border border-gray-200">
-            <table className="w-full text-sm text-left bg-white">
-                <thead className="bg-indigo-50 text-gray-700 text-xs uppercase sticky top-0 z-10">
+        <div className="overflow-x-auto w-full rounded-lg border border-[var(--border-color)]">
+            <table className="w-full text-sm text-left bg-[var(--bg-card)]">
+                <thead className="bg-indigo-50 text-[var(--text-secondary)] text-xs uppercase sticky top-0 z-10">
                     <tr>
-                        <th className="px-4 py-3 font-semibold">Part</th>
-                        <th className="px-4 py-3 font-semibold">Name</th>
-                        <th className="px-4 py-3 font-semibold">Father/Husband</th>
-                        <th className="px-4 py-3 font-semibold">Gender</th>
-                        <th className="px-4 py-3 font-semibold">Age</th>
-                        <th className="px-4 py-3 font-semibold">Mobile</th>
-                        <th className="px-4 py-3 font-semibold">Voter ID</th>
-                        <th className="px-4 py-3 font-semibold">Address</th>
-                        <th className="px-4 py-3 font-semibold">Action</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thPart")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thName")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thFatherHusband")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thGender")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAge")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thMobile")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thVoterId")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAddress")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAction")}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {voters.length === 0 ? (
                         <tr>
-                            <td colSpan={9} className="text-center py-12 text-gray-400">
-                                {language === "en" ? "No voters found" : "कोई मतदाता नहीं मिला"}
+                            <td colSpan={9} className="text-center py-12 text-[var(--text-secondary)]">
+                                {language === "en" ? t("voterListTable.emptyNoVotersFound") : "कोई मतदाता नहीं मिला"}
                             </td>
                         </tr>
                     ) : (
@@ -116,20 +118,20 @@ export const VoterListTable: React.FC<Props> = ({
                                     <button
                                         onClick={() => handleDropdown(index)}
                                         className="bg-indigo-100 text-indigo-700 rounded-full p-2 hover:bg-indigo-600 hover:text-white transition"
-                                        title="Actions"
+                                        title={t("voterListTable.titleActions")}
                                     >
                                         <EllipsisVertical className="w-4 h-4" />
                                     </button>
                                     {openDropdown === index && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+                                        <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border-color)] z-20">
                                             <button
                                                 onClick={() => {
                                                     onEdit(voter);
                                                     setOpenDropdown(null);
                                                 }}
-                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 rounded-t-lg transition"
+                                                className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-indigo-50 rounded-t-lg transition"
                                             >
-                                                Edit
+                                                {t("voterListTable.btnEdit")}
                                             </button>
                                         </div>
                                     )}
@@ -142,3 +144,5 @@ export const VoterListTable: React.FC<Props> = ({
         </div>
     );
 };
+
+

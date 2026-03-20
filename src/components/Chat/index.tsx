@@ -107,14 +107,14 @@ function MessageBubble({
       <div className={`flex ${isOwn ? "justify-end" : "justify-start"} group`}>
         <div className={`max-w-[70%] relative`}>
           {showSender && !isOwn && (
-            <div className="text-xs text-gray-600 mb-1 ml-2 font-medium">
+            <div className="text-xs text-[var(--text-secondary)] mb-1 ml-2 font-medium">
               {message.sender_name || "Unknown"}
             </div>
           )}
           <div
             className={`px-3 py-2 rounded-lg relative ${isOwn
               ? "bg-gray-600 text-white rounded-br-none"
-              : "bg-white text-gray-900 rounded-bl-none"
+              : "bg-[var(--bg-card)] text-[var(--text-color)] rounded-bl-none"
               }`}
           >
             {/* Three dots menu - only show for own messages */}
@@ -122,7 +122,7 @@ function MessageBubble({
               <div className="absolute top-1 right-1" ref={dropdownRef}>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="p-1 hover:bg-gray-500 rounded-full transition-colors"
+                  className="p-1 hover:bg-[var(--bg-color)]0 rounded-full transition-colors"
                 >
                   <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -131,7 +131,7 @@ function MessageBubble({
 
                 {/* Dropdown menu */}
                 {showDropdown && (
-                  <div className="absolute top-8 right-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
+                  <div className="absolute top-8 right-0 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg py-1 z-50 min-w-[120px]">
                     <button
                       onClick={handleDeleteMessage}
                       className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -166,7 +166,7 @@ function MessageBubble({
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 p-2 rounded text-xs ${isOwn ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                        className={`flex items-center gap-2 p-2 rounded text-xs ${isOwn ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-[var(--text-color)]/5"
                           } transition-colors`}
                       >
                         <svg
@@ -191,7 +191,7 @@ function MessageBubble({
             )}
             {message.message && <div className="text-sm break-words mt-2">{message.message}</div>}
             <div
-              className={`text-xs mt-1 flex items-center gap-1 ${isOwn ? "text-gray-200" : "text-gray-500"
+              className={`text-xs mt-1 flex items-center gap-1 ${isOwn ? "text-gray-200" : "text-[var(--text-secondary)]"
                 }`}
             >
               <span>{formatTime(message.created_at)}</span>
@@ -214,12 +214,12 @@ function MessageBubble({
       {/* Image Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-[9999] backdrop-blur-md bg-white/30 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] backdrop-blur-md bg-[var(--bg-card)]/30 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all shadow-lg"
+            className="absolute top-4 right-4 w-10 h-10 bg-[var(--bg-card)]/80 hover:bg-[var(--bg-card)] rounded-full flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-color)] transition-all shadow-lg"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -296,18 +296,18 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
 
   return (
     <div
-      className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50"
+      className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg w-full max-w-md p-6 m-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-[var(--bg-card)] rounded-lg w-full max-w-md p-6 m-4 max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Group Info</h2>
+          <h2 className="text-xl font-bold text-[var(--text-color)]">Group Info</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
           >
             <svg
               className="w-6 h-6"
@@ -331,11 +331,11 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
               {group.Name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] truncate">
                 {group.Name}
               </h3>
-              <p className="text-sm text-gray-600">{members.length} members</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-[var(--text-secondary)]">{members.length} members</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
                 Created by {members[0]?.added_by_name || "Unknown"}
               </p>
             </div>
@@ -344,7 +344,7 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
 
         <div className="mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <h4 className="text-sm font-semibold text-[var(--text-secondary)] flex items-center gap-2">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -381,14 +381,14 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                 Add
               </button>
             ) : (
-              <div className="text-xs text-gray-500 italic">
+              <div className="text-xs text-[var(--text-secondary)] italic">
                 Only admin can add members
               </div>
             )}
           </div>
           <div className="space-y-2">
             {members.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm">
+              <div className="text-center py-8 text-[var(--text-secondary)] text-sm">
                 No members found
               </div>
             ) : (
@@ -402,9 +402,9 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                 return (
                   <div
                     key={member.Id}
-                    className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors ${isCreator
+                    className={`flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors ${isCreator
                       ? "bg-green-50 border-2 border-green-200"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                       }`}
                   >
                     <div className="relative flex-shrink-0">
@@ -441,7 +441,7 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="text-sm font-medium text-[var(--text-color)] truncate">
                           {fullName}
                         </div>
                         {isCreator && (
@@ -450,10 +450,10 @@ function GroupInfoModal({ group, onClose }: GroupInfoModalProps) {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">
+                      <div className="text-xs text-[var(--text-secondary)] truncate">
                         {member.user_email}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">
+                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">
                         {isCreator ? "Created" : "Added"}{" "}
                         {new Date(member.Added_on).toLocaleDateString()}
                       </div>
@@ -610,14 +610,14 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
 
   return (
     <div
-      className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50"
+      className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg w-full max-w-md p-6 m-4 shadow-2xl"
+        className="bg-[var(--bg-card)] rounded-lg w-full max-w-md p-6 m-4 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Create Group</h2>
+        <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">Create Group</h2>
         <input
           type="text"
           value={groupName}
@@ -633,12 +633,12 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
         />
         <div className="mb-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">
+          <div className="text-sm font-medium text-[var(--text-secondary)] mb-2">
             Select Members ({selectedUsers.length})
           </div>
-          <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
+          <div className="max-h-60 overflow-y-auto border border-[var(--border-color)] rounded-lg">
             {filteredUsers.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm">
+              <div className="text-center py-8 text-[var(--text-secondary)] text-sm">
                 {searchQuery ? "No users found" : "No users available"}
               </div>
             ) : (
@@ -650,7 +650,7 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
                 return (
                   <label
                     key={user.user_id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    className="flex items-center gap-3 p-3 hover:bg-[var(--text-color)]/5 cursor-pointer border-b border-gray-100 last:border-b-0"
                   >
                     <input
                       type="checkbox"
@@ -670,7 +670,7 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
                           {initial}
                         </div>
                       )}
-                      <div className="text-sm font-medium text-gray-900 truncate">
+                      <div className="text-sm font-medium text-[var(--text-color)] truncate">
                         {fullName}
                       </div>
                     </div>
@@ -692,7 +692,7 @@ function CreateGroupModal({ onClose }: CreateGroupModalProps) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="flex-1 px-4 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5"
           >
             Cancel
           </button>
@@ -797,20 +797,20 @@ function AddMembersModal({
 
   return (
     <div
-      className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-[60]"
+      className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-[60]"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg w-full max-w-md p-6 m-4 shadow-2xl max-h-[90vh] flex flex-col"
+        className="bg-[var(--bg-card)] rounded-lg w-full max-w-md p-6 m-4 shadow-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-[var(--text-color)]">
             Add Members to {group.Name}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
           >
             <svg
               className="w-6 h-6"
@@ -837,12 +837,12 @@ function AddMembersModal({
         />
 
         <div className="mb-4">
-          <div className="text-sm font-medium text-gray-700 mb-2">
+          <div className="text-sm font-medium text-[var(--text-secondary)] mb-2">
             Select Members ({selectedUsers.length} selected)
           </div>
-          <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg">
+          <div className="max-h-80 overflow-y-auto border border-[var(--border-color)] rounded-lg">
             {availableUsers.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm">
+              <div className="text-center py-8 text-[var(--text-secondary)] text-sm">
                 {searchQuery
                   ? "No users found"
                   : "All party members are already in this group"}
@@ -856,7 +856,7 @@ function AddMembersModal({
                 return (
                   <label
                     key={user.user_id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    className="flex items-center gap-3 p-3 hover:bg-[var(--text-color)]/5 cursor-pointer border-b border-gray-100 last:border-b-0"
                   >
                     <input
                       type="checkbox"
@@ -877,10 +877,10 @@ function AddMembersModal({
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="text-sm font-medium text-[var(--text-color)] truncate">
                           {fullName}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-[var(--text-secondary)] truncate">
                           {user.email}
                         </div>
                       </div>
@@ -904,7 +904,7 @@ function AddMembersModal({
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="flex-1 px-4 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5"
           >
             Cancel
           </button>
@@ -1341,7 +1341,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
   return (
     <>
       <div
-        className="fixed w-full sm:w-72 md:w-80 bg-white rounded-t-lg shadow-2xl border border-gray-200 flex flex-col z-50"
+        className="fixed w-full sm:w-72 md:w-80 bg-[var(--bg-card)] rounded-t-lg shadow-2xl border border-[var(--border-color)] flex flex-col z-50"
         style={{
           ...positionStyle,
           height: isMinimized ? "56px" : "450px",
@@ -1364,7 +1364,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
               />
             ) : (
               <div
-                className={`w-8 h-8 rounded-full bg-white ${isGroup ? "text-green-600" : "text-blue-600"
+                className={`w-8 h-8 rounded-full bg-[var(--bg-card)] ${isGroup ? "text-green-600" : "text-blue-600"
                   } flex items-center justify-center text-sm font-semibold`}
               >
                 {chat.name.charAt(0).toUpperCase()}
@@ -1457,7 +1457,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
         </div>
         {!isMinimized && (
           <>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[var(--bg-main)]">
               {messages.map((msg) => (
                 <MessageBubble
                   key={msg.chat_id || msg.Id}
@@ -1472,15 +1472,15 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                   <div className="bg-gray-200 px-4 py-2 rounded-lg">
                     <div className="flex space-x-1">
                       <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-[var(--bg-color)]0 rounded-full animate-bounce"
                         style={{ animationDelay: "0ms" }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-[var(--bg-color)]0 rounded-full animate-bounce"
                         style={{ animationDelay: "150ms" }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-[var(--bg-color)]0 rounded-full animate-bounce"
                         style={{ animationDelay: "300ms" }}
                       ></div>
                     </div>
@@ -1489,7 +1489,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-3 border-t border-gray-200 bg-white">
+            <div className="p-3 border-t border-[var(--border-color)] bg-[var(--bg-card)]">
               {selectedFiles.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                   {selectedFiles.map((file, idx) => {
@@ -1526,14 +1526,14 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                                 />
                               </svg>
                             </button>
-                            <div className="text-xs text-gray-600 mt-1 truncate max-w-[80px]">
+                            <div className="text-xs text-[var(--text-secondary)] mt-1 truncate max-w-[80px]">
                               {file.name}
                             </div>
                           </div>
                         ) : (
                           <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs">
                             <svg
-                              className="w-4 h-4 text-gray-600"
+                              className="w-4 h-4 text-[var(--text-secondary)]"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1550,7 +1550,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                             </span>
                             <button
                               onClick={() => removeFile(idx)}
-                              className="text-gray-500 hover:text-red-500"
+                              className="text-[var(--text-secondary)] hover:text-red-500"
                             >
                               <svg
                                 className="w-3 h-3"
@@ -1583,7 +1583,7 @@ function ChatPopup({ chat, onClose, position }: ChatPopupProps) {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                  className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-lg"
                   title="Attach files"
                 >
                   <svg
@@ -1841,16 +1841,16 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
     <>
       <div className={`${isMobileModal
         ? "relative w-full h-full flex flex-col"
-        : "fixed bottom-0 right-0 w-full sm:w-80 md:w-72 bg-white shadow-2xl border-l border-t border-gray-200 flex flex-col z-40 max-h-[80vh] sm:max-h-[500px]"
-        } bg-white`}>
+        : "fixed bottom-0 right-0 w-full sm:w-80 md:w-72 bg-[var(--bg-card)] shadow-2xl border-l border-t border-[var(--border-color)] flex flex-col z-40 max-h-[80vh] sm:max-h-[500px]"
+        } bg-[var(--bg-card)]`}>
         {!isMobileModal && (
           <div
-            className="bg-white border-b border-gray-200 p-3 flex items-center justify-between cursor-pointer"
+            className="bg-[var(--bg-card)] border-b border-[var(--border-color)] p-3 flex items-center justify-between cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div className="flex items-center gap-2">
               <svg
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -1862,10 +1862,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                 />
               </svg>
-              <span className="font-semibold text-gray-800">Messaging</span>
+              <span className="font-semibold text-[var(--text-color)]">Messaging</span>
             </div>
             <svg
-              className={`w-5 h-5 text-gray-600 transition-transform ${isExpanded ? "rotate-180" : ""
+              className={`w-5 h-5 text-[var(--text-secondary)] transition-transform ${isExpanded ? "rotate-180" : ""
                 }`}
               fill="none"
               stroke="currentColor"
@@ -1882,7 +1882,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
         )}
         {(isExpanded || isMobileModal) && (
           <>
-            <div className="p-3 border-b border-gray-200 space-y-2">
+            <div className="p-3 border-b border-[var(--border-color)] space-y-2">
               <input
                 type="text"
                 placeholder={`Search ${activeTab}...`}
@@ -1915,7 +1915,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex border-b border-[var(--border-color)]">
               <button
                 onClick={() => {
                   setActiveTab("recent");
@@ -1923,7 +1923,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                 }}
                 className={`flex-1 px-3 py-2 text-xs font-medium relative ${activeTab === "recent"
                   ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                   }`}
               >
                 Chats
@@ -1942,7 +1942,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                 }}
                 className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === "users"
                   ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                   }`}
               >
                 Users
@@ -1954,7 +1954,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                 }}
                 className={`flex-1 px-3 py-2 text-xs font-medium ${activeTab === "groups"
                   ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                   }`}
               >
                 Groups
@@ -1967,7 +1967,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
             >
               {activeTab === "recent" ? (
                 filteredRecentChats.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-sm">
+                  <div className="p-4 text-center text-[var(--text-secondary)] text-sm">
                     No recent chats
                   </div>
                 ) : (
@@ -2047,7 +2047,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                       <div
                         key={`${chat.chat_type}-${chatId}`}
                         onClick={handleClick}
-                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--text-color)]/5 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
                           } ${hasUnread ? "bg-green-50" : ""}`}
                       >
                         <div className="relative flex-shrink-0">
@@ -2077,14 +2077,14 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                           <div className="flex items-center justify-between mb-1">
                             <div
                               className={`text-sm truncate ${hasUnread
-                                ? "font-bold text-gray-900"
-                                : "font-medium text-gray-900"
+                                ? "font-bold text-[var(--text-color)]"
+                                : "font-medium text-[var(--text-color)]"
                                 }`}
                             >
                               {chat.chat_name}
                             </div>
                             <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-[var(--text-secondary)]">
                                 {formatTime(chat.last_message_time)}
                               </div>
                               {hasUnread && (
@@ -2097,8 +2097,8 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                           <div className="flex items-center justify-between gap-2">
                             <div
                               className={`text-xs truncate flex-1 ${hasUnread
-                                ? "font-semibold text-gray-700"
-                                : "text-gray-500"
+                                ? "font-semibold text-[var(--text-secondary)]"
+                                : "text-[var(--text-secondary)]"
                                 }`}
                             >
                               {chat.last_message_type !== "text" && (
@@ -2133,7 +2133,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                 )
               ) : activeTab === "users" ? (
                 filteredUsers.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-sm">
+                  <div className="p-4 text-center text-[var(--text-secondary)] text-sm">
                     No users found
                   </div>
                 ) : (
@@ -2149,7 +2149,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                       <div
                         key={u.user_id}
                         onClick={() => onSelectUser(u)}
-                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--text-color)]/5 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
                           }`}
                       >
                         <div className="relative">
@@ -2166,10 +2166,10 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 text-sm truncate">
+                          <div className="font-medium text-[var(--text-color)] text-sm truncate">
                             {fullName}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-[var(--text-secondary)] truncate">
                             {u.email}
                           </div>
                         </div>
@@ -2191,7 +2191,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
               )}
               {activeTab === "groups" && (
                 filteredGroups.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-sm">
+                  <div className="p-4 text-center text-[var(--text-secondary)] text-sm">
                     No groups found
                   </div>
                 ) : (
@@ -2204,17 +2204,17 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
                       <div
                         key={g.Id}
                         onClick={() => onSelectUser({ ...g, type: "group" })}
-                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
+                        className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--text-color)]/5 border-b border-gray-100 ${isOpen ? "bg-blue-50" : ""
                           }`}
                       >
                         <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-semibold">
                           {initial}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 text-sm truncate">
+                          <div className="font-medium text-[var(--text-color)] text-sm truncate">
                             {g.Name}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-[var(--text-secondary)] truncate">
                             {g.member_count} members
                           </div>
                         </div>
@@ -2241,3 +2241,7 @@ export function ChatUsersList({ onSelectUser, openChats, isMobileModal = false }
 // ============================================================================
 
 export { ChatContainer };
+
+
+
+

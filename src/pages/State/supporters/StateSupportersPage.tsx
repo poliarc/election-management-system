@@ -3,6 +3,8 @@ import { useAppSelector } from '../../../store/hooks';
 import { useGetAssemblyByStateQuery } from '../../../store/api/assemblyApi';
 import { useGetSupportersByStateQuery, useGetSupportersByDistrictQuery, useGetSupportersByAssemblyQuery } from '../../../store/api/supportersApi';
 import type { Supporter } from '../../../types/supporter';
+import { useTranslation } from "react-i18next";
+
 
 interface AssemblyOption {
   id: number;
@@ -26,6 +28,7 @@ interface BlockOption {
 }
 
 export default function StateSupportersPage() {
+  const {t} = useTranslation();
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
   const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -192,8 +195,8 @@ export default function StateSupportersPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Supporters Dashboard</h1>
-          <p className="text-gray-600">View and manage supporters across assemblies</p>
+          <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("stateSupporter.Title")}</h1>
+          <p className="text-[var(--text-secondary)]">{t("stateSupporter.disc")}</p>
         </div>
 
         {/* Stats Cards */}
@@ -202,10 +205,10 @@ export default function StateSupportersPage() {
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-xs font-medium">Total Supporters</p>
+                <p className="text-blue-100 text-xs font-medium">{t("stateSupporter.Total_Supporter")}</p>
                 <p className="text-2xl font-bold mt-1">{pagination?.total || 0}</p>
               </div>
-              <div className="bg-white/20 rounded-full p-2">
+              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -218,13 +221,13 @@ export default function StateSupportersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-xs font-medium">
-                  {selectedDistrictId ? 'District(Supp)' : 'Districts'}
+                  {selectedDistrictId ? 'District(Supp)' : t("stateSupporter.District")}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedDistrictId ? (pagination?.total || 0) : districts.length}
                 </p>
               </div>
-              <div className="bg-white/20 rounded-full p-2">
+              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
@@ -237,13 +240,13 @@ export default function StateSupportersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-xs font-medium">
-                  {selectedAssemblyId ? 'Assembly(Supp)' : 'Assemblies'}
+                  {selectedAssemblyId ? 'Assembly(Supp)' : t("stateSupporter.Assembly")}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedAssemblyId ? (pagination?.total || 0) : assemblies.length}
                 </p>
               </div>
-              <div className="bg-white/20 rounded-full p-2">
+              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -256,13 +259,13 @@ export default function StateSupportersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs font-medium">
-                  {selectedBlockId ? 'Block(Supp)' : 'Blocks'}
+                  {selectedBlockId ? 'Block(Supp)' : t("stateSupporter.Block")}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedBlockId ? (pagination?.total || 0) : blocks.length}
                 </p>
               </div>
-              <div className="bg-white/20 rounded-full p-2">
+              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -275,15 +278,15 @@ export default function StateSupportersPage() {
         </div>
 
         {/* Hierarchy Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Filter Supporters</h2>
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("stateSupporter.Filter_Supporter")}</h2>
 
           {/* First Row: State, District, Assembly, and Block */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {/* State Dropdown (Disabled) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateSupporter.State")}
               </label>
               <select
                 value={stateId}
@@ -298,8 +301,8 @@ export default function StateSupportersPage() {
 
             {/* District Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select District
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateSupporter.Select_District")}
               </label>
               <select
                 value={selectedDistrictId}
@@ -326,8 +329,8 @@ export default function StateSupportersPage() {
 
             {/* Assembly Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateSupporter.Select_Assembly")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -359,8 +362,8 @@ export default function StateSupportersPage() {
 
             {/* Block Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateSupporter.Select_Block")}
               </label>
               <select
                 value={selectedBlockId}
@@ -386,8 +389,8 @@ export default function StateSupportersPage() {
 
           {/* Second Row: Search */}
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Supporters
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              {t("stateSupporter.Search_Supporter")}
             </label>
             <input
               type="text"
@@ -400,14 +403,14 @@ export default function StateSupportersPage() {
         </div>
 
         {/* Supporters List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-[var(--border-color)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Supporters List
+              <h2 className="text-lg font-semibold text-[var(--text-color)]">
+                {t("stateSupporter.Supporters_List")}
                 {pagination && (
-                  <span className="ml-2 text-sm font-normal text-gray-500">
+                  <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
                     ({pagination.total} total)
                   </span>
                 )}
@@ -419,18 +422,18 @@ export default function StateSupportersPage() {
           {supportersLoading && (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading supporters...</p>
+              <p className="text-[var(--text-secondary)] mt-2">{t("stateSupporter.Loading_Supporters")}</p>
             </div>
           )}
 
           {/* Empty State */}
           {!supportersLoading && supporters.length === 0 && (
             <div className="p-8 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No supporters found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t("stateSupporter.No_Supporters")}</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 {searchTerm ? 'Try adjusting your search criteria.' : 'No supporters have been added for this assembly yet.'}
               </p>
             </div>
@@ -441,70 +444,70 @@ export default function StateSupportersPage() {
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--bg-main)]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supporter
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Supporter")}                        
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Contact")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Demographics
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Demographics")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Location")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Created")}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateSupporter.Actions")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {supporters.map((supporter) => (
-                      <tr key={supporter.supporter_id} className="hover:bg-gray-50">
+                      <tr key={supporter.supporter_id} className="hover:bg-[var(--text-color)]/5">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-[var(--text-color)]">
                               {getFullName(supporter)}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              Father: {supporter.father_name}
+                            <div className="text-sm text-[var(--text-secondary)]">
+                              {t("stateSupporter.Father")} {supporter.father_name}
                             </div>
                             {supporter.voter_epic_id && (
-                              <div className="text-xs text-gray-400">
-                                EPIC: {supporter.voter_epic_id}
+                              <div className="text-xs text-[var(--text-secondary)]">
+                                {t("stateSupporter.EPIC")} {supporter.voter_epic_id}
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{supporter.phone_no}</div>
+                          <div className="text-sm text-[var(--text-color)]">{supporter.phone_no}</div>
                           {supporter.whatsapp_no && (
-                            <div className="text-sm text-gray-500">WA: {supporter.whatsapp_no}</div>
+                            <div className="text-sm text-[var(--text-secondary)]">WA: {supporter.whatsapp_no}</div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {supporter.gender}, Age {supporter.age}
+                          <div className="text-sm text-[var(--text-color)]">
+                            {supporter.gender}, {t("stateSupporter.Age")} {supporter.age}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-[var(--text-secondary)]">
                             {supporter.religion} - {supporter.category}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{supporter.assembly_name}</div>
+                          <div className="text-sm text-[var(--text-color)]">{supporter.assembly_name}</div>
                           {supporter.block_name && (
-                            <div className="text-sm text-gray-500">{supporter.block_name}</div>
+                            <div className="text-sm text-[var(--text-secondary)]">{supporter.block_name}</div>
                           )}
                           {supporter.mandal_name && (
-                            <div className="text-xs text-gray-400">{supporter.mandal_name}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">{supporter.mandal_name}</div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                           {new Date(supporter.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -512,7 +515,7 @@ export default function StateSupportersPage() {
                             onClick={() => setViewingSupporter(supporter)}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
                           >
-                            View Details
+                            {t("stateSupporter.View")}
                           </button>
                         </td>
                       </tr>
@@ -523,20 +526,20 @@ export default function StateSupportersPage() {
 
               {/* Pagination */}
               {pagination && pagination.pages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
+                <div className="px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                      {pagination.total} results
+                    <div className="text-sm text-[var(--text-secondary)]">
+                      {t("stateSupporter.Showing")} {((pagination.page - 1) * pagination.limit) + 1} {t("stateSupporter.to")} {' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} {t("stateSupporter.of")}{' '}
+                      {pagination.total} {t("stateSupporter.results")}
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page <= 1}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("stateSupporter.Previous")}
                       </button>
                       {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                         const page = i + 1;
@@ -546,7 +549,7 @@ export default function StateSupportersPage() {
                             onClick={() => handlePageChange(page)}
                             className={`px-3 py-1 text-sm border rounded-md ${page === pagination.page
                               ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'border-gray-300 hover:bg-gray-50'
+                              : 'border-gray-300 hover:bg-[var(--text-color)]/5'
                               }`}
                           >
                             {page}
@@ -556,9 +559,9 @@ export default function StateSupportersPage() {
                       <button
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page >= pagination.pages}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("stateSupporter.Next")}
                       </button>
                     </div>
                   </div>
@@ -571,12 +574,12 @@ export default function StateSupportersPage() {
         {/* Supporter Details Modal */}
         {viewingSupporter && (
           <div className="fixed inset-0 bg-black/50 backgrop-blur-md flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Supporter Details</h3>
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">{t("stateSupporter.Supporter_Details")}</h3>
                 <button
                   onClick={() => setViewingSupporter(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -587,27 +590,27 @@ export default function StateSupportersPage() {
               <div className="px-6 py-4 space-y-6">
                 {/* Personal Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Personal Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Personal_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Full Name</label>
-                      <p className="text-sm text-gray-900">{getFullName(viewingSupporter)}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Full_Name")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{getFullName(viewingSupporter)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Father's Name</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.father_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Father_Name")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.father_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Age</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.age} years</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Age")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.age} {t("stateSupporter.years")}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Gender</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.gender}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Gender")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.gender}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Date of Birth</label>
-                      <p className="text-sm text-gray-900">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Date_of_Birth")}</label>
+                      <p className="text-sm text-[var(--text-color)]">
                         {new Date(viewingSupporter.date_of_birth).toLocaleDateString()}
                       </p>
                     </div>
@@ -616,22 +619,22 @@ export default function StateSupportersPage() {
 
                 {/* Contact Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Contact Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Contact_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Phone Number</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.phone_no}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Phone_Number")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.phone_no}</p>
                     </div>
                     {viewingSupporter.whatsapp_no && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">WhatsApp Number</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.whatsapp_no}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.WhatsApp_Number")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.whatsapp_no}</p>
                       </div>
                     )}
                     {viewingSupporter.voter_epic_id && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">EPIC ID</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.voter_epic_id}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.EPIC")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.voter_epic_id}</p>
                       </div>
                     )}
                   </div>
@@ -639,25 +642,25 @@ export default function StateSupportersPage() {
 
                 {/* Demographics */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Demographics</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Demographics")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Religion</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.religion}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Religion")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.religion}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Category</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.category}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Category")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.category}</p>
                     </div>
                     {viewingSupporter.caste && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Caste</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.caste}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Caste")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.caste}</p>
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Languages</label>
-                      <p className="text-sm text-gray-900">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Languages")}</label>
+                      <p className="text-sm text-[var(--text-color)]">
                         {Array.isArray(viewingSupporter.language)
                           ? viewingSupporter.language.join(', ')
                           : typeof viewingSupporter.language === 'object' && viewingSupporter.language !== null
@@ -670,36 +673,36 @@ export default function StateSupportersPage() {
 
                 {/* Location Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Location Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Location_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">State</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.state_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.State")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.state_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">District</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.district_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.District")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.district_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Assembly</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.assembly_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Assembly")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.assembly_name}</p>
                     </div>
                     {viewingSupporter.block_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Block</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.block_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Block")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.block_name}</p>
                       </div>
                     )}
                     {viewingSupporter.mandal_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Mandal</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.mandal_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Mandal")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.mandal_name}</p>
                       </div>
                     )}
                     {viewingSupporter.booth_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Booth</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.booth_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Booth")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.booth_name}</p>
                       </div>
                     )}
                   </div>
@@ -707,44 +710,44 @@ export default function StateSupportersPage() {
 
                 {/* Address */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Address</h4>
-                  <p className="text-sm text-gray-900">{viewingSupporter.address}</p>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Address")}</h4>
+                  <p className="text-sm text-[var(--text-color)]">{viewingSupporter.address}</p>
                 </div>
 
                 {/* Additional Information */}
                 {viewingSupporter.remarks && (
                   <div>
-                    <h4 className="text-md font-medium text-gray-900 mb-3">Remarks</h4>
-                    <p className="text-sm text-gray-900">{viewingSupporter.remarks}</p>
+                    <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Remarks")}</h4>
+                    <p className="text-sm text-[var(--text-color)]">{viewingSupporter.remarks}</p>
                   </div>
                 )}
 
                 {/* Created Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Record Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Record_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Created At</label>
-                      <p className="text-sm text-gray-900">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Created_At")}</label>
+                      <p className="text-sm text-[var(--text-color)]">
                         {new Date(viewingSupporter.created_at).toLocaleString()}
                       </p>
                     </div>
                     {viewingSupporter.created_by_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Created By</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.created_by_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Created_By")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.created_by_name}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <div className="px-6 py-4 border-t border-[var(--border-color)] flex justify-end">
                 <button
                   onClick={() => setViewingSupporter(null)}
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  Close
+                  {t("stateSupporter.Close")}
                 </button>
               </div>
             </div>
@@ -754,4 +757,7 @@ export default function StateSupportersPage() {
     </div>
   );
 }
+
+
+
 

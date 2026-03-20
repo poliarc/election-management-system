@@ -61,13 +61,13 @@ export default function ActionDropdown({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-xl z-10"
+          className="absolute right-0 mt-2 w-40 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] shadow-xl z-10"
         >
           {items.map((it, i) => (
             <button
               key={i}
               role="menuitem"
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 ${
                 it.destructive ? "text-red-600 hover:bg-red-50" : ""
               }`}
               onClick={() => {
@@ -83,3 +83,4 @@ export default function ActionDropdown({
     </div>
   );
 }
+

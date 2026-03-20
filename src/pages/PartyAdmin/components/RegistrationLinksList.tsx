@@ -74,7 +74,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
     const getStatusBadge = (link: RegistrationLink) => {
         if (link.isActive === 0) {
             return (
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                     Inactive
                 </span>
             );
@@ -97,10 +97,10 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
     if (isLoading) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-8">
                 <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-600">Loading registration links...</span>
+                    <span className="ml-3 text-[var(--text-secondary)]">Loading registration links...</span>
                 </div>
             </div>
         );
@@ -108,10 +108,10 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
     if (links.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Registration Links</h3>
-                <p className="text-gray-600 mb-4">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-8 text-center">
+                <Users className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">No Registration Links</h3>
+                <p className="text-[var(--text-secondary)] mb-4">
                     You haven't created any registration links yet. Create your first link to start onboarding users.
                 </p>
             </div>
@@ -122,7 +122,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
         <div className="space-y-4">
             {/* Bulk Selection Header */}
             {onSelectAll && onSelectLink && (
-                <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md border border-[var(--border-color)] p-4">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <input
@@ -131,7 +131,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                 onChange={onSelectAll}
                                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-[var(--text-secondary)]">
                                 {selectedLinks.length > 0
                                     ? `${selectedLinks.length} selected`
                                     : "Select all"
@@ -169,7 +169,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
             {links.map((link) => (
                 <div
                     key={link.link_id}
-                    className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+                    className="bg-[var(--bg-card)] rounded-lg shadow-md border border-[var(--border-color)] overflow-hidden"
                 >
                     <div className="p-4 sm:p-6">
                         {/* Header */}
@@ -187,13 +187,13 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                        <h3 className="text-lg font-semibold text-[var(--text-color)] truncate">
                                             {link.party_full_name || link.party_name}
                                         </h3>
                                         {getStatusBadge(link)}
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-[var(--text-secondary)]">
                                         <div className="flex items-center gap-1">
                                             <MapPin className="w-4 h-4 flex-shrink-0" />
                                             <span className="truncate">
@@ -225,7 +225,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
                                     onClick={() => onToggleStatus(link.link_id, link.isActive === 0)}
-                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-md transition-colors"
                                     title={link.isActive === 1 ? "Deactivate link" : "Activate link"}
                                 >
                                     {link.isActive === 1 ? (
@@ -237,7 +237,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                                 <button
                                     onClick={() => onEdit(link)}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                    className="p-2 text-[var(--text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                     title="Edit link"
                                 >
                                     <Edit className="w-5 h-5" />
@@ -245,7 +245,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                                 <button
                                     onClick={() => onDelete(link.link_id)}
-                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                    className="p-2 text-[var(--text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                     title="Delete link"
                                 >
                                     <Trash2 className="w-5 h-5" />
@@ -254,13 +254,13 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                         </div>
 
                         {/* Registration URL */}
-                        <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+                        <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-md p-4">
                             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-700 mb-1">
+                                    <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
                                         Registration URL:
                                     </p>
-                                    <p className="text-sm text-gray-600 break-all font-mono">
+                                    <p className="text-sm text-[var(--text-secondary)] break-all font-mono">
                                         {link.registration_url}
                                     </p>
                                 </div>
@@ -297,7 +297,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                         </div>
 
                         {/* Metadata */}
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-[var(--text-secondary)]">
                             <div className="truncate">
                                 <span className="font-medium">Created by:</span>{" "}
                                 {link.first_name && link.last_name
@@ -318,7 +318,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
 
                         {/* Token (for debugging - can be removed in production) */}
                         {process.env.NODE_ENV === 'development' && (
-                            <div className="mt-2 text-xs text-gray-500 break-all">
+                            <div className="mt-2 text-xs text-[var(--text-secondary)] break-all">
                                 <span className="font-medium">Token:</span> {link.link_token}
                             </div>
                         )}
@@ -328,3 +328,5 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
         </div>
     );
 };
+
+

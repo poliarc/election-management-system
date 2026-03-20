@@ -5,6 +5,8 @@ import type {
 } from "../types/hierarchy";
 import UserDetailsModal from "./UserDetailsModal";
 import InlineUserDisplay from "./InlineUserDisplay";
+import { useTranslation } from "react-i18next";
+
 
 interface HierarchyTableProps {
   data: (HierarchyChild | EnhancedHierarchyChild)[];
@@ -94,6 +96,7 @@ export default function HierarchyTable({
   // Hide Active Users column for Assembly List only
   hideActiveUsersColumn = false,
 }: HierarchyTableProps) {
+  const { t } = useTranslation();
   const isAssemblyView = title?.toLowerCase().includes("assembly");
   const [sortField, setSortField] = useState<
     "location_name" | "total_users" | "active_users"
@@ -218,7 +221,7 @@ export default function HierarchyTable({
     if (sortField !== field) {
       return (
         <svg
-          className="w-4 h-4 text-gray-400"
+          className="w-4 h-4 text-[var(--text-secondary)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -268,7 +271,7 @@ export default function HierarchyTable({
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading data...</p>
+          <p className="mt-4 text-[var(--text-secondary)] font-medium">Loading data...</p>
         </div>
       </div>
     );
@@ -310,7 +313,7 @@ export default function HierarchyTable({
       )}
 
       {/* Filters Section */}
-      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 sm:p-4">
         <div
           className={`grid grid-cols-1 ${blocks.length > 0 && onBlockChange
               ? "sm:grid-cols-3 lg:grid-cols-6"
@@ -326,14 +329,14 @@ export default function HierarchyTable({
           {/* State Field (Disabled) */}
           {stateName && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateAssembly.State")}
               </label>
               <input
                 type="text"
                 value={stateName || parentName || "N/A"}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-color)] text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
           )}
@@ -341,15 +344,15 @@ export default function HierarchyTable({
           {/* District Dropdown - Only show if districts array is provided */}
           {districts.length > 0 && onDistrictChange && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 {isAssemblyView ? "District" : "District"}
               </label>
               <select
                 value={selectedDistrict}
                 onChange={(e) => onDistrictChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">All Districts</option>
+                <option value="">{t("stateAssembly.All_Districts")}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id}
@@ -365,14 +368,14 @@ export default function HierarchyTable({
           {/* District Field (Disabled) - Only show when districtName is provided */}
           {districtName && !(districts.length > 0 && onDistrictChange) && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                District
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateAssembly.District")}
               </label>
               <input
                 type="text"
                 value={districtName || parentName || "N/A"}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-color)] text-[var(--text-secondary)] cursor-not-allowed hover:text-[var(--text-color)] transition-colors"
               />
             </div>
           )}
@@ -380,15 +383,15 @@ export default function HierarchyTable({
           {/* Assembly Dropdown - Only show if assemblies are provided */}
           {assemblies.length > 0 && onAssemblyChange && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateAssembly.Assembly")}
               </label>
               <select
                 value={selectedAssembly}
                 onChange={(e) => onAssemblyChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select Assembly</option>
+                <option value="">{t("stateAssembly.Select_Assembly")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -404,16 +407,16 @@ export default function HierarchyTable({
           {/* Block Dropdown - Only show if blocks are provided */}
           {blocks.length > 0 && onBlockChange && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Block
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateAssembly.Block")}
               </label>
               <select
                 value={selectedBlock}
                 onChange={(e) => onBlockChange(e.target.value)}
                 disabled={!selectedAssembly}
                 className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${!selectedAssembly
-                    ? "bg-gray-100 text-gray-600 cursor-not-allowed"
-                    : "bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    ? "bg-[var(--bg-color)] text-[var(--text-secondary)] cursor-not-allowed"
+                    : "bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   }`}
               >
                 <option value="">Select Block</option>
@@ -429,8 +432,8 @@ export default function HierarchyTable({
           {/* User Assignment Filter - Only show if handler is provided */}
           {onUserAssignmentFilterChange && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                User Assignment
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateAssembly.User_Assignment")}
               </label>
               <select
                 value={userAssignmentFilter}
@@ -439,24 +442,24 @@ export default function HierarchyTable({
                     e.target.value as "all" | "with-users" | "without-users"
                   )
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">All Assemblies</option>
-                <option value="with-users">With Users</option>
-                <option value="without-users">Without Users</option>
+                <option value="all">{t("stateAssembly.All_Assemblies")}</option>
+                <option value="with-users">{t("stateAssembly.With_Users")}</option>
+                <option value="without-users">{t("stateAssembly.Without_Users")}</option>
               </select>
             </div>
           )}
 
           {/* Search Bar - Always in the same row */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              {t("stateAssembly.Search")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
-                  className="h-5 w-5 text-gray-400"
+                  className="h-5 w-5 text-[var(--text-secondary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -479,7 +482,7 @@ export default function HierarchyTable({
               {searchInput && (
                 <button
                   onClick={() => onSearchChange("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 >
                   <svg
                     className="h-5 w-5"
@@ -502,53 +505,53 @@ export default function HierarchyTable({
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[var(--bg-main)]">
               <tr>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  S.No
+                <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                  {t("stateAssembly.S.no")}
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   {/* Assembly sidebar: replace 'State' with 'District' */}
                   {blockName
-                    ? "Assembly / Block"
+                    ? `${t("stateAssembly.Assembly")} / ${t("stateAssembly.Block")}`
                     : isAssemblyView && stateName
-                      ? "District"
+                      ? `${t("stateAssembly.District")}`
                       : assemblyName
-                        ? "Assembly"
+                        ? `${t("stateAssembly.Assembly")}`
                         : stateName
-                          ? "State"
+                          ? `${t("stateAssembly.State")}`
                           : districtName
-                            ? "District"
-                            : "Location"}
+                            ? `${t("stateAssembly.District")}`
+                            : `${t("stateAssembly.Location")}`}
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Type
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                  {t("stateAssembly.Type")}
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   <button
                     onClick={() => handleSort("location_name")}
                     className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
                   >
                     <span>
                       {blockName
-                        ? "Mandal"
+                        ? `${t("stateAssembly.Mandal")}`
                         : isAssemblyView && stateName
-                          ? "Assembly"
+                          ? `${t("stateAssembly.Assembly")}`
                           : assemblyName
-                            ? "Block"
+                            ? `${t("stateAssembly.Block")}`
                             : stateName
-                              ? "District"
+                              ? `${t("stateAssembly.District")}`
                               : districtName
-                                ? "Assembly"
-                                : "Name"}
+                                ? `${t("stateAssembly.Assembly")}`
+                                : `${t("stateAssembly.Name")}`}
                     </span>
                     <SortIcon field="location_name" />
                   </button>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   <button
                     onClick={() => handleSort("total_users")}
                     className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
@@ -558,40 +561,40 @@ export default function HierarchyTable({
                   </button>
                 </th>
                 {!hideActiveUsersColumn && (
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     <button
                       onClick={() => handleSort("active_users")}
                       className="flex items-center space-x-2 hover:text-blue-600 transition-colors"
                     >
-                      <span>Active Users</span>
+                      <span>{t("stateDashboard.Active_Users")}</span>
                       <SortIcon field="active_users" />
                     </button>
                   </th>
                 )}
                 {showUploadVotersButton && (
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
-                      <span>Upload Voters</span>
+                      <span>{t("stateAssembly.Upload_Voters")}</span>
                     </div>
                   </th>
                 )}
                 {showUploadDraftVotersButton && (
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
-                      <span>Draft Voters</span>
+                      <span>{t("stateAssembly.Draft_Voters")}</span>
                     </div>
                   </th>
                 )}
                 {showAssignButton && (
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     <div className="flex items-center justify-center space-x-2">
-                      <span>Assigned Users</span>
+                      <span>{t("stateAssembly.Assigned_Users")}</span>
                     </div>
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
               {data.length === 0 ? (
                 <tr>
                   <td
@@ -605,7 +608,7 @@ export default function HierarchyTable({
                     className="px-6 py-12 text-center"
                   >
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
+                      className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -617,7 +620,7 @@ export default function HierarchyTable({
                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                       />
                     </svg>
-                    <p className="mt-2 text-gray-500 font-medium">
+                    <p className="mt-2 text-[var(--text-secondary)] font-medium">
                       {emptyMessage}
                     </p>
                   </td>
@@ -635,12 +638,12 @@ export default function HierarchyTable({
                     // Main table row
                     <tr
                       key={item.location_id}
-                      className="hover:bg-blue-50 transition-colors"
+                      className="group hover:bg-[var(--bg-hover)] transition-colors"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
                         {blockName
                           ? `${assemblyName} / ${blockName}`
                           : showAllDistricts && "district_name" in item
@@ -662,7 +665,7 @@ export default function HierarchyTable({
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-sm font-semibold text-[var(--text-color)]">
                           {item.location_name}
                         </div>
                       </td>
@@ -693,8 +696,8 @@ export default function HierarchyTable({
                           }}
                           disabled={!item.users || item.users.length === 0}
                           className={`flex items-center ${item.users && item.users.length > 0
-                              ? "cursor-pointer hover:text-blue-600"
-                              : "cursor-default"
+                              ? "cursor-pointer text-[var(--text-secondary)] group-hover:text-[var(--text-color)] hover:text-blue-600"
+                              : "cursor-default text-[var(--text-secondary)]"
                             }`}
                           title={
                             item.users && item.users.length > 0
@@ -722,7 +725,7 @@ export default function HierarchyTable({
                           ) : (
                             // Collapsed state - show expand icon
                             <svg
-                              className="w-4 h-4 text-blue-500 mr-2"
+                              className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-color)] mr-2"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -741,13 +744,13 @@ export default function HierarchyTable({
                               />
                             </svg>
                           )}
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-[var(--text-color)]">
                             {item.total_users}
                           </span>
                         </button>
                       </td>
                       {!hideActiveUsersColumn && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                           {item.active_users}
                         </td>
                       )}
@@ -879,19 +882,19 @@ export default function HierarchyTable({
 
       {/* Pagination */}
       {totalItems > 0 && (
-        <div className="bg-white rounded-lg shadow-md px-6 py-4">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md px-6 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-[var(--text-secondary)]">
               <span>
-                Showing{" "}
+                {t("stateAssembly.Showing")}{" "}
                 <span className="font-semibold">
                   {(currentPage - 1) * itemsPerPage + 1}
                 </span>{" "}
-                to{" "}
+                {t("stateAssembly.to")}{" "}
                 <span className="font-semibold">
                   {Math.min(currentPage * itemsPerPage, totalItems)}
                 </span>{" "}
-                of <span className="font-semibold">{totalItems}</span> results
+                {t("stateAssembly.of")} <span className="font-semibold">{totalItems}</span> {t("stateAssembly.results")} 
               </span>
             </div>
             {totalPages > 1 && (
@@ -899,19 +902,19 @@ export default function HierarchyTable({
                 <button
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-color)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Previous
+                  {t("stateAssembly.Previous")}
                 </button>
-                <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                  Page {currentPage} of {totalPages}
+                <span className="px-4 py-2 text-sm font-medium text-[var(--text-color)]">
+                  {t("stateAssembly.Page")} {currentPage} {t("stateAssembly.of")} {totalPages}
                 </span>
                 <button
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-color)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {t("stateAssembly.Next")}
                 </button>
               </div>
             )}
@@ -941,3 +944,5 @@ export default function HierarchyTable({
     </div>
   );
 }
+
+

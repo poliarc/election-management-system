@@ -136,15 +136,15 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
     }, []);
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
+            <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">
+                    <h2 className="text-xl font-bold text-[var(--text-color)]">
                         {isEditing ? "Edit Registration Link" : "Create Registration Link"}
                     </h2>
                     <button
                         onClick={onCancel}
-                        className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-md hover:bg-gray-100"
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors p-1 rounded-md hover:bg-[var(--text-color)]/5"
                         title="Cancel"
                     >
                         <X className="w-5 h-5" />
@@ -158,28 +158,28 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                     <div className="space-y-6">
                         {/* Party Info - Read Only */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Party
                             </label>
                             <input
                                 type="text"
                                 value={partyName}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 Party is automatically set for this admin panel
                             </p>
                         </div>
 
                         {/* State Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 State *
                             </label>
                             {isLoadingStates ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading states...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading states...</span>
                                 </div>
                             ) : (
                                 <select
@@ -206,12 +206,12 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
 
                         {/* District Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 District (Optional)
                             </label>
                             {isLoadingStates ? (
-                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                    <span className="text-gray-500">Loading districts...</span>
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
                                 </div>
                             ) : (
                                 <select
@@ -228,11 +228,11 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                 </select>
                             )}
                             {!watchStateId && (
-                                <p className="text-gray-500 text-xs mt-1">
+                                <p className="text-[var(--text-secondary)] text-xs mt-1">
                                     Please select a state first
                                 </p>
                             )}
-                            <p className="text-gray-500 text-xs mt-1">
+                            <p className="text-[var(--text-secondary)] text-xs mt-1">
                                 Leave empty to allow users to select any district in the state
                             </p>
                         </div>
@@ -242,7 +242,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                     <div className="space-y-6">
                         {/* Expiration Date */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 <Calendar className="inline w-4 h-4 mr-1" />
                                 Expiration Date & Time
                             </label>
@@ -253,7 +253,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                 min={new Date().toISOString().slice(0, 16)}
                                 placeholder={defaultExpiration}
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 Leave empty for default 30-day expiration. Link will be automatically disabled after this date.
                             </p>
                         </div>
@@ -261,13 +261,13 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         {/* Status Toggle (only for editing) */}
                         {isEditing && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-3">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
                                     Link Status
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setValue("isActive", !watchIsActive)}
-                                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors w-full"
+                                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-[var(--text-color)]/5 transition-colors w-full"
                                 >
                                     <div className="flex items-center gap-2">
                                         {watchIsActive ? (
@@ -279,15 +279,15 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                             </>
                                         ) : (
                                             <>
-                                                <ToggleLeft className="w-6 h-6 text-gray-400" />
-                                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                                <ToggleLeft className="w-6 h-6 text-[var(--text-secondary)]" />
+                                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-[var(--text-color)]">
                                                     Inactive
                                                 </span>
                                             </>
                                         )}
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-[var(--text-secondary)]">
                                             Click to {watchIsActive ? "deactivate" : "activate"} this link
                                         </p>
                                     </div>
@@ -310,11 +310,11 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-[var(--border-color)]">
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                     >
                         Cancel
                     </button>
@@ -340,3 +340,6 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
         </div>
     );
 };
+
+
+

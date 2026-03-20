@@ -270,7 +270,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
     return (
       <div className="text-center py-8">
         <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">No campaigns found</p>
+        <p className="text-[var(--text-secondary)]">No campaigns found</p>
       </div>
     );
   }
@@ -284,7 +284,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
           <div
             key={notification.id}
             onClick={() => onEventClick(notification)}
-            className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+            className={`bg-[var(--bg-color)] rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
               selectedNotification?.id === notification.id
                 ? "ring-2 ring-blue-500 shadow-lg"
                 : ""
@@ -303,9 +303,9 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                 />
                 {campaignHasEnded && (
                   <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <div className="bg-white bg-opacity-90 rounded-lg px-2 py-1 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4 text-gray-600" />
-                      <span className="text-xs font-medium text-gray-700">Ended</span>
+                    <div className="bg-[var(--bg-color)] bg-opacity-90 rounded-lg px-2 py-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4 text-[var(--text-secondary)]" />
+                      <span className="text-xs font-medium text-[var(--text-secondary)]">Ended</span>
                     </div>
                   </div>
                 )}
@@ -313,10 +313,10 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-2">
-                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
+                  <h3 className="font-semibold text-[var(--text-color)] text-sm sm:text-base line-clamp-2 sm:line-clamp-1">
                     {notification.title}
                     {campaignHasEnded && (
-                      <span className="ml-2 text-xs text-gray-500 font-normal">
+                      <span className="ml-2 text-xs text-[var(--text-secondary)] font-normal">
                         (Campaign Ended)
                       </span>
                     )}
@@ -336,7 +336,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-2">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-[var(--text-secondary)] mt-2">
                   <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-wrap">
                     <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
                     <div className="flex flex-wrap items-center gap-1 min-w-0">
@@ -382,14 +382,14 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                     </div>
                   )}
                   {campaignHasEnded && (
-                    <div className="flex items-center gap-1 text-gray-500 text-xs mt-2 sm:mt-0 sm:ml-auto">
+                    <div className="flex items-center gap-1 text-[var(--text-secondary)] text-xs mt-2 sm:mt-0 sm:ml-auto">
                       <AlertCircle className="w-3 h-3" />
                       <span>Campaign ended on {formatDate(notification.endDate)}</span>
                     </div>
                   )}
                 </div>
 
-                <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2 sm:line-clamp-1">
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 line-clamp-2 sm:line-clamp-1">
                   {notification.description}
                 </p>
               </div>
@@ -407,20 +407,20 @@ export const CampaignList: React.FC<CampaignListProps> = ({
           }}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-y-auto max-h-[90vh] relative"
+            className="bg-[var(--bg-color)] rounded-2xl w-full max-w-4xl shadow-xl overflow-y-auto max-h-[90vh] relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-4 right-4 bg-white bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
+              className="absolute top-4 right-4 bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
               onClick={() => {
                 setShowReportModal(false);
                 setActiveCampaign(null);
               }}
             >
-              <span className="text-xl text-gray-700">&times;</span>
+              <span className="text-xl text-[var(--text-secondary)]">&times;</span>
             </button>
             <div className="p-4 sm:p-6 lg:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-color)] mb-4 sm:mb-6 text-center">
                 Report Event for{" "}
                 <span className="text-blue-600 block sm:inline mt-1 sm:mt-0">
                   {activeCampaign.title}
@@ -495,11 +495,11 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                           onClick={handleAddMoreImages}
                           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
                         >
-                          <Camera className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                          <p className="text-gray-600 font-medium">
+                          <Camera className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3" />
+                          <p className="text-[var(--text-secondary)] font-medium">
                             Click to upload images
                           </p>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-[var(--text-secondary)] mt-1">
                             Support multiple images (JPG, PNG, GIF) - Max 10
                             images
                           </p>
@@ -509,7 +509,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {imagePreviews.map((src, idx) => (
                             <div key={idx} className="relative group">
-                              <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                              <div className="aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10">
                                 <img
                                   src={src}
                                   alt={`Preview ${idx + 1}`}
@@ -533,8 +533,8 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                               onClick={handleAddMoreImages}
                               className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
                             >
-                              <Plus className="w-8 h-8 text-gray-400 mb-1" />
-                              <span className="text-xs text-gray-500 text-center px-1">
+                              <Plus className="w-8 h-8 text-[var(--text-secondary)] mb-1" />
+                              <span className="text-xs text-[var(--text-secondary)] text-center px-1">
                                 Add More
                               </span>
                             </div>
@@ -544,7 +544,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
 
                       {/* Image count indicator */}
                       {imagePreviews.length > 0 && (
-                        <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] bg-[var(--bg-color)] rounded-lg p-3">
                           <span>
                             {imagePreviews.length} of 10 image
                             {imagePreviews.length !== 1 ? "s" : ""} selected
@@ -628,3 +628,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
     </div>
   );
 };
+
+
+
+

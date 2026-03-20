@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import ActionDropdown from "../../../components/common/ActionDropdown.tsx";
+import { useTranslation } from "react-i18next";
 
 type KaryakartaCandidate = {
   firstName: string;
@@ -35,7 +36,7 @@ export default function StateKaryakartaListing() {
       show: 10,
     },
   });
-
+  const {t} = useTranslation();
   const selectedState = watch("state");
   const selectedDistrict = watch("district");
   const selectedAssembly = watch("assembly");
@@ -138,22 +139,22 @@ export default function StateKaryakartaListing() {
   };
 
   return (
-    <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
+    <div className="p-6 rounded-2xl shadow-md bg-[var(--bg-main)] w-full">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-800">Karyakarta List</h1>
+        <h1 className="text-xl font-bold text-[var(--text-color)]">{t("stateKaryakarta.Title")}</h1>
       </div>
 
       <form className="mb-4 w-full flex flex-col sm:flex-row sm:items-end gap-3 flex-wrap">
         <div className="flex flex-col gap-1 w-full sm:w-[180px]">
-          <label htmlFor="state" className="text-sm font-medium text-gray-700">
-            State
+          <label htmlFor="state" className="text-sm font-medium text-[var(--text-secondary)]">
+            {t("stateKaryakarta.State")}
           </label>
           <select
             id="state"
             className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
             {...register("state")}
           >
-            <option value="">All</option>
+            <option value="">{t("stateKaryakarta.All")}</option>
             {stateOptions.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -165,16 +166,16 @@ export default function StateKaryakartaListing() {
         <div className="flex flex-col gap-1 w-full sm:w-[180px]">
           <label
             htmlFor="district"
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-[var(--text-secondary)]"
           >
-            District
+            {t("stateKaryakarta.District")}
           </label>
           <select
             id="district"
             className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
             {...register("district")}
           >
-            <option value="">All</option>
+            <option value="">{t("stateKaryakarta.All")}</option>
             {districtOptions.map((d) => (
               <option key={d} value={d}>
                 {d}
@@ -186,16 +187,16 @@ export default function StateKaryakartaListing() {
         <div className="flex flex-col gap-1 w-full sm:w-[180px]">
           <label
             htmlFor="assembly"
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-[var(--text-secondary)]"
           >
-            Assembly
+            {t("stateKaryakarta.Assembly")}
           </label>
           <select
             id="assembly"
             className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
             {...register("assembly")}
           >
-            <option value="">All</option>
+            <option value="">{t("stateKaryakarta.All")}</option>
             {assemblyOptions.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -205,8 +206,8 @@ export default function StateKaryakartaListing() {
         </div>
 
         <div className="flex flex-col gap-1 sm:flex-1 min-w-[220px]">
-          <label htmlFor="q" className="text-sm font-medium text-gray-700">
-            Search
+          <label htmlFor="q" className="text-sm font-medium text-[var(--text-secondary)]">
+            {t("stateKaryakarta.Search")}
           </label>
           <input
             id="q"
@@ -218,8 +219,8 @@ export default function StateKaryakartaListing() {
         </div>
 
         <div className="flex flex-col gap-1 w-max sm:ml-auto">
-          <label htmlFor="show" className="text-sm font-medium text-gray-700">
-            Show Result
+          <label htmlFor="show" className="text-sm font-medium text-[var(--text-secondary)]">
+            {t("stateKaryakarta.Show_Result")}
           </label>
           <select
             id="show"
@@ -236,26 +237,26 @@ export default function StateKaryakartaListing() {
       </form>
 
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-white">
+        <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-[var(--bg-card)]">
           <thead className="bg-indigo-50 text-[13px]">
             <tr>
-              <th className="px-4 py-2 font-semibold">SN.</th>
-              <th className="px-4 py-2 font-semibold">FirstName</th>
-              <th className="px-4 py-2 font-semibold">LastName</th>
-              <th className="px-4 py-2 font-semibold">Phone</th>
-              <th className="px-4 py-2 font-semibold">Email</th>
-              <th className="px-4 py-2 font-semibold">State</th>
-              <th className="px-4 py-2 font-semibold">District</th>
-              <th className="px-4 py-2 font-semibold">Assembly</th>
-              <th className="px-4 py-2 font-semibold">Status</th>
-              <th className="px-4 py-2 font-semibold">Action</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.S_NO")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.FirstNmae")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.LastName")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.Phone")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.Email")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.State")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.District")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.Assembly")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.Status")}</th>
+              <th className="px-4 py-2 font-semibold">{t("stateKaryakarta.Actions")}</th>
             </tr>
           </thead>
           <tbody>
             {shown.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-8 text-gray-400">
-                  No records found
+                <td colSpan={10} className="text-center py-8 text-[var(--text-secondary)]">
+                  {t("stateKaryakarta.No_records")}
                 </td>
               </tr>
             ) : (
@@ -264,8 +265,8 @@ export default function StateKaryakartaListing() {
                   key={`${c.firstName}-${c.lastName}-${index}`}
                   className={
                     index % 2 === 0
-                      ? "bg-white hover:bg-indigo-50 transition"
-                      : "bg-gray-50 hover:bg-indigo-50 transition"
+                      ? "bg-[var(--bg-card)] hover:bg-indigo-50 transition"
+                      : "bg-[var(--bg-main)] hover:bg-indigo-50 transition"
                   }
                 >
                   <td className="px-4 py-2">{index + 1}</td>
@@ -315,3 +316,6 @@ export default function StateKaryakartaListing() {
     </div>
   );
 }
+
+
+

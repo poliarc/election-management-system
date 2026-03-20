@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import * as XLSX from "xlsx";
 import InlineUserDisplay from "./InlineUserDisplay";
+import { useTranslation } from "react-i18next";
 
 interface DynamicLevelListProps {
     levelName: string;
@@ -15,6 +16,7 @@ interface DynamicLevelListProps {
 export default function DynamicLevelList({
     levelName,
     displayLevelName }: DynamicLevelListProps) {
+    const {t} = useTranslation();
     const [searchTerm, setSearchTerm] = useState("");
     // Dynamic filters instead of hardcoded ones
     const [selectedFilters, setSelectedFilters] = useState<Record<string, number>>({});
@@ -916,10 +918,10 @@ export default function DynamicLevelList({
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
                 <div className="flex flex-col items-center justify-center h-64">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                    <p className="text-gray-700 text-base font-medium">
+                    <p className="text-[var(--text-secondary)] text-base font-medium">
                         {isLoadingAllItems ? `Loading all ${displayLevelName}s for filtering...` : `Loading ${displayLevelName} data...`}
                     </p>
-                    <p className="text-gray-500 text-sm mt-2">Please wait, fetching data from server</p>
+                    <p className="text-[var(--text-secondary)] text-sm mt-2">Please wait, fetching data from server</p>
                 </div>
             </div>
         );
@@ -934,10 +936,10 @@ export default function DynamicLevelList({
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                             <div className="shrink-0">
                                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                                    {displayLevelName} List
+                                    {displayLevelName} {t("StateDynamic.List")}
                                 </h1>
                                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                                    State: {stateInfo.stateName}
+                                    {t("StateDynamic.State")}: {stateInfo.stateName}
                                 </p>
                             </div>
 
@@ -963,16 +965,16 @@ export default function DynamicLevelList({
                                                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                             />
                                         </svg>
-                                        Export Excel ({dynamicLevelData?.pagination?.total || dynamicLevelData?.metaData?.totalItems || allLevelItems.length})
+                                        {t("StateDynamic.Export_Excel")} ({dynamicLevelData?.pagination?.total || dynamicLevelData?.metaData?.totalItems || allLevelItems.length})
                                     </button>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                                     {/* Total Items Card */}
-                                    <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                    <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                Total {displayLevelName}s
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {t("StateDynamic.Total")} {displayLevelName}s
                                             </p>
                                             <p className="text-xl sm:text-2xl font-semibold mt-1">
                                                 {dynamicLevelData?.pagination?.total || dynamicLevelData?.metaData?.totalItems || levelItems.length}
@@ -997,7 +999,7 @@ export default function DynamicLevelList({
                                     {/* Total Users Card - Clickable */}
                                     <div
                                         onClick={handleItemsWithUsersClick}
-                                        className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
+                                        className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
                                             .length > 0
                                             ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
                                             : "cursor-default"
@@ -1013,12 +1015,12 @@ export default function DynamicLevelList({
                                         }
                                     >
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                Total Users
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {t("StateDynamic.Total_Users")}
                                                 {showItemsWithUsers && (
                                                     <span className="ml-2 text-green-600 font-semibold">
-                                                        (Filtered)
-                                                    </span>
+                                                        {t("StateDynamic.Filtered")}
+                                                    </span> 
                                                 )}
                                             </p>
                                             <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
@@ -1050,7 +1052,7 @@ export default function DynamicLevelList({
                                     {/* Items Without Users Card - Clickable */}
                                     <div
                                         onClick={handleItemsWithoutUsersClick}
-                                        className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
+                                        className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
                                             .length > 0
                                             ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                                             : "cursor-default"
@@ -1066,11 +1068,11 @@ export default function DynamicLevelList({
                                         }
                                     >
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                {displayLevelName}s Without Users
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {displayLevelName}s {t("StateDynamic.Without_Users")}
                                                 {showItemsWithoutUsers && (
                                                     <span className="ml-2 text-red-600 font-semibold">
-                                                        (Filtered)
+                                                        {t("StateDynamic.Filtered")}
                                                     </span>
                                                 )}
                                             </p>
@@ -1079,7 +1081,7 @@ export default function DynamicLevelList({
                                                     (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
                                                 ).length) > 0
                                                     ? "text-red-600"
-                                                    : "text-gray-400"
+                                                    : "text-[var(--text-secondary)]"
                                                     }`}
                                             >
                                                 {dynamicLevelData?.metaData?.levelWithoutUsers || 
@@ -1093,7 +1095,7 @@ export default function DynamicLevelList({
                                             className={`rounded-full p-1.5 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
                                                 .length > 0
                                                 ? "bg-red-50"
-                                                : "bg-gray-50"
+                                                : "bg-[var(--bg-main)]"
                                                 }`}
                                         >
                                             {levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
@@ -1113,7 +1115,7 @@ export default function DynamicLevelList({
                                                 </svg>
                                             ) : (
                                                 <svg
-                                                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                                                    className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                                                     fill="none"
                                                     stroke="currentColor"
                                                     viewBox="0 0 24 24"
@@ -1133,18 +1135,18 @@ export default function DynamicLevelList({
                         </div>
                     </div>
                     {/* Dynamic Filters - Only show relevant filters based on current level */}
-                    <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
                         <div className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-${Math.min(visibleFilters.length + 3, 8)} gap-4`}>
                             {/* State Filter - Always shown */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    State
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("StateDynamic.State")}
                                 </label>
                                 <input
                                     type="text"
                                     value={stateInfo.stateName}
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                 />
                             </div>
 
@@ -1157,7 +1159,7 @@ export default function DynamicLevelList({
 
                                 return (
                                     <div key={filterLevel}>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                             {filterLevel}
                                         </label>
                                         <select
@@ -1182,8 +1184,8 @@ export default function DynamicLevelList({
 
                             {/* Current Level Filter */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Filter by {displayLevelName}
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("StateDynamic.Filter_by")} {displayLevelName}
                                 </label>
                                 <select
                                     value={selectedLevelFilter}
@@ -1204,13 +1206,13 @@ export default function DynamicLevelList({
 
                             {/* Search Filter */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Search {displayLevelName}s
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("StateDynamic.Search")} {displayLevelName}s
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg
-                                            className="w-5 h-5 text-gray-400"
+                                            className="w-5 h-5 text-[var(--text-secondary)]"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -1268,11 +1270,11 @@ export default function DynamicLevelList({
                         </div>
                     </div>
                     {/* Level Items List */}
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                         {filteredLevelItems.length === 0 ? (
                             <div className="text-center py-12">
                                 <svg
-                                    className="mx-auto h-12 w-12 text-gray-400"
+                                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -1284,10 +1286,10 @@ export default function DynamicLevelList({
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                    No {displayLevelName.toLowerCase()}s found
+                                <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
+                                    {t("StateDynamic.No")} {displayLevelName.toLowerCase()}{t("StateDynamic.s_found")}
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-[var(--text-secondary)]">
                                     {showItemsWithoutUsers
                                         ? `No ${displayLevelName.toLowerCase()}s without users match your criteria.`
                                         : `No ${displayLevelName.toLowerCase()}s match your search criteria.`}
@@ -1299,12 +1301,12 @@ export default function DynamicLevelList({
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    S.No
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                    {t("StateDynamic.S_No")}
                                                 </th>
                                                 {/* Dynamic parent level column */}
                                                 {visibleFilters.length > 0 && (
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         {(() => {
                                                             // Special handling for Booth - show Mandal or PollingCenter
                                                             if (levelName === "Booth" && paginatedItems.length > 0) {
@@ -1340,22 +1342,22 @@ export default function DynamicLevelList({
                                                         })()}
                                                     </th>
                                                 )}
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    Level Type
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                    {t("StateDynamic.Level_Type")}
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    {displayLevelName} Name
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                    {displayLevelName} {t("StateDynamic.Name")}
                                                 </th>
-                                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                    Total Users
+                                                <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                    {t("StateDynamic.Total_Users")}
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                             {paginatedItems.map((item, index) => (
                                                 <React.Fragment key={item.id}>
                                                     <tr className="hover:bg-blue-50 transition-colors">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                             {(currentPage - 1) * itemsPerPage + index + 1}
                                                         </td>
                                                         {/* Dynamic parent level display */}
@@ -1509,10 +1511,10 @@ export default function DynamicLevelList({
                                                                     )}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-sm font-semibold text-gray-900">
+                                                                    <p className="text-sm font-semibold text-[var(--text-color)]">
                                                                         {item.displayName}
                                                                     </p>
-                                                                    <p className="text-xs text-gray-500">
+                                                                    <p className="text-xs text-[var(--text-secondary)]">
                                                                         {item.partyLevelDisplayName || displayLevelName}
                                                                     </p>
                                                                 </div>
@@ -1552,7 +1554,7 @@ export default function DynamicLevelList({
                                                                         />
                                                                     </svg>
                                                                 </button>
-                                                                <span className="text-sm font-medium text-gray-900">
+                                                                <span className="text-sm font-medium text-[var(--text-color)]">
                                                                     {itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.userCount || item.user_count || 0)}
                                                                 </span>
                                                             </div>
@@ -1637,33 +1639,33 @@ export default function DynamicLevelList({
                                 </div>
                                 {/* Pagination - Show based on server or client pagination */}
                                 {shouldShowPagination && (
-                                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                    <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6">
                                         <div className="flex-1 flex justify-between sm:hidden">
                                             <button
                                                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                                 disabled={currentPage === 1}
-                                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Previous
+                                                {t("StateDynamic.Previous")}
                                             </button>
-                                            <span className="text-sm text-gray-700 flex items-center">
-                                                Page {currentPage} of {(showItemsWithoutUsers || showItemsWithUsers) ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages)}
+                                            <span className="text-sm text-[var(--text-secondary)] flex items-center">
+                                                {t("StateDynamic.Page")} {currentPage} {t("StateDynamic.of")} {(showItemsWithoutUsers || showItemsWithUsers) ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages)}
                                                 {(showItemsWithoutUsers || showItemsWithUsers) && (
-                                                    <span className="ml-1 text-xs text-gray-500">(filtered)</span>
+                                                    <span className="ml-1 text-xs text-[var(--text-secondary)]">{t("StateDynamic.Filtered")}</span>
                                                 )}
                                             </span>
                                             <button
                                                 onClick={() => setCurrentPage(Math.min(dynamicLevelData?.pagination?.totalPages || totalPages, currentPage + 1))}
                                                 disabled={currentPage === (dynamicLevelData?.pagination?.totalPages || totalPages)}
-                                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Next
+                                                {t("StateDynamic.Next")}
                                             </button>
                                         </div>
                                         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                             <div>
-                                                <p className="text-sm text-gray-700">
-                                                    Showing{" "}
+                                                <p className="text-sm text-[var(--text-secondary)]">
+                                                    {t("StateDynamic.Showing")}{" "}
                                                     <span className="font-medium">
                                                         {(showItemsWithoutUsers || showItemsWithUsers) ? 
                                                             ((currentPage - 1) * itemsPerPage + 1) :
@@ -1673,7 +1675,7 @@ export default function DynamicLevelList({
                                                             )
                                                         }
                                                     </span>{" "}
-                                                    to{" "}
+                                                    {t("StateDynamic.to")}{" "}
                                                     <span className="font-medium">
                                                         {(showItemsWithoutUsers || showItemsWithUsers) ?
                                                             Math.min(currentPage * itemsPerPage, filteredLevelItems.length) :
@@ -1683,16 +1685,16 @@ export default function DynamicLevelList({
                                                             )
                                                         }
                                                     </span>{" "}
-                                                    of{" "}
+                                                    {t("StateDynamic.of")}{" "}
                                                     <span className="font-medium">
                                                         {(showItemsWithoutUsers || showItemsWithUsers) ?
                                                             filteredLevelItems.length :
                                                             (dynamicLevelData?.pagination?.total || filteredLevelItems.length)
                                                         }
                                                     </span>{" "}
-                                                    results
+                                                    {t("StateDynamic.results")}
                                                     {(showItemsWithoutUsers || showItemsWithUsers) && (
-                                                        <span className="ml-2 text-xs text-gray-500">(filtered)</span>
+                                                        <span className="ml-2 text-xs text-[var(--text-secondary)]">(filtered)</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -1701,9 +1703,9 @@ export default function DynamicLevelList({
                                                     <button
                                                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                                         disabled={currentPage === 1}
-                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Previous
+                                                        {t("StateDynamic.Previous")}
                                                     </button>
                                                     {(() => {
                                                         const maxPages = dynamicLevelData?.pagination?.totalPages || totalPages;
@@ -1726,7 +1728,7 @@ export default function DynamicLevelList({
                                                                     onClick={() => setCurrentPage(pageNum)}
                                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
                                                                         ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                                                                        : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                                                                        : "bg-[var(--bg-card)] border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                                         }`}
                                                                 >
                                                                     {pageNum}
@@ -1737,9 +1739,9 @@ export default function DynamicLevelList({
                                                     <button
                                                         onClick={() => setCurrentPage(Math.min(dynamicLevelData?.pagination?.totalPages || totalPages, currentPage + 1))}
                                                         disabled={currentPage === (dynamicLevelData?.pagination?.totalPages || totalPages)}
-                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Next
+                                                        {t("StateDynamic.Next")}
                                                     </button>
                                                 </nav>
                                             </div>
@@ -1772,3 +1774,5 @@ export default function DynamicLevelList({
         </>
     );
 }
+
+

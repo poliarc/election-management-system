@@ -3,6 +3,7 @@ import type { HierarchyUser } from "../../../types/hierarchy";
 import { API_CONFIG } from "../../../config/api";
 import { getSelectedState } from "../../../services/hierarchyApi";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface StateTeamResponse {
   success: boolean;
@@ -22,6 +23,7 @@ interface StateTeamResponse {
 }
 
 export default function StateTeamListing() {
+  const { t } = useTranslation();
   const [stateId, setStateId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -207,7 +209,7 @@ export default function StateTeamListing() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">
+          <p className="mt-4 text-[var(--text-secondary)] font-medium">
             Loading state team...
           </p>
         </div>
@@ -246,27 +248,27 @@ export default function StateTeamListing() {
   if (!stateData) {
     return (
       <div className="p-1">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-          <p className="text-gray-600">No state data available</p>
+        <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-6 text-center">
+          <p className="text-[var(--text-secondary)]">No state data available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
-            <h1 className="text-xl sm:text-2xl font-bold">State Team</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">{t("state_Team.Title")}</h1>
             <p className="text-blue-100 mt-1 text-xs sm:text-sm">{stateData.location.location_name}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("state_Team.Total_Users")}</p>
                 <p className="text-2xl sm:text-3xl font-semibold mt-1">{stateData.total_users}</p>
               </div>
               <div className="bg-blue-50 rounded-full p-2">
@@ -276,9 +278,9 @@ export default function StateTeamListing() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Users</p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("state_Team.Active_Users")}</p>
                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">{stateData.active_users}</p>
               </div>
               <div className="bg-green-50 rounded-full p-2">
@@ -288,9 +290,9 @@ export default function StateTeamListing() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive Users</p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("state_Team.Inactive_Users")}</p>
                 <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">{stateData.inactive_users}</p>
               </div>
               <div className="bg-red-50 rounded-full p-2">
@@ -304,7 +306,7 @@ export default function StateTeamListing() {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-3 sm:p-3 mb-1">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 sm:p-3 mb-1">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
@@ -319,57 +321,56 @@ export default function StateTeamListing() {
             onChange={(e) => setFilterStatus(e.target.value as any)}
             className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all">{t("state_Team.All_Status")}</option>
+            <option value="active">{t("state_Team.Active_Only")}</option>
+            <option value="inactive">{t("state_Team.Inactive_Only")}</option>
           </select>
 
-          <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap sm:ml-auto">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] whitespace-nowrap sm:ml-auto">
+            {t("state_Team.Showing")} {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} {t("state_Team.of")} {filteredUsers.length} {t("state_Team.Users")}
           </p>
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-max divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0">
+            <thead className="bg-[var(--bg-main)] sticky top-0">
               <tr>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">S.No</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">User Id</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">State</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">District</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Designation</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Name</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Email</th>
-                
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Status</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Action</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.S_NO")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.User_ID")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.State")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.District")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Designation")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Name")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Email")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Status")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Action")}</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <p className="mt-2 text-gray-500 font-medium">No users found</p>
+                    <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("state_Team.User")}</p>
                   </td>
                 </tr>
               ) : (
                 paginatedUsers.map((user, index) => (
-                  <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{startIndex + index + 1}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_id}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_state}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_district}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || "N/A"}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                  <tr key={user.assignment_id || index} className="hover:bg-[var(--text-color)]/5">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-color)] whitespace-nowrap">{startIndex + index + 1}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_id}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_state}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_district}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || "N/A"}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-[var(--text-color)] whitespace-nowrap">
                       {user.first_name} {user.last_name}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.email}</td>
                     
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
@@ -384,7 +385,7 @@ export default function StateTeamListing() {
                             setOpenDropdown(openDropdown === user.user_id ? null : user.user_id);
                           }}
                           disabled={toggleLoading === user.user_id}
-                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                         >
                           {toggleLoading === user.user_id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
@@ -396,27 +397,27 @@ export default function StateTeamListing() {
                         </button>
 
                         {openDropdown === user.user_id && (
-                          <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md shadow-lg z-10">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleUserStatus(user.user_id, user.is_active);
                               }}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 flex items-center"
                             >
                               {user.is_active ? (
                                 <>
                                   <svg className="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  Inactive
+                                  {t("state_Team.Inactive")}
                                 </>
                               ) : (
                                 <>
                                   <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  Active
+                                  {t("state_Team.Active")}
                                 </>
                               )}
                             </button>
@@ -433,23 +434,23 @@ export default function StateTeamListing() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Previous
+              {t("state_Team.Previous")}
             </button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+            <span className="text-sm text-[var(--text-secondary)]">
+              {t("state_Team.Page")} {currentPage} {t("state_Team.Of")} {totalPages} ({filteredUsers.length} {t("state_Team.Users")})
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Next
+              {t("state_Team.Next")}
             </button>
           </div>
         )}
@@ -457,3 +458,6 @@ export default function StateTeamListing() {
     </div>
   );
 }
+
+
+

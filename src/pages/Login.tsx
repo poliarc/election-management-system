@@ -541,3 +541,179 @@ export default function LoginPage() {
 // - `pc@demo.io / password` → PollingCenter role
 // - `booth@demo.io / password` → Booth role
 // - Any other email → Karyakarta role (default)
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { logout, login } from "../store/authSlice";
+import { useLocation, Link } from "react-router-dom";
+import RoleRedirect from "../routes/RoleRedirect";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import VersionDisplay from "../components/VersionDisplay";
+
+const identifierSchema = z
+  .string()
+  .min(3, "Identifier required")
+  .refine(
+    (v) =>
+      /@/.test(v)
+        ? z.string().email().safeParse(v).success
+        : /^\+?\d{10,15}$/.test(v),
+    "Enter a valid email address or phone number"
+  );
+
+const schema = z.object({
+  identifier: identifierSchema,
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type FormData = z.infer<typeof schema>;
+
+export default function LoginPage() {
+  const dispatch = useAppDispatch();
+  const { accessToken, loading, error } = useAppSelector((s) => s.auth);
+  const location = useLocation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  
+  const [previousAccessToken, setPreviousAccessToken] = useState<string | null>(null);
+  const identifier = watch("identifier");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('logout') === 'true') {
+      dispatch(logout());
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [location.search, dispatch]);
+
+  useEffect(() => {
+    if (accessToken && accessToken !== previousAccessToken) {
+      toast.success("Login successful");
+      setPreviousAccessToken(accessToken);
+    }
+  }, [accessToken, previousAccessToken]);
+
+  if (accessToken) return <RoleRedirect />;
+
+  const onSubmit = async (data: FormData) => {
+    dispatch(login(data));
+  };
+
+  return (
+    <div className="min-h-screen w-full flex bg-[#f5f8ff] items-center justify-center p-4 md:p-8">
+      {/* Main Container Card 
+      <div className="relative w-full max-w-5xl bg-[var(--bg-card)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        {/* Left Side: Form 
+        <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center">
+          {/* Brand Logo 
+          <div className="mb-12 flex items-center gap-2">
+            <div className="text-[#007bff] transition-transform hover:scale-105">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12C4 12 7 8 12 8C17 8 20 12 20 12C20 12 17 16 12 16C7 16 4 12 4 12Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2.5"/>
+              </svg>
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-[#1a3a6c]">POLIARC</span>
+          </div>
+
+          <h2 className="text-3xl font-light text-[var(--text-secondary)] mb-8">Login Member Area</h2>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Identifier Field 
+            <div className="relative">
+              <label className="block text-sm font-bold text-[var(--text-color)] mb-1">E-mail:</label>
+              <input
+                type="text"
+                {...register("identifier")}
+                placeholder="e.g. john.doe@gmail.com"
+                className="w-full py-2 bg-transparent border-b-2 border-[var(--border-color)] focus:border-[#007bff] outline-none transition-colors text-[var(--text-secondary)] placeholder:text-gray-300 placeholder:font-light"
+              />
+              {errors.identifier && <p className="text-xs text-red-500 mt-1 absolute">{errors.identifier.message}</p>}
+            </div>
+
+            {/* Password Field 
+            <div className="relative">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-bold text-[var(--text-color)] mb-1">Password:</label>
+                <Link to="/forgot-password" size-sm className="text-[#007bff] text-xs font-bold hover:underline">Forgot Password?</Link>
+              </div>
+              <input
+                type="password"
+                {...register("password")}
+                placeholder="• • • • •"
+                className="w-full py-2 bg-transparent border-b-2 border-[var(--border-color)] focus:border-[#007bff] outline-none transition-colors text-[var(--text-secondary)] placeholder:text-gray-300"
+              />
+              {errors.password && <p className="text-xs text-red-500 mt-1 absolute">{errors.password.message}</p>}
+            </div>
+
+            {/* Submit Button 
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-40 py-3 rounded-lg bg-gradient-to-r from-[#4b6cb7] to-[#182848] text-white font-bold shadow-lg shadow-blue-200 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50"
+              >
+                {loading ? "Loading..." : "Login"}
+              </button>
+            </div>
+          </form>
+
+          
+        </div>
+
+        {/* Right Side: Illustration & Blob 
+        <div className="hidden md:flex w-1/2 bg-[#0d01a3] relative items-center justify-center overflow-hidden">
+          {/* Animated Blob Background 
+          <div className="absolute inset-0 z-0">
+             <svg viewBox="0 0 500 500" className="w-full h-full scale-150 translate-x-1/4">
+                <path fill="#1a04d9" d="M397.5,314.5Q347,379,271,402Q195,425,123.5,372Q52,319,57,236.5Q62,154,136.5,108Q211,62,284,87.5Q357,113,402.5,181.5Q448,250,397.5,314.5Z" />
+             </svg>
+          </div>
+
+          {/* Character/Mascot Placeholder 
+          <div className="relative z-10 w-3/4 flex flex-col items-center">
+             {/* This represents the Astronaut/Server illustration from your image 
+             <div className="relative group">
+                <div className="absolute -inset-4 bg-blue-400/20 rounded-full blur-2xl group-hover:bg-blue-400/30 transition-all duration-500"></div>
+                <img 
+                  src="https://img.freepik.com/free-vector/isometric-data-protection-concept-with-robot_23-2148545814.jpg" 
+                  alt="Illustration" 
+                  className="w-full h-auto rounded-3xl mix-blend-lighten animate-float"
+                />
+             </div>
+             
+             {/* Floating UI stats/elements 
+             <div className="absolute top-10 right-10 w-24 h-24 bg-[var(--bg-card)]/10 backdrop-blur-md rounded-xl border border-white/20 animate-bounce-slow"></div>
+             <div className="absolute bottom-20 left-10 w-32 h-16 bg-[var(--bg-card)]/10 backdrop-blur-md rounded-xl border border-white/20 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Version Info (Floating Bottom) 
+      <div className="absolute bottom-4 right-8 opacity-50">
+        <VersionDisplay variant="short" className="text-xs" />
+      </div>
+    </div>
+  );
+}
+*/

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Campaign } from "../../../../types/campaign";
 import { isCampaignActive, getCampaignStatusColor, getCampaignStats } from "../../../../utils/campaignUtils";
+import { useTranslation } from "react-i18next";
 // import { useNavigate } from "react-router-dom";
 
 interface CampaignListingProps {
@@ -238,6 +239,7 @@ export const CampaignListing = ({
   onDeleteCampaign,
 }: CampaignListingProps) => {
   // const navigate = useNavigate();
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "completed"
@@ -297,13 +299,13 @@ export const CampaignListing = ({
   };
 
   return (
-    <div className="space-y-1 p-1 rounded-2xl bg-gray-50 shadow-md w-full">
+    <div className="space-y-1 p-1 rounded-2xl bg-[var(--bg-color)] shadow-md w-full">
       {/* Header */}
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your political campaigns and team activities
+          <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("stateCampaign.Campaigns")}</h1>
+          <p className="text-[var(--text-secondary)] mt-1">
+            {t("stateCampaign.Desc")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -319,7 +321,7 @@ export const CampaignListing = ({
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg"
           >
             <Plus size={20} />
-            Create Campaign
+            {t("stateCampaign.Create_Campaign")}
           </button>
         </div>
       </div>
@@ -329,8 +331,8 @@ export const CampaignListing = ({
         <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors">Total Campaigns</p>
-              <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{stats.total}</p>
+              <p className="text-sm text-[var(--text-secondary)] group-hover:text-blue-600 transition-colors">{t("stateCampaign.Total_Campaigns")}</p>
+              <p className="text-3xl font-bold text-[var(--text-color)] group-hover:text-blue-600 transition-colors">{stats.total}</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-full group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300">
               <Calendar className="text-blue-600 group-hover:text-white transition-colors" size={24} />
@@ -341,7 +343,7 @@ export const CampaignListing = ({
         <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-sm border border-green-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 group-hover:text-green-600 transition-colors">Active Campaigns</p>
+              <p className="text-sm text-[var(--text-secondary)] group-hover:text-green-600 transition-colors">{t("stateCampaign.Active_Campaigns")}</p>
               <p className="text-3xl font-bold text-green-600 group-hover:scale-110 transition-transform">
                 {stats.active}
               </p>
@@ -352,23 +354,23 @@ export const CampaignListing = ({
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
+        <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl shadow-sm border border-[var(--text-color)]/10 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">Completed</p>
-              <p className="text-3xl font-bold text-gray-600 group-hover:scale-110 transition-transform">
+              <p className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-secondary)] transition-colors">{t("stateCampaign.Completed")}</p>
+              <p className="text-3xl font-bold text-[var(--text-secondary)] group-hover:scale-110 transition-transform">
                 {stats.completed}
               </p>
             </div>
             <div className="bg-gray-100 p-3 rounded-full group-hover:bg-gray-600 group-hover:scale-110 transition-all duration-300">
-              <Calendar className="text-gray-600 group-hover:text-white transition-colors" size={24} />
+              <Calendar className="text-[var(--text-secondary)] group-hover:text-white transition-colors" size={24} />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-[var(--bg-color)] rounded-lg shadow-sm border p-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -387,31 +389,31 @@ export const CampaignListing = ({
               }
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
+              <option value="all">{t("stateCampaign.All_Status")}</option>
+              <option value="active">{t("stateCampaign.Active")}</option>
+              <option value="completed">{t("stateCampaign.Completed")}</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Campaigns List */}
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-[var(--bg-color)] rounded-lg shadow-sm border">
         <div className="p-3 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Campaigns ({filteredCampaigns.length})
+          <h2 className="text-lg font-semibold text-[var(--text-color)]">
+            {t("stateCampaign.Campaigns")} ({filteredCampaigns.length})
           </h2>
         </div>
         <div className="p-6">
           {filteredCampaigns.length === 0 ? (
             <div className="text-center py-12">
-              <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Calendar className="mx-auto text-[var(--text-secondary)] mb-4" size={48} />
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">
                 {campaigns.length === 0
                   ? "No campaigns yet"
                   : "No campaigns match your filters"}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-[var(--text-secondary)] mb-4">
                 {campaigns.length === 0
                   ? "Create your first campaign to engage your team"
                   : "Try adjusting your search or filter criteria"}
@@ -421,7 +423,7 @@ export const CampaignListing = ({
                   onClick={onCreateNew}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
                 >
-                  Create Campaign
+                  {t("stateCampaign.Create_Campaign")}
                 </button>
               )}
             </div>
@@ -433,7 +435,7 @@ export const CampaignListing = ({
                 return (
                   <div
                     key={campaign.id}
-                    className="border border-gray-200 rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-0 group"
+                    className="border border-[var(--text-color)]/10 rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-0 group"
                   >
                     {/* Campaign Images */}
                     {images.length > 0 && (
@@ -461,7 +463,7 @@ export const CampaignListing = ({
                         {isCampaignActive(campaign) && (
                           <button
                             onClick={() => onEditCampaign(campaign)}
-                            className="p-2 text-gray-600 hover:bg-gray-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md"
+                            className="p-2 text-[var(--text-secondary)] hover:bg-gray-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md"
                             title="Edit Campaign"
                           >
                             <Edit size={16} />
@@ -478,7 +480,7 @@ export const CampaignListing = ({
 
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900 truncate">
+                          <h3 className="font-semibold text-[var(--text-color)] truncate">
                             {campaign.name}
                           </h3>
                           <span
@@ -491,16 +493,16 @@ export const CampaignListing = ({
                               : "completed"}
                           </span>
                         </div>
-                        <p className="text-gray-600 mb-3 truncate w-full min-w-0">
+                        <p className="text-[var(--text-secondary)] mb-3 truncate w-full min-w-0">
                           {campaign.description.length > 75
                             ? campaign.description.substring(0, 75) + "..."
                             : campaign.description}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-secondary)]">
                           {campaign.totalParticipants !== undefined && (
                             <span>
-                              👥 {campaign.totalParticipants} participants
+                              👥 {campaign.totalParticipants} {t("stateCampaign.Participants")}
                             </span>
                           )}
                           {campaign.location && (
@@ -538,3 +540,7 @@ export const CampaignListing = ({
     </div>
   );
 };
+
+
+
+

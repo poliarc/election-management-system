@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { useGetResultsByAssemblyQuery } from "../../store/api/resultAnalysisApi";
+import { useTranslation } from "react-i18next";
 
 interface ConsolidatedCandidate {
   candidateName: string;
@@ -42,6 +43,7 @@ interface BoothResult {
 }
 
 export default function AssemblyForm20() {
+  const { t } = useTranslation();
   const [assemblyInfo, setAssemblyInfo] = useState({
     assemblyName: "",
     districtName: "",
@@ -260,7 +262,7 @@ export default function AssemblyForm20() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-gray-600">Loading Form 20 data...</p>
+            <p className="mt-4 text-[var(--text-secondary)]">{t("assemblyForm20.loadingForm20Data")}</p>
           </div>
         </div>
       </div>
@@ -285,12 +287,12 @@ export default function AssemblyForm20() {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
               />
             </svg>
-            <p className="mt-2 text-red-600 font-medium">Error loading Form 20 data</p>
+            <p className="mt-2 text-red-600 font-medium">{t("assemblyForm20.errorLoadingForm20Data")}</p>
             <button
               onClick={handleRefresh}
               className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              Try Again
+              {t("assemblyForm20.btnTryAgain")}
             </button>
           </div>
         </div>
@@ -305,24 +307,24 @@ export default function AssemblyForm20() {
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl shadow-lg p-6 mb-6 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Assembly Result Analysis</h1>
+              <h1 className="text-2xl md:text-3xl font-bold">{t("assemblyForm20.titleAssemblyResultAnalysis")}</h1>
               <p className="text-indigo-100 text-sm mt-2">
-                Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
+                {t("assemblyForm20.assemblyDistrictLine", { assemblyName: assemblyInfo.assemblyName, districtName: assemblyInfo.districtName })}
               </p>
               {assemblyInfo.stateName && (
                 <p className="text-indigo-100 text-sm">
-                  State: {assemblyInfo.stateName}
+                  {t("assemblyForm20.stateLine", { stateName: assemblyInfo.stateName })}
                 </p>
               )}
             </div>
             <div className="flex items-center gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
+              <div className="bg-[var(--bg-card)]/10 backdrop-blur-sm rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold">{consolidatedResults.totalBooths}</div>
-                <div className="text-indigo-100 text-sm">Total Booths</div>
+                <div className="text-indigo-100 text-sm">{t("assemblyForm20.totalBooths")}</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
+              <div className="bg-[var(--bg-card)]/10 backdrop-blur-sm rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold">{consolidatedResults.totalVotes.toLocaleString()}</div>
-                <div className="text-indigo-100 text-sm">Total Votes</div>
+                <div className="text-indigo-100 text-sm">{t("assemblyForm20.totalVotes")}</div>
               </div>
             </div>
           </div>
@@ -330,10 +332,10 @@ export default function AssemblyForm20() {
 
         {/* Results Content */}
         {resultData.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-3">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-16 w-16 text-gray-400"
+                className="mx-auto h-16 w-16 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -345,30 +347,30 @@ export default function AssemblyForm20() {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <h3 className="mt-1 text-lg font-semibold text-gray-900">No Form 20 Data Available</h3>
-              <p className="mt-2 text-gray-500">
-                No result analysis data has been uploaded for this assembly yet.
+              <h3 className="mt-1 text-lg font-semibold text-[var(--text-color)]">{t("assemblyForm20.noForm20DataAvailable")}</h3>
+              <p className="mt-2 text-[var(--text-secondary)]">
+                {t("assemblyForm20.noDataUploadedDesc")}
               </p>
-              <p className="mt-1 text-sm text-gray-400">
-                Upload data using the Result Analysis feature in booth management.
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {t("assemblyForm20.uploadDataHint")}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-1">
             {/* Assembly Consolidated Results */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-green-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-green-900">🏆 Assembly Result Summary</h2>
+                    <h2 className="text-xl font-bold text-green-900">{t("assemblyForm20.sectionAssemblyResultSummary")}</h2>
                     <p className="text-green-700 text-sm mt-1">
-                      Consolidated results from {consolidatedResults.totalBooths} booths
+                      {t("assemblyForm20.consolidatedResultsFromBooths", { count: consolidatedResults.totalBooths })}
                     </p>
                   </div>
                   {consolidatedResults.winner && (
                     <div className="text-right">
-                      <div className="text-lg font-bold text-green-900">Winner</div>
+                      <div className="text-lg font-bold text-green-900">{t("assemblyForm20.winner")}</div>
                       <div className="text-green-800 font-semibold">
                         {consolidatedResults.winner.candidateName}
                       </div>
@@ -387,56 +389,56 @@ export default function AssemblyForm20() {
                     <div className="text-3xl font-bold text-green-600">
                       {consolidatedResults.totalValidVotes.toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-green-700 mt-1">Total Valid Votes</div>
+                    <div className="text-sm font-medium text-green-700 mt-1">{t("assemblyForm20.totalValidVotes")}</div>
                   </div>
                   <div className="bg-red-50 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-red-600">
                       {consolidatedResults.totalRejectedVotes.toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-red-700 mt-1">Total Rejected</div>
+                    <div className="text-sm font-medium text-red-700 mt-1">{t("assemblyForm20.totalRejected")}</div>
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-blue-600">
                       {consolidatedResults.totalNotaVotes.toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-blue-700 mt-1">Total NOTA</div>
+                    <div className="text-sm font-medium text-blue-700 mt-1">{t("assemblyForm20.totalNota")}</div>
                   </div>
                   <div className="bg-purple-50 rounded-lg p-4 text-center">
                     <div className="text-3xl font-bold text-purple-600">
                       {consolidatedResults.totalVotes.toLocaleString()}
                     </div>
-                    <div className="text-sm font-medium text-purple-700 mt-1">Grand Total</div>
+                    <div className="text-sm font-medium text-purple-700 mt-1">{t("assemblyForm20.grandTotal")}</div>
                   </div>
                 </div>
 
                 {/* Consolidated Candidate Results */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Final Assembly Results</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-color)] mb-1">{t("assemblyForm20.finalAssemblyResults")}</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[var(--bg-main)]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Position
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thPosition")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Candidate Name
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thCandidateName")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Party
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thParty")}
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Total Votes
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thTotalVotes")}
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Percentage
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thPercentage")}
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Booths Won
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thBoothsWon")}
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                         {consolidatedResults.candidates.map((candidate, index) => (
                           <tr key={`${candidate.candidateName}-${candidate.candidateParty}`} 
                               className={index === 0 ? "bg-green-50" : ""}>
@@ -451,13 +453,13 @@ export default function AssemblyForm20() {
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                   </svg>
                                 )} */}
-                                <span className="text-lg font-bold text-gray-900">
+                                <span className="text-lg font-bold text-[var(--text-color)]">
                                   {index + 1}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-lg font-bold text-gray-900">
+                              <div className="text-lg font-bold text-[var(--text-color)]">
                                 {candidate.candidateName}
                               </div>
                             </td>
@@ -467,17 +469,17 @@ export default function AssemblyForm20() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="text-lg font-bold text-gray-900">
+                              <div className="text-lg font-bold text-[var(--text-color)]">
                                 {candidate.totalVotes.toLocaleString()}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="text-lg font-bold text-gray-900">
+                              <div className="text-lg font-bold text-[var(--text-color)]">
                                 {candidate.percentage.toFixed(2)}%
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="text-lg font-bold text-gray-900">
+                              <div className="text-lg font-bold text-[var(--text-color)]">
                                 {candidate.boothsWon} / {consolidatedResults.totalBooths}
                               </div>
                             </td>
@@ -492,13 +494,13 @@ export default function AssemblyForm20() {
 
             {/* Booth-wise Results */}
             {boothWiseResults.length > 0 && (
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h2 className="text-xl font-bold text-blue-900">📊 Booth-wise Results</h2>
+                      <h2 className="text-xl font-bold text-blue-900">{t("assemblyForm20.sectionBoothWiseResults")}</h2>
                       <p className="text-blue-700 text-sm mt-1">
-                        Click on any booth to view detailed results
+                        {t("assemblyForm20.boothWiseHint")}
                       </p>
                     </div>
                     <div className="flex-shrink-0">
@@ -507,8 +509,10 @@ export default function AssemblyForm20() {
                           type="text"
                           value={boothSearchTerm}
                           onChange={(e) => setBoothSearchTerm(e.target.value)}
-                          placeholder="Search by booth number..."
+                          placeholder={t("assemblyForm20.phSearchByBoothNumber")}
                           className="w-full sm:w-64 pl-10 pr-4 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          aria-label={t("assemblyForm20.phSearchByBoothNumber")}
+                          title={t("assemblyForm20.phSearchByBoothNumber")}
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -519,6 +523,8 @@ export default function AssemblyForm20() {
                           <button
                             onClick={() => setBoothSearchTerm("")}
                             className="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-400 hover:text-blue-600"
+                            aria-label={t("assemblyForm20.btnClearSearch")}
+                            title={t("assemblyForm20.btnClearSearch")}
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -536,12 +542,12 @@ export default function AssemblyForm20() {
                       <div
                         key={`${booth.boothId}-${booth.boothNo}`}
                         onClick={() => handleBoothClick(booth)}
-                        className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 hover:shadow-md transition-all duration-200 border border-gray-200"
+                        className="bg-[var(--bg-main)] rounded-lg p-4 cursor-pointer hover:bg-[var(--text-color)]/5 hover:shadow-md transition-all duration-200 border border-[var(--border-color)]"
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-bold text-gray-900">Booth {booth.boothNo}</h3>
+                          <h3 className="font-bold text-[var(--text-color)]">{t("assemblyForm20.boothTitle", { boothNo: booth.boothNo })}</h3>
                           <svg
-                            className="w-5 h-5 text-gray-400"
+                            className="w-5 h-5 text-[var(--text-secondary)]"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -557,12 +563,12 @@ export default function AssemblyForm20() {
                         
                         {booth.winner && (
                           <div className="mb-3">
-                            <div className="text-sm text-gray-600 mb-1">Winner:</div>
+                            <div className="text-sm text-[var(--text-secondary)] mb-1">{t("assemblyForm20.winnerLabel")}</div>
                             <div className="font-semibold text-green-700 text-sm">
                               {booth.winner.candidateName}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {booth.winner.candidateParty} - {booth.winner.candidateVotes} votes
+                            <div className="text-xs text-[var(--text-secondary)]">
+                              {t("assemblyForm20.partyVotesLine", { party: booth.winner.candidateParty, votes: booth.winner.candidateVotes })}
                             </div>
                           </div>
                         )}
@@ -570,17 +576,17 @@ export default function AssemblyForm20() {
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="bg-green-100 rounded p-2 text-center">
                             <div className="font-bold text-green-700">{booth.validVotes}</div>
-                            <div className="text-green-600">Valid</div>
+                            <div className="text-green-600">{t("assemblyForm20.valid")}</div>
                           </div>
                           <div className="bg-red-100 rounded p-2 text-center">
                             <div className="font-bold text-red-700">{booth.rejectedVotes}</div>
-                            <div className="text-red-600">Rejected</div>
+                            <div className="text-red-600">{t("assemblyForm20.rejected")}</div>
                           </div>
                         </div>
 
                         <div className="mt-2 text-center">
-                          <div className="text-sm font-bold text-gray-900">
-                            Total: {booth.totalVotes}
+                          <div className="text-sm font-bold text-[var(--text-color)]">
+                            {t("assemblyForm20.totalLabel", { total: booth.totalVotes })}
                           </div>
                         </div>
                       </div>
@@ -595,19 +601,21 @@ export default function AssemblyForm20() {
         {/* Booth Detail Modal */}
         {showBoothModal && selectedBooth && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold">Booth {selectedBooth.boothNo} - Detailed Results</h2>
+                    <h2 className="text-2xl font-bold">{t("assemblyForm20.boothDetailedTitle", { boothNo: selectedBooth.boothNo })}</h2>
                     <p className="text-indigo-100 text-sm mt-1">
-                      Complete voting breakdown for this booth
+                      {t("assemblyForm20.boothDetailedSubtitle")}
                     </p>
                   </div>
                   <button
                     onClick={closeBoothModal}
                     className="text-white hover:text-indigo-200 transition-colors"
+                    aria-label={t("assemblyForm20.btnClose")}
+                    title={t("assemblyForm20.btnClose")}
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -624,25 +632,25 @@ export default function AssemblyForm20() {
                     <div className="text-2xl font-bold text-green-600">
                       {selectedBooth.validVotes}
                     </div>
-                    <div className="text-sm font-medium text-green-700 mt-1">Valid Votes</div>
+                    <div className="text-sm font-medium text-green-700 mt-1">{t("assemblyForm20.validVotes")}</div>
                   </div>
                   <div className="bg-red-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-red-600">
                       {selectedBooth.rejectedVotes}
                     </div>
-                    <div className="text-sm font-medium text-red-700 mt-1">Rejected</div>
+                    <div className="text-sm font-medium text-red-700 mt-1">{t("assemblyForm20.rejected")}</div>
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-blue-600">
                       {selectedBooth.notaVotes}
                     </div>
-                    <div className="text-sm font-medium text-blue-700 mt-1">NOTA</div>
+                    <div className="text-sm font-medium text-blue-700 mt-1">{t("assemblyForm20.nota")}</div>
                   </div>
                   <div className="bg-purple-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-purple-600">
                       {selectedBooth.totalVotes}
                     </div>
-                    <div className="text-sm font-medium text-purple-700 mt-1">Total</div>
+                    <div className="text-sm font-medium text-purple-700 mt-1">{t("assemblyForm20.total")}</div>
                   </div>
                 </div>
 
@@ -654,7 +662,7 @@ export default function AssemblyForm20() {
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                       </svg>
                       <div>
-                        <div className="text-lg font-bold text-green-900">Booth Winner</div>
+                        <div className="text-lg font-bold text-green-900">{t("assemblyForm20.boothWinner")}</div>
                         <div className="text-green-800 font-semibold">
                           {selectedBooth.winner.candidateName} ({selectedBooth.winner.candidateParty})
                         </div>
@@ -668,29 +676,29 @@ export default function AssemblyForm20() {
 
                 {/* Candidate Results Table */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Candidate-wise Results</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("assemblyForm20.candidateWiseResults")}</h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[var(--bg-main)]">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Position
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thPosition")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Candidate Name
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thCandidateName")}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Party
+                          <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thParty")}
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Votes
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thVotes")}
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Percentage
+                          <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("assemblyForm20.thPercentage")}
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                         {selectedBooth.candidates.map((candidate, index) => (
                           <tr key={`${candidate.candidateName}-${candidate.candidateParty}`} 
                               className={index === 0 ? "bg-green-50" : ""}>
@@ -705,13 +713,13 @@ export default function AssemblyForm20() {
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                   </svg>
                                 )}
-                                <span className="font-bold text-gray-900">
+                                <span className="font-bold text-[var(--text-color)]">
                                   #{index + 1}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="font-bold text-gray-900">
+                              <div className="font-bold text-[var(--text-color)]">
                                 {candidate.candidateName}
                               </div>
                             </td>
@@ -721,12 +729,12 @@ export default function AssemblyForm20() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="font-bold text-gray-900">
+                              <div className="font-bold text-[var(--text-color)]">
                                 {candidate.candidateVotes.toLocaleString()}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <div className="font-bold text-gray-900">
+                              <div className="font-bold text-[var(--text-color)]">
                                 {selectedBooth.validVotes > 0 ? ((candidate.candidateVotes / selectedBooth.validVotes) * 100).toFixed(2) : 0}%
                               </div>
                             </td>
@@ -743,7 +751,7 @@ export default function AssemblyForm20() {
                     onClick={closeBoothModal}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   >
-                    Close
+                    {t("assemblyForm20.btnClose")}
                   </button>
                 </div>
               </div>
@@ -754,3 +762,4 @@ export default function AssemblyForm20() {
     </div>
   );
 }
+

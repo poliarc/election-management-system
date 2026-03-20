@@ -5,8 +5,11 @@ import { useGetStateLevelDashboardQuery } from "../../../store/api/stateMasterAp
 import type { DistrictChild } from "../../../store/api/stateMasterApi";
 import HierarchyTable from "../../../components/HierarchyTable";
 import type { HierarchyChild, HierarchyUser } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
+
 
 export default function StateDistricts() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
@@ -164,20 +167,20 @@ export default function StateDistricts() {
   };
 
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
       <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">District List</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{t("stateDistrict.Title")}</h1>
             <p className="text-sky-100 mt-1 text-xs sm:text-sm">{stateName || parentName}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
             {/* Total Districts Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-600">Total Districts</p>
+                <p className="text-xs font-medium text-[var(--text-secondary)]">{t("stateDistrict.Total_Districts")}</p>
                 <p className="text-xl sm:text-2xl font-semibold mt-1">{formatNumber(totalChildren)}</p>
               </div>
               <div className="bg-blue-50 rounded-full p-1.5">
@@ -190,7 +193,7 @@ export default function StateDistricts() {
             {/* Total Users Card - Clickable */}
             <div 
               onClick={handleAssignedUsersClick}
-              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+              className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                 totalUsers > 0 
                   ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50' 
                   : 'cursor-default'
@@ -202,17 +205,17 @@ export default function StateDistricts() {
               title={totalUsers > 0 ? "Click to view districts with assigned users" : "No assigned users"}
             >
               <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Total Users
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  {t("stateDistrict.Total_Users")}
                   {showAssignedUsers && (
                     <span className="ml-2 text-green-600 font-semibold">(Filtered)</span>
                   )}
                 </p>
-                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${totalUsers > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${totalUsers > 0 ? 'text-green-600' : 'text-[var(--text-secondary)]'}`}>
                   {formatNumber(totalUsers)}
                 </p>
               </div>
-              <div className={`rounded-full p-1.5 ${totalUsers > 0 ? 'bg-green-50' : 'bg-gray-50'}`}>
+              <div className={`rounded-full p-1.5 ${totalUsers > 0 ? 'bg-green-50' : 'bg-[var(--bg-main)]'}`}>
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
@@ -222,7 +225,7 @@ export default function StateDistricts() {
             {/* Districts Without Users Card - Clickable */}
             <div 
               onClick={handleDistrictsWithoutUsersClick}
-              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+              className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                 districtsWithoutUsers > 0 
                   ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
                   : 'cursor-default'
@@ -234,23 +237,23 @@ export default function StateDistricts() {
               title={districtsWithoutUsers > 0 ? "Click to view districts without users" : "No districts without users"}
             >
               <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Districts Without Users
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  {t("stateDistrict.Districts_Without_Users")}
                   {showDistrictsWithoutUsers && (
                     <span className="ml-2 text-red-600 font-semibold">(Filtered)</span>
                   )}
                 </p>
-                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${districtsWithoutUsers > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                <p className={`text-xl sm:text-2xl font-semibold mt-1 ${districtsWithoutUsers > 0 ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                   {formatNumber(districtsWithoutUsers)}
                 </p>
               </div>
-              <div className={`rounded-full p-1.5 ${districtsWithoutUsers > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+              <div className={`rounded-full p-1.5 ${districtsWithoutUsers > 0 ? 'bg-red-50' : 'bg-[var(--bg-main)]'}`}>
                 {districtsWithoutUsers > 0 ? (
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
@@ -292,3 +295,5 @@ export default function StateDistricts() {
     </div>
   );
 }
+
+

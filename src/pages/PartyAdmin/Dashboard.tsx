@@ -54,24 +54,24 @@ export const PartyAdminDashboard: React.FC = () => {
     };
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="mb-1">
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-[var(--text-color)]">
                     {currentParty?.displayName || "Party Admin"} Dashboard
                 </h1>
-                <p className="text-gray-600 mt-2">
+                <p className="text-[var(--text-secondary)] mt-2">
                     Welcome to your party administration panel
                 </p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-1">
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Total Levels</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">
+                            <p className="text-sm font-medium text-[var(--text-secondary)]">Total Levels</p>
+                            <p className="text-3xl font-bold text-[var(--text-color)] mt-2">
                                 {isLoading ? "..." : levels.length}
                             </p>
                         </div>
@@ -81,11 +81,11 @@ export const PartyAdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Active Levels</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">
+                            <p className="text-sm font-medium text-[var(--text-secondary)]">Active Levels</p>
+                            <p className="text-3xl font-bold text-[var(--text-color)] mt-2">
                                 {isLoading ? "..." : activeLevels.length}
                             </p>
                         </div>
@@ -95,11 +95,11 @@ export const PartyAdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Total Users</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">{totalUsers}</p>
+                            <p className="text-sm font-medium text-[var(--text-secondary)]">Total Users</p>
+                            <p className="text-3xl font-bold text-[var(--text-color)] mt-2">{totalUsers}</p>
                         </div>
                         <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                             <Users className="w-6 h-6 text-purple-600" />
@@ -107,11 +107,11 @@ export const PartyAdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Party Code</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-2">
+                            <p className="text-sm font-medium text-[var(--text-secondary)]">Party Code</p>
+                            <p className="text-2xl font-bold text-[var(--text-color)] mt-2">
                                 {currentParty?.metadata?.partyCode || "N/A"}
                             </p>
                         </div>
@@ -123,14 +123,14 @@ export const PartyAdminDashboard: React.FC = () => {
             </div>
 
             {/* States Overview */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">
                     States Overview
                 </h2>
                 {isLoading ? (
-                    <p className="text-gray-500">Loading states...</p>
+                    <p className="text-[var(--text-secondary)]">Loading states...</p>
                 ) : states.length === 0 ? (
-                    <p className="text-gray-500">No states available.</p>
+                    <p className="text-[var(--text-secondary)]">No states available.</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {states.map((state) => {
@@ -141,7 +141,7 @@ export const PartyAdminDashboard: React.FC = () => {
                                 <button
                                     key={state.id}
                                     onClick={() => handleStateClick(state.id)}
-                                    className="p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all text-left group"
+                                    className="p-4 border border-[var(--border-color)] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all text-left group"
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-3 flex-1">
@@ -149,10 +149,10 @@ export const PartyAdminDashboard: React.FC = () => {
                                                 <MapPin className="w-6 h-6 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                                <p className="font-semibold text-[var(--text-color)] group-hover:text-blue-600 transition-colors">
                                                     {state.levelName}
                                                 </p>
-                                                <p className="text-sm text-gray-600 mt-1">
+                                                <p className="text-sm text-[var(--text-secondary)] mt-1">
                                                     {stateLevels.length} level{stateLevels.length !== 1 ? 's' : ''}
                                                     {stateLevels.length > 0 && (
                                                         <> • {activeStateLevels.length} active</>
@@ -160,7 +160,7 @@ export const PartyAdminDashboard: React.FC = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                                        <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600 transition-colors" />
                                     </div>
                                 </button>
                             );
@@ -170,14 +170,14 @@ export const PartyAdminDashboard: React.FC = () => {
             </div>
 
             {/* Recent Levels */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">
                     Recent Organizational Levels
                 </h2>
                 {isLoading ? (
-                    <p className="text-gray-500">Loading levels...</p>
+                    <p className="text-[var(--text-secondary)]">Loading levels...</p>
                 ) : levels.length === 0 ? (
-                    <p className="text-gray-500">
+                    <p className="text-[var(--text-secondary)]">
                         No levels configured yet. Go to Levels page to create one.
                     </p>
                 ) : (
@@ -185,17 +185,17 @@ export const PartyAdminDashboard: React.FC = () => {
                         {levels.slice(0, 5).map((level) => (
                             <div
                                 key={level.party_wise_id}
-                                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                                className="flex items-center justify-between p-4 border border-[var(--border-color)] rounded-lg hover:bg-[var(--text-color)]/5"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                         <Network className="w-5 h-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-gray-900">
+                                        <p className="font-semibold text-[var(--text-color)]">
                                             {level.display_level_name}
                                         </p>
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-[var(--text-secondary)]">
                                             {level.state_name}
                                             {level.parent_level_name &&
                                                 ` • Parent: ${level.parent_level_name}`}
@@ -205,7 +205,7 @@ export const PartyAdminDashboard: React.FC = () => {
                                 <span
                                     className={`px-3 py-1 rounded-full text-xs font-medium ${level.isActive === 1
                                         ? "bg-green-100 text-green-800"
-                                        : "bg-gray-100 text-gray-800"
+                                        : "bg-gray-100 text-[var(--text-color)]"
                                         }`}
                                 >
                                     {level.isActive === 1 ? "Active" : "Inactive"}
@@ -226,3 +226,7 @@ export const PartyAdminDashboard: React.FC = () => {
         </div>
     );
 };
+
+
+
+

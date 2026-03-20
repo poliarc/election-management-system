@@ -7,6 +7,7 @@ import {
   getIconSvgPath,
   getDynamicCardColor,
 } from "../../utils/dashboardNavigation";
+import { useTranslation } from "react-i18next";
 
 interface UserStats {
   totalUsers: number;
@@ -15,6 +16,7 @@ interface UserStats {
 }
 
 export default function DistrictDashboard() {
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const [districtId, setDistrictId] = useState<number | null>(null);
   const [stateId, setStateId] = useState<number | null>(null);
@@ -172,11 +174,11 @@ export default function DistrictDashboard() {
   // Show loading or error state - MOVED AFTER ALL HOOKS
   if (loading) {
     return (
-      <div className="w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
+      <div className="glass-dashboard w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-[var(--bg-main)] transition-all mx-auto px-4">
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading dashboard data...</p>
+            <p className="text-[var(--text-secondary)]">Loading dashboard data...</p>
           </div>
         </div>
       </div>
@@ -185,7 +187,7 @@ export default function DistrictDashboard() {
 
   if (error) {
     return (
-      <div className="w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
+      <div className="glass-dashboard w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-[var(--bg-main)] transition-all mx-auto px-4">
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
             <div className="text-red-500 mb-4">
@@ -203,7 +205,7 @@ export default function DistrictDashboard() {
                 />
               </svg>
             </div>
-            <p className="text-gray-600">Error loading dashboard: {error}</p>
+            <p className="text-[var(--text-secondary)]">Error loading dashboard: {error}</p>
           </div>
         </div>
       </div>
@@ -211,12 +213,12 @@ export default function DistrictDashboard() {
   }
 
   return (
-    <div className="w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
+    <div className="glass-dashboard w-full py-1 min-h-screen box-border rounded-2xl shadow-md bg-[var(--bg-main)] transition-all mx-auto px-4">
       {/* Header */}
       <header className="mb-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            {levelInfo?.name || districtName} District Dashboard
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-color)]">
+            {levelInfo?.name || districtName} {t("districtDash.Title")}
           </h1>
         </div>
       </header>
@@ -226,14 +228,15 @@ export default function DistrictDashboard() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
             {cards.map((card, index) => {
-              const colorClasses = getDynamicCardColor(index);
+              const colorClasses = getDynamicCardColor(partyId || 0);
               const iconSvg = getIconForCard(card.title);
 
               return (
                 <div
                   key={index}
                   onClick={() => handleStatsCardClick(card.title)}
-                  className={`${colorClasses.bg} rounded-xl shadow-lg p-5 text-white cursor-pointer hover:shadow-xl transition-all duration-200 hover:-translate-y-1`}
+                  className={`dashboard-stat-card ${colorClasses.bg} rounded-xl shadow-lg p-5 text-white cursor-pointer hover:shadow-xl transition-all duration-200 hover:-translate-y-1`}
+                  style={{ animationDelay: `${index * 70}ms` }}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -245,7 +248,7 @@ export default function DistrictDashboard() {
                         {card.userCount} users
                       </p>
                     </div>
-                    <div className="bg-white/20 rounded-full p-2">
+                    <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
                       {iconSvg}
                     </div>
                   </div>
@@ -257,18 +260,18 @@ export default function DistrictDashboard() {
           {/* Analytics Dashboard */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* User Distribution Pie Charts */}
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center group-hover:text-blue-600 transition-colors duration-300">
+            <div className="glass-panel bg-[var(--bg-card)] rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center group-hover:text-blue-600 transition-colors duration-300">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 group-hover:animate-pulse"></div>
-                User Distribution by Level
+                {t("districtDash.User_Distribution_Level")}
               </h3>
 
               {/* Two Smaller Pie Charts Side by Side */}
               <div className="grid grid-cols-2 gap-4">
                 {/* First Pie Chart - Assigned Users by Level */}
                 <div className="text-center">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    By Level
+                  <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    {t("districtDash.By_Level")}
                   </h4>
                   <div className="flex items-center justify-center">
                     <div className="relative w-32 h-32">
@@ -323,11 +326,11 @@ export default function DistrictDashboard() {
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-lg font-bold text-gray-800">
+                          <div className="text-lg font-bold text-[var(--text-color)]">
                             {cards.reduce((sum, c) => sum + c.userCount, 0)}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Assign Users
+                          <div className="text-xs text-[var(--text-secondary)]">
+                            {t("districtDash.Assign_Users")}
                           </div>
                         </div>
                       </div>
@@ -337,8 +340,8 @@ export default function DistrictDashboard() {
 
                 {/* Second Pie Chart - Total Users */}
                 <div className="text-center">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Total Overview
+                  <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    {t("districtDash.Total_Overview")}
                   </h4>
                   <div className="flex items-center justify-center">
                     <div className="relative w-32 h-32">
@@ -419,19 +422,19 @@ export default function DistrictDashboard() {
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-lg font-bold text-gray-800">
+                          <div className="text-lg font-bold text-[var(--text-color)]">
                             {userStats.loading ? (
                               <div className="animate-pulse bg-gray-200 h-4 w-8 rounded mx-auto"></div>
                             ) : userStats.error ? (
                               <span className="text-red-500 text-xs">
-                                Error
+                                {t("districtDash.Error")}
                               </span>
                             ) : (
                               userStats.totalUsers.toLocaleString()
                             )}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Total Users
+                          <div className="text-xs text-[var(--text-secondary)]">
+                            {t('districtDash.Total_Users')}
                           </div>
                         </div>
                       </div>
@@ -456,15 +459,15 @@ export default function DistrictDashboard() {
                     return (
                       <div
                         key={index}
-                        className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group"
+                        className="flex items-center text-xs hover:bg-[var(--text-color)]/5 p-1 rounded transition-all duration-200 cursor-pointer group"
                       >
                         <div
                           className={`w-2 h-2 rounded-full ${
                             colors[index % colors.length]
                           } mr-2 group-hover:scale-125 transition-transform duration-200`}
                         ></div>
-                        <span className="text-gray-600 truncate group-hover:text-gray-800 transition-all duration-200">
-                          {card.title} Users: {card.userCount}
+                        <span className="text-[var(--text-secondary)] truncate group-hover:text-[var(--text-color)] transition-all duration-200">
+                          {card.title} {t("districtDash.Users")}: {card.userCount}
                         </span>
                       </div>
                     );
@@ -473,19 +476,19 @@ export default function DistrictDashboard() {
 
                 {/* Total Legend */}
                 <div className="space-y-1">
-                  <div className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group">
+                  <div className="flex items-center text-xs hover:bg-[var(--text-color)]/5 p-1 rounded transition-all duration-200 cursor-pointer group">
                     <div className="w-2 h-2 rounded-full bg-green-500 mr-2 group-hover:scale-125 transition-transform duration-200"></div>
-                    <span className="text-gray-600 group-hover:text-gray-800 transition-all duration-200">
-                      Assigned Users:{" "}
+                    <span className="text-[var(--text-secondary)] group-hover:text-[var(--text-color)] transition-all duration-200">
+                      {t("districtDash.Assigned_Users")}:{" "}
                       {cards
                         .reduce((sum, c) => sum + c.userCount, 0)
                         .toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex items-center text-xs hover:bg-gray-50 p-1 rounded transition-all duration-200 cursor-pointer group">
+                  <div className="flex items-center text-xs hover:bg-[var(--text-color)]/5 p-1 rounded transition-all duration-200 cursor-pointer group">
                     <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2 group-hover:scale-125 transition-transform duration-200"></div>
-                    <span className="text-gray-600 group-hover:text-gray-800 transition-all duration-200">
-                      Unassigned Users:{" "}
+                    <span className="text-[var(--text-secondary)] group-hover:text-[var(--text-color)] transition-all duration-200">
+                      {t("districtDash.Unassigned_Users")}:{" "}
                       {userStats.loading
                         ? "Loading..."
                         : userStats.error
@@ -502,8 +505,8 @@ export default function DistrictDashboard() {
             </div>
 
             {/* Activity Trends Bar Chart */}
-            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center group-hover:text-green-600 transition-colors duration-300">
+            <div className="glass-panel bg-[var(--bg-card)] rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center group-hover:text-green-600 transition-colors duration-300">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2 group-hover:animate-pulse"></div>
                 Level Activity Overview
               </h3>
@@ -523,13 +526,13 @@ export default function DistrictDashboard() {
                   return (
                     <div
                       key={index}
-                      className="space-y-2 hover:bg-gray-50 p-3 rounded-lg transition-all duration-200 cursor-pointer group"
+                      className="space-y-2 hover:bg-[var(--text-color)]/5 p-3 rounded-lg transition-all duration-200 cursor-pointer group"
                     >
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700 truncate group-hover:text-gray-900 group-hover:font-semibold transition-all duration-200">
+                        <span className="text-sm font-medium text-[var(--text-secondary)] truncate group-hover:text-[var(--text-color)] group-hover:font-semibold transition-all duration-200">
                           {card.title}
                         </span>
-                        <span className="text-sm text-gray-500 group-hover:text-gray-700 group-hover:font-medium transition-all duration-200">
+                        <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-secondary)] group-hover:font-medium transition-all duration-200">
                           {card.count}
                         </span>
                       </div>
@@ -554,17 +557,17 @@ export default function DistrictDashboard() {
           {/* Performance Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Total Locations */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-blue-100 hover:to-indigo-200">
+            <div className="glass-kpi-card bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-blue-100 hover:to-indigo-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium text-blue-700 mb-1 group-hover:text-blue-800 transition-colors duration-300">
-                    Total Locations
+                    {t("districtDash.Total_Locations")}
                   </h4>
                   <p className="text-3xl font-bold text-blue-900 group-hover:scale-110 transition-transform duration-300">
                     {cards.reduce((sum, c) => sum + c.count, 0)}
                   </p>
                   <p className="text-sm text-blue-600 mt-1 group-hover:text-blue-700 transition-colors duration-300">
-                    Across all levels
+                    {t("districtDash.Across_all_levels")}
                   </p>
                 </div>
                 <div className="bg-blue-500 rounded-full p-3 group-hover:bg-blue-600 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
@@ -592,17 +595,17 @@ export default function DistrictDashboard() {
             </div>
 
             {/* Active Users */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-green-100 hover:to-emerald-200">
+            <div className="glass-kpi-card bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-green-100 hover:to-emerald-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium text-green-700 mb-1 group-hover:text-green-800 transition-colors duration-300">
-                    Active Users
+                    {t("districtDash.Active_Users")}
                   </h4>
                   <p className="text-3xl font-bold text-green-900 group-hover:scale-110 transition-transform duration-300">
                     {cards.reduce((sum, c) => sum + c.userCount, 0)}
                   </p>
                   <p className="text-sm text-green-600 mt-1 group-hover:text-green-700 transition-colors duration-300">
-                    Currently assigned
+                    {t("districtDash.Currently_assigned")}
                   </p>
                 </div>
                 <div className="bg-green-500 rounded-full p-3 group-hover:bg-green-600 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
@@ -624,11 +627,11 @@ export default function DistrictDashboard() {
             </div>
 
             {/* Coverage Rate */}
-            <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl shadow-lg p-6 border border-purple-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-purple-100 hover:to-violet-200">
+            <div className="glass-kpi-card bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl shadow-lg p-6 border border-purple-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group hover:from-purple-100 hover:to-violet-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium text-purple-700 mb-1 group-hover:text-purple-800 transition-colors duration-300">
-                    Coverage Rate
+                    {t("districtDash.Coverage_Rate")}
                   </h4>
                   <p className="text-3xl font-bold text-purple-900 group-hover:scale-110 transition-transform duration-300">
                     {cards.length > 0
@@ -641,7 +644,7 @@ export default function DistrictDashboard() {
                     %
                   </p>
                   <p className="text-sm text-purple-600 mt-1 group-hover:text-purple-700 transition-colors duration-300">
-                    Levels with users
+                    {t("districtDash.Levels_with_users")}
                   </p>
                 </div>
                 <div className="bg-purple-500 rounded-full p-3 group-hover:bg-purple-600 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
@@ -664,8 +667,8 @@ export default function DistrictDashboard() {
           </div>
         </>
       ) : (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <div className="text-gray-400 mb-4">
+        <div className="glass-empty-panel bg-[var(--bg-card)] rounded-lg shadow-md p-8 text-center">
+          <div className="text-[var(--text-secondary)] mb-4">
             <svg
               className="w-16 h-16 mx-auto"
               fill="none"
@@ -680,14 +683,18 @@ export default function DistrictDashboard() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No Data Available
+          <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">
+            {t("districtDash.No_Data_Available")}
           </h3>
-          <p className="text-gray-600">
-            No hierarchy levels have been set up yet for this district.
+          <p className="text-[var(--text-secondary)]">
+            {t("districtDash.Desc")}
           </p>
         </div>
       )}
     </div>
   );
 }
+
+
+
+

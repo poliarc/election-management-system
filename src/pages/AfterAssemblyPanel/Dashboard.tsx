@@ -86,7 +86,7 @@ export default function AfterAssemblyPanelDashboard() {
   }, [levelId]);
 
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -101,9 +101,9 @@ export default function AfterAssemblyPanelDashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                   Total Users
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold mt-1">
@@ -127,9 +127,9 @@ export default function AfterAssemblyPanelDashboard() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                   Active Users
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
@@ -153,9 +153,9 @@ export default function AfterAssemblyPanelDashboard() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                   Sub Levels
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-purple-600 mt-1">
@@ -183,32 +183,32 @@ export default function AfterAssemblyPanelDashboard() {
       </div>
 
       {/* Level Information */}
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-bold text-[var(--text-color)] mb-4">
           Level Information
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs sm:text-sm text-gray-600">Level Name</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-900">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Level Name</p>
+            <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.levelName || levelInfo?.displayName || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600">Level Type</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-900">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Level Type</p>
+            <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.levelType || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600">Party Name</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-900">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Party Name</p>
+            <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {user?.partyName || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600">Assembly Name</p>
-            <p className="text-base sm:text-lg font-semibold text-gray-900">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Assembly Name</p>
+            <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.assemblyName || "N/A"}
             </p>
           </div>
@@ -217,3 +217,5 @@ export default function AfterAssemblyPanelDashboard() {
     </div>
   );
 }
+
+

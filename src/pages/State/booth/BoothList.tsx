@@ -5,8 +5,10 @@ import type { RootState } from "../../../store";
 import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssemblyApi";
 import * as XLSX from "xlsx";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
+import { useTranslation } from "react-i18next";
 
 export default function StateBoothList() {
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -903,16 +905,16 @@ export default function StateBoothList() {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Export Excel ({allBooths.length})
+                {t("stateBooth.Export_Excel")} ({allBooths.length})
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
               {/* Total Booths Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Booths
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("stateBooth.Total_Booths")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold mt-1">
                     {booths.length}
@@ -936,10 +938,10 @@ export default function StateBoothList() {
               </div>
 
               {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("stateBooth.Total_Users")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {booths.reduce(
@@ -968,7 +970,7 @@ export default function StateBoothList() {
               {/* Booths Without Users Card - Clickable */}
               <div
                 onClick={handleBoothsWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
@@ -984,11 +986,11 @@ export default function StateBoothList() {
                 }
               >
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Booths Without Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("stateBooth.Without_Users")}
                     {showBoothsWithoutUsers && (
                       <span className="ml-2 text-red-600 font-semibold">
-                        (Filtered)
+                        ({t("stateBooth.Filtered")})
                       </span>
                     )}
                   </p>
@@ -997,7 +999,7 @@ export default function StateBoothList() {
                       booths.filter((booth) => (booth.user_count || 0) === 0)
                         .length > 0
                         ? "text-red-600"
-                        : "text-gray-400"
+                        : "text-[var(--text-secondary)]"
                     }`}
                   >
                     {
@@ -1011,7 +1013,7 @@ export default function StateBoothList() {
                     booths.filter((booth) => (booth.user_count || 0) === 0)
                       .length > 0
                       ? "bg-red-50"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                   }`}
                 >
                   {booths.filter((booth) => (booth.user_count || 0) === 0)
@@ -1031,7 +1033,7 @@ export default function StateBoothList() {
                     </svg>
                   ) : (
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1051,7 +1053,7 @@ export default function StateBoothList() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           {/* Hierarchy Info */}
 
           <div
@@ -1063,21 +1065,21 @@ export default function StateBoothList() {
           >
             {/* State - Always visible */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateBooth.State")}
               </label>
               <input
                 type="text"
                 value={stateInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
 
             {/* District - Always visible */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select District <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateBooth.Select_District")} <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedDistrictId}
@@ -1091,7 +1093,7 @@ export default function StateBoothList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                <option value={0}>Select District</option>
+                <option value={0}>{t("stateBooth.Select_District")}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id || district.id}
@@ -1105,8 +1107,8 @@ export default function StateBoothList() {
 
             {/* Assembly - Always visible */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly (Optional)
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateBooth.Assembly_Optional")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -1120,7 +1122,7 @@ export default function StateBoothList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Assemblies in District</option>
+                <option value={0}>{t("stateBooth.Assemblies_District")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -1135,8 +1137,8 @@ export default function StateBoothList() {
             {/* Block - Show if available */}
             {availableLevels.hasBlocks && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Block (Optional)
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t("stateBooth.Block_Optional")}
                 </label>
                 <select
                   value={selectedBlockId}
@@ -1149,7 +1151,7 @@ export default function StateBoothList() {
                   disabled={!selectedAssemblyId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>All Blocks in Assembly</option>
+                  <option value={0}>{t("stateBooth.Blocks_Assembly")}</option>
                   {blocks.map((block) => (
                     <option key={block.id} value={block.id}>
                       {block.displayName}
@@ -1162,8 +1164,8 @@ export default function StateBoothList() {
             {/* Mandal - Show if available */}
             {availableLevels.hasMandals && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mandal (Optional)
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t("stateBooth_Mandal_Optional")}
                 </label>
                 <select
                   value={selectedMandalId}
@@ -1175,7 +1177,7 @@ export default function StateBoothList() {
                   disabled={!selectedBlockId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>All Mandals in Block</option>
+                  <option value={0}>{t("stateBooth.Mandals_Block")}</option>
                   {mandals.map((mandal) => (
                     <option key={mandal.id} value={mandal.id}>
                       {mandal.displayName}
@@ -1188,8 +1190,8 @@ export default function StateBoothList() {
             {/* Polling Center - Show only if available */}
             {availableLevels.hasPollingCenters && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Polling Center (Optional)
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t("stateBooth.Polling_Center_Optional")}
                 </label>
                 <select
                   value={selectedPollingCenterId}
@@ -1200,7 +1202,7 @@ export default function StateBoothList() {
                   disabled={!selectedMandalId}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value={0}>All Polling Centers in Mandal</option>
+                  <option value={0}>{t("stateBooth.Polling_Centers_Mandal")}</option>
                   {pollingCenters.map((pc) => (
                     <option key={pc.id} value={pc.id}>
                       {pc.displayName}
@@ -1211,13 +1213,13 @@ export default function StateBoothList() {
             )}
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Booths
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              {t("stateBooth.Search_Booths")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
-                  className="w-5 h-5 text-gray-400"
+                  className="w-5 h-5 text-[var(--text-secondary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1245,20 +1247,20 @@ export default function StateBoothList() {
         </div>
 
         {/* Booth List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {isLoadingAllBooths || loadingBooths ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-              <p className="mt-4 text-gray-600">Loading booths...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("stateBooth.Loading_booths")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12 text-red-600">
-              <p>Error loading booths</p>
+              <p>{t("stateBooth.Error_loading")}</p>
             </div>
           ) : filteredBooths.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -1270,10 +1272,10 @@ export default function StateBoothList() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">No booths found</p>
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("stateBooth.No_found")}</p>
               {searchTerm && (
-                <p className="mt-1 text-sm text-gray-400">
-                  Try adjusting your search terms
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                  {t("stateBooth.adjusting_search_terms")}
                 </p>
               )}
             </div>
@@ -1283,33 +1285,33 @@ export default function StateBoothList() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-purple-50 to-purple-100 sticky top-0">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        S.No
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateBooth.S_No")}
                       </th>
 
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Mandal
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateBooth.Mandal")}
                       </th>
 
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Level Type
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateBooth.Level_Type")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Display Name
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateBooth.Display_Name")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Total Users
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateBooth.Total_User")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {paginatedBooths.map((booth, index) => (
                       <React.Fragment key={booth.id}>
                         <tr
                           key={booth.id}
                           className="hover:bg-purple-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1340,7 +1342,7 @@ export default function StateBoothList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {booth.displayName}
                                 </p>
                               </div>
@@ -1381,7 +1383,7 @@ export default function StateBoothList() {
                                   />
                                 </svg>
                               </button>
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)]">
                                 {booth.user_count || 0}
                               </span>
                             </div>
@@ -1430,26 +1432,26 @@ export default function StateBoothList() {
 
               {/* Pagination */}
               {filteredBooths.length > 0 && (
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       <span>
-                        Showing{" "}
+                        {t("stateBooth.Showing")}{" "}
                         <span className="font-semibold">
                           {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
-                        to{" "}
+                        {t("stateBooth.To")}{" "}
                         <span className="font-semibold">
                           {Math.min(
                             currentPage * itemsPerPage,
                             filteredBooths.length
                           )}
                         </span>{" "}
-                        of{" "}
+                        {t("stateBooth.Of")}{" "}
                         <span className="font-semibold">
                           {filteredBooths.length}
                         </span>{" "}
-                        results
+                        {t("stateBooth.Results")}
                       </span>
                     </div>
                     <div className="flex gap-2">
@@ -1458,12 +1460,12 @@ export default function StateBoothList() {
                           setCurrentPage((prev) => Math.max(1, prev - 1))
                         }
                         disabled={currentPage === 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("stateBooth.Previous")}
                       </button>
-                      <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                        Page {currentPage} of {totalPages}
+                      <span className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+                        {t("stateBooth.Page")} {currentPage} {t("stateBooth.Of")} {totalPages}
                       </span>
                       <button
                         onClick={() =>
@@ -1472,9 +1474,9 @@ export default function StateBoothList() {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("stateBooth.Next")}
                       </button>
                     </div>
                   </div>
@@ -1487,8 +1489,8 @@ export default function StateBoothList() {
 
       {/* Confirm Delete Modal */}
       {showConfirmModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+        <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center p-4 z-50">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-4 mb-4">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -1508,22 +1510,22 @@ export default function StateBoothList() {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Confirm Delete
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                  {t("stateBooth.Confirm_Delete")}
                 </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Are you sure you want to remove this user assignment?
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
+                  {t("stateBooth.Delete_Desc")}
                 </p>
               </div>
             </div>
 
             {userToDelete && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">User:</span> {userToDelete.name}
+              <div className="bg-[var(--bg-main)] rounded-lg p-4 mb-4">
+                <p className="text-sm text-[var(--text-secondary)]">
+                  <span className="font-medium">{t("stateBooth.User")}:</span> {userToDelete.name}
                 </p>
-                <p className="text-sm text-gray-700 mt-1">
-                  <span className="font-medium">Email:</span>{" "}
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
+                  <span className="font-medium">{t("stateBooth.Email")}:</span>{" "}
                   {userToDelete.email}
                 </p>
               </div>
@@ -1532,9 +1534,9 @@ export default function StateBoothList() {
             <div className="flex gap-3">
               <button
                 onClick={handleCancelDelete}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
               >
-                Cancel
+                {t("stateBooth.Cancel")}
               </button>
               <button
                 onClick={handleConfirmDelete}
@@ -1550,3 +1552,6 @@ export default function StateBoothList() {
     </div>
   );
 }
+
+
+

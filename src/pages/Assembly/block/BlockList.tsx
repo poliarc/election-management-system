@@ -190,7 +190,7 @@ export default function BlockList() {
     );
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             <div className="w-full mx-auto">
                 {/* Header with Stats Cards */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 sm:p-3 mb-1 text-white">
@@ -204,9 +204,9 @@ export default function BlockList() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                             {/* Total Blocks Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Blocks</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Blocks</p>
                                     <p className="text-xl sm:text-2xl font-semibold mt-1">{blocks.length}</p>
                                 </div>
                                 <div className="bg-blue-50 rounded-full p-1.5">
@@ -217,9 +217,9 @@ export default function BlockList() {
                             </div>
 
                             {/* Total Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                         {Object.values(blockUserCounts).reduce((sum, count) => sum + count, 0)}
                                     </p>
@@ -234,7 +234,7 @@ export default function BlockList() {
                             {/* Blocks Without Users Card - Clickable */}
                             <div 
                                 onClick={handleBlocksWithoutUsersClick}
-                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                                     Object.values(blockUserCounts).filter(count => count === 0).length > 0
                                         ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
                                         : 'cursor-default'
@@ -246,23 +246,23 @@ export default function BlockList() {
                                 title={Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? "Click to view blocks without users" : "No blocks without users"}
                             >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">
                                         Blocks Without Users
                                         {showBlocksWithoutUsers && (
                                             <span className="ml-2 text-red-600 font-semibold"></span>
                                         )}
                                     </p>
-                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                                         {Object.values(blockUserCounts).filter(count => count === 0).length}
                                     </p>
                                 </div>
-                                <div className={`rounded-full p-1.5 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                <div className={`rounded-full p-1.5 ${Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? 'bg-red-50' : 'bg-[var(--bg-main)]'}`}>
                                     {Object.values(blockUserCounts).filter(count => count === 0).length > 0 ? (
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
                                     ) : (
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     )}
@@ -273,32 +273,32 @@ export default function BlockList() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-1">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 District
                             </label>
                             <input
                                 type="text"
                                 value={assemblyInfo.districtName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Assembly
                             </label>
                             <input
                                 type="text"
                                 value={assemblyInfo.assemblyName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Filter by Block
                             </label>
                             <select
@@ -318,12 +318,12 @@ export default function BlockList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Search Blocks
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -343,11 +343,11 @@ export default function BlockList() {
                 </div>
 
                 {/* Block List */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                     {isLoading ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                            <p className="mt-4 text-gray-600">Loading blocks...</p>
+                            <p className="mt-4 text-[var(--text-secondary)]">Loading blocks...</p>
                         </div>
                     ) : error ? (
                         <div className="text-center py-12 text-red-600">
@@ -355,42 +355,42 @@ export default function BlockList() {
                         </div>
                     ) : filteredBlocks.length === 0 ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No blocks found</p>
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium">No blocks found</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <div className="max-h-[600px] overflow-y-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-[var(--bg-main)]">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 S.No
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Assembly
                                             </th>
-                                            {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            {/* <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Level Type
                                             </th> */}
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Block Name
                                             </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                Total Users
                                             </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                         {paginatedBlocks.map((block, index) => (
                                             <>
                                                 <tr key={block.id} className="hover:bg-blue-50 transition-colors">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                         {(currentPage - 1) * itemsPerPage + index + 1}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -404,7 +404,7 @@ export default function BlockList() {
                                                         </span>
                                                     </td> */}
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-semibold text-gray-900">
+                                                        <div className="text-sm font-semibold text-[var(--text-color)]">
                                                             {block.displayName}
                                                         </div>
                                                     </td>
@@ -425,11 +425,11 @@ export default function BlockList() {
                                                                 </svg>
                                                             </button>
                                                             {blockUserCounts[block.id] !== undefined ? (
-                                                                <span className="text-sm font-medium text-gray-900">
+                                                                <span className="text-sm font-medium text-[var(--text-color)]">
                                                                     {blockUserCounts[block.id]}
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-sm text-gray-400">
+                                                                <span className="text-sm text-[var(--text-secondary)]">
                                                                     Loading...
                                                                 </span>
                                                             )}
@@ -442,7 +442,7 @@ export default function BlockList() {
                                                             className="p-2 hover:bg-blue-50 rounded-full transition-all duration-200 group"
                                                             title="More actions"
                                                         >
-                                                            <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                                            <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
                                                                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                             </svg>
                                                         </button>
@@ -454,7 +454,7 @@ export default function BlockList() {
                                                                     onClick={() => setOpenDropdownId(null)}
                                                                 />
                                                                 <div
-                                                                    className="fixed w-60 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 max-h-64 overflow-y-auto"
+                                                                    className="fixed w-60 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-gray-100 z-50 max-h-64 overflow-y-auto"
                                                                     style={{
                                                                         scrollbarWidth: 'thin',
                                                                         scrollbarColor: '#cbd5e1 #f1f5f9',
@@ -468,7 +468,7 @@ export default function BlockList() {
                                                                                 navigate(`/assembly/block/assign?blockId=${block.id}&blockName=${encodeURIComponent(block.displayName)}`);
                                                                                 setOpenDropdownId(null);
                                                                             }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
+                                                                            className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-green-50 flex items-center gap-3 transition-colors group"
                                                                         >
                                                                             <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                                                                                 <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,7 +484,7 @@ export default function BlockList() {
                                                                                 setShowAssignVotersModal(true);
                                                                                 setOpenDropdownId(null);
                                                                             }}
-                                                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
+                                                                            className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
                                                                         >
                                                                             <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
                                                                                 <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -534,8 +534,8 @@ export default function BlockList() {
 
                     {/* Pagination */}
                     {filteredBlocks.length > 0 && (
-                        <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between mt-6">
-                            <div className="flex items-center text-sm text-gray-700">
+                        <div className="bg-[var(--bg-card)] rounded-lg shadow-md px-6 py-4 flex items-center justify-between mt-6">
+                            <div className="flex items-center text-sm text-[var(--text-secondary)]">
                                 <span>
                                     Showing{" "}
                                     <span className="font-semibold">
@@ -553,7 +553,7 @@ export default function BlockList() {
                                     <button
                                         onClick={() => setCurrentPage(currentPage - 1)}
                                         disabled={currentPage === 1}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Previous
                                     </button>
@@ -575,7 +575,7 @@ export default function BlockList() {
                                                     onClick={() => setCurrentPage(pageNum)}
                                                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                                         ? "bg-blue-600 text-white"
-                                                        : "text-gray-700 hover:bg-gray-100"
+                                                        : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                         }`}
                                                 >
                                                     {pageNum}
@@ -586,7 +586,7 @@ export default function BlockList() {
                                     <button
                                         onClick={() => setCurrentPage(currentPage + 1)}
                                         disabled={currentPage === totalPages}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Next
                                     </button>
@@ -616,3 +616,6 @@ export default function BlockList() {
         </div>
     );
 }
+
+
+

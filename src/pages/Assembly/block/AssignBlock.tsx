@@ -340,10 +340,10 @@ export default function AssignBlock() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
                 <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6">
                         <div className="flex items-center justify-center py-8">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                            <p className="ml-3 text-gray-600">
+                            <p className="ml-3 text-[var(--text-secondary)]">
                                 Loading {profileLoading ? "user profile" : "state data"}...
                             </p>
                         </div>
@@ -355,12 +355,12 @@ export default function AssignBlock() {
 
     if (!levelId || !levelName) {
         return (
-            <div className="p-6 bg-gray-50 min-h-screen">
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <div className="p-6 bg-[var(--bg-main)] min-h-screen">
+                <div className="max-w-4xl mx-auto bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <p className="text-red-600">Invalid {levelType.toLowerCase()} information</p>
                     <button
                         onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                        className="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                        className="mt-4 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300"
                     >
                         Back to {levelType} List
                     </button>
@@ -372,23 +372,23 @@ export default function AssignBlock() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-3">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
                     <div className="mb-1">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="p-2 hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
                                 title={`Back to ${levelType} List`}
                             >
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <h1 className="text-2xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-[var(--text-color)]">
                                 Manage {levelType} Users
                             </h1>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2 px-13">
+                        <p className="text-sm text-[var(--text-secondary)] mt-2 px-13">
                             {levelType}: <span className="font-medium">{levelName}</span>
                         </p>
                         {/* {stateId && (
@@ -407,13 +407,13 @@ export default function AssignBlock() {
 
                     {/* Tab Navigation */}
                     <div className="mb-1">
-                        <div className="border-b border-gray-200">
+                        <div className="border-b border-[var(--border-color)]">
                             <nav className="-mb-px flex space-x-8">
                                 <button
                                     onClick={() => setActiveTab('assign')}
                                     className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assign'
                                         ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
                                     Available Users
@@ -422,7 +422,7 @@ export default function AssignBlock() {
                                     onClick={() => setActiveTab('assigned')}
                                     className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'assigned'
                                         ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
                                     Assigned Users ({assignedUsers.length})
@@ -448,7 +448,7 @@ export default function AssignBlock() {
                             {loadingUsers ? (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    <p className="mt-2 text-gray-600">Loading users...</p>
+                                    <p className="mt-2 text-[var(--text-secondary)]">Loading users...</p>
                                 </div>
                             ) : usersError ? (
                                 <div className="text-center py-8">
@@ -468,7 +468,7 @@ export default function AssignBlock() {
                             ) : (
                                 <>
                                     <div className="mb-1 flex items-center justify-between">
-                                        <div className="text-sm text-gray-600">
+                                        <div className="text-sm text-[var(--text-secondary)]">
                                             {selectedUsers.length} user(s) selected | {pagination.total} total users
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -483,12 +483,12 @@ export default function AssignBlock() {
                                         </div>
                                     </div>
 
-                                    <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                                    <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                                         {filteredUsers.length === 0 ? (
-                                            <div className="p-4 text-center text-gray-500">
+                                            <div className="p-4 text-center text-[var(--text-secondary)]">
                                                 <p>No users found</p>
                                                 {/* Debug information */}
-                                                <div className="mt-4 text-xs text-gray-400 space-y-1">
+                                                <div className="mt-4 text-xs text-[var(--text-secondary)] space-y-1">
                                                     <p>Debug Info:</p>
                                                     <p>Party ID: {partyId || 'Not set'}</p>
                                                     <p>State ID: {stateId || 'Not set'}</p>
@@ -520,7 +520,7 @@ export default function AssignBlock() {
                                                                     <div className="flex items-center justify-between">
                                                                         <div>
                                                                             <div className="flex items-center gap-2">
-                                                                                <p className="font-medium text-gray-900">
+                                                                                <p className="font-medium text-[var(--text-color)]">
                                                                                     {user.first_name} {user.last_name}
                                                                                 </p>
                                                                                 {isAlreadyAssigned && (
@@ -529,13 +529,13 @@ export default function AssignBlock() {
                                                                                     </span>
                                                                                 )}
                                                                             </div>
-                                                                            <p className="text-sm text-gray-600">
+                                                                            <p className="text-sm text-[var(--text-secondary)]">
                                                                                 {user.districtName}
                                                                             </p>
-                                                                            <p className="text-sm text-gray-600">
+                                                                            <p className="text-sm text-[var(--text-secondary)]">
                                                                                 {user.email}
                                                                             </p>
-                                                                            <p className="text-xs text-gray-500">
+                                                                            <p className="text-xs text-[var(--text-secondary)]">
                                                                                 {user.role} | ID : {user.user_id}
                                                                             </p>
 
@@ -553,7 +553,7 @@ export default function AssignBlock() {
                                     {/* Pagination */}
                                     {pagination.totalPages > 1 && (
                                         <div className="mt-4 flex items-center justify-between">
-                                            <div className="text-sm text-gray-700">
+                                            <div className="text-sm text-[var(--text-secondary)]">
                                                 Showing {(currentPage - 1) * pageSize + 1} to{" "}
                                                 {Math.min(currentPage * pageSize, pagination.total)} of{" "}
                                                 {pagination.total} results
@@ -562,7 +562,7 @@ export default function AssignBlock() {
                                                 <button
                                                     onClick={() => handlePageChange(currentPage - 1)}
                                                     disabled={currentPage === 1}
-                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Previous
                                                 </button>
@@ -575,7 +575,7 @@ export default function AssignBlock() {
                                                             onClick={() => handlePageChange(pageNum)}
                                                             className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
                                                                 ? "bg-blue-600 text-white border-blue-600"
-                                                                : "border-gray-300 hover:bg-gray-50"
+                                                                : "border-gray-300 hover:bg-[var(--text-color)]/5"
                                                                 }`}
                                                         >
                                                             {pageNum}
@@ -585,7 +585,7 @@ export default function AssignBlock() {
                                                 <button
                                                     onClick={() => handlePageChange(currentPage + 1)}
                                                     disabled={currentPage === pagination.totalPages}
-                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Next
                                                 </button>
@@ -603,7 +603,7 @@ export default function AssignBlock() {
                                         </button>
                                         <button
                                             onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                                            className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                                            className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                                         >
                                             Cancel
                                         </button>
@@ -617,37 +617,37 @@ export default function AssignBlock() {
                             {loadingAssignedUsers ? (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    <p className="mt-2 text-gray-600">Loading assigned users...</p>
+                                    <p className="mt-2 text-[var(--text-secondary)]">Loading assigned users...</p>
                                 </div>
                             ) : assignedUsers.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
-                                    <p className="mt-2 text-gray-500 font-medium">No users assigned to this block</p>
-                                    <p className="text-sm text-gray-400">Use the "Assign Users" tab to assign users to this block.</p>
+                                    <p className="mt-2 text-[var(--text-secondary)] font-medium">No users assigned to this block</p>
+                                    <p className="text-sm text-[var(--text-secondary)]">Use the "Assign Users" tab to assign users to this block.</p>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="mb-4 text-sm text-gray-600">
+                                    <div className="mb-4 text-sm text-[var(--text-secondary)]">
                                         {assignedUsers.length} user(s) currently assigned to this block
                                     </div>
-                                    <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                                    <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                                         <div className="divide-y divide-gray-200">
                                             {assignedUsers.map((user) => (
-                                                <div key={user.user_id} className="p-4 hover:bg-gray-50">
+                                                <div key={user.user_id} className="p-4 hover:bg-[var(--text-color)]/5">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex-1">
-                                                            <p className="font-medium text-gray-900">
+                                                            <p className="font-medium text-[var(--text-color)]">
                                                                 {user.first_name} {user.last_name}
                                                             </p>
-                                                            <p className="text-sm text-gray-600">{user.email}</p>
-                                                            <p className="text-xs text-gray-500">
+                                                            <p className="text-sm text-[var(--text-secondary)]">{user.email}</p>
+                                                            <p className="text-xs text-[var(--text-secondary)]">
                                                                 ID : {user.user_id}
                                                             </p>
                                                             <div className="mt-1 flex items-center gap-2">
                                                                 {user.assigned_at && (
-                                                                    <span className="text-xs text-gray-400">
+                                                                    <span className="text-xs text-[var(--text-secondary)]">
                                                                         Assigned: {new Date(user.assigned_at).toLocaleDateString()}
                                                                     </span>
                                                                 )}
@@ -668,7 +668,7 @@ export default function AssignBlock() {
                                     <div className="flex gap-4 mt-6">
                                         <button
                                             onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                                            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                                            className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
                                         >
                                             Back to {levelType} List
                                         </button>
@@ -682,3 +682,6 @@ export default function AssignBlock() {
         </div>
     );
 }
+
+
+

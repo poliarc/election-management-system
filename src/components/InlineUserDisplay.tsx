@@ -4,6 +4,7 @@ import { useDeleteAssignedLocationsMutation } from '../store/api/stateMasterApi'
 import { useDeleteAssignedLevelsMutation } from '../store/api/afterAssemblyApi';
 import { useToggleUserStatusMutation } from '../store/api/profileApi';
 import { UserContactModal } from './UserContactModal';
+import { useTranslation } from 'react-i18next';
 
 interface InlineUserDisplayProps {
   users: HierarchyUser[];
@@ -28,6 +29,7 @@ export default function InlineUserDisplay({
   onClose,
   colSpan
 }: InlineUserDisplayProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -322,14 +324,14 @@ export default function InlineUserDisplay({
               <div className="flex items-center gap-4">
                 {/* Title and Location Info */}
                 <div className="flex-shrink-0">
-                  <h4 className="text-lg font-semibold text-white">Assigned Users</h4>
+                  <h4 className="text-lg font-semibold text-white">{t("InlineUserDisplay.Assigned_Users")}</h4>
                   <p className="text-xs text-blue-100">{formatHierarchicalHeader()}</p>
                 </div>
 
                 {/* Total Users Count */}
                 <div className="flex-shrink-0">
                   <span className="text-sm text-white/90 font-medium">
-                    Total: {localUsers.length} users
+                    {t("InlineUserDisplay.Total")}: {localUsers.length} {t("InlineUserDisplay.users")}
                   </span>
                 </div>
 
@@ -337,11 +339,11 @@ export default function InlineUserDisplay({
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as any)}
-                  className="px-3 py-1.5 text-sm border border-white/30 rounded-lg bg-white/10 text-white focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
+                  className="px-3 py-1.5 text-sm border border-white/30 rounded-lg bg-[var(--bg-card)]/10 text-white focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
                 >
-                  <option value="all" className="text-gray-900">All Status</option>
-                  <option value="active" className="text-gray-900">Active Only</option>
-                  <option value="inactive" className="text-gray-900">Inactive Only</option>
+                  <option value="all" className="text-[var(--text-color)]">{t("InlineUserDisplay.All_Status")}</option>
+                  <option value="active" className="text-[var(--text-color)]">{t("InlineUserDisplay.Active_Only")}</option>
+                  <option value="inactive" className="text-[var(--text-color)]">{t("InlineUserDisplay.Inactive_Only")}</option>
                 </select>
 
 
@@ -349,10 +351,10 @@ export default function InlineUserDisplay({
                 <div className="flex-1 max-w-xs">
                   <input
                     type="text"
-                    placeholder="Search users..."
+                    placeholder={t("InlineUserDisplay.Search_Users")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 py-1.5 text-sm border border-white/30 rounded-lg bg-white/10 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
+                    className="w-full px-3 py-1.5 text-sm border border-white/30 rounded-lg bg-[var(--bg-card)]/10 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
                   />
                 </div>
 
@@ -362,7 +364,7 @@ export default function InlineUserDisplay({
                 {/* Close Button */}
                 <button
                   onClick={onClose}
-                  className="flex-shrink-0 text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
+                  className="flex-shrink-0 text-white hover:bg-[var(--bg-card)]/20 p-1.5 rounded-full transition-colors"
                   title="Close user details"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,57 +378,57 @@ export default function InlineUserDisplay({
             <div className="px-6 py-4 max-h-[400px] overflow-y-auto">
               {filteredUsers.length === 0 ? (
                 <div className="text-center py-8">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <p className="mt-4 text-gray-600">No users found</p>
+                  <p className="mt-4 text-[var(--text-secondary)]">{t("InlineUserDisplay.No_Users")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">S.No</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">User Id</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.S_No")}</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.User_ID")}</th>
                         {shouldShowParentColumn() && (
                           <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getParentColumnHeader()}</th>
                         )}
 
                         <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{getCurrentLocationColumnHeader()}</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Name</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Designation</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.Name")}</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.Designation")}</th>
                         {/* <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Phone Number</th> */}
 
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">Status</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase">Actions</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.Status")}</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-blue-700 uppercase">{t("InlineUserDisplay.Action")}</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-blue-100">
+                    <tbody className="bg-[var(--bg-card)] divide-y divide-blue-100">
                       {filteredUsers.map((user, index) => (
-                        <tr key={user.assignment_id || index} className="hover:bg-blue-50 even:bg-gray-50/50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
+                        <tr key={user.assignment_id || index} className="hover:bg-blue-50 even:bg-[var(--bg-main)]/50">
+                          <td className="px-4 py-3 text-sm text-[var(--text-color)]">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                             {/* {user.mobile_number || user.contact_no || user.phone || 'N/A'} */}
                             {user.user_id}
                           </td>
                           {shouldShowParentColumn() && (
-                            <td className="px-4 py-3 text-sm text-gray-600">
-                              <div className="text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                              <div className="text-sm font-medium text-[var(--text-color)]">
                                 {getParentLocationName()}
                               </div>
                             </td>
                           )}
 
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                            <div className="text-sm font-medium text-[var(--text-color)]">
                               {getCurrentLocationName()}
                             </div>
                           </td>
 
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          <td className="px-4 py-3 text-sm font-medium text-[var(--text-color)]">
                             {user.first_name} {user.last_name}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{user.role_name || user.role || user.designation || 'N/A'}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{user.role_name || user.role || user.designation || 'N/A'}</td>
 
                           <td className="px-4 py-3 text-sm">
                             {(() => {
@@ -467,23 +469,23 @@ export default function InlineUserDisplay({
                               <button
                                 onClick={() => setOpenMenuId(openMenuId === user.user_id ? null : user.user_id)}
                                 disabled={deletingUserId === user.user_id || togglingUserId === user.user_id}
-                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors"
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                                 title="More actions"
                               >
                                 {(deletingUserId === user.user_id || togglingUserId === user.user_id) ? (
-                                  <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
+                                  <svg className="animate-spin h-4 w-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                   </svg>
                                 ) : (
-                                  <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                   </svg>
                                 )}
                               </button>
 
                               {openMenuId === user.user_id && (
-                                <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
+                                <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg shadow-lg bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
                                   <div className="py-1" role="menu">
                                     <button
                                       onClick={() => handleViewContact(user)}
@@ -520,7 +522,7 @@ export default function InlineUserDisplay({
                                       return (
                                         <button
                                           onClick={() => handleToggleStatus(user)}
-                                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors ${isActive ? 'text-orange-700' : 'text-green-700'
+                                          className={`w-full text-left px-4 py-2 text-sm hover:bg-[var(--text-color)]/5 flex items-center gap-2 transition-colors ${isActive ? 'text-orange-700' : 'text-green-700'
                                             }`}
                                           role="menuitem"
                                         >
@@ -529,14 +531,14 @@ export default function InlineUserDisplay({
                                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
                                               </svg>
-                                              Inactive
+                                              {t("InlineUserDisplay.Inactive")}
                                             </>
                                           ) : (
                                             <>
                                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                               </svg>
-                                              Active
+                                              {t("InlineUserDisplay.Active")}
                                             </>
                                           )}
                                         </button>
@@ -553,7 +555,7 @@ export default function InlineUserDisplay({
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                       </svg>
-                                      Delete User
+                                      {t("InlineUserDisplay.Delete")}
                                     </button>
                                   </div>
                                 </div>
@@ -576,29 +578,29 @@ export default function InlineUserDisplay({
       {/* Confirmation Modal */}
       {showConfirmModal && userToDelete && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
-                Confirm Deletion
+              <h3 className="mt-4 text-lg font-semibold text-[var(--text-color)] text-center">
+                {t("InlineUserDisplay.Confirm_Deletion")}
               </h3>
-              <p className="mt-2 text-sm text-gray-600 text-center">
-                Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{locationName}</span>?
+              <p className="mt-2 text-sm text-[var(--text-secondary)] text-center">
+                {t("InlineUserDisplay.disc")} <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{locationName}</span>?
               </p>
-              <p className="mt-1 text-xs text-gray-500 text-center">
-                This action will unassign the user from this location.
+              <p className="mt-1 text-xs text-[var(--text-secondary)] text-center">
+                {t("InlineUserDisplay.disc1")}
               </p>
             </div>
-            <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
+            <div className="bg-[var(--bg-main)] px-6 py-4 flex gap-3 rounded-b-lg">
               <button
                 onClick={handleCancelDelete}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
               >
-                Cancel
+                {t("InlineUserDisplay.Cancel")}
               </button>
               <button
                 onClick={handleConfirmDelete}
@@ -626,3 +628,5 @@ export default function InlineUserDisplay({
     </>
   );
 }
+
+

@@ -437,20 +437,20 @@ export default function UserAssignment() {
     <div className="p-1 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
       {/* Header */}
       <div className="mb-1">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <h1 className="text-3xl font-bold text-gray-800">User Assignment</h1>
-          <p className="text-gray-600 mt-2">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+          <h1 className="text-3xl font-bold text-[var(--text-color)]">User Assignment</h1>
+          <p className="text-[var(--text-secondary)] mt-2">
             Assign users to sub-levels in {currentPanel.metadata?.stateName}
           </p>
         </div>
       </div>
 
       {/* Selection Dropdowns */}
-      <div className="mb-1 bg-white rounded-xl shadow-lg p-6">
+      <div className="mb-1 bg-[var(--bg-card)] rounded-xl shadow-lg p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           {/* District Select */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
               Select District
             </label>
             <select
@@ -464,7 +464,7 @@ export default function UserAssignment() {
                 setHierarchyPath([]);
                 setLevelOptions([]);
               }}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+              className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-[var(--bg-card)]"
               disabled={loading}
             >
               <option value="">-- Select District --</option>
@@ -478,7 +478,7 @@ export default function UserAssignment() {
 
           {/* Assembly Select */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
               Select Assembly
             </label>
             <select
@@ -491,7 +491,7 @@ export default function UserAssignment() {
                 setHierarchyPath([]);
                 setLevelOptions([]);
               }}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+              className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-[var(--bg-card)]"
               disabled={!selectedDistrict || assembliesLoading}
             >
               <option value="">-- Select Assembly --</option>
@@ -516,7 +516,7 @@ export default function UserAssignment() {
 
               return (
                 <div key={index}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
                     {levelLabel}
                   </label>
                   <select
@@ -528,7 +528,7 @@ export default function UserAssignment() {
                       handleLevelSelect(index, level || null);
                       setShowAssignModal(false);
                     }}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
+                    className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-[var(--bg-card)]"
                     disabled={levelsLoading}
                   >
                     <option value="">-- Select {levelLabel} --</option>
@@ -546,7 +546,7 @@ export default function UserAssignment() {
 
         {/* Loading State */}
         {(loading || assembliesLoading || levelsLoading) && (
-          <div className="mt-4 flex items-center justify-center text-gray-500">
+          <div className="mt-4 flex items-center justify-center text-[var(--text-secondary)]">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mr-2"></div>
             <span className="text-sm">Loading...</span>
           </div>
@@ -561,7 +561,7 @@ export default function UserAssignment() {
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <svg
-                  className="h-5 w-5 text-gray-400"
+                  className="h-5 w-5 text-[var(--text-secondary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -579,13 +579,13 @@ export default function UserAssignment() {
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
+                className="w-full pl-11 pr-4 py-3 bg-[var(--bg-card)] border-2 border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
               />
             </div>
           </div>
 
           {/* Users Content */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6">
               <div className="flex justify-between items-center">
                 <div className="text-white">
@@ -598,7 +598,7 @@ export default function UserAssignment() {
                 </div>
                 <button
                   onClick={() => setShowAssignModal(!showAssignModal)}
-                  className="flex items-center px-5 py-2.5 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-all font-semibold shadow-md"
+                  className="flex items-center px-5 py-2.5 bg-[var(--bg-card)] text-purple-600 rounded-lg hover:bg-purple-50 transition-all font-semibold shadow-md"
                 >
                   {showAssignModal ? (
                     <>
@@ -643,27 +643,27 @@ export default function UserAssignment() {
               // Assigned Users
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--bg-main)]">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Name
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Email
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         User Id
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {filteredAssignedUsers.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-12 text-center">
-                          <p className="text-gray-500">
+                          <p className="text-[var(--text-secondary)]">
                             {searchTerm
                               ? "No users found matching your search"
                               : "No users assigned"}
@@ -674,16 +674,16 @@ export default function UserAssignment() {
                       paginatedAssignedUsers.map((user) => (
                         <tr
                           key={user.user_id || user.id}
-                          className="hover:bg-gray-50"
+                          className="hover:bg-[var(--text-color)]/5"
                         >
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                             {user.first_name || user.firstName}{" "}
                             {user.last_name || user.lastName}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                             {user.email}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                             {
                               user.user_id ||
                               "N/A"}
@@ -716,8 +716,8 @@ export default function UserAssignment() {
 
                 {/* Pagination for Assigned Users */}
                 {totalAssignedPages > 1 && (
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
+                  <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] flex items-center justify-between">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       Showing {(assignedPage - 1) * itemsPerPage + 1} to{" "}
                       {Math.min(
                         assignedPage * itemsPerPage,
@@ -731,11 +731,11 @@ export default function UserAssignment() {
                           setAssignedPage((p) => Math.max(1, p - 1))
                         }
                         disabled={assignedPage === 1}
-                        className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
                         Previous
                       </button>
-                      <span className="px-4 py-1 text-sm font-medium text-gray-700">
+                      <span className="px-4 py-1 text-sm font-medium text-[var(--text-secondary)]">
                         Page {assignedPage} of {totalAssignedPages}
                       </span>
                       <button
@@ -745,7 +745,7 @@ export default function UserAssignment() {
                           )
                         }
                         disabled={assignedPage === totalAssignedPages}
-                        className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
                         Next
                       </button>
@@ -757,23 +757,23 @@ export default function UserAssignment() {
               // Available Users
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--bg-main)]">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Name
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Email
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         User Id
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {usersLoading ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-12 text-center">
@@ -783,7 +783,7 @@ export default function UserAssignment() {
                     ) : unassignedUsers.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-6 py-12 text-center">
-                          <p className="text-gray-500">
+                          <p className="text-[var(--text-secondary)]">
                             {searchTerm
                               ? "No users found matching your search"
                               : "No available users"}
@@ -792,14 +792,14 @@ export default function UserAssignment() {
                       </tr>
                     ) : (
                       unassignedUsers.map((user) => (
-                        <tr key={user.user_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <tr key={user.user_id} className="hover:bg-[var(--text-color)]/5">
+                          <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                             {user.first_name} {user.last_name}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                             {user.email}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                             {user.user_id}
                           </td>
                           <td className="px-6 py-4 text-sm">
@@ -821,8 +821,8 @@ export default function UserAssignment() {
 
                 {/* Pagination for Unassigned Users */}
                 {totalUnassignedPages > 1 && (
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
+                  <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] flex items-center justify-between">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       Showing {(unassignedPage - 1) * itemsPerPage + 1} to{" "}
                       {Math.min(
                         unassignedPage * itemsPerPage,
@@ -836,11 +836,11 @@ export default function UserAssignment() {
                           setUnassignedPage((p) => Math.max(1, p - 1))
                         }
                         disabled={unassignedPage === 1}
-                        className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
                         Previous
                       </button>
-                      <span className="px-4 py-1 text-sm font-medium text-gray-700">
+                      <span className="px-4 py-1 text-sm font-medium text-[var(--text-secondary)]">
                         Page {unassignedPage} of {totalUnassignedPages}
                       </span>
                       <button
@@ -850,7 +850,7 @@ export default function UserAssignment() {
                           )
                         }
                         disabled={unassignedPage === totalUnassignedPages}
-                        className="px-3 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
                         Next
                       </button>
@@ -883,3 +883,7 @@ export default function UserAssignment() {
     </div>
   );
 }
+
+
+
+

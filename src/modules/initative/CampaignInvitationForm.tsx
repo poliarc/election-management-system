@@ -110,7 +110,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 lg:left-[258px]">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-[var(--bg-color)] rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
@@ -120,7 +120,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+              className="p-2 hover:bg-[var(--bg-color)] hover:bg-opacity-20 rounded-lg transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -134,15 +134,15 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
         >
           <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
             {/* Personal Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-[var(--bg-color)] rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
                 Personal Information
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Full Name *
                   </label>
                   <Controller
@@ -167,7 +167,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Phone Number *
                   </label>
                   <Controller
@@ -206,7 +206,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Email
                   </label>
                   <Controller
@@ -229,7 +229,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Emergency Contact
                   </label>
                   <Controller
@@ -267,7 +267,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Address
                 </label>
                 <Controller
@@ -292,14 +292,14 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
 
             {/* Event Specific Information */}
             <div className="bg-green-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5 text-green-600" />
                 Campaign Details
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Additional Guests
                   </label>
                   <Controller
@@ -323,7 +323,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Dietary Requirements
                   </label>
                   <Controller
@@ -361,7 +361,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                       />
                     )}
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
                     Transportation needed
                   </span>
                 </label>
@@ -380,14 +380,14 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                       />
                     )}
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
                     Accommodation needed
                   </span>
                 </label>
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Special Requirements or Comments
                 </label>
                 <Controller
@@ -412,7 +412,7 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
 
             {/* Image Upload */}
             <div className="bg-purple-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center gap-2">
                 <Camera className="w-5 h-5 text-purple-600" />
                 Upload Photos
               </h3>
@@ -431,10 +431,10 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
                   className="cursor-pointer flex flex-col items-center gap-2"
                 >
                   <Upload className="w-8 h-8 text-purple-600" />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">
                     Upload your photos
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[var(--text-secondary)]">
                     PNG, JPG or GIF (max 5MB)
                   </span>
                 </label>
@@ -463,12 +463,12 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
             </div>
 
             {/* Submit Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 -mx-6 -mb-6">
+            <div className="sticky bottom-0 bg-[var(--bg-color)] border-t border-[var(--text-color)]/10 p-6 -mx-6 -mb-6">
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-semibold text-lg flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-4 border-2 border-gray-300 text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-color)] hover:border-gray-400 transition-all font-semibold text-lg flex items-center justify-center gap-2"
                 >
                   <X className="w-5 h-5" />
                   Cancel
@@ -498,3 +498,5 @@ export const CampaignInvitationForm: React.FC<CampaignInvitationFormProps> = ({
     </div>
   );
 };
+
+

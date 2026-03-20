@@ -91,20 +91,20 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* HEADER */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] p-6">
         <div className="flex items-center space-x-4">
           <button
             onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-[var(--text-color)]/5 rounded-lg"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-[var(--text-color)]">
               {isViewMode ? 'View' : initialData ? 'Edit' : ''} Party Wise Level Master Configuration
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-[var(--text-secondary)] mt-1">
               {isViewMode
                 ? 'View the organizational hierarchy configuration'
                 : 'Configure organizational hierarchy for a party in a specific state'}
@@ -116,7 +116,7 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {/* PARTY */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Select Party *
             </label>
             <select
@@ -136,7 +136,7 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
 
           {/* STATE */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Select State *
             </label>
             <select
@@ -158,7 +158,7 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
 
       {/* LEVEL CONFIG */}
       {selectedPartyId && selectedStateId && (
-        <div className="bg-white rounded-xl border p-6">
+        <div className="bg-[var(--bg-card)] rounded-xl border p-6">
           <div className="flex justify-between mb-6">
             <h2 className="text-xl font-bold">Organizational Levels</h2>
             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
@@ -179,7 +179,7 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
                   {/* NAME */}
                   <div className="flex-1 ml-4">
                     <div className="font-semibold">{level.displayName}</div>
-                    <div className="text-xs text-gray-500">{level.name}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{level.name}</div>
                   </div>
 
                   {/* REMOVE */}
@@ -188,7 +188,7 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
                       onClick={() => handleRemoveLevel(level.id)}
                       className="p-2"
                     >
-                      <X className="w-5 h-5 text-gray-400 hover:text-red-500" />
+                      <X className="w-5 h-5 text-[var(--text-secondary)] hover:text-red-500" />
                     </button>
                   )}
 
@@ -250,3 +250,5 @@ const PartyLevelForm: React.FC<PartyLevelFormProps> = ({
 };
 
 export default PartyLevelForm;
+
+

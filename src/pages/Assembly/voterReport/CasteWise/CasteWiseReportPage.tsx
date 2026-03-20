@@ -2,8 +2,10 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
+import { useTranslation } from "react-i18next";
 
 const CasteWiseReportPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -93,40 +95,40 @@ const CasteWiseReportPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Caste Wise Report
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("CasteWiseReportPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View voters filtered by caste
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("CasteWiseReportPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("CasteWiseReportPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("CasteWiseReportPage.Regional")}
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white p-1 rounded-lg shadow mb-1">
+            <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Caste
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("CasteWiseReportPage.Select_Caste")}
                         </label>
                         <select
                             value={selectedCaste}
@@ -136,7 +138,7 @@ const CasteWiseReportPage: React.FC = () => {
                             }}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                         >
-                            <option value="">All Castes</option>
+                            <option value="">{t("CasteWiseReportPage.All_Castes")}</option>
                             {uniqueCastes.map((caste) => (
                                 <option key={caste} value={caste}>
                                     {caste}
@@ -145,8 +147,8 @@ const CasteWiseReportPage: React.FC = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Part No From
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("CasteWiseReportPage.Part_No_From")}
                         </label>
                         <input
                             type="number"
@@ -159,8 +161,8 @@ const CasteWiseReportPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Part No To
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("CasteWiseReportPage.Part_No_To")}
                         </label>
                         <input
                             type="number"
@@ -173,14 +175,14 @@ const CasteWiseReportPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                             &nbsp;
                         </label>
                         <button
                             onClick={handleReset}
-                            className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                         >
-                            Reset
+                            {t("CasteWiseReportPage.Reset")}
                         </button>
                     </div>
                 </div>
@@ -188,65 +190,65 @@ const CasteWiseReportPage: React.FC = () => {
 
             {isLoading ? (
                 <div className="text-center py-8">
-                    <div className="text-gray-600">Loading...</div>
+                    <div className="text-[var(--text-secondary)]">{t("CasteWiseReportPage.Loading")}</div>
                 </div>
             ) : (
                 <>
-                    <div className="mb-1 text-sm text-gray-600 bg-orange-50 p-3 rounded-lg border border-orange-200">
-                        Found {filteredVoters.length} voters
-                        {selectedCaste && <span> • Caste: {selectedCaste}</span>}
+                    <div className="mb-1 text-sm text-[var(--text-secondary)] bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        {t("CasteWiseReportPage.Found")}{filteredVoters.length} {t("CasteWiseReportPage.voters")}
+                        {selectedCaste && <span> • {t("CasteWiseReportPage.Caste")} {selectedCaste}</span>}
                         {(partFrom || partTo) && (
-                            <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                            <span> • {t("CasteWiseReportPage.Part_No:")} {partFrom || "any"} - {partTo || "any"}</span>
                         )}
                     </div>
 
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-[var(--bg-main)]">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Part No
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Part_No")}
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Full Name
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Full_Name")}
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Father Name
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Father_Name")}
                                         </th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Gender
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Gender")}
                                         </th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Age
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Age")}
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Mobile Number
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Mobile_Number")}
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Voter EPIC ID
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                            {t("CasteWiseReportPage.Voter_EPIC_ID")}
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                     {paginatedVoters.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                                No voters found
+                                            <td colSpan={7} className="px-6 py-8 text-center text-[var(--text-secondary)]">
+                                                {t("CasteWiseReportPage.No_voters_found")}
                                             </td>
                                         </tr>
                                     ) : (
                                         paginatedVoters.map((voter) => (
-                                            <tr key={voter.id} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <tr key={voter.id} className="hover:bg-[var(--text-color)]/5">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
                                                     {voter.part_no}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-[var(--text-color)]">
                                                     {language === "en"
                                                         ? voter.voter_full_name_en || "-"
                                                         : voter.voter_full_name_hi || voter.voter_full_name_en || "-"}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                     {language === "en"
                                                         ? voter.relative_full_name_en || "-"
                                                         : voter.relative_full_name_hi || voter.relative_full_name_en || "-"}
@@ -256,18 +258,18 @@ const CasteWiseReportPage: React.FC = () => {
                                                         ? "bg-blue-100 text-blue-800"
                                                         : voter.gender === "F"
                                                             ? "bg-pink-100 text-pink-800"
-                                                            : "bg-gray-100 text-gray-800"
+                                                            : "bg-gray-100 text-[var(--text-color)]"
                                                         }`}>
                                                         {voter.gender || "-"}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-[var(--text-color)]">
                                                     {voter.age || "-"}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                     {voter.contact_number1 || "-"}
                                                 </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-mono">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-[var(--text-color)] font-mono">
                                                     {voter.voter_id_epic_no || "-"}
                                                 </td>
                                             </tr>
@@ -279,9 +281,9 @@ const CasteWiseReportPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="text-sm text-gray-600">
-                                Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                            <div className="text-sm text-[var(--text-secondary)]">
+                                {t("CasteWiseReportPage.Showing_page")} {currentPage} {t("CasteWiseReportPage.of")} {totalPages} • {filteredVoters.length} {t("CasteWiseReportPage.total_voters")}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -289,14 +291,14 @@ const CasteWiseReportPage: React.FC = () => {
                                     disabled={currentPage === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Previous
+                                    {t("CasteWiseReportPage.Previous")}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Next
+                                    {t("CasteWiseReportPage.Next")}
                                 </button>
                             </div>
                         </div>
@@ -308,3 +310,6 @@ const CasteWiseReportPage: React.FC = () => {
 };
 
 export default CasteWiseReportPage;
+
+
+

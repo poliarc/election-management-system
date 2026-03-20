@@ -4,10 +4,11 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
 import * as XLSX from "xlsx";
-
+import { useTranslation } from "react-i18next";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 export default function StateBlock() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(
     null
@@ -332,17 +333,17 @@ export default function StateBlock() {
   };
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen transition-colors duration-300">
       <div className="w-full mx-auto">
         {/* Header with Stats Cards */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Block List
+                {t("state_block.Title")}
               </h1>
               <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                State: {stateInfo.stateName}
+                {t("state_block.State")}: {stateInfo.stateName}
               </p>
             </div>
 
@@ -368,24 +369,24 @@ export default function StateBlock() {
                       d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  Export Excel ({allBlocks.length})
+                  {t("state_block.Export_Excel")} ({allBlocks.length})
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                 {/* Total Blocks Card */}
-                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Total Blocks
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("state_block.Total_Blocks")}
                     </p>
                     <p className="text-xl sm:text-2xl font-semibold mt-1">
                       {blocks.length}
                     </p>
                   </div>
-                  <div className="bg-blue-50 rounded-full p-1.5">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-full p-1.5">
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -401,21 +402,21 @@ export default function StateBlock() {
                 </div>
 
                 {/* Total Users Card */}
-                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Total Users
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("state_block.Total_Users")}
                     </p>
-                    <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
+                    <p className="text-xl sm:text-2xl font-semibold text-green-600 dark:text-green-400 mt-1">
                       {Object.values(blockUserCounts).reduce(
                         (sum, count) => sum + count,
                         0
                       )}
                     </p>
                   </div>
-                  <div className="bg-green-50 rounded-full p-1.5">
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-full p-1.5">
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -433,15 +434,15 @@ export default function StateBlock() {
                 {/* Blocks Without Users Card - Clickable */}
                 <div
                   onClick={handleBlocksWithoutUsersClick}
-                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                     Object.values(blockUserCounts).filter(
                       (count) => count === 0
                     ).length > 0
-                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
+                      ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-[var(--bg-hover)]"
                       : "cursor-default"
                   } ${
                     showBlocksWithoutUsers
-                      ? "ring-2 ring-red-500 bg-red-50"
+                      ? "ring-2 ring-red-500 bg-[var(--bg-hover)]"
                       : ""
                   }`}
                   title={
@@ -453,11 +454,11 @@ export default function StateBlock() {
                   }
                 >
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Blocks Without Users
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("state_block.Blocks")}
                       {showBlocksWithoutUsers && (
                         <span className="ml-2 text-red-600 font-semibold">
-                          (Filtered)
+                          ({t("state_block.Filtered")})
                         </span>
                       )}
                     </p>
@@ -467,7 +468,7 @@ export default function StateBlock() {
                           (count) => count === 0
                         ).length > 0
                           ? "text-red-600"
-                          : "text-gray-400"
+                          : "text-[var(--text-secondary)]"
                       }`}
                     >
                       {
@@ -482,8 +483,8 @@ export default function StateBlock() {
                       Object.values(blockUserCounts).filter(
                         (count) => count === 0
                       ).length > 0
-                        ? "bg-red-50"
-                        : "bg-gray-50"
+                        ? "bg-[var(--text-color)]/5"
+                        : "bg-[var(--bg-color)]"
                     }`}
                   >
                     {Object.values(blockUserCounts).filter(
@@ -504,7 +505,7 @@ export default function StateBlock() {
                       </svg>
                     ) : (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -525,22 +526,22 @@ export default function StateBlock() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("state_block.States")}
               </label>
               <input
                 type="text"
                 value={stateInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-color)] text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                District <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("state_block.District")} <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedDistrictId || ""}
@@ -548,9 +549,9 @@ export default function StateBlock() {
                   setSelectedDistrictId(Number(e.target.value) || null);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select District</option>
+                <option value="">{t("state_block.Select_District")}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id}
@@ -562,8 +563,8 @@ export default function StateBlock() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly (Optional)
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("state_block.Assembly")}
               </label>
               <select
                 value={selectedAssemblyId || ""}
@@ -572,9 +573,9 @@ export default function StateBlock() {
                   setCurrentPage(1);
                 }}
                 disabled={!selectedDistrictId}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-[var(--bg-color)] disabled:cursor-not-allowed"
               >
-                <option value="">All Assemblies in District</option>
+                <option value="">{t("state_block.Assemblies_District")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -586,13 +587,13 @@ export default function StateBlock() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Blocks
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("state_block.Search_Blocks")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -613,7 +614,7 @@ export default function StateBlock() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -621,20 +622,20 @@ export default function StateBlock() {
         </div>
 
         {/* Block List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {(isLoading && selectedAssemblyId) || (selectedDistrictId && blocks.length === 0 && allBlocks.length > 0) ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading blocks...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("state_block.Loading_Blocks")}</p>
             </div>
           ) : error && selectedAssemblyId ? (
             <div className="text-center py-12 text-red-600">
-              <p>Error loading blocks</p>
+              <p>{t("state_block.Error_loading")}</p>
             </div>
           ) : filteredBlocks.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -646,46 +647,46 @@ export default function StateBlock() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">No blocks found</p>
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("state_block.No_blocks")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto bg-[var(--bg-card)]">
+              <table className="min-w-full divide-y divide-[var(--border-color)]">
+                <thead className="bg-[var(--bg-main)]">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      S.No
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("state_block.S_No")}
                     </th>
                     
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Assembly
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("state_block.Assemblys")}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Block Name
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("state_block.Block")}
                     </th>
-                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Total Users
+                    <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("state_block.Total_User")}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                   {paginatedBlocks.map((block, index) => (
                     <>
                       <tr
                         key={block.id}
-                        className="hover:bg-blue-50 transition-colors"
+                        className="group hover:bg-[var(--bg-hover)] transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
                         
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full  bg-blue-100 text-blue-800 group-hover:text-[var(--text-color)]">
                             {block.assemblyName || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-semibold text-gray-900">
+                          <div className="text-sm font-semibold text-[var(--text-color)] group-hover:text-[var(--text-color)]">
                             {block.displayName}
                           </div>
                         </td>
@@ -697,7 +698,7 @@ export default function StateBlock() {
                               className={`inline-flex items-center p-1 rounded-md transition-colors mr-2 ${
                                 expandedBlockId === block.id
                                   ? "text-blue-700 bg-blue-100"
-                                  : "text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                  : "text-blue-600 hover:bg-[var(--bg-hover)] hover:text-blue-700"
                               }`}
                               title={
                                 expandedBlockId === block.id
@@ -726,12 +727,12 @@ export default function StateBlock() {
                               </svg>
                             </button>
                             {blockUserCounts[block.id] !== undefined ? (
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)] group-hover:text-[var(--text-color)]">
                                 {blockUserCounts[block.id]}
                               </span>
                             ) : (
-                              <span className="text-sm text-gray-400">
-                                Loading...
+                              <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">
+                                {t("state_block.Loading")}
                               </span>
                             )}
                           </div>
@@ -771,40 +772,40 @@ export default function StateBlock() {
 
         {/* Pagination */}
         {filteredBlocks.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md px-6 py-4 mt-6">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-md px-6 py-4 mt-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-[var(--text-secondary)]">
                 <span>
-                  Showing{" "}
+                  {t("state_block.Showing")}{" "}
                   <span className="font-semibold">
                     {(currentPage - 1) * itemsPerPage + 1}
                   </span>{" "}
-                  to{" "}
+                  {t("state_block.to")}{" "}
                   <span className="font-semibold">
                     {Math.min(currentPage * itemsPerPage, filteredBlocks.length)}
                   </span>{" "}
-                  of{" "}
+                  {t("state_block.of")}{" "}
                   <span className="font-semibold">{filteredBlocks.length}</span>{" "}
-                  results
+                  {t("state_block.results")}
                 </span>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Previous
+                  {t("state_block.Previous")}
                 </button>
-                <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                  Page {currentPage} of {totalPages}
+                <span className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+                  {t("state_block.Page")} {currentPage} {t("state_block.of")} {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {t("state_block.Next")}
                 </button>
               </div>
             </div>
@@ -814,3 +815,6 @@ export default function StateBlock() {
     </div>
   );
 }
+
+
+

@@ -20,6 +20,7 @@ import type {
   UserSearchParams,
   UserForm as UserFormType,
 } from "../../../types/user";
+import { useTranslation } from "react-i18next";
 
 // Error response types
 interface ValidationError {
@@ -36,6 +37,7 @@ interface ApiError {
 }
 
 export const UserPage: React.FC = () => {
+  const {t} = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -261,12 +263,12 @@ export const UserPage: React.FC = () => {
         <div className="mb-1">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                 <Users className="text-blue-600" />
-                User Management
+                {t("UserPage.Title")}
               </h1>
-              <p className="text-gray-600 mt-1">
-                Manage system users, their roles, and permissions
+              <p className="text-[var(--text-secondary)] mt-1">
+                {t("UserPage.Desc")}
               </p>
             </div>
 
@@ -276,7 +278,7 @@ export const UserPage: React.FC = () => {
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Upload Users
+                {t("UserPage.Upload_Users")}
               </button>
 
               <button
@@ -284,7 +286,7 @@ export const UserPage: React.FC = () => {
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add User
+                {t("UserPage.Add_User")}
               </button>
             </div>
           </div>
@@ -331,7 +333,7 @@ export const UserPage: React.FC = () => {
         {/* Pagination - Only show when not in form mode */}
         {!showForm && pagination.totalPages > 1 && (
           <div className="mt-6 flex justify-center">
-            <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+            <div className="flex items-center gap-2 bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
               <button
                 onClick={() =>
                   setSearchParams((prev) => ({
@@ -340,13 +342,13 @@ export const UserPage: React.FC = () => {
                   }))
                 }
                 disabled={pagination.page === 1}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                Previous
+                {t("UserPage.Previous")}
               </button>
 
-              <span className="px-4 py-2 text-sm text-gray-600 font-medium">
-                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+              <span className="px-4 py-2 text-sm text-[var(--text-secondary)] font-medium">
+                {t("UserPage.Page")} {pagination.page} {t("UserPage.of")} {pagination.totalPages} ({pagination.total} {t("UserPage.total")})
               </span>
 
               <button
@@ -357,9 +359,9 @@ export const UserPage: React.FC = () => {
                   }))
                 }
                 disabled={pagination.page >= pagination.totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
-                Next
+                {t("UserPage.Next")}
               </button>
             </div>
           </div>
@@ -367,11 +369,11 @@ export const UserPage: React.FC = () => {
 
         {/* Loading Overlay - Only show when not in form mode */}
         {!showForm && isLoadingUsers && searchParams.page === 1 && (
-          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-40">
-            <div className="bg-white rounded-lg p-6 shadow-xl">
+          <div className="fixed inset-0 bg-[var(--bg-card)]/30 backdrop-blur-sm flex items-center justify-center z-40">
+            <div className="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="text-gray-700">Loading users...</span>
+                <span className="text-[var(--text-secondary)]">{t("UserPage.Loading_Users")}</span>
               </div>
             </div>
           </div>
@@ -387,7 +389,7 @@ export const UserPage: React.FC = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && userToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="shrink-0">
@@ -396,16 +398,15 @@ export const UserPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Delete User
+                    <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
+                      {t("UserPage.Delete_User")}
                     </h3>
-                    <p className="text-sm text-gray-600">
-                      Are you sure you want to delete{" "}
-                      <span className="font-semibold text-gray-900">
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {t("UserPage.Delete_Confirm")}{" "}
+                      <span className="font-semibold text-[var(--text-color)]">
                         {userToDelete.first_name} {userToDelete.last_name}
                       </span>
-                      ? This action cannot be undone and will permanently remove
-                      the user from the system.
+                      ? {t("UserPage.Delete_Description")}
                     </p>
                   </div>
                 </div>
@@ -413,9 +414,9 @@ export const UserPage: React.FC = () => {
                 <div className="mt-6 flex justify-end gap-3">
                   <button
                     onClick={cancelDeleteUser}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                   >
-                    Cancel
+                     {t("UserPage.Cancel")}
                   </button>
                   <button
                     onClick={confirmDeleteUser}
@@ -425,7 +426,7 @@ export const UserPage: React.FC = () => {
                     {isDeleting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Deleting...
+                        {t("UserPage.Deleting")}
                       </>
                     ) : (
                       "Delete User"
@@ -440,3 +441,5 @@ export const UserPage: React.FC = () => {
     </div >
   );
 };
+
+

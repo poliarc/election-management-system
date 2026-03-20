@@ -172,13 +172,13 @@ export default function BoothVoters() {
         <div className="p-6">
             <div className="mb-6 flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">{t.title}</h1>
+                    <p className="text-[var(--text-secondary)] mt-1">
                         {t.subtitle} • {totalVoters.toLocaleString()} {t.totalVoters}
                     </p>
                     {partNoRanges.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="text-sm text-gray-600">{t.assignedRanges}:</span>
+                            <span className="text-sm text-[var(--text-secondary)]">{t.assignedRanges}:</span>
                             {partNoRanges.map((range: { part_no_from: string; part_no_to: string }, idx: number) => (
                                 <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                                     {range.part_no_from} - {range.part_no_to}
@@ -189,7 +189,7 @@ export default function BoothVoters() {
                     {/* Active Filters Indicator */}
                     {(debouncedSearch || gender || ageFrom || ageTo) && (
                         <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="text-sm text-gray-600">Active Filters:</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Active Filters:</span>
                             {debouncedSearch && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     Search: {debouncedSearch}
@@ -212,8 +212,8 @@ export default function BoothVoters() {
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
-                            ? "bg-white text-teal-600 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
+                            ? "bg-[var(--bg-card)] text-teal-600 shadow-sm"
+                            : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                             }`}
                     >
                         English
@@ -221,8 +221,8 @@ export default function BoothVoters() {
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
-                            ? "bg-white text-teal-600 shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
+                            ? "bg-[var(--bg-card)] text-teal-600 shadow-sm"
+                            : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                             }`}
                     >
                         Regional
@@ -235,10 +235,10 @@ export default function BoothVoters() {
             ) : (
                 <>
                     {/* Search and Filters */}
-                    <div className="mb-6 bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="mb-6 bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                                     {t.searchVoters}
                                 </label>
                                 <input
@@ -251,7 +251,7 @@ export default function BoothVoters() {
                             </div>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 transition"
                             >
                                 {showFilters ? t.hideFilters : t.showFilters}
                             </button>
@@ -266,9 +266,9 @@ export default function BoothVoters() {
                         </div>
 
                         {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[var(--border-color)]">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                                         {t.gender}
                                     </label>
                                     <select
@@ -282,7 +282,7 @@ export default function BoothVoters() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                                         {t.ageFrom}
                                     </label>
                                     <input
@@ -294,7 +294,7 @@ export default function BoothVoters() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                                         {t.ageTo}
                                     </label>
                                     <input
@@ -310,10 +310,10 @@ export default function BoothVoters() {
                     </div>
 
                     {isLoading ? (
-                        <div className="bg-white p-12 rounded-lg border border-gray-200 flex items-center justify-center">
+                        <div className="bg-[var(--bg-card)] p-12 rounded-lg border border-[var(--border-color)] flex items-center justify-center">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-                                <div className="text-gray-600">{t.loadingVoters}</div>
+                                <div className="text-[var(--text-secondary)]">{t.loadingVoters}</div>
                             </div>
                         </div>
                     ) : error ? (
@@ -330,8 +330,8 @@ export default function BoothVoters() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="text-sm text-gray-600">
+                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                            <div className="text-sm text-[var(--text-secondary)]">
                                 {t.showing} {page} {t.of} {totalPages} • {totalVoters.toLocaleString()} {t.totalVoters}
                             </div>
                             <div className="flex gap-2">
@@ -357,3 +357,5 @@ export default function BoothVoters() {
         </div>
     );
 }
+
+

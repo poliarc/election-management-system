@@ -157,8 +157,8 @@ export function ModuleMasterPage() {
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Module Master</h1>
-                <p className="text-gray-600">Manage system modules</p>
+                <h1 className="text-2xl font-bold text-[var(--text-color)]">Module Master</h1>
+                <p className="text-[var(--text-secondary)]">Manage system modules</p>
             </div>
 
             {/* Filters and Actions */}
@@ -193,56 +193,56 @@ export function ModuleMasterPage() {
             </div>
 
             {/* Modules Table */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-[var(--bg-card)] shadow rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--bg-main)]">
                             <tr>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Module Name
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Display Name
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Default
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Toggle Status
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Created At
                                 </th>
-                                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-4 text-center text-[var(--text-secondary)]">
                                         Loading...
                                     </td>
                                 </tr>
                             ) : modules.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-4 text-center text-[var(--text-secondary)]">
                                         No modules found
                                     </td>
                                 </tr>
                             ) : (
                                 modules.map((module) => (
                                     <tr key={module.module_id}>
-                                        <td className="px-3 py-4 text-sm font-medium text-gray-900">
+                                        <td className="px-3 py-4 text-sm font-medium text-[var(--text-color)]">
                                             <div className="truncate max-w-[150px]" title={module.moduleName}>
                                                 {module.moduleName}
                                             </div>
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-500">
+                                        <td className="px-3 py-4 text-sm text-[var(--text-secondary)]">
                                             <div className="truncate max-w-[120px]" title={module.displayName}>
                                                 {module.displayName}
                                             </div>
@@ -260,7 +260,7 @@ export function ModuleMasterPage() {
                                                 size="sm"
                                             />
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-500">
+                                        <td className="px-3 py-4 text-sm text-[var(--text-secondary)]">
                                             <div className="truncate max-w-[100px]" title={new Date(module.created_at).toLocaleDateString()}>
                                                 {new Date(module.created_at).toLocaleDateString()}
                                             </div>
@@ -299,7 +299,7 @@ export function ModuleMasterPage() {
             {/* Pagination */}
             {pagination.totalPages > 1 && (
                 <div className="mt-6 flex justify-between items-center">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                         Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
                         {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                         {pagination.total} results
@@ -329,13 +329,13 @@ export function ModuleMasterPage() {
             {/* Create/Edit Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                    <div className="bg-[var(--bg-card)] rounded-lg p-6 w-full max-w-md">
                         <h2 className="text-lg font-semibold mb-4">
                             {editingModule ? 'Edit Module' : 'Create Module'}
                         </h2>
                         <form onSubmit={editingModule ? handleUpdateModule : handleCreateModule}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Module Name
                                 </label>
                                 <input
@@ -348,7 +348,7 @@ export function ModuleMasterPage() {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Display Name
                                 </label>
                                 <input
@@ -368,7 +368,7 @@ export function ModuleMasterPage() {
                                             onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                                             className="mr-2"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">Active</span>
+                                        <span className="text-sm font-medium text-[var(--text-secondary)]">Active</span>
                                     </label>
                                 </div>
                             )}
@@ -380,14 +380,14 @@ export function ModuleMasterPage() {
                                         onChange={(e) => setFormData(prev => ({ ...prev, isDefault: e.target.checked }))}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">Default Module</span>
+                                    <span className="text-sm font-medium text-[var(--text-secondary)]">Default Module</span>
                                 </label>
                             </div>
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                                    className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5"
                                 >
                                     Cancel
                                 </button>
@@ -420,3 +420,4 @@ export function ModuleMasterPage() {
         </div>
     );
 }
+

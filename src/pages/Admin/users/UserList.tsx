@@ -29,38 +29,38 @@ export const UserList: React.FC<UserListProps> = ({
   const [openUserId, setOpenUserId] = useState<number | null>(null);
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
+        <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
           <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[var(--bg-main)]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   User ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   User Details
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   Party & Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   State & District
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   Status
                 </th>
-                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   Created Date
                 </th> */}
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
               {[...Array(5)].map((_, i) => (
                 <tr key={i} className="animate-pulse">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -107,12 +107,12 @@ export const UserList: React.FC<UserListProps> = ({
 
   if (users.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-8 text-center">
+        <Users className="mx-auto h-12 w-12 text-[var(--text-secondary)] mb-4" />
+        <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">
           No Users Found
         </h3>
-        <p className="text-gray-500">
+        <p className="text-[var(--text-secondary)]">
           No users match your current search criteria. Try adjusting your
           filters or search terms.
         </p>
@@ -129,15 +129,15 @@ export const UserList: React.FC<UserListProps> = ({
   //   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-medium text-[var(--text-color)] flex items-center gap-2">
             <Users className="w-5 h-5" />
             Users ({users.length})
           </h3>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-[var(--text-secondary)]">
             {users.filter((user) => user.isActive).length} active,{" "}
             {users.filter((user) => !user.isActive).length} inactive
           </div>
@@ -147,47 +147,47 @@ export const UserList: React.FC<UserListProps> = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-[var(--bg-main)]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 User ID
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 State & District
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 User Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                  Role
               </th>
               
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Status
               </th>
-              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Created Date
               </th> */}
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
             {users.map((user) => (
-              <tr key={user.user_id} className="hover:bg-gray-50">
+              <tr key={user.user_id} className="hover:bg-[var(--text-color)]/5">
                 {/* User ID */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-[var(--text-color)]">
                     {user.user_id}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm">
-                    <div className="text-gray-900 font-medium">
+                    <div className="text-[var(--text-color)] font-medium">
                       {user.stateName || "-"}
                     </div>
-                    <div className="text-gray-600">
+                    <div className="text-[var(--text-secondary)]">
                       {user.districtName || "-"}
                     </div>
                   </div>
@@ -198,7 +198,7 @@ export const UserList: React.FC<UserListProps> = ({
                   <div className="flex items-center">
                     <div className="shrink-0 h-10 w-10">
                       <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-[var(--text-secondary)]">
                           {(() => {
                             const firstName = (user.first_name || "").trim();
                             const lastName = (user.last_name || "").trim();
@@ -210,7 +210,7 @@ export const UserList: React.FC<UserListProps> = ({
                       </div>
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-[var(--text-color)]">
                         {user.first_name || ""} {user.last_name || ""}
                       </div>
                     </div>
@@ -248,8 +248,8 @@ export const UserList: React.FC<UserListProps> = ({
                       </>
                     ) : (
                       <>
-                        <ToggleLeft className="w-5 h-5 text-gray-400" />
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <ToggleLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                           Inactive
                         </span>
                       </>
@@ -258,7 +258,7 @@ export const UserList: React.FC<UserListProps> = ({
                 </td>
 
                 {/* Created Date */}
-                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     <span>{formatDate(user.created_at)}</span>
@@ -289,23 +289,23 @@ export const UserList: React.FC<UserListProps> = ({
           ${
             openUserId === user.user_id
               ? "bg-gray-200 shadow-sm" // ACTIVE INDICATION
-              : "hover:bg-gray-100"
+              : "hover:bg-[var(--text-color)]/5"
           }
         `}
                       >
-                        <MoreHorizontal className="w-5 h-5 text-gray-700" />
+                        <MoreHorizontal className="w-5 h-5 text-[var(--text-secondary)]" />
                       </button>
 
                       {/* Dropdown */}
                       {openUserId === user.user_id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg border rounded-md z-10 animate-fadeIn">
+                        <div className="absolute right-0 mt-2 w-32 bg-[var(--bg-card)] shadow-lg border rounded-md z-10 animate-fadeIn">
                           {onViewContact && (
                             <button
                               onClick={() => {
                                 onViewContact(user);
                                 setOpenUserId(null);
                               }}
-                              className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              className="w-full text-left px-4 py-2 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 flex items-center gap-2"
                             >
                               
                               View
@@ -330,3 +330,7 @@ export const UserList: React.FC<UserListProps> = ({
     </div>
   );
 };
+
+
+
+

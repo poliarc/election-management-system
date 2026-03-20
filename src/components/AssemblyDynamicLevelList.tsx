@@ -7,6 +7,7 @@ import AssignBoothVotersModal from "./AssignBoothVotersModal";
 import ResultAnalysisModal from "./ResultAnalysisModal";
 import toast from "react-hot-toast";
 import { deleteBoothDeletedVoterFile, bulkDeleteBoothDeletedVoterFiles } from "../services/boothDeletedVoterFilesApi";
+import { useTranslation } from "react-i18next";
 
 interface AssemblyDynamicLevelListProps {
     levelName: string;
@@ -17,6 +18,7 @@ interface AssemblyDynamicLevelListProps {
 export default function AssemblyDynamicLevelList({
     levelName,
     displayLevelName }: AssemblyDynamicLevelListProps) {
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
@@ -1582,20 +1584,20 @@ export default function AssemblyDynamicLevelList({
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                             <div className="shrink-0">
                                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                                    {displayLevelName} List
+                                    {displayLevelName} {t("AssemblyDynamic.List")}
                                 </h1>
                                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                                    Assembly: {assemblyInfo.assemblyName} | District: {assemblyInfo.districtName}
+                                    {t("AssemblyDynamic.Assembly")}: {assemblyInfo.assemblyName} | {t("AssemblyDynamic.District")}: {assemblyInfo.districtName}
                                 </p>
                             </div>
 
                             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                                     {/* Total Items Card */}
-                                    <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                                    <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                Total {displayLevelName}s
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {t("AssemblyDynamic.Total")} {displayLevelName}s
                                             </p>
                                             <p className="text-xl sm:text-2xl font-semibold mt-1">
                                                 {levelItems.length}
@@ -1620,7 +1622,7 @@ export default function AssemblyDynamicLevelList({
                                     {/* Total Users Card - Clickable */}
                                     <div
                                         onClick={handleItemsWithUsersClick}
-                                        className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
+                                        className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0)
                                             .length > 0
                                             ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
                                             : "cursor-default"
@@ -1636,11 +1638,11 @@ export default function AssemblyDynamicLevelList({
                                         }
                                     >
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                Total Users
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {t("AssemblyDynamic.Total_Users")}
                                                 {showItemsWithUsers && (
                                                     <span className="ml-2 text-green-600 font-semibold">
-                                                        (Filtered)
+                                                        {t("AssemblyDynamic.Filtered")}
                                                     </span>
                                                 )}
                                             </p>
@@ -1669,7 +1671,7 @@ export default function AssemblyDynamicLevelList({
                                     {/* Items Without Users Card - Clickable */}
                                     <div
                                         onClick={handleItemsWithoutUsersClick}
-                                        className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
+                                        className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
                                             .length > 0
                                             ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                                             : "cursor-default"
@@ -1685,11 +1687,11 @@ export default function AssemblyDynamicLevelList({
                                         }
                                     >
                                         <div>
-                                            <p className="text-xs font-medium text-gray-600">
-                                                {displayLevelName}s Without Users
+                                            <p className="text-xs font-medium text-[var(--text-secondary)]">
+                                                {displayLevelName}{t("AssemblyDynamic.Without_Users")}
                                                 {showItemsWithoutUsers && (
                                                     <span className="ml-2 text-red-600 font-semibold">
-                                                        (Filtered)
+                                                        {t("AssemblyDynamic.Filtered")}
                                                     </span>
                                                 )}
                                             </p>
@@ -1698,7 +1700,7 @@ export default function AssemblyDynamicLevelList({
                                                     (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
                                                 ).length > 0
                                                     ? "text-red-600"
-                                                    : "text-gray-400"
+                                                    : "text-[var(--text-secondary)]"
                                                     }`}
                                             >
                                                 {
@@ -1712,7 +1714,7 @@ export default function AssemblyDynamicLevelList({
                                             className={`rounded-full p-1.5 ${levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
                                                 .length > 0
                                                 ? "bg-red-50"
-                                                : "bg-gray-50"
+                                                : "bg-[var(--bg-main)]"
                                                 }`}
                                         >
                                             {levelItems.filter((item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0)
@@ -1732,7 +1734,7 @@ export default function AssemblyDynamicLevelList({
                                                 </svg>
                                             ) : (
                                                 <svg
-                                                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                                                    className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                                                     fill="none"
                                                     stroke="currentColor"
                                                     viewBox="0 0 24 24"
@@ -1752,18 +1754,18 @@ export default function AssemblyDynamicLevelList({
                         </div>
                     </div>
                     {/* Dynamic Filters - Assembly context (no assembly filter needed) */}
-                    <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 sm:p-4 mb-1">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                             {/* Assembly Filter - Always shown and disabled (current context) */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Assembly
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("AssemblyDynamic.Assembly")}
                                 </label>
                                 <input
                                     type="text"
                                     value={assemblyInfo.assemblyName}
                                     disabled
-                                    className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                 />
                             </div>
 
@@ -1780,7 +1782,7 @@ export default function AssemblyDynamicLevelList({
 
                                     return (
                                         <div key={filterLevel}>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                                 {filterLevel}
                                             </label>
                                             <select
@@ -1789,7 +1791,7 @@ export default function AssemblyDynamicLevelList({
                                                 disabled={isDisabled}
                                                 className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                             >
-                                                <option value={0}>All {filterLevel}s</option>
+                                                <option value={0}>{t("AssemblyDynamic.All")} {filterLevel}s</option>
                                                 {filterItems.map((item: any) => (
                                                     <option key={item.id} value={item.id}>
                                                         {item.displayName}
@@ -1803,8 +1805,8 @@ export default function AssemblyDynamicLevelList({
 
                             {/* Current Level Filter */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Filter by {displayLevelName}
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("AssemblyDynamic.Filter_by")} {displayLevelName}
                                 </label>
                                 <select
                                     value={selectedLevelFilter}
@@ -1825,13 +1827,13 @@ export default function AssemblyDynamicLevelList({
 
                             {/* Search Filter */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Search {displayLevelName}s
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("AssemblyDynamic.Search")} {displayLevelName}s
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg
-                                            className="w-5 h-5 text-gray-400"
+                                            className="w-5 h-5 text-[var(--text-secondary)]"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -1885,18 +1887,18 @@ export default function AssemblyDynamicLevelList({
                                             d="M6 18L18 6M6 6l12 12"
                                         />
                                     </svg>
-                                    Clear Filters
+                                    {t("AssemblyDynamic.Clear_Filters")}
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* Level Items List */}
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                         {filteredLevelItems.length === 0 ? (
                             <div className="text-center py-12">
                                 <svg
-                                    className="mx-auto h-12 w-12 text-gray-400"
+                                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -1908,10 +1910,10 @@ export default function AssemblyDynamicLevelList({
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                    No {displayLevelName.toLowerCase()}s found
+                                <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
+                                    {t("AssemblyDynamic.No")} {displayLevelName.toLowerCase()}{t("AssemblyDynamic.s_found")}
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-[var(--text-secondary)]">
                                     {showItemsWithoutUsers
                                         ? `No ${displayLevelName.toLowerCase()}s without users match your criteria.`
                                         : `No ${displayLevelName.toLowerCase()}s match your search criteria.`}
@@ -1924,51 +1926,51 @@ export default function AssemblyDynamicLevelList({
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                                 <tr>
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        S.No
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {t("AssemblyDynamic.S_No")}
                                                     </th>
                                                     {/* Show Assembly column always */}
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Assembly
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {t("AssemblyDynamic.Assembly")}
                                                     </th>
                                                     {/* Dynamic parent level columns - show all levels in hierarchy */}
                                                     {visibleFilters.map((filterLevel) => (
-                                                        <th key={filterLevel} className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                        <th key={filterLevel} className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                             {filterLevel}
                                                         </th>
                                                     ))}
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Level Type
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {t("AssemblyDynamic.Level_Type")}
                                                     </th>
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        {displayLevelName} Name
+                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {displayLevelName} {t("AssemblyDynamic.Name")}
                                                     </th>
-                                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Total Users
+                                                    <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {t("AssemblyDynamic.Total_Users")}
                                                     </th>
                                                     {levelName === "Booth" && (
                                                         <>
-                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                                Upload Deleted Voters
+                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                                {t("AssemblyDynamic.Upload_Deleted_Voters")}
                                                             </th>
-                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                                Uploaded Files
+                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                                {t("AssemblyDynamic.Uploaded_Files")}
                                                             </th>
-                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                                F20 uploads
+                                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                                {t("AssemblyDynamic.F20_uploads")}
                                                             </th>
                                                         </>
                                                     )}
-                                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                        Actions
+                                                    <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                        {t("AssemblyDynamic.Actions")}
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
+                                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                                 {paginatedItems.map((item, index) => (
                                                     <React.Fragment key={item.id}>
                                                         <tr className="hover:bg-blue-50 transition-colors">
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                                 {(currentPage - 1) * itemsPerPage + index + 1}
                                                             </td>
                                                             {/* Assembly column - always shown */}
@@ -2117,10 +2119,10 @@ export default function AssemblyDynamicLevelList({
                                                                         )}
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-sm font-semibold text-gray-900">
+                                                                        <p className="text-sm font-semibold text-[var(--text-color)]">
                                                                             {item.displayName}
                                                                         </p>
-                                                                        <p className="text-xs text-gray-500">
+                                                                        <p className="text-xs text-[var(--text-secondary)]">
                                                                             {item.partyLevelDisplayName || displayLevelName}
                                                                         </p>
                                                                     </div>
@@ -2160,7 +2162,7 @@ export default function AssemblyDynamicLevelList({
                                                                             />
                                                                         </svg>
                                                                     </button>
-                                                                    <span className="text-sm font-medium text-gray-900">
+                                                                    <span className="text-sm font-medium text-[var(--text-color)]">
                                                                         {itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)}
                                                                     </span>
                                                                 </div>
@@ -2233,7 +2235,7 @@ export default function AssemblyDynamicLevelList({
                                                                         className="p-2 hover:bg-blue-50 rounded-full transition-all duration-200 group"
                                                                         title="More actions"
                                                                     >
-                                                                        <svg className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
                                                                             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                                         </svg>
                                                                     </button>
@@ -2245,7 +2247,7 @@ export default function AssemblyDynamicLevelList({
                                                                                 onClick={() => setOpenDropdownId(null)}
                                                                             />
                                                                             <div
-                                                                                className="fixed w-60 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 max-h-64 overflow-y-auto"
+                                                                                className="fixed w-60 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-gray-100 z-50 max-h-64 overflow-y-auto"
                                                                                 style={{
                                                                                     scrollbarWidth: 'thin',
                                                                                     scrollbarColor: '#cbd5e1 #f1f5f9',
@@ -2261,14 +2263,14 @@ export default function AssemblyDynamicLevelList({
                                                                                             navigate(`/assembly/${levelPath}/assign?levelId=${item.id}&levelName=${encodeURIComponent(item.displayName)}&levelType=${levelName}`);
                                                                                             setOpenDropdownId(null);
                                                                                         }}
-                                                                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
+                                                                                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-green-50 flex items-center gap-3 transition-colors group"
                                                                                     >
                                                                                         <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                                                                                             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                                                                             </svg>
                                                                                         </div>
-                                                                                        <span className="font-medium">Assign Users</span>
+                                                                                        <span className="font-medium">{t("AssemblyDynamic.Assign_Users")}</span>
                                                                                     </button>
                                                                                     <div className="border-t border-gray-100 my-1"></div>
                                                                                     <button
@@ -2277,14 +2279,14 @@ export default function AssemblyDynamicLevelList({
                                                                                             setShowAssignVotersModal(true);
                                                                                             setOpenDropdownId(null);
                                                                                         }}
-                                                                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
+                                                                                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-indigo-50 flex items-center gap-3 transition-colors group"
                                                                                     >
                                                                                         <div className="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
                                                                                             <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                                                                             </svg>
                                                                                         </div>
-                                                                                        <span className="font-medium">Assign Booth Voters</span>
+                                                                                        <span className="font-medium">{t("AssemblyDynamic.Assign_Booth_Voters")}</span>
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
@@ -2383,7 +2385,7 @@ export default function AssemblyDynamicLevelList({
                                                                     return 1 + 1 + visibleFilters.length + 1 + 1 + 1 + 1 + 1 + 1 + 1; // 10 base columns for booth
                                                                 })()} className="px-6 py-4 bg-purple-50">
                                                                     <div>
-                                                                        <h4 className="text-sm font-semibold text-purple-800 mb-2">Uploaded Deleted Voter Files</h4>
+                                                                        <h4 className="text-sm font-semibold text-purple-800 mb-2">{t("AssemblyDynamic.Uploaded_Deleted_Voter_Files")}</h4>
                                                                         {boothFiles[item.id]?.loading && (
                                                                             <div className="text-center py-4">
                                                                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -2402,7 +2404,7 @@ export default function AssemblyDynamicLevelList({
                                                                                             onChange={(e) => handleSelectAllFiles(item.id, boothFiles[item.id].data.map((f: any) => f.id), e.target.checked)}
                                                                                             className="rounded"
                                                                                         />
-                                                                                        <span className="text-sm text-gray-700">Select All</span>
+                                                                                        <span className="text-sm text-[var(--text-secondary)]">{t("AssemblyDynamic.Select_All")}</span>
                                                                                         {(selectedFileIds[item.id] || []).length > 0 && (
                                                                                             <button
                                                                                                 onClick={() => handleBulkDelete(item.id)}
@@ -2416,10 +2418,10 @@ export default function AssemblyDynamicLevelList({
                                                                                 )}
                                                                                 <ul className="space-y-2">
                                                                                     {boothFiles[item.id]?.data.length === 0 && (
-                                                                                        <li className="text-sm text-gray-600">No files uploaded for this booth yet.</li>
+                                                                                        <li className="text-sm text-[var(--text-secondary)]">{t("AssemblyDynamic.Desc")}</li>
                                                                                     )}
                                                                                     {boothFiles[item.id]?.data.map((file: any) => (
-                                                                                        <li key={file.id} className="flex items-center justify-between bg-white p-2 rounded border">
+                                                                                        <li key={file.id} className="flex items-center justify-between bg-[var(--bg-card)] p-2 rounded border">
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <input
                                                                                                     type="checkbox"
@@ -2427,10 +2429,10 @@ export default function AssemblyDynamicLevelList({
                                                                                                     onChange={(e) => handleFileSelection(item.id, file.id, e.target.checked)}
                                                                                                     className="rounded"
                                                                                                 />
-                                                                                                <span className="text-sm font-medium text-gray-800">
+                                                                                                <span className="text-sm font-medium text-[var(--text-color)]">
                                                                                                     {file.filePath || file.file_name || "File"}
                                                                                                 </span>
-                                                                                                <span className="text-xs text-gray-500">
+                                                                                                <span className="text-xs text-[var(--text-secondary)]">
                                                                                                     {file.created_at ? new Date(file.created_at).toLocaleString() : (file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : "")}
                                                                                                 </span>
                                                                                             </div>
@@ -2458,37 +2460,37 @@ export default function AssemblyDynamicLevelList({
                                 </div>
                                 {/* Pagination */}
                                 {totalPages > 1 && (
-                                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                    <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6">
                                         <div className="flex-1 flex justify-between sm:hidden">
                                             <button
                                                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                                 disabled={currentPage === 1}
-                                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Previous
+                                                {t("AssemblyDynamic.Previous")}
                                             </button>
                                             <button
                                                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                                 disabled={currentPage === totalPages}
-                                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                Next
+                                                {t("AssemblyDynamic.Next")}
                                             </button>
                                         </div>
                                         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                             <div>
-                                                <p className="text-sm text-gray-700">
-                                                    Showing{" "}
+                                                <p className="text-sm text-[var(--text-secondary)]">
+                                                    {t("AssemblyDynamic.Showing")}{" "}
                                                     <span className="font-medium">
                                                         {(currentPage - 1) * itemsPerPage + 1}
                                                     </span>{" "}
-                                                    to{" "}
+                                                    {t("AssemblyDynamic.to")}{" "}
                                                     <span className="font-medium">
                                                         {Math.min(currentPage * itemsPerPage, filteredLevelItems.length)}
                                                     </span>{" "}
-                                                    of{" "}
+                                                    {t("AssemblyDynamic.of")}{" "}
                                                     <span className="font-medium">{filteredLevelItems.length}</span>{" "}
-                                                    results
+                                                    {t("AssemblyDynamic.results")}
                                                 </p>
                                             </div>
                                             <div>
@@ -2496,9 +2498,9 @@ export default function AssemblyDynamicLevelList({
                                                     <button
                                                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                                         disabled={currentPage === 1}
-                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Previous
+                                                        {t("AssemblyDynamic.Previous")}
                                                     </button>
                                                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                                         const pageNum = i + 1;
@@ -2508,7 +2510,7 @@ export default function AssemblyDynamicLevelList({
                                                                 onClick={() => setCurrentPage(pageNum)}
                                                                 className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
                                                                     ? "z-10 bg-indigo-50 border-indigo-500 text-indigo-600"
-                                                                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                                                                    : "bg-[var(--bg-card)] border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                                     }`}
                                                             >
                                                                 {pageNum}
@@ -2518,9 +2520,9 @@ export default function AssemblyDynamicLevelList({
                                                     <button
                                                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                                         disabled={currentPage === totalPages}
-                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        Next
+                                                        {t("AssemblyDynamic.Next")}
                                                     </button>
                                                 </nav>
                                             </div>
@@ -2584,3 +2586,6 @@ export default function AssemblyDynamicLevelList({
         </>
     );
 }
+
+
+

@@ -6,8 +6,10 @@ import UploadVotersModal from "../../../components/UploadVotersModal";
 import UploadDraftVotersModal from "../../../components/UploadDraftVotersModal";
 import * as XLSX from "xlsx";
 import type { EnhancedHierarchyChild } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function StateAssembly() {
+  const { t } = useTranslation();
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateName, setStateName] = useState<string>("");
   const [partyId, setPartyId] = useState<number | null>(null);
@@ -303,13 +305,13 @@ export default function StateAssembly() {
   const assembliesWithoutUsers = metaData?.assembliesWithoutUsers || 0;
 
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
       <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-              Assembly List
+              {t("stateAssembly.Assembly_List")}
             </h1>
             <p className="text-sky-100 mt-1 text-xs sm:text-sm">
               {stateName}
@@ -337,16 +339,16 @@ export default function StateAssembly() {
                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              Export Excel ({filteredData.length})
+              {t("stateAssembly.Export_Excel")} ({filteredData.length})
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
             {/* Total Assemblies Card */}
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Total Assemblies
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  {t("stateAssembly.Total_Assemblies")}
                 </p>
                 <p className="text-xl sm:text-2xl font-semibold mt-1">
                   {formatNumber(totalAssemblies)}
@@ -372,7 +374,7 @@ export default function StateAssembly() {
             {/* Total Users Card - Clickable */}
             <div 
               onClick={handleAssignedUsersClick}
-              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+              className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                 totalUsers > 0
                   ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
                   : "cursor-default"
@@ -388,8 +390,8 @@ export default function StateAssembly() {
               }
             >
               <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Assigned Users
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  {t("stateAssembly.Assigned_Users")}
                   {showAssignedUsers && (
                     <span className="ml-2 text-green-600 font-semibold">
                       (Filtered)
@@ -397,13 +399,13 @@ export default function StateAssembly() {
                   )}
                 </p>
                 <p className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                  totalUsers > 0 ? "text-green-600" : "text-gray-400"
+                  totalUsers > 0 ? "text-green-600" : "text-[var(--text-secondary)]"
                 }`}>
                   {formatNumber(totalUsers)}
                 </p>
               </div>
               <div className={`rounded-full p-1.5 ${
-                  totalUsers > 0 ? "bg-green-50" : "bg-gray-50"
+                  totalUsers > 0 ? "bg-green-50" : "bg-[var(--bg-main)]"
                 }`}>
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5 text-green-600"
@@ -424,7 +426,7 @@ export default function StateAssembly() {
             {/* Assemblies Without Users Card - Clickable */}
             <div
               onClick={handleAssembliesWithoutUsersClick}
-              className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+              className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                 assembliesWithoutUsers > 0
                   ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                   : "cursor-default"
@@ -440,8 +442,8 @@ export default function StateAssembly() {
               }
             >
               <div>
-                <p className="text-xs font-medium text-gray-600">
-                  Assemblies Without Users
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  {t("stateAssembly.Assemblies_Without_Users")}
                   {showAssembliesWithoutUsers && (
                     <span className="ml-2 text-red-600 font-semibold">
                       (Filtered)
@@ -452,7 +454,7 @@ export default function StateAssembly() {
                   className={`text-xl sm:text-2xl font-semibold mt-1 ${
                     assembliesWithoutUsers > 0
                       ? "text-red-600"
-                      : "text-gray-400"
+                      : "text-[var(--text-secondary)]"
                   }`}
                 >
                   {formatNumber(assembliesWithoutUsers)}
@@ -460,7 +462,7 @@ export default function StateAssembly() {
               </div>
               <div
                 className={`rounded-full p-1.5 ${
-                  assembliesWithoutUsers > 0 ? "bg-red-50" : "bg-gray-50"
+                  assembliesWithoutUsers > 0 ? "bg-red-50" : "bg-[var(--bg-main)]"
                 }`}
               >
                 {assembliesWithoutUsers > 0 ? (
@@ -479,7 +481,7 @@ export default function StateAssembly() {
                   </svg>
                 ) : (
                   <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -562,3 +564,5 @@ export default function StateAssembly() {
     </div>
   );
 }
+
+

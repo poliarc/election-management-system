@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const SingleVoterReportPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -105,7 +107,7 @@ const SingleVoterReportPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    No assembly selected. Please select an assembly first.
+                    {t("SingleVoterReportPage.No_assembly_selected")}
                 </div>
             </div>
         );
@@ -115,31 +117,31 @@ const SingleVoterReportPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Single Voter Report
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("SingleVoterReportPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View single/unmarried voters (married status: single)
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("SingleVoterReportPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("SingleVoterReportPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("SingleVoterReportPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -152,11 +154,11 @@ const SingleVoterReportPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SingleVoterReportPage.Part_No_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -169,8 +171,8 @@ const SingleVoterReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SingleVoterReportPage.Part_No_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -183,8 +185,8 @@ const SingleVoterReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Age From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SingleVoterReportPage.Age_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -197,8 +199,8 @@ const SingleVoterReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Age To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SingleVoterReportPage.Age_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -211,29 +213,29 @@ const SingleVoterReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Gender
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SingleVoterReportPage.Gender")}
                                 </label>
                                 <select
                                     value={gender}
                                     onChange={(e) => setGender(e.target.value)}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">All</option>
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O">Other</option>
+                                    <option value="">{t("SingleVoterReportPage.All")}</option>
+                                    <option value="M">{t("SingleVoterReportPage.Male")}</option>
+                                    <option value="F">{t("SingleVoterReportPage.Female")}</option>
+                                    <option value="O">{t("SingleVoterReportPage.Other")}</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("SingleVoterReportPage.Reset")}
                                 </button>
                             </div>
                         </div>
@@ -241,18 +243,18 @@ const SingleVoterReportPage: React.FC = () => {
 
                     {isLoading ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Loading...</div>
+                            <div className="text-[var(--text-secondary)]">{t("SingleVoterReportPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-gray-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                                Found {singleVoters.length} single/unmarried voters
+                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-purple-50 p-3 rounded-lg border border-purple-200">
+                                {t("SingleVoterReportPage.Found")} {singleVoters.length} single/unmarried voters {t("SingleVoterReportPage.single_unmarried_voters")}
                                 {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • {t("SingleVoterReportPage.Part_No")}: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
-                                {gender && <span> • Gender: {gender === "M" ? "Male" : gender === "F" ? "Female" : "Other"}</span>}
+                                {gender && <span> • {t("SingleVoterReportPage.Gender")}: {gender === "M" ? "Male" : gender === "F" ? "Female" : "Other"}</span>}
                                 {(ageFrom || ageTo) && (
-                                    <span> • Age: {ageFrom || "any"} - {ageTo || "any"}</span>
+                                    <span> • {t("SingleVoterReportPage.Age")}: {ageFrom || "any"} - {ageTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
@@ -269,3 +271,5 @@ const SingleVoterReportPage: React.FC = () => {
 };
 
 export default SingleVoterReportPage;
+
+

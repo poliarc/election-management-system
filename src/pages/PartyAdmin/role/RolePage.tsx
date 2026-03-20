@@ -161,12 +161,12 @@ export const RolePage: React.FC = () => {
   };
 
   return (
-    <div className="p-1 sm:p-1 bg-gray-50 rounded-2xl shadow-md w-full">
+    <div className="p-1 sm:p-1 bg-[var(--bg-main)] rounded-2xl shadow-md w-full">
       {/* Header */}
       <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl p-4 sm:p-6 mb-1 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+            <div className="bg-[var(--bg-card)] bg-opacity-20 p-3 rounded-lg">
               <Shield className="w-8 h-8" />
             </div>
             <div>
@@ -183,7 +183,7 @@ export const RolePage: React.FC = () => {
                   setEditingRole(null);
                   setShowForm(true);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-white text-blue-700 font-medium shadow hover:bg-blue-50 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[var(--bg-card)] text-blue-700 font-medium shadow hover:bg-blue-50 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 New Role
@@ -192,7 +192,7 @@ export const RolePage: React.FC = () => {
             {showForm && (
               <button
                 onClick={cancelForm}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white/20 text-white font-medium hover:bg-white/30 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-card)]/20 text-white font-medium hover:bg-[var(--bg-card)]/30 transition-colors"
               >
                 <X className="w-4 h-4" />
                 Close
@@ -247,7 +247,7 @@ export const RolePage: React.FC = () => {
       {/* Pagination */}
       {!showForm && pagination.total > searchParams.limit && (
         <div className="mt-6 flex justify-center">
-          <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
             <button
               onClick={() =>
                 setSearchParams((prev) => ({
@@ -256,12 +256,12 @@ export const RolePage: React.FC = () => {
                 }))
               }
               disabled={searchParams.page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               Previous
             </button>
 
-            <span className="px-4 py-2 text-sm text-gray-600 font-medium">
+            <span className="px-4 py-2 text-sm text-[var(--text-secondary)] font-medium">
               Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
             </span>
 
@@ -273,7 +273,7 @@ export const RolePage: React.FC = () => {
                 }))
               }
               disabled={searchParams.page >= pagination.totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               Next
             </button>
@@ -311,3 +311,5 @@ export const RolePage: React.FC = () => {
     </div>
   );
 };
+
+

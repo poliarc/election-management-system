@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 
 export function ThemeToggle() {
-  // Force light mode only - remove dark class if it exists
+  // Apply stored/system theme preference once on mount
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
+    const savedTheme = window.localStorage.getItem("theme");
+    const isDark =
+      savedTheme === "dark" ||
+      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    window.document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
-  // Component no longer renders anything - dark mode is disabled
+  // Component intentionally renders nothing
   return null;
 }

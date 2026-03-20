@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useAppSelector } from '../../../store/hooks';
 import { useGetCreatorsListQuery, useGetSupportersByCreatedByQuery } from '../../../store/api/supportersApi';
 import type { Supporter } from '../../../types/supporter';
+import { useTranslation } from 'react-i18next';
 
 export default function StateUserWiseSupportersPage() {
+  const {t} = useTranslation();
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +58,8 @@ export default function StateUserWiseSupportersPage() {
         {/* Header + Stats in one row */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">User Wise Supporters</h1>
-            <p className="text-gray-600 text-sm">View supporters created by each user</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t("userWise.Title")}</h1>
+            <p className="text-gray-600 text-sm">{t("userWise.Desc")}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             {/* Total Supporters */}
@@ -68,7 +70,7 @@ export default function StateUserWiseSupportersPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-purple-100 text-xs font-medium">Total Supporters</p>
+                <p className="text-purple-100 text-xs font-medium">{t("userWise.Total_Supporters")}</p>
                 <p className="text-xl font-bold">{creators.reduce((sum, creator) => sum + creator.supporters_count, 0)}</p>
               </div>
             </div>
@@ -80,7 +82,7 @@ export default function StateUserWiseSupportersPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-blue-100 text-xs font-medium">Total Users</p>
+                <p className="text-blue-100 text-xs font-medium">{t("userWise.Total_Users")}</p>
                 <p className="text-xl font-bold">{creators.length}</p>
               </div>
             </div>
@@ -92,7 +94,7 @@ export default function StateUserWiseSupportersPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-green-100 text-xs font-medium">Selected User</p>
+                <p className="text-green-100 text-xs font-medium">{t("userWise.Selected_User")}</p>
                 <p className="text-xl font-bold">{pagination?.total || 0}</p>
               </div>
             </div>
@@ -101,21 +103,21 @@ export default function StateUserWiseSupportersPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Filter Supporters</h2>
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("userWise.Filter_Supporter")}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* User Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select User
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("userWise.Select_User")}
               </label>
               <select
                 value={selectedUserId}
                 onChange={(e) => handleUserChange(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value={0}>Select a user...</option>
+                <option value={0}>{t("userWise.user")}</option>
                 {creators.map((creator) => (
                   <option key={creator.user_id} value={creator.user_id}>
                     {creator.full_name} ({creator.supporters_count})
@@ -126,8 +128,8 @@ export default function StateUserWiseSupportersPage() {
 
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Supporters
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("userWise.Search_Supporters")}
               </label>
               <input
                 type="text"
@@ -142,14 +144,14 @@ export default function StateUserWiseSupportersPage() {
         </div>
 
         {/* Supporters List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-[var(--border-color)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Supporters List
+              <h2 className="text-lg font-semibold text-[var(--text-color)]">
+                {t("userWise.Supporters_List")}
                 {pagination && (
-                  <span className="ml-2 text-sm font-normal text-gray-500">
+                  <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
                     ({pagination.total} total)
                   </span>
                 )}
@@ -161,19 +163,19 @@ export default function StateUserWiseSupportersPage() {
           {supportersLoading && (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading supporters...</p>
+              <p className="text-[var(--text-secondary)] mt-2">{t("userWise.Loading_supporters")}</p>
             </div>
           )}
 
           {/* Empty State - No User Selected */}
           {!supportersLoading && !selectedUserId && (
             <div className="p-8 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No user selected</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Please select a user from the dropdown to view their supporters.
+              <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t("userWise.No_User")}</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                {t("userWise.Select_Users")}
               </p>
             </div>
           )}
@@ -181,11 +183,11 @@ export default function StateUserWiseSupportersPage() {
           {/* Empty State - No Supporters */}
           {!supportersLoading && selectedUserId && supporters.length === 0 && (
             <div className="p-8 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No supporters found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t("userWise.No_Supporters")}</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 {searchTerm ? 'Try adjusting your search criteria.' : 'This user has not created any supporters yet.'}
               </p>
             </div>
@@ -196,71 +198,71 @@ export default function StateUserWiseSupportersPage() {
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-[var(--bg-main)]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supporter
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Supporter")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Contact")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Demographics
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Demographics")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Location")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created By
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Created")}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("userWise.Actions")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {supporters.map((supporter) => (
-                      <tr key={supporter.supporter_id} className="hover:bg-gray-50">
+                      <tr key={supporter.supporter_id} className="hover:bg-[var(--text-color)]/5">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-[var(--text-color)]">
                               {getFullName(supporter)}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              Father: {supporter.father_name}
+                            <div className="text-sm text-[var(--text-secondary)]">
+                              {t("userWise.Father")} {supporter.father_name}
                             </div>
                             {supporter.voter_epic_id && (
-                              <div className="text-xs text-gray-400">
-                                EPIC: {supporter.voter_epic_id}
+                              <div className="text-xs text-[var(--text-secondary)]">
+                                {t("userWise.EPIC")} {supporter.voter_epic_id}
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{supporter.phone_no}</div>
+                          <div className="text-sm text-[var(--text-color)]">{supporter.phone_no}</div>
                           {supporter.whatsapp_no && (
-                            <div className="text-sm text-gray-500">WA: {supporter.whatsapp_no}</div>
+                            <div className="text-sm text-[var(--text-secondary)]">{t("userWise.WAA")} {supporter.whatsapp_no}</div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {supporter.gender}, Age {supporter.age}
+                          <div className="text-sm text-[var(--text-color)]">
+                            {supporter.gender}, {t("userWise.Age")} {supporter.age}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-[var(--text-secondary)]">
                             {supporter.religion} - {supporter.category}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{supporter.assembly_name}</div>
+                          <div className="text-sm text-[var(--text-color)]">{supporter.assembly_name}</div>
                           {supporter.block_name && (
-                            <div className="text-sm text-gray-500">{supporter.block_name}</div>
+                            <div className="text-sm text-[var(--text-secondary)]">{supporter.block_name}</div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-[var(--text-color)]">
                             {supporter.created_by_name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--text-secondary)]">
                             {new Date(supporter.created_at).toLocaleDateString()}
                           </div>
                         </td>
@@ -269,7 +271,7 @@ export default function StateUserWiseSupportersPage() {
                             onClick={() => setViewingSupporter(supporter)}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
                           >
-                            View Details
+                            {t("userWise.View")}
                           </button>
                         </td>
                       </tr>
@@ -280,20 +282,20 @@ export default function StateUserWiseSupportersPage() {
 
               {/* Pagination */}
               {pagination && pagination.pages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
+                <div className="px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                      {pagination.total} results
+                    <div className="text-sm text-[var(--text-secondary)]">
+                      {t("userWise.Showing")} {((pagination.page - 1) * pagination.limit) + 1} {t("userWise.to")}{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} {t("userWise.of")}{' '}
+                      {pagination.total} {t("userWise.results")}
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page <= 1}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("userWise.Previous")}
                       </button>
                       {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                         const page = i + 1;
@@ -303,7 +305,7 @@ export default function StateUserWiseSupportersPage() {
                             onClick={() => handlePageChange(page)}
                             className={`px-3 py-1 text-sm border rounded-md ${page === pagination.page
                               ? 'bg-indigo-600 text-white border-indigo-600'
-                              : 'border-gray-300 hover:bg-gray-50'
+                              : 'border-gray-300 hover:bg-[var(--text-color)]/5'
                               }`}
                           >
                             {page}
@@ -313,9 +315,9 @@ export default function StateUserWiseSupportersPage() {
                       <button
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page >= pagination.pages}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("userWise.Next")}
                       </button>
                     </div>
                   </div>
@@ -328,12 +330,12 @@ export default function StateUserWiseSupportersPage() {
         {/* Supporter Details Modal */}
         {viewingSupporter && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Supporter Details</h3>
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">{t("userWise.Supporter_Details")}</h3>
                 <button
                   onClick={() => setViewingSupporter(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -344,45 +346,45 @@ export default function StateUserWiseSupportersPage() {
               <div className="px-6 py-4 space-y-6">
                 {/* Personal Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Personal Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("userWise.Personal_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Full Name</label>
-                      <p className="text-sm text-gray-900">{getFullName(viewingSupporter)}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Full_Name")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{getFullName(viewingSupporter)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Father's Name</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.father_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Father_Name")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.father_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Age</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.age} years</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Age")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.age} {t("userWise.Years")}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Gender</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.gender}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Gender")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.gender}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Contact Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Contact Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("userWise.Contact_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Phone Number</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.phone_no}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Phone_Number")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.phone_no}</p>
                     </div>
                     {viewingSupporter.whatsapp_no && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">WhatsApp Number</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.whatsapp_no}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.WhatsApp_Number")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.whatsapp_no}</p>
                       </div>
                     )}
                     {viewingSupporter.voter_epic_id && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">EPIC ID</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.voter_epic_id}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.EPIC")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.voter_epic_id}</p>
                       </div>
                     )}
                   </div>
@@ -390,39 +392,39 @@ export default function StateUserWiseSupportersPage() {
 
                 {/* Demographics */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Demographics</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("userWise.Demographics")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Religion</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.religion}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Religion")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.religion}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Category</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.category}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Category")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.category}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Location Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Location Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("userWise.Location_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">State</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.state_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.State")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.state_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">District</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.district_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.District")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.district_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Assembly</label>
-                      <p className="text-sm text-gray-900">{viewingSupporter.assembly_name}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Assembly")}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.assembly_name}</p>
                     </div>
                     {viewingSupporter.block_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Block</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.block_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Block")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.block_name}</p>
                       </div>
                     )}
                   </div>
@@ -430,30 +432,30 @@ export default function StateUserWiseSupportersPage() {
 
                 {/* Created Information */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Record Information</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("userWise.Record_Information")}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-500">Created At</label>
-                      <p className="text-sm text-gray-900">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Created_At")}</label>
+                      <p className="text-sm text-[var(--text-color)]">
                         {new Date(viewingSupporter.created_at).toLocaleString()}
                       </p>
                     </div>
                     {viewingSupporter.created_by_name && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Created By</label>
-                        <p className="text-sm text-gray-900">{viewingSupporter.created_by_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("userWise.Created_By")}</label>
+                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.created_by_name}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+              <div className="px-6 py-4 border-t border-[var(--border-color)] flex justify-end">
                 <button
                   onClick={() => setViewingSupporter(null)}
                   className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                 >
-                  Close
+                  {t("userWise.Close")}
                 </button>
               </div>
             </div>
@@ -463,3 +465,6 @@ export default function StateUserWiseSupportersPage() {
     </div>
   );
 }
+
+
+

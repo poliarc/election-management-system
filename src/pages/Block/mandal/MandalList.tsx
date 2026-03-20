@@ -137,7 +137,7 @@ export default function MandalList() {
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="bg-white/20 p-2 rounded-lg">
+                                <div className="bg-[var(--bg-card)]/20 p-2 rounded-lg">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3L3 9l9 6 9-6-9-6zm0 6v12" />
                                     </svg>
@@ -150,7 +150,7 @@ export default function MandalList() {
                         </div>
                         <button
                             onClick={() => navigate("/block/mandal/create")}
-                            className="bg-white text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold flex items-center gap-2 shadow-md"
+                            className="bg-[var(--bg-card)] text-blue-700 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold flex items-center gap-2 shadow-md"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -161,32 +161,32 @@ export default function MandalList() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Assembly
                             </label>
                             <input
                                 type="text"
                                 value={blockInfo.assemblyName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Block
                             </label>
                             <input
                                 type="text"
                                 value={blockInfo.blockName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Filter by Mandal
                             </label>
                             <select
@@ -206,12 +206,12 @@ export default function MandalList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Search Mandals
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -231,11 +231,11 @@ export default function MandalList() {
                 </div>
 
                 {/* Mandal List */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                     {isLoading ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600">Loading mandals...</p>
+                            <p className="mt-4 text-[var(--text-secondary)]">Loading mandals...</p>
                         </div>
                     ) : error ? (
                         <div className="text-center py-12 text-red-600">
@@ -243,10 +243,10 @@ export default function MandalList() {
                         </div>
                     ) : filteredMandals.length === 0 ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No mandals found</p>
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium">No mandals found</p>
                         </div>
                     ) : (
                         <>
@@ -255,33 +255,33 @@ export default function MandalList() {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     S.No
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Level Type
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Display Name
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Users
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Status
                                                 </th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Created Date
                                                 </th>
-                                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                     Actions
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                             {paginatedMandals.map((mandal, index) => (
                                                 <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                         {(currentPage - 1) * itemsPerPage + index + 1}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -297,12 +297,12 @@ export default function MandalList() {
                                                                 </svg>
                                                             </div>
                                                             <div>
-                                                                <p className="text-sm font-semibold text-gray-900">{mandal.displayName}</p>
-                                                                <p className="text-xs text-gray-500">{mandal.partyLevelDisplayName}</p>
+                                                                <p className="text-sm font-semibold text-[var(--text-color)]">{mandal.displayName}</p>
+                                                                <p className="text-xs text-[var(--text-secondary)]">{mandal.partyLevelDisplayName}</p>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                             {mandal.user_count || 0} users
                                                         </span>
@@ -315,7 +315,7 @@ export default function MandalList() {
                                                             {mandal.isActive === 1 ? "Active" : "Inactive"}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                         {mandal.created_at ? new Date(mandal.created_at).toLocaleDateString() : "N/A"}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-center relative">
@@ -338,7 +338,7 @@ export default function MandalList() {
                                                                         onClick={() => setOpenDropdownId(null)}
                                                                     />
                                                                     <div
-                                                                        className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+                                                                        className="absolute right-0 mt-2 w-64 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-[var(--border-color)] z-50 overflow-hidden"
                                                                         style={{
                                                                             animation: 'slideDown 0.2s ease-out'
                                                                         }}
@@ -349,7 +349,7 @@ export default function MandalList() {
                                                                                     handleViewUsers(mandal.id, mandal.displayName);
                                                                                     setOpenDropdownId(null);
                                                                                 }}
-                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                                className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-blue-50 flex items-center gap-3 transition-all duration-150 group"
                                                                             >
                                                                                 <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                                                                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -358,8 +358,8 @@ export default function MandalList() {
                                                                                     </svg>
                                                                                 </div>
                                                                                 <div className="flex-1">
-                                                                                    <div className="font-medium text-gray-900">View Users</div>
-                                                                                    <div className="text-xs text-gray-500">See assigned users</div>
+                                                                                    <div className="font-medium text-[var(--text-color)]">View Users</div>
+                                                                                    <div className="text-xs text-[var(--text-secondary)]">See assigned users</div>
                                                                                 </div>
                                                                             </button>
                                                                             <button
@@ -367,7 +367,7 @@ export default function MandalList() {
                                                                                     navigate(`/block/mandal/assign?mandalId=${mandal.id}&mandalName=${encodeURIComponent(mandal.displayName)}`);
                                                                                     setOpenDropdownId(null);
                                                                                 }}
-                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                                className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-green-50 flex items-center gap-3 transition-all duration-150 group"
                                                                             >
                                                                                 <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                                                                                     <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,8 +375,8 @@ export default function MandalList() {
                                                                                     </svg>
                                                                                 </div>
                                                                                 <div className="flex-1">
-                                                                                    <div className="font-medium text-gray-900">Assign Users</div>
-                                                                                    <div className="text-xs text-gray-500">Add new users</div>
+                                                                                    <div className="font-medium text-[var(--text-color)]">Assign Users</div>
+                                                                                    <div className="text-xs text-[var(--text-secondary)]">Add new users</div>
                                                                                 </div>
                                                                             </button>
                                                                             <div className="border-t border-gray-100"></div>
@@ -386,7 +386,7 @@ export default function MandalList() {
                                                                                     setShowAssignVotersModal(true);
                                                                                     setOpenDropdownId(null);
                                                                                 }}
-                                                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-indigo-50 flex items-center gap-3 transition-all duration-150 group"
+                                                                                className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-indigo-50 flex items-center gap-3 transition-all duration-150 group"
                                                                             >
                                                                                 <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
                                                                                     <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,8 +394,8 @@ export default function MandalList() {
                                                                                     </svg>
                                                                                 </div>
                                                                                 <div className="flex-1">
-                                                                                    <div className="font-medium text-gray-900">Assign Booth Voters</div>
-                                                                                    <div className="text-xs text-gray-500">Manage booth assignments</div>
+                                                                                    <div className="font-medium text-[var(--text-color)]">Assign Booth Voters</div>
+                                                                                    <div className="text-xs text-[var(--text-secondary)]">Manage booth assignments</div>
                                                                                 </div>
                                                                             </button>
                                                                         </div>
@@ -413,9 +413,9 @@ export default function MandalList() {
 
                             {/* Pagination */}
                             {filteredMandals.length > 0 && (
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)]">
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                        <div className="text-sm text-gray-700">
+                                        <div className="text-sm text-[var(--text-secondary)]">
                                             <span>
                                                 Showing{" "}
                                                 <span className="font-semibold">
@@ -433,7 +433,7 @@ export default function MandalList() {
                                                 <button
                                                     onClick={() => setCurrentPage(currentPage - 1)}
                                                     disabled={currentPage === 1}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Previous
                                                 </button>
@@ -455,7 +455,7 @@ export default function MandalList() {
                                                                 onClick={() => setCurrentPage(pageNum)}
                                                                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                                                     ? "bg-blue-600 text-white"
-                                                                    : "text-gray-700 hover:bg-gray-100"
+                                                                    : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                                     }`}
                                                             >
                                                                 {pageNum}
@@ -466,7 +466,7 @@ export default function MandalList() {
                                                 <button
                                                     onClick={() => setCurrentPage(currentPage + 1)}
                                                     disabled={currentPage === totalPages}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Next
                                                 </button>
@@ -482,7 +482,7 @@ export default function MandalList() {
                 {/* Modal for viewing users */}
                 {selectedMandalId && (
                     <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                             {/* Modal Header */}
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white flex-shrink-0">
                                 <div className="flex items-center justify-between">
@@ -492,7 +492,7 @@ export default function MandalList() {
                                     </div>
                                     <button
                                         onClick={handleCloseModal}
-                                        className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
+                                        className="bg-[var(--bg-card)]/20 hover:bg-[var(--bg-card)]/30 p-2 rounded-lg transition-colors"
                                     >
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -506,64 +506,64 @@ export default function MandalList() {
                                 {loadingUsers ? (
                                     <div className="text-center py-12">
                                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                        <p className="mt-4 text-gray-600">Loading users...</p>
+                                        <p className="mt-4 text-[var(--text-secondary)]">Loading users...</p>
                                     </div>
                                 ) : users.length === 0 ? (
                                     <div className="text-center py-12">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users assigned to this mandal</p>
+                                        <p className="mt-2 text-[var(--text-secondary)] font-medium">No users assigned to this mandal</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
                                         <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50 sticky top-0">
+                                            <thead className="bg-[var(--bg-main)] sticky top-0">
                                                 <tr>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         S.No
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Name
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Email
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Contact
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Party
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Status
                                                     </th>
-                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Assigned At
                                                     </th>
-                                                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    <th className="px-6 py-3 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         Actions
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
+                                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                                 {users.map((user: any, index: number) => (
                                                     <tr key={user.assignment_id || index} className="hover:bg-blue-50 transition-colors">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                             {index + 1}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-gray-900">
+                                                            <div className="text-sm font-semibold text-[var(--text-color)]">
                                                                 {user.first_name} {user.last_name}
                                                             </div>
-                                                            <div className="text-xs text-gray-500">
+                                                            <div className="text-xs text-[var(--text-secondary)]">
                                                                 {user.username}
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                             {user.email || "N/A"}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                             {user.contact_no || "N/A"}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -581,7 +581,7 @@ export default function MandalList() {
                                                                 {user.user_active === 1 ? "Active" : "Inactive"}
                                                             </span>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                             {user.assigned_at ? new Date(user.assigned_at).toLocaleDateString() : "N/A"}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -623,27 +623,27 @@ export default function MandalList() {
                 {/* Confirmation Modal */}
                 {showConfirmModal && userToDelete && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
                             <div className="p-6">
                                 <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
                                     <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold text-gray-900 text-center">
+                                <h3 className="mt-4 text-lg font-semibold text-[var(--text-color)] text-center">
                                     Confirm Deletion
                                 </h3>
-                                <p className="mt-2 text-sm text-gray-600 text-center">
+                                <p className="mt-2 text-sm text-[var(--text-secondary)] text-center">
                                     Are you sure you want to remove <span className="font-semibold">{userToDelete.first_name} {userToDelete.last_name}</span> from <span className="font-semibold">{selectedMandalName}</span>?
                                 </p>
-                                <p className="mt-2 text-xs text-gray-500 text-center">
+                                <p className="mt-2 text-xs text-[var(--text-secondary)] text-center">
                                     This action will unassign the user from this mandal.
                                 </p>
                             </div>
-                            <div className="bg-gray-50 px-6 py-4 flex gap-3 rounded-b-lg">
+                            <div className="bg-[var(--bg-main)] px-6 py-4 flex gap-3 rounded-b-lg">
                                 <button
                                     onClick={handleCancelDelete}
-                                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="flex-1 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -703,3 +703,6 @@ export default function MandalList() {
         </div>
     );
 }
+
+
+

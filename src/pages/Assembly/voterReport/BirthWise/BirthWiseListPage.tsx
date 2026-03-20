@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const BirthWiseListPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -120,31 +122,31 @@ const BirthWiseListPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Birth Wise List
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("BirthWiseListPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View voters filtered by date of birth
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("BirthWiseListPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("BirthWiseListPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("BirthWiseListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -157,11 +159,11 @@ const BirthWiseListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Select Date of Birth
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("BirthWiseListPage.Select_Date_Birth")}
                                 </label>
                                 <select
                                     value={selectedDOB}
@@ -171,7 +173,7 @@ const BirthWiseListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">All Dates</option>
+                                    <option value="">{t("BirthWiseListPage.All_Dates")}</option>
                                     {uniqueDOBs.map((dob) => (
                                         <option key={dob} value={dob}>
                                             {dob}
@@ -180,8 +182,8 @@ const BirthWiseListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("BirthWiseListPage.Part_No_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -194,8 +196,8 @@ const BirthWiseListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("BirthWiseListPage.Part_No_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -208,14 +210,14 @@ const BirthWiseListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("BirthWiseListPage.Reset")}
                                 </button>
                             </div>
                         </div>
@@ -223,15 +225,15 @@ const BirthWiseListPage: React.FC = () => {
 
                     {isLoading ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Loading...</div>
+                            <div className="text-[var(--text-secondary)]">{t("BirthWiseListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-gray-600 bg-cyan-50 p-3 rounded-lg border border-cyan-200">
-                                Found {filteredVoters.length} voters
-                                {selectedDOB && <span> • DOB: {selectedDOB}</span>}
+                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-cyan-50 p-3 rounded-lg border border-cyan-200">
+                                {t("BirthWiseListPage.Found")} {filteredVoters.length} {t("BirthWiseListPage.voters")}
+                                {selectedDOB && <span> • {t("BirthWiseListPage.DOB")} {selectedDOB}</span>}
                                 {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • {t("BirthWiseListPage.Part_No")} {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
 
@@ -242,9 +244,9 @@ const BirthWiseListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("BirthWiseListPage.Showing_page")} {currentPage} {t("BirthWiseListPage.of")} {totalPages} • {filteredVoters.length} {t("BirthWiseListPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -252,14 +254,14 @@ const BirthWiseListPage: React.FC = () => {
                                             disabled={currentPage === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Previous
+                                            {t("BirthWiseListPage.Previous")}
                                         </button>
                                         <button
                                             onClick={() => setCurrentPage(currentPage + 1)}
                                             disabled={currentPage === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Next
+                                            {t("BirthWiseListPage.Next")}
                                         </button>
                                     </div>
                                 </div>
@@ -273,3 +275,5 @@ const BirthWiseListPage: React.FC = () => {
 };
 
 export default BirthWiseListPage;
+
+

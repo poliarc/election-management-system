@@ -227,9 +227,9 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
     ];
 
     return (
-        <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
+        <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
             {/* User header */}
-            <div className="px-5 py-6 border-b border-gray-200 shrink-0">
+            <div className="px-5 py-6 border-b border-[var(--border-color)] shrink-0">
                 <div className="flex items-center gap-4">
                     <img
                         src={avatarUrl}
@@ -237,7 +237,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                         className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
                     />
                     <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-black text-sm">
+                        <p className="truncate font-semibold text-[var(--text-color)] text-sm">
                             {firstName}
                         </p>
                         <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
@@ -260,10 +260,10 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                         onClick={() => toggleDropdown(item.to)}
                                         className={[
                                             "w-full group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                                            "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                            "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                             isChildActive(item.children) || isDropdownExpanded(item.to)
-                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                                                : "border border-transparent hover:border-gray-200",
+                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200 text-indigo-700 dark:from-indigo-500/20 dark:to-indigo-500/10 dark:ring-indigo-400/40 dark:text-indigo-200"
+                                                : "border border-transparent hover:border-[var(--border-color)]",
                                         ].join(" ")}
                                     >
                                         <span className="text-indigo-600 shrink-0">{item.icon}</span>
@@ -295,10 +295,10 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                                         className={({ isActive }) =>
                                                             [
                                                                 "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                                                                "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                                                "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                                                 isActive
-                                                                    ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
-                                                                    : "border-l-2 border-transparent hover:border-gray-200",
+                                                                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200 border-l-2 border-indigo-500"
+                                                                    : "border-l-2 border-transparent hover:border-[var(--border-color)]",
                                                             ].join(" ")
                                                         }
                                                     >
@@ -318,10 +318,10 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                                         className={({ isActive }) =>
                                                             [
                                                                 "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                                                                "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                                                "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                                                 isActive
-                                                                    ? "bg-indigo-50 text-indigo-700 border-l-2 border-indigo-500"
-                                                                    : "border-l-2 border-transparent hover:border-gray-200",
+                                                                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200 border-l-2 border-indigo-500"
+                                                                    : "border-l-2 border-transparent hover:border-[var(--border-color)]",
                                                             ].join(" ")
                                                         }
                                                     >
@@ -340,10 +340,10 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                     className={({ isActive }) =>
                                         [
                                             "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                                            "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                            "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                             isActive
-                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                                                : "border border-transparent hover:border-gray-200",
+                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200 text-indigo-700 dark:from-indigo-500/20 dark:to-indigo-500/10 dark:ring-indigo-400/40 dark:text-indigo-200"
+                                                : "border border-transparent hover:border-[var(--border-color)]",
                                         ].join(" ")
                                     }
                                 >
@@ -364,7 +364,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             <div className="pt-2 pb-5">
                 <div className="px-5">
                     <div className="mb-3">
-                        <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                        <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                             Account
                         </div>
                     </div>
@@ -382,3 +382,6 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
         </aside>
     );
 };
+
+
+

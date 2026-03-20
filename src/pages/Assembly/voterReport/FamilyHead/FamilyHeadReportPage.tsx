@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const FamilyHeadReportPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -91,31 +93,31 @@ const FamilyHeadReportPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Family Head Report
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("FamilyHeadReportPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View voters who are likely family heads (relation: पिता/Father)
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("FamilyHeadReportPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("FamilyHeadReportPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("FamilyHeadReportPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -128,11 +130,11 @@ const FamilyHeadReportPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("FamilyHeadReportPage.Part_No_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -145,8 +147,8 @@ const FamilyHeadReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("FamilyHeadReportPage.Part_No_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -159,14 +161,14 @@ const FamilyHeadReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("FamilyHeadReportPage.Reset")}
                                 </button>
                             </div>
                         </div>
@@ -174,12 +176,12 @@ const FamilyHeadReportPage: React.FC = () => {
 
                     {isLoading ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Loading...</div>
+                            <div className="text-[var(--text-secondary)]">{t("FamilyHeadReportPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                                Found {familyHeads.length} potential family heads
+                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-blue-50 p-3 rounded-lg">
+                                {t("FamilyHeadReportPage.Found")} {familyHeads.length} {t("FamilyHeadReportPage.Desc1")}
                             </div>
                             <VoterListTable
                                 voters={familyHeads}
@@ -188,9 +190,9 @@ const FamilyHeadReportPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
-                                        Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("FamilyHeadReportPage.Showing_page")} {page} {t("FamilyHeadReportPage.of")} {totalPages} • {totalVoters.toLocaleString()} {t("FamilyHeadReportPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -198,14 +200,14 @@ const FamilyHeadReportPage: React.FC = () => {
                                             disabled={page === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Previous
+                                            {t("FamilyHeadReportPage.Previous")}
                                         </button>
                                         <button
                                             onClick={() => setPage(page + 1)}
                                             disabled={page === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Next
+                                            {t("FamilyHeadReportPage.Next")}
                                         </button>
                                     </div>
                                 </div>
@@ -219,3 +221,5 @@ const FamilyHeadReportPage: React.FC = () => {
 };
 
 export default FamilyHeadReportPage;
+
+

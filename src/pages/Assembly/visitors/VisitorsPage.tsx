@@ -3,8 +3,10 @@ import { useGetVisitorsQuery, useDeleteVisitorMutation, useToggleVisitorStatusMu
 import { useAppSelector } from '../../../store/hooks';
 import type { VisitorFilters, Visitor } from '../../../types/visitor';
 import { VisitorForm, VisitorList, VisitorStats } from './index';
+import { useTranslation } from "react-i18next";
 
 const VisitorsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { selectedAssignment } = useAppSelector((state) => state.auth);
   const [showForm, setShowForm] = useState(false);
   const [editingVisitor, setEditingVisitor] = useState<Visitor | null>(null);
@@ -82,7 +84,7 @@ const VisitorsPage: React.FC = () => {
 
   const handleBulkOperation = async (operation: 'activate' | 'deactivate' | 'delete') => {
     if (selectedVisitors.length === 0) {
-      alert('Please select visitors first');
+      alert(t("visitorsPage.alertPleaseSelectVisitorsFirst"));
       return;
     }
     setBulkAction(operation);
@@ -159,11 +161,11 @@ const VisitorsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div className="flex-1">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Visitors</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-color)]">{t("visitorsPage.title")}</h1>
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
             {selectedTeamMember 
-              ? `Visitors for ${teamMembers.find(m => m.user_id === selectedTeamMember)?.user_name || 'Selected Team Member'}`
-              : 'Manage visitor records and appointments'
+              ? t("visitorsPage.visitorsFor", { userName: teamMembers.find(m => m.user_id === selectedTeamMember)?.user_name || t("visitorsPage.selectedTeamMemberFallback") })
+              : t("visitorsPage.subtitle")
             }
           </p>
         </div>
@@ -173,14 +175,14 @@ const VisitorsPage: React.FC = () => {
               onClick={() => handleTeamMemberSelect(0)}
               className="bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base order-2 sm:order-1"
             >
-              Show All Visitors
+              {t("visitorsPage.btnShowAllVisitors")}
             </button>
           )}
           <button
             onClick={handleCreateVisitor}
             className="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm sm:text-base order-1 sm:order-2"
           >
-            Add New Visitor
+            {t("visitorsPage.btnAddNewVisitor")}
           </button>
         </div>
       </div>
@@ -195,26 +197,26 @@ const VisitorsPage: React.FC = () => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-blue-800 font-medium text-sm sm:text-base">
-              {selectedVisitors.length} visitor(s) selected
+              {t("visitorsPage.selectedVisitors", { count: selectedVisitors.length })}
             </span>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleBulkOperation('activate')}
                 className="bg-green-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-green-700 transition-colors"
               >
-                Activate
+                {t("visitorsPage.btnActivate")}
               </button>
               <button
                 onClick={() => handleBulkOperation('deactivate')}
                 className="bg-yellow-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-yellow-700 transition-colors"
               >
-                Deactivate
+                {t("visitorsPage.btnDeactivate")}
               </button>
               <button
                 onClick={() => handleBulkOperation('delete')}
                 className="bg-red-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm hover:bg-red-700 transition-colors"
               >
-                Delete
+                {t("visitorsPage.btnDelete")}
               </button>
             </div>
           </div>
@@ -244,7 +246,7 @@ const VisitorsPage: React.FC = () => {
       {/* Bulk Action Confirmation Modal */}
       {showBulkModal && bulkAction && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 shadow-xl">
+          <div className="bg-[var(--bg-card)] rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 shadow-xl">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
                 <svg className={`h-5 w-5 sm:h-6 sm:w-6 ${
@@ -254,29 +256,29 @@ const VisitorsPage: React.FC = () => {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">
-                  Confirm Bulk {bulkAction.charAt(0).toUpperCase() + bulkAction.slice(1)}
+                <h3 className="text-base sm:text-lg font-medium text-[var(--text-color)]">
+                  {t("visitorsPage.confirmBulkActionTitle", { action: bulkAction })}
                 </h3>
               </div>
             </div>
             <div className="mb-4 sm:mb-6">
-              <p className="text-sm sm:text-base text-gray-500">
-                Are you sure you want to {bulkAction} {selectedVisitors.length} selected visitor(s)?
+              <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+                {t("visitorsPage.confirmBulkActionDesc", { action: bulkAction, count: selectedVisitors.length })}
                 {bulkAction === 'delete' && (
                   <span className="block mt-2 text-red-600 font-medium">
-                    This action cannot be undone.
+                    {t("visitorsPage.cannotBeUndone")}
                   </span>
                 )}
               </p>
               
               {/* Show selected count and action details */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <div className="mt-4 p-3 bg-[var(--bg-main)] rounded-lg">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-700">Selected visitors:</span>
+                  <span className="font-medium text-[var(--text-secondary)]">{t("visitorsPage.selectedVisitorsLabel")}</span>
                   <span className="text-indigo-600 font-semibold">{selectedVisitors.length}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="font-medium text-gray-700">Action:</span>
+                  <span className="font-medium text-[var(--text-secondary)]">{t("visitorsPage.actionLabel")}</span>
                   <span className={`font-semibold capitalize ${
                     bulkAction === 'delete' ? 'text-red-600' : 
                     bulkAction === 'activate' ? 'text-green-600' : 'text-yellow-600'
@@ -289,9 +291,9 @@ const VisitorsPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={handleBulkCancel}
-                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
               >
-                Cancel
+                {t("visitorsPage.btnCancel")}
               </button>
               <button
                 onClick={handleBulkConfirm}
@@ -303,7 +305,11 @@ const VisitorsPage: React.FC = () => {
                     : 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500'
                 }`}
               >
-                {bulkAction === 'delete' ? 'Delete' : bulkAction === 'activate' ? 'Activate' : 'Deactivate'}
+                {bulkAction === 'delete'
+                  ? t("visitorsPage.btnDelete")
+                  : bulkAction === 'activate'
+                  ? t("visitorsPage.btnActivate")
+                  : t("visitorsPage.btnDeactivate")}
               </button>
             </div>
           </div>
@@ -314,3 +320,4 @@ const VisitorsPage: React.FC = () => {
 };
 
 export default VisitorsPage;
+

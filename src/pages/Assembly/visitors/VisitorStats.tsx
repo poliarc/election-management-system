@@ -1,11 +1,13 @@
 import React from 'react';
 import { useGetVisitorStatsQuery } from '../../../store/api/visitorsApi';
+import { useTranslation } from "react-i18next";
 
 interface VisitorStatsProps {
   assemblyId?: number;
 }
 
 const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
+  const { t } = useTranslation();
   const { data: statsData, isLoading, error } = useGetVisitorStatsQuery(
     { assembly_id: assemblyId },
     { skip: !assemblyId }
@@ -17,7 +19,7 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+          <div key={i} className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -28,15 +30,15 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
 
   if (error || !stats) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <p className="text-red-600">Failed to load visitor statistics</p>
+      <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6">
+        <p className="text-red-600">{t("visitorStats.failedToLoadVisitorStatistics")}</p>
       </div>
     );
   }
 
   const statCards = [
     {
-      title: 'Total Visitors',
+      title: t("visitorStats.totalVisitors"),
       value: stats.total,
       icon: (
         <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +49,7 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
       textColor: 'text-blue-900',
     },
     {
-      title: 'Active Visitors',
+      title: t("visitorStats.activeVisitors"),
       value: stats.active,
       icon: (
         <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +60,7 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
       textColor: 'text-green-900',
     },
     {
-      title: 'This Month',
+      title: t("visitorStats.thisMonth"),
       value: stats.thisMonth,
       icon: (
         <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +71,7 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
       textColor: 'text-purple-900',
     },
     {
-      title: 'Upcoming Follow-ups',
+      title: t("visitorStats.upcomingFollowUps"),
       value: stats.upcomingFollowUps,
       icon: (
         <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,10 +88,10 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
-          <div key={index} className={`${stat.bgColor} rounded-lg border border-gray-200 p-6`}>
+          <div key={index} className={`${stat.bgColor} rounded-lg border border-[var(--border-color)] p-6`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">{stat.title}</p>
                 <p className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</p>
               </div>
               <div className="flex-shrink-0">
@@ -109,10 +111,10 @@ const VisitorStats: React.FC<VisitorStatsProps> = ({ assemblyId }) => {
             </svg>
             <div>
               <p className="text-sm font-medium text-red-800">
-                {stats.overdueFollowUps} overdue follow-up{stats.overdueFollowUps !== 1 ? 's' : ''}
+                {t("visitorStats.overdueFollowUpCount", { count: stats.overdueFollowUps })}
               </p>
               <p className="text-xs text-red-600">
-                These visitors require immediate attention
+                {t("visitorStats.overdueFollowUpDesc")}
               </p>
             </div>
           </div>

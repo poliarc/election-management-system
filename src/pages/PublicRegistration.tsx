@@ -194,10 +194,10 @@ export const PublicRegistration: React.FC = () => {
     if (token && (isLoadingLink || isLoadingStates)) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Registration Form</h2>
-                    <p className="text-gray-600">Please wait while we prepare your registration...</p>
+                    <h2 className="text-xl font-semibold text-[var(--text-color)] mb-2">Loading Registration Form</h2>
+                    <p className="text-[var(--text-secondary)]">Please wait while we prepare your registration...</p>
                 </div>
             </div>
         );
@@ -207,14 +207,14 @@ export const PublicRegistration: React.FC = () => {
     if (token && linkError) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+                <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <AlertTriangle className="w-8 h-8 text-red-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">
                         Invalid Registration Link
                     </h1>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-[var(--text-secondary)] mb-6">
                         This registration link is invalid, expired, or has been deactivated.
                     </p>
                     <button
@@ -231,14 +231,14 @@ export const PublicRegistration: React.FC = () => {
     if (isSuccess) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+                <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="w-8 h-8 text-green-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">
                         Registration Successful!
                     </h1>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-[var(--text-secondary)] mb-6">
                         Your account has been created successfully. You can now login with your email and password.
                     </p>
                     <button
@@ -254,7 +254,7 @@ export const PublicRegistration: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-            <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="max-w-2xl w-full bg-[var(--bg-card)] rounded-lg shadow-lg overflow-hidden">
                 {/* Header */}
                 <div className="bg-blue-600 text-white p-6">
                     <div className="flex items-center gap-3">
@@ -281,14 +281,14 @@ export const PublicRegistration: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Personal Information */}
                         <div className="md:col-span-2">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">
                                 Personal Information
                             </h2>
                         </div>
 
                         {/* First Name */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 First Name *
                             </label>
                             <input
@@ -313,7 +313,7 @@ export const PublicRegistration: React.FC = () => {
 
                         {/* Last Name */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Last Name *
                             </label>
                             <input
@@ -338,7 +338,7 @@ export const PublicRegistration: React.FC = () => {
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Email Address *
                             </label>
                             <input
@@ -363,7 +363,7 @@ export const PublicRegistration: React.FC = () => {
 
                         {/* Contact Number */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Contact Number *
                             </label>
                             <input
@@ -389,7 +389,7 @@ export const PublicRegistration: React.FC = () => {
 
                         {/* Password */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Password *
                             </label>
                             <div className="relative">
@@ -409,7 +409,7 @@ export const PublicRegistration: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="w-4 h-4" />
@@ -427,43 +427,43 @@ export const PublicRegistration: React.FC = () => {
 
                         {/* Location Information */}
                         <div className="md:col-span-2">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 mt-6">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4 mt-6">
                                 Location Information
                             </h2>
                         </div>
 
                         {/* Party - Read Only */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Party
                             </label>
                             <input
                                 type="text"
                                 value={partyName || ""}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
 
                         {/* State */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 State
                             </label>
                             <input
                                 type="text"
                                 value={stateName || ""}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
                                 State is pre-selected from the registration link
                             </p>
                         </div>
 
                         {/* District */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 District {districtId ? "" : "*"}
                             </label>
                             {districtId && districtName ? (
@@ -473,9 +473,9 @@ export const PublicRegistration: React.FC = () => {
                                         type="text"
                                         value={districtName}
                                         disabled
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                                         District is pre-selected from the registration link
                                     </p>
                                 </>
@@ -483,8 +483,8 @@ export const PublicRegistration: React.FC = () => {
                                 // District not in URL - show dropdown for the selected state
                                 <>
                                     {isLoadingStates ? (
-                                        <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
-                                            <span className="text-gray-500">Loading districts...</span>
+                                        <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
+                                            <span className="text-[var(--text-secondary)]">Loading districts...</span>
                                         </div>
                                     ) : (
                                         <select
@@ -535,7 +535,7 @@ export const PublicRegistration: React.FC = () => {
 
                     {/* Login Link */}
                     <div className="mt-4 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[var(--text-secondary)]">
                             Already have an account?{" "}
                             <button
                                 type="button"

@@ -65,15 +65,15 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
 
     return (
         <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-lg w-full mx-4">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-gray-900">
+                        <h3 className="text-xl font-semibold text-[var(--text-color)]">
                             Upload Users (Bulk)
                         </h3>
                         <button
                             onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-600 transition"
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition"
                             disabled={isUploading}
                         >
                             <X className="w-5 h-5" />
@@ -84,7 +84,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
                         <div
                             className={`border-2 border-dashed rounded-lg p-8 text-center transition ${dragActive
                                 ? "border-blue-500 bg-blue-50"
-                                : "border-gray-300 bg-gray-50"
+                                : "border-gray-300 bg-[var(--bg-main)]"
                                 }`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
@@ -95,10 +95,10 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
                                 <div className="flex items-center justify-center gap-3">
                                     <FileSpreadsheet className="w-8 h-8 text-green-600" />
                                     <div className="text-left">
-                                        <p className="text-sm font-medium text-gray-900">
+                                        <p className="text-sm font-medium text-[var(--text-color)]">
                                             {selectedFile.name}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-[var(--text-secondary)]">
                                             {(selectedFile.size / 1024).toFixed(2)} KB
                                         </p>
                                     </div>
@@ -112,8 +112,8 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
                                 </div>
                             ) : (
                                 <>
-                                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-600 mb-2">
+                                    <Upload className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3" />
+                                    <p className="text-sm text-[var(--text-secondary)] mb-2">
                                         Drag and drop your Excel file here, or
                                     </p>
                                     <label className="inline-block">
@@ -128,7 +128,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
                                             disabled={isUploading}
                                         />
                                     </label>
-                                    <p className="text-xs text-gray-500 mt-2">
+                                    <p className="text-xs text-[var(--text-secondary)] mt-2">
                                         Supported formats: .xlsx, .xls
                                     </p>
                                 </>
@@ -139,7 +139,7 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={handleClose}
-                            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+                            className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition"
                             disabled={isUploading}
                         >
                             Cancel
@@ -167,3 +167,6 @@ export const BulkUploadModal: React.FC<BulkUploadModalProps> = ({
         </div>
     );
 };
+
+
+
