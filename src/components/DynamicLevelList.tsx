@@ -278,6 +278,7 @@ export default function DynamicLevelList({
         setSelectedFilters(newFilters);
         setDynamicFilterOptions(newFilterOptions);
         setCurrentPage(1);
+        setAllItemsForFilter([]); // Clear so search re-fetches with new filters
     };
 
     // Auto-select first district when districts are loaded
@@ -351,8 +352,9 @@ export default function DynamicLevelList({
 
     // Get current level items based on filters - fixed to prevent cross-assembly contamination
     const getCurrentLevelItems = () => {
-        // Use allItemsForFilter when user filter is active, otherwise use allLevelItems
-        let filteredItems = (showItemsWithoutUsers || showItemsWithUsers) ? allItemsForFilter : allLevelItems;
+        // Use allItemsForFilter when: user filter active, OR search is active (global search)
+        const useAllItems = showItemsWithoutUsers || showItemsWithUsers || (searchTerm.trim().length > 0 && allItemsForFilter.length > 0);
+        let filteredItems = useAllItems ? allItemsForFilter : allLevelItems;
 
         // If no items, return empty array
         if (filteredItems.length === 0) {
@@ -367,7 +369,7 @@ export default function DynamicLevelList({
             selectedFilters[key] && selectedFilters[key] > 0
         );
         
-        if (hasApiFilters && !showItemsWithoutUsers && !showItemsWithUsers) {
+        if (hasApiFilters && !showItemsWithoutUsers && !showItemsWithUsers && !searchTerm.trim()) {
             return filteredItems;
         }
 
@@ -643,6 +645,13 @@ export default function DynamicLevelList({
         }
     };
 
+    // Auto-fetch all items when search term is typed (for global search across all pages)
+    useEffect(() => {
+        if (!searchTerm.trim()) return;
+        if (allItemsForFilter.length > 0 || isLoadingAllItems) return;
+        fetchAllItemsForFilter();
+    }, [searchTerm]);
+
     // Handle items without users filter - fetch all items first
     const handleItemsWithoutUsersClick = async () => {
         if (showItemsWithoutUsers) {
@@ -878,20 +887,19 @@ export default function DynamicLevelList({
         }
     };
 
-    // Calculate total pages - prioritize server pagination, but use client-side when filter is active
-    const totalPages = (showItemsWithoutUsers || showItemsWithUsers) 
+    // Calculate total pages - prioritize server pagination, but use client-side when filter/search is active
+    const isClientSidePagination = showItemsWithoutUsers || showItemsWithUsers || searchTerm.trim().length > 0;
+    const totalPages = isClientSidePagination
         ? Math.ceil(filteredLevelItems.length / itemsPerPage)
         : (dynamicLevelData?.pagination?.totalPages || Math.ceil(filteredLevelItems.length / itemsPerPage));
     
-    // Use items directly from API (already paginated by server)
-    // But apply client-side pagination when user filter is active
-    const paginatedItems = (showItemsWithoutUsers || showItemsWithUsers)
+    // Use client-side pagination when filter or search is active, otherwise use server-paginated data
+    const paginatedItems = isClientSidePagination
         ? filteredLevelItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
         : filteredLevelItems;
 
     // Determine if we should show pagination
-    // Show if server has pagination OR client-side has multiple pages
-    const shouldShowPagination = (showItemsWithoutUsers || showItemsWithUsers)
+    const shouldShowPagination = isClientSidePagination
         ? totalPages > 1
         : ((dynamicLevelData?.pagination && dynamicLevelData.pagination.totalPages > 1) || 
            (!dynamicLevelData?.pagination && totalPages > 1));
@@ -1217,7 +1225,7 @@ export default function DynamicLevelList({
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Search..."
+                                        placeholder="Search all..."
                                         value={searchTerm}
                                         onChange={(e) => {
                                             setSearchTerm(e.target.value);
@@ -1225,6 +1233,11 @@ export default function DynamicLevelList({
                                         }}
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
+                                    {isLoadingAllItems && searchTerm.trim() && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
