@@ -1,9 +1,81 @@
 import React, { useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Download, MapPin, Loader2, X } from "lucide-react";
+import { Download, MapPin, Loader2, X, Calendar } from "lucide-react";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import toast from "react-hot-toast";
 import type { Supporter } from "../../types/supporter";
+
+interface ExportModalProps {
+    stateName: string;
+    onConfirm: (fromDate: string, toDate: string) => void;
+    onClose: () => void;
+}
+
+const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose }) => {
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+            <div
+                className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-5"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-indigo-600" />
+                        <h3 className="font-semibold text-gray-900">Export — {stateName}</h3>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <p className="text-xs text-gray-500 mb-4">
+                    Select a date range to filter by creation date, or leave blank to export all.
+                </p>
+
+                <div className="flex flex-col gap-3 mb-5">
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                        <input
+                            type="date"
+                            value={toDate}
+                            min={fromDate || undefined}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => onConfirm(fromDate, toDate)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 font-medium"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const ExportSupportersPage: React.FC = () => {
     const { partyId } = useParams<{ partyId: string }>();
@@ -11,6 +83,7 @@ export const ExportSupportersPage: React.FC = () => {
     const [isExporting, setIsExporting] = useState(false);
     const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null);
     const cancelRef = useRef(false);
+    const [modalState, setModalState] = useState<{ open: boolean; stateId: number | null }>({ open: false, stateId: null });
 
     const { data: stateMasterData = [], isLoading } = useGetAllStateMasterDataQuery();
 
@@ -24,7 +97,7 @@ export const ExportSupportersPage: React.FC = () => {
         toast("Export cancelled", { icon: "ℹ️" });
     };
 
-    const handleExport = async (stateId: number) => {
+    const handleExport = async (stateId: number, fromDate: string, toDate: string) => {
         if (!partyId) {
             toast.error("Party ID not found. Please try again.");
             return;
@@ -64,6 +137,9 @@ export const ExportSupportersPage: React.FC = () => {
                     page: currentPage.toString(),
                     limit: pageSize.toString(),
                 });
+
+                if (fromDate) params.set("dateFrom", fromDate);
+                if (toDate) params.set("dateTo", toDate);
 
                 const exportResponse = await fetch(`${exportEndpoint}?${params.toString()}`, {
                     headers: {
@@ -111,13 +187,32 @@ export const ExportSupportersPage: React.FC = () => {
                 return;
             }
 
+            // Client-side date filter since backend may not support date params
+            let filteredSupporters = allSupporters;
+            if (fromDate || toDate) {
+                const from = fromDate ? new Date(fromDate) : null;
+                const to = toDate ? new Date(toDate + "T23:59:59") : null;
+                filteredSupporters = allSupporters.filter((s) => {
+                    if (!s.created_at) return false;
+                    const created = new Date(s.created_at);
+                    if (from && created < from) return false;
+                    if (to && created > to) return false;
+                    return true;
+                });
+            }
+
+            if (filteredSupporters.length === 0) {
+                toast.error("No supporters found in the selected date range.", { id: "export-toast" });
+                return;
+            }
+
             const headers = [
                 "Serial No", "Created By", "Assembly", "Initials", "First Name", "Last Name",
                 "Father Name", "Age", "Gender", "Phone", "WhatsApp", "EPIC ID", "Languages",
                 "Religion", "Category", "Caste", "Block", "Mandal", "Booth", "Created At", "Address",
             ];
 
-            const csvRows = allSupporters.map((supporter: Supporter, index: number) => {
+            const csvRows = filteredSupporters.map((supporter: Supporter, index: number) => {
                 const escapeCSV = (value: unknown, isNumeric = false) => {
                     if (value === null || value === undefined) return "";
                     const str = String(value);
@@ -172,7 +267,8 @@ export const ExportSupportersPage: React.FC = () => {
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             const stateName = states.find((s) => s.id === stateId)?.levelName || stateId;
-            const filename = `supporters_${stateName}_${new Date().toISOString().split("T")[0]}.csv`;
+            const dateRange = fromDate && toDate ? `_${fromDate}_to_${toDate}` : fromDate ? `_from_${fromDate}` : toDate ? `_upto_${toDate}` : "";
+            const filename = `supporters_${stateName}${dateRange}_${new Date().toISOString().split("T")[0]}.csv`;
 
             link.setAttribute("href", url);
             link.setAttribute("download", filename);
@@ -182,7 +278,7 @@ export const ExportSupportersPage: React.FC = () => {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            toast.success(`Successfully exported ${allSupporters.length} supporters to ${filename}`, { id: "export-toast" });
+            toast.success(`Successfully exported ${filteredSupporters.length} supporters to ${filename}`, { id: "export-toast" });
         } catch (error) {
             if (cancelRef.current) return;
 
@@ -213,8 +309,34 @@ export const ExportSupportersPage: React.FC = () => {
         }
     };
 
+    const openModal = (stateId: number) => {
+        setModalState({ open: true, stateId });
+    };
+
+    const closeModal = () => {
+        setModalState({ open: false, stateId: null });
+    };
+
+    const handleModalConfirm = (fromDate: string, toDate: string) => {
+        if (modalState.stateId === null) return;
+        closeModal();
+        handleExport(modalState.stateId, fromDate, toDate);
+    };
+
+    const modalStateName = modalState.stateId
+        ? (states.find((s) => s.id === modalState.stateId)?.levelName || "")
+        : "";
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
+            {modalState.open && (
+                <ExportModal
+                    stateName={modalStateName}
+                    onConfirm={handleModalConfirm}
+                    onClose={closeModal}
+                />
+            )}
+
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900">Export</h1>
                 <p className="text-gray-600 mt-2">Select a state to export all supporters data</p>
@@ -274,7 +396,7 @@ export const ExportSupportersPage: React.FC = () => {
                                 </div>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => handleExport(state.id)}
+                                        onClick={() => openModal(state.id)}
                                         disabled={isExporting}
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                                     >
