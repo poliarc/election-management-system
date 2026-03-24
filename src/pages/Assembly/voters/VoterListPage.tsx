@@ -6,6 +6,7 @@ import { VoterListTable } from "./VoterListList";
 import type { VoterList, VoterListCandidate } from "../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 const translations = {
     en: {
@@ -13,6 +14,7 @@ const translations = {
         subtitle: "Manage and update voter information",
         totalVoters: "total voters",
         searchVoters: "Search Voters",
+        search: "Search",
         searchPlaceholder: "Search by name, mobile, EPIC, Aadhar, religion, caste, profession...",
         fatherHusbandName: "Father/Husband Name",
         fatherHusbandPlaceholder: "Enter relative name...",
@@ -40,6 +42,7 @@ const translations = {
         subtitle: "मतदाता जानकारी प्रबंधित और अपडेट करें",
         totalVoters: "कुल मतदाता",
         searchVoters: "मतदाता खोजें",
+        search: "खोजें",
         searchPlaceholder: "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें...",
         fatherHusbandName: "पिता/पति का नाम",
         fatherHusbandPlaceholder: "संबंधी का नाम दर्ज करें...",
@@ -77,6 +80,7 @@ export default function VoterListPage() {
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
+    const debouncedSearch = useDebounce(search, 500)
 
     const t = translations[language];
 
@@ -86,19 +90,19 @@ export default function VoterListPage() {
     );
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
-    const { data, isLoading, error } = useGetVotersByAssemblyPaginatedQuery(
-        {
-            assembly_id: assembly_id!,
-            page,
-            limit,
-            search: search || undefined,
-            fatherName: fatherName || undefined,
-            address: address || undefined,
-            partFrom,
-            partTo
-        },
-        { skip: !assembly_id } // Skip query if no assembly_id
-    );
+        const { data, isLoading, isFetching, refetch, error } = useGetVotersByAssemblyPaginatedQuery(
+            {
+                assembly_id: assembly_id!,
+                page,
+                limit,
+                search: debouncedSearch || undefined,
+                fatherName: fatherName || undefined,
+                address: address || undefined,
+                partFrom,
+                partTo
+            },
+            { skip: !assembly_id } // Skip query if no assembly_id
+        );
     const [updateVoter] = useUpdateVoterMutation();
 
     const handleClearFilters = () => {
@@ -193,7 +197,7 @@ export default function VoterListPage() {
             </div>
 
             {selectedVoter ? (
-                <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} />
+                <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} language={language} />
             ) : (
                 <>
                     {/* Search and Filters */}
@@ -223,6 +227,18 @@ export default function VoterListPage() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
+                            <button
+                                onClick={() => {
+                                    if(isFetching) return
+                                    refetch()
+                                }}
+                                disabled={isLoading || isFetching}
+                                className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
+                            >
+                               {isFetching ? (
+                                <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                               ) : t.search}
+                            </button>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
                                 className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
