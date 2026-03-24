@@ -32,6 +32,7 @@ const LabharthiListPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            labharthiStatus
         },
         { skip: !assembly_id }
     );

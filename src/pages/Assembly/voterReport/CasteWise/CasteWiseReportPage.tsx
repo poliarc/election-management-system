@@ -24,24 +24,30 @@ const CasteWiseReportPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            caste: selectedCaste
         },
         { skip: !assembly_id }
     );
 
+    const totalPages = votersData?.pagination?.totalPages || 1;
+    const totalVoters = votersData?.pagination?.total || 0;
+    // const filteredVoters = votersData?.data || [];    
+
     // Extract unique castes from voter data
-    const uniqueCastes = useMemo(() => {
-        if (!votersData?.data) return [];
+    // const uniqueCastes = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-        const castes = new Set<string>();
-        votersData.data.forEach((voter) => {
-            const caste = voter.caste?.trim();
-            if (caste) {
-                castes.add(caste);
-            }
-        });
+    //     const castes = new Set<string>();
+    //     votersData.data.forEach((voter) => {
+    //         const caste = voter.caste?.trim();
+    //         if (caste) {
+    //             castes.add(caste);
+    //         }
+    //     });
 
-        return Array.from(castes).sort();
-    }, [votersData]);
+    //     return Array.from(castes).sort();
+    // }, [votersData]);
+    const castes = ['General', 'OBC', 'SC', 'ST', 'Other']
 
     // Filter voters by selected caste
     const filteredVoters = useMemo(() => {
@@ -69,7 +75,7 @@ const CasteWiseReportPage: React.FC = () => {
         return filteredVoters.slice(startIndex, endIndex);
     }, [filteredVoters, currentPage]);
 
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedCaste("");
@@ -137,7 +143,7 @@ const CasteWiseReportPage: React.FC = () => {
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                         >
                             <option value="">All Castes</option>
-                            {uniqueCastes.map((caste) => (
+                            {castes.map((caste) => (
                                 <option key={caste} value={caste}>
                                     {caste}
                                 </option>
@@ -236,7 +242,7 @@ const CasteWiseReportPage: React.FC = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedVoters.map((voter) => (
+                                        filteredVoters.map((voter) => (
                                             <tr key={voter.id} className="hover:bg-gray-50">
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {voter.part_no}
@@ -281,7 +287,7 @@ const CasteWiseReportPage: React.FC = () => {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                             <div className="text-sm text-gray-600">
-                                Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                             </div>
                             <div className="flex gap-2">
                                 <button

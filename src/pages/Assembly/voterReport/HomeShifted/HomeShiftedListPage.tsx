@@ -25,6 +25,8 @@ const HomeShiftedListPage: React.FC = () => {
 
     // Fetch state master data for dropdowns
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
+    console.log(stateMasterData, 'state');
+    
 
     // Get states for dropdown
     const states = useMemo(() => {
@@ -58,6 +60,9 @@ const HomeShiftedListPage: React.FC = () => {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
+            shifted: true,
+            shiftedState,
+            shiftedCity
         },
         { skip: !assembly_id }
     );
@@ -67,31 +72,31 @@ const HomeShiftedListPage: React.FC = () => {
     const totalPages = votersData?.pagination?.totalPages || 1;
 
     // Filter voters - only show shifted voters with location filters
-    const filteredVoters = useMemo(() => {
-        if (!voters) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!voters) return [];
 
-        return voters.filter((voter) => {
-            // Only show shifted voters
-            if (!voter.shifted) return false;
+    //     return voters.filter((voter) => {
+    //         // Only show shifted voters
+    //         if (!voter.shifted) return false;
 
-            // Filter by shifted state
-            if (shiftedState && voter.shifted_state !== shiftedState) {
-                return false;
-            }
+    //         // Filter by shifted state
+    //         if (shiftedState && voter.shifted_state !== shiftedState) {
+    //             return false;
+    //         }
 
-            // Filter by shifted city
-            if (shiftedCity && voter.shifted_city !== shiftedCity) {
-                return false;
-            }
+    //         // Filter by shifted city
+    //         if (shiftedCity && voter.shifted_city !== shiftedCity) {
+    //             return false;
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [voters, shiftedState, shiftedCity]);
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [voters, shiftedState, shiftedCity]);
 
     const handleReset = () => {
         setShiftedState("");
@@ -234,7 +239,7 @@ const HomeShiftedListPage: React.FC = () => {
                     ) : (
                         <>
                             <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-amber-50 border-amber-200">
-                                Found {filteredVoters.length} shifted voters
+                                Found {voters.length} shifted voters
                                 {shiftedState && (
                                     <span> • State: {shiftedState}</span>
                                 )}
@@ -243,7 +248,7 @@ const HomeShiftedListPage: React.FC = () => {
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={voters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
