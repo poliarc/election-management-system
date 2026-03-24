@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -37,35 +37,37 @@ const OutsideLocationListPage: React.FC = () => {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
+            stayingOutside: 'true',
+            outsideCountry
         },
         { skip: !assembly_id }
     );
 
-    const voters = votersData?.data || [];
+    const outsideCountryVoters = votersData?.data || [];
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
 
     // Filter voters - only show voters staying outside with country filter
-    const filteredVoters = useMemo(() => {
-        if (!voters) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!voters) return [];
 
-        return voters.filter((voter) => {
-            // Only show voters staying outside
-            if (!voter.staying_outside) return false;
+    //     return voters.filter((voter) => {
+    //         // Only show voters staying outside
+    //         if (!voter.staying_outside) return false;
 
-            // Filter by outside country
-            if (outsideCountry && voter.outside_country !== outsideCountry) {
-                return false;
-            }
+    //         // Filter by outside country
+    //         if (outsideCountry && voter.outside_country !== outsideCountry) {
+    //             return false;
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [voters, outsideCountry]);
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [voters, outsideCountry]);
 
     const handleReset = () => {
         setOutsideCountry("");
@@ -186,13 +188,13 @@ const OutsideLocationListPage: React.FC = () => {
                     ) : (
                         <>
                             <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-purple-50 border-purple-200">
-                                Found {filteredVoters.length} voters staying outside
+                                Found {outsideCountryVoters.length} voters staying outside
                                 {outsideCountry && (
                                     <span> • Country: {outsideCountry}</span>
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={outsideCountryVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
