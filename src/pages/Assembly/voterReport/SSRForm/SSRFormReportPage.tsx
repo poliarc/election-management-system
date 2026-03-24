@@ -60,7 +60,7 @@ const SSRFormReportPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
-            eu_ssr_form_submitted: ssrFormStatus || undefined,
+            eu_ssr_form_submitted: ssrFormStatus === 'no' ? 'notSubmiited' : ssrFormStatus || undefined,
         },
         { skip: !assembly_id }
     );
@@ -100,11 +100,13 @@ const SSRFormReportPage: React.FC = () => {
 
         const total = votersData.data.length;
         const submitted = votersData.data.filter(v => v.eu_ssr_form_submitted === 'yes').length;
-        const notSubmitted = votersData.data.filter(v => v.eu_ssr_form_submitted === 'no').length;
+        const notSubmitted = votersData.data.filter(v => v.eu_ssr_form_submitted === null || v.eu_ssr_form_submitted === 'no').length;
 
         return { total, submitted, notSubmitted };
     }, [votersData]);
 
+    console.log(votersData, 'voter');
+    
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-2 sm:p-4 lg:p-6">
             <div className="max-w-7xl mx-auto">

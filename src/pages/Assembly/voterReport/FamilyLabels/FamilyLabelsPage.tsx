@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
+import { useGetVotersByAssemblyQuery } from "../../../../store/api/votersApi";
+import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface FamilyLabelData {
     houseNo: string;
@@ -21,17 +22,12 @@ const FamilyLabelsPage: React.FC = () => {
     const [selectedHouseNo, setSelectedHouseNo] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading } = useGetVotersByAssemblyQuery(
         {
             assembly_id: assembly_id!,
-            page,
-            limit: itemsPerPage,
-            partFrom,
-            partTo,
         },
         { skip: !assembly_id }
     );
@@ -99,22 +95,22 @@ const FamilyLabelsPage: React.FC = () => {
             }
             return a.houseNo.localeCompare(b.houseNo);
         });
-    }, [votersData, selectedHouseNo]);
+    }, [votersData, selectedHouseNo]);   
 
-    // Paginate the data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return familyLabelsData.slice(startIndex, endIndex);
-    }, [familyLabelsData, currentPage]);
-
-    const totalPages = Math.ceil(familyLabelsData.length / itemsPerPage);
+     const { paginatedVoters, totalPages } = usePartFilterPagination({
+            data: familyLabelsData,
+            partFrom,
+            partTo,
+            currentPage,
+            itemsPerPage,
+        });
+    console.log(paginatedVoters, 'pag');
+    
 
     const handleReset = () => {
         setSelectedHouseNo("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -243,14 +239,14 @@ const FamilyLabelsPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {paginatedData.length === 0 ? (
+                                    {paginatedVoters.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                                 No family data found
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedData.map((item, index) => (
+                                        paginatedVoters.map((item, index) => (
                                             <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}

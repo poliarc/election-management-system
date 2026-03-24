@@ -32,6 +32,7 @@ const SingleVoterReportPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            married: 'single'
         },
         { skip: !assembly_id }
     );
@@ -40,12 +41,7 @@ const SingleVoterReportPage: React.FC = () => {
         if (!votersData?.data) return [];
 
         return votersData.data.filter((voter) => {
-            // Filter by married column - should be "single" (case-insensitive)
-            const marriedStatus = voter.married?.toLowerCase()?.trim() || "";
-            const isSingle = marriedStatus === "single";
-
-            if (!isSingle) return false;
-
+        
             // Apply part number filter
             const partNo = Number(voter.part_no);
             const partMatch =
