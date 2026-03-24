@@ -37,7 +37,33 @@ interface GetVotersByAssemblyParams {
   page: number;
   search?: string;
   fatherName?: string;
+  townVillage?: string,
+  education?: string,
+  married?: string,
+  shifted?: boolean,
+  shiftedState?: string,
+  shiftedCity?: string,
+  labharthiStatus?: string,
+  professionType?: string,
+  voterDOB?: string
+  expiredAliveStatus?: string;
+  outsideCountry?: string;
+  politicalParty?: string;
+  stayingOutside?: string;
   address?: string;
+  relation?: string;
+  caste?: string;
+  ageTo?: number;
+  ageFrom?: number;
+  partFrom?: number;
+  partTo?: number;
+  eu_ssr_form_submitted?: string | null;
+}
+interface GetDuplicateVotersParams {
+  assembly_id: number;
+  limit: number;
+  page: number;
+  search?: string;
   partFrom?: number;
   partTo?: number;
   eu_ssr_form_submitted?: string;
@@ -102,6 +128,10 @@ interface DraftCompareModified extends DraftCompareListBase {
   draft_house?: string;
   status: "modified_voter";
   differences?: string[];
+}
+
+interface GetDistinctFieldsParams {
+  field: string
 }
 
 interface DraftCompareMatched extends DraftCompareListBase {
@@ -189,6 +219,64 @@ export const votersApi = createApi({
       transformResponse: (response: ApiResponse<UploadVotersResponse>) =>
         response.data,
     }),
+    getDistinctFields: builder.query<VoterApiResponse, GetDistinctFieldsParams>(
+      {
+        query: ({ field }) => {
+          const params = new URLSearchParams({});
+          if (field) {
+         params.append("field", field);
+        }
+
+          return {
+            url: `/voters/get-distinct-fields?${params.toString()}`,
+            method: "GET",
+          };
+        },
+        providesTags: ["Voters"],
+      },
+    ),
+    getDuplicateVotersPaginated: builder.query<
+      VoterApiResponse,
+      GetDuplicateVotersParams
+    >({
+      query: ({
+        assembly_id,
+        limit,
+        page,
+        search,
+        partFrom,
+        partTo,
+        eu_ssr_form_submitted,
+      }) => {
+        const params = new URLSearchParams({
+          limit: limit.toString(),
+          page: page.toString(),
+        });
+
+        if (assembly_id) params.append("assembly_id", assembly_id.toString());
+        if (search) params.append("search", search);
+        if (partFrom !== undefined)
+          params.append("partFrom", partFrom.toString());
+        if (partTo !== undefined) params.append("partTo", partTo.toString());
+        if (eu_ssr_form_submitted)
+          params.append("eu_ssr_form_submitted", eu_ssr_form_submitted);
+
+        return {
+          url: `/voters/duplicatevoters/paginated?${params.toString()}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Voters"],
+    }),
+    getVotersByAssembly: builder.query<VoterApiResponse, any>({
+      query: ({ assembly_id }) => {
+        return {
+          url: `/voters/assembly/${assembly_id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["Voters"],
+    }),
     getVotersByAssemblyPaginated: builder.query<
       VoterApiResponse,
       GetVotersByAssemblyParams
@@ -200,6 +288,23 @@ export const votersApi = createApi({
         search,
         fatherName,
         address,
+        townVillage,
+        caste,
+        shifted,
+        relation,
+        voterDOB,
+        shiftedState,
+        shiftedCity,
+        professionType,
+        labharthiStatus,
+        stayingOutside,
+        outsideCountry,
+        politicalParty,
+        expiredAliveStatus,
+        ageTo,
+        ageFrom,
+        married,
+        education,
         partFrom,
         partTo,
         eu_ssr_form_submitted,
@@ -210,7 +315,25 @@ export const votersApi = createApi({
         });
 
         if (search) params.append("search", search);
+        if (townVillage) params.append("townVillage", townVillage);
+        if (education) params.append("education", education);
+        if (married) params.append("married", married);
+        if (relation) params.append("relation", relation);
+        if (caste) params.append("caste", caste);
         if (fatherName) params.append("fatherName", fatherName);
+        if (shifted) params.append("shifted", shifted.toString());
+        if (voterDOB) params.append("voterDOB", voterDOB.toString());
+        if (outsideCountry) params.append("outsideCountry", outsideCountry);
+        if (stayingOutside) params.append("stayingOutside", stayingOutside);
+        if (politicalParty) params.append("politicalParty", politicalParty);
+        if (shiftedState) params.append("shiftedState", shiftedState);
+        if (shiftedCity) params.append("shiftedCity", shiftedCity);
+        if (professionType) params.append("professionType", professionType);
+        if (expiredAliveStatus)
+          params.append("expiredAliveStatus", expiredAliveStatus);
+        if (labharthiStatus) params.append("labharthiStatus", labharthiStatus);
+        if (ageTo !== undefined) params.append("ageTo", ageTo.toString());
+        if (ageFrom !== undefined) params.append("ageFrom", ageFrom.toString());
         if (address) params.append("address", address);
         if (partFrom !== undefined)
           params.append("partFrom", partFrom.toString());
@@ -319,6 +442,9 @@ export const votersApi = createApi({
 export const {
   useUploadVotersMutation,
   useUploadDraftVotersMutation,
+  useGetVotersByAssemblyQuery,
+  useGetDistinctFieldsQuery,
+  useGetDuplicateVotersPaginatedQuery,
   useGetVotersByAssemblyPaginatedQuery,
   useUpdateVoterMutation,
   useGetDraftCompareSummaryQuery,

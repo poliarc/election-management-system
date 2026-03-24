@@ -32,7 +32,9 @@ export default function AgeWiseListPage() {
             page,
             limit,
             partFrom,
-            partTo
+            partTo,
+            ageTo,
+            ageFrom
         },
         { skip: !assembly_id }
     );

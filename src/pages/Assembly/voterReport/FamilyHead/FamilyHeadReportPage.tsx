@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetVotersByAssemblyQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 const FamilyHeadReportPage: React.FC = () => {
     const selectedAssignment = useSelector(
@@ -17,24 +18,18 @@ const FamilyHeadReportPage: React.FC = () => {
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
     const [page, setPage] = useState(1);
-    const [limit] = useState(50);
     const [language, setLanguage] = useState<"en" | "hi">("en");
+    const [itemsPerPage] = useState(50);
+    
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading } = useGetVotersByAssemblyQuery(
         {
             assembly_id: assembly_id!,
-            page,
-            limit,
-            partFrom,
-            partTo,
         },
         { skip: !assembly_id }
     );
-
-    const totalPages = votersData?.pagination?.totalPages || 1;
-    const totalVoters = votersData?.pagination?.total || 0;
 
     const familyHeads = useMemo(() => {
         if (!votersData?.data) return [];
@@ -51,11 +46,19 @@ const FamilyHeadReportPage: React.FC = () => {
         });
     }, [votersData]);
 
-    const handleReset = () => {
-        setPartFrom(undefined);
-        setPartTo(undefined);
-        setPage(1);
-    };
+    const { paginatedVoters, totalPages } = usePartFilterPagination({
+        data: familyHeads,
+        partFrom,
+        partTo,
+        currentPage: page,
+        itemsPerPage,
+      });
+
+     const handleReset = () => {
+       setPartFrom(undefined);
+       setPartTo(undefined);
+       setPage(1);
+     };
 
     const handleEdit = (voter: VoterList) => {
         setSelectedVoter(voter);
@@ -182,7 +185,7 @@ const FamilyHeadReportPage: React.FC = () => {
                                 Found {familyHeads.length} potential family heads
                             </div>
                             <VoterListTable
-                                voters={familyHeads}
+                                voters={paginatedVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
@@ -190,7 +193,7 @@ const FamilyHeadReportPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                                     <div className="text-sm text-gray-600">
-                                        Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
+                                        Showing page {page} of {totalPages} • {familyHeads.length} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button

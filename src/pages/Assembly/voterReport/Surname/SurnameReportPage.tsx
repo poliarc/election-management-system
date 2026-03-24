@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
+import { useGetVotersByAssemblyQuery } from "../../../../store/api/votersApi";
+import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface SurnameData {
     partNo: string;
@@ -20,18 +21,13 @@ const SurnameReportPage: React.FC = () => {
     const [searchSurname, setSearchSurname] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading } = useGetVotersByAssemblyQuery(
         {
             assembly_id: assembly_id!,
-            page,
-            limit: itemsPerPage,
-            partFrom,
-            partTo,
         },
         { skip: !assembly_id }
     );
@@ -94,20 +90,21 @@ const SurnameReportPage: React.FC = () => {
         });
     }, [votersData, searchSurname, language]);
 
-    // Paginate the surname data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return surnameData.slice(startIndex, endIndex);
-    }, [surnameData, currentPage]);
+    
 
-    const totalPages = Math.ceil(surnameData.length / itemsPerPage);
+    const { paginatedVoters, totalPages } = usePartFilterPagination({
+            data: surnameData,
+            partFrom,
+            partTo,
+            currentPage,
+            itemsPerPage,
+        });
+      
 
     const handleReset = () => {
         setSearchSurname("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -254,7 +251,7 @@ const SurnameReportPage: React.FC = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedData.map((item, index) => (
+                                        paginatedVoters.map((item, index) => (
                                             <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}

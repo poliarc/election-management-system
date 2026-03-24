@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation, useGetDistinctFieldsQuery } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -22,7 +22,12 @@ const ProfessionWiseListPage: React.FC = () => {
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
+    const {data: professionData} = useGetDistinctFieldsQuery({
+        field: 'profession_type' 
+    })
 
+    const allDistinctProfession = professionData?.data || []
+    
     const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
@@ -30,6 +35,7 @@ const ProfessionWiseListPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            professionType: selectedProfession
         },
         { skip: !assembly_id }
     );
@@ -37,36 +43,23 @@ const ProfessionWiseListPage: React.FC = () => {
     const voters = votersData?.data || [];
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
+  
 
-    const uniqueProfessions = useMemo(() => {
-        if (!voters) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!voters) return [];
 
-        const professions = new Set<string>();
-        voters.forEach((voter) => {
-            const profession = voter.profession_type?.trim();
-            if (profession) {
-                professions.add(profession);
-            }
-        });
-
-        return Array.from(professions).sort();
-    }, [voters]);
-
-    const filteredVoters = useMemo(() => {
-        if (!voters) return [];
-
-        return voters.filter((voter) => {
-            if (selectedProfession && voter.profession_type !== selectedProfession) {
-                return false;
-            }
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [voters, selectedProfession]);
+    //     return voters.filter((voter) => {
+    //         if (selectedProfession && voter.profession_type !== selectedProfession) {
+    //             return false;
+    //         }
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [voters, selectedProfession]);
 
     const handleReset = () => {
         setSelectedProfession("");
@@ -161,9 +154,9 @@ const ProfessionWiseListPage: React.FC = () => {
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
                                     <option value="">All Professions</option>
-                                    {uniqueProfessions.map((profession) => (
-                                        <option key={profession} value={profession}>
-                                            {profession}
+                                    {allDistinctProfession.map((profession) => (
+                                        <option key={profession.value} value={profession.value}>
+                                            {profession.value}
                                         </option>
                                     ))}
                                 </select>
@@ -217,14 +210,14 @@ const ProfessionWiseListPage: React.FC = () => {
                     ) : (
                         <>
                             <div className="mb-1 text-sm text-gray-600 bg-lime-50 p-3 rounded-lg border border-lime-200">
-                                Found {filteredVoters.length} voters
+                                Found {voters.length} voters
                                 {selectedProfession && <span> • Profession: {selectedProfession}</span>}
                                 {(partFrom || partTo) && (
                                     <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={voters}
                                 onEdit={handleEdit}
                                 language={language}
                             />

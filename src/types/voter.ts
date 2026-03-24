@@ -17,6 +17,7 @@ export interface VoterListCandidate {
     ps_loc_en?: string;
     ps_loc_hin?: string;
     town_village_name_eng?: string;
+    town_village_name_hin?: string;
     ward_no?: string;
     tehsil_eng?: string;
     police_station_en?: string;
@@ -36,6 +37,7 @@ export interface VoterListCandidate {
     m_section_name?: string;
     voter_first_name_en?: string;
     voter_last_name_en?: string;
+    voter_first_name_hi?: string;
     voter_last_name_hi?: string;
     relative_first_name_en?: string;
     relative_last_name_en?: string;
@@ -88,6 +90,7 @@ export interface VoterList extends VoterListCandidate {
     id: number;
     created_at?: string;
     updated_at?: string;
+    value?: string;
 }
 
 export interface VoterPagination {

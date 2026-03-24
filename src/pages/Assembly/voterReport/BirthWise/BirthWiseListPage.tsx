@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetDistinctFieldsQuery, useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -31,24 +31,17 @@ const BirthWiseListPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            voterDOB: selectedDOB
+
         },
         { skip: !assembly_id }
     );
 
-    // Extract unique DOBs from voter data
-    const uniqueDOBs = useMemo(() => {
-        if (!votersData?.data) return [];
+    const {data: dobData} = useGetDistinctFieldsQuery({
+            field: 'voter_dob' 
+    })
 
-        const dobs = new Set<string>();
-        votersData.data.forEach((voter) => {
-            const dob = voter.voter_dob?.trim();
-            if (dob) {
-                dobs.add(dob);
-            }
-        });
-
-        return Array.from(dobs).sort();
-    }, [votersData]);
+    const uniqueDOBs = dobData?.data || []
 
     // Filter voters by selected DOB
     const filteredVoters = useMemo(() => {
@@ -173,8 +166,8 @@ const BirthWiseListPage: React.FC = () => {
                                 >
                                     <option value="">All Dates</option>
                                     {uniqueDOBs.map((dob) => (
-                                        <option key={dob} value={dob}>
-                                            {dob}
+                                        <option key={dob.value} value={dob.value}>
+                                            {dob.value}
                                         </option>
                                     ))}
                                 </select>
