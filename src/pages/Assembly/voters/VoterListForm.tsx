@@ -106,12 +106,14 @@ type Props = {
     initialValues?: VoterListCandidate;
     onSubmit: (data: VoterListCandidate) => void;
     onCancel: () => void;
+    language?: string
 };
 
 export const VoterEditForm: React.FC<Props> = ({
     initialValues,
     onSubmit,
     onCancel,
+    language
 }) => {
     const [editingSection, setEditingSection] = useState<string | null>(null);
 
@@ -281,8 +283,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
                     <h2 className="text-lg font-semibold mb-1 text-gray-900">Personal Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DisplayField label="Voter Name" value={initialValues?.voter_full_name_en} />
-                        <DisplayField label="Relative Name" value={initialValues?.relative_full_name_en} />
+                        <DisplayField label="Voter Name" value={language === 'en' ? initialValues?.voter_full_name_en : initialValues?.voter_full_name_hi} />
+                        <DisplayField label="Relative Name" value={language === 'en' ? initialValues?.relative_full_name_en : initialValues?.relative_full_name_hi} />
                         <DisplayField label="Voter ID" value={initialValues?.voter_id_epic_no} />
                         <DisplayField label="Gender" value={initialValues?.gender} />
                         <DisplayField label="Age" value={initialValues?.age} />
