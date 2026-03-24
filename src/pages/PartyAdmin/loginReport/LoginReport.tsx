@@ -13,10 +13,11 @@ import {
     BarChart3,
     Table as TableIcon,
     Users,
-    Search
+    Search,
+    Clock
 } from "lucide-react";
 // Import login session API hooks with updated types
-import { useGetLoginSessionsByPartyQuery, useGetUserLoginReportQuery } from "../../../store/api/loginSessionApi";
+import { useGetLoginSessionsByPartyQuery, useGetUserLoginReportQuery, useGetUnloggedUsersQuery } from "../../../store/api/loginSessionApi";
 import { useGetUsersByPartyQuery } from "../../../store/api/partyUserApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 import { format } from "date-fns";
@@ -25,8 +26,8 @@ import SearchableSelect from "../../../components/SearchableSelect";
 export const LoginReportPage: React.FC = () => {
     const { partyId } = useParams<{ partyId: string }>();
 
-    // Mode: 'sessions' or 'user-report'
-    const [mode, setMode] = useState<"sessions" | "user-report">("sessions");
+    // Mode: 'sessions' or 'user-report' or 'first-login-pending'
+    const [mode, setMode] = useState<"sessions" | "user-report" | "first-login-pending">("sessions");
 
     // --- State for Sessions Log ---
     const [page, setPage] = useState(1);
@@ -43,6 +44,15 @@ export const LoginReportPage: React.FC = () => {
     const [userPage, setUserPage] = useState(1);
     const [userSearch, setUserSearch] = useState("");
     const [preservedUser, setPreservedUser] = useState<any>(null);
+
+    // --- State for First Login Pending ---
+    const [pendingStateId, setPendingStateId] = useState<number | null>(null);
+    const [pendingDistrictId, setPendingDistrictId] = useState<number | null>(null);
+    const [pendingDays, setPendingDays] = useState<number | "">("");
+    const [pendingUserSearch, setPendingUserSearch] = useState("");
+    const [pendingPage, setPendingPage] = useState(1);
+    const [pendingDateFrom, setPendingDateFrom] = useState("");
+    const [pendingDateTo, setPendingDateTo] = useState("");
 
     // Data Fetching
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
@@ -138,6 +148,29 @@ export const LoginReportPage: React.FC = () => {
         );
     }, [sessionsData, userSearch, selectedDistrictId]);
 
+    // --- First Login Pending: real API ---
+    const daysFilterMap: Record<number, "last_7" | "last_15" | "last_30" | "last_60" | "last_90"> = {
+        7: "last_7", 15: "last_15", 30: "last_30", 60: "last_60", 90: "last_90",
+    };
+
+    const { data: unloggedData, isLoading: isUnloggedLoading, isFetching: isUnloggedFetching } = useGetUnloggedUsersQuery(
+        {
+            partyId: Number(partyId),
+            ...(pendingDays !== "" && pendingDays !== ("custom" as any) && { days_filter: daysFilterMap[pendingDays as number] }),
+            ...(pendingStateId && { state_id: pendingStateId }),
+            ...(pendingDistrictId && { district_id: pendingDistrictId }),
+            ...(pendingUserSearch && { search: pendingUserSearch }),
+            ...(pendingDateFrom && { date_from: pendingDateFrom }),
+            ...(pendingDateTo && { date_to: pendingDateTo }),
+            page: pendingPage,
+            limit: 50,
+        },
+        { skip: mode !== "first-login-pending" || !partyId }
+    );
+
+    const pendingUsers = unloggedData?.data || [];
+    const pendingPagination = unloggedData?.pagination;
+
     const pagination = sessionsData?.pagination;
 
     const getStatusBadge = (status: string) => {
@@ -188,14 +221,21 @@ export const LoginReportPage: React.FC = () => {
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "sessions" ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:text-gray-900"}`}
                     >
                         <TableIcon className="w-4 h-4 inline-block mr-2" />
-                        Session Logs
+                         Session Login
                     </button>
                     <button
                         onClick={() => setMode("user-report")}
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "user-report" ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:text-gray-900"}`}
                     >
                         <BarChart3 className="w-4 h-4 inline-block mr-2" />
-                        User Analytics
+                         User Wise 
+                    </button>
+                    <button
+                        onClick={() => setMode("first-login-pending")}
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${mode === "first-login-pending" ? "bg-orange-50 text-orange-700" : "text-gray-600 hover:text-gray-900"}`}
+                    >
+                        <Clock className="w-4 h-4 inline-block mr-2" />
+                        Session Un-Login 
                     </button>
                 </div>
             </div>
@@ -453,7 +493,7 @@ export const LoginReportPage: React.FC = () => {
                         )}
                     </div>
                 </>
-            ) : (
+            ) : mode === "user-report" ? (
                 // --- USER REPORT VIEW ---
                 <div className="space-y-6">
                     {/* View Switcher: List or Details */}
@@ -805,6 +845,229 @@ export const LoginReportPage: React.FC = () => {
                             )}
                         </>
                     )}
+                </div>
+            ) : (
+                // --- FIRST LOGIN PENDING VIEW ---
+                <div className="space-y-4">
+                    {/* Filters */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
+                            {/* State */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                                <SearchableSelect
+                                    options={[{ value: -1, label: "All States" }, ...stateOptions]}
+                                    value={pendingStateId}
+                                    onChange={(val) => {
+                                        setPendingStateId(val === -1 ? null : val as number | null);
+                                        setPendingDistrictId(null);
+                                        setPendingPage(1);
+                                    }}
+                                    placeholder="All States"
+                                />
+                            </div>
+
+                            {/* District */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">District</label>
+                                <SearchableSelect
+                                    options={[
+                                        { value: -1, label: "All Districts" },
+                                        ...stateMasterData
+                                            .filter(i => i.levelType === "District" && i.isActive === 1 && (!pendingStateId || i.ParentId === pendingStateId))
+                                            .map(d => ({ value: d.id, label: d.levelName }))
+                                    ]}
+                                    value={pendingDistrictId}
+                                    onChange={(val) => {
+                                        setPendingDistrictId(val === -1 ? null : val as number | null);
+                                        setPendingPage(1);
+                                    }}
+                                    placeholder="All Districts"
+                                />
+                            </div>
+
+                            {/* Days Range */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Duration</label>
+                                <div className="relative">
+                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <select
+                                        value={pendingDays}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === "custom") {
+                                                setPendingDays("custom" as any);
+                                            } else {
+                                                setPendingDays(val === "" ? "" : Number(val));
+                                                setPendingDateFrom("");
+                                                setPendingDateTo("");
+                                            }
+                                            setPendingPage(1);
+                                        }}
+                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none appearance-none"
+                                    >
+                                        <option value="">All Time</option>
+                                        <option value={7}>Last 7 Days</option>
+                                        <option value={15}>Last 15 Days</option>
+                                        <option value={30}>Last 30 Days</option>
+                                        <option value={60}>Last 60 Days</option>
+                                        <option value={90}>Last 90 Days</option>
+                                        <option value="custom">Date Range</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* From Date - only when custom selected */}
+                            {(pendingDays as any) === "custom" && (
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">From Date</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="date"
+                                            value={pendingDateFrom}
+                                            onChange={(e) => { setPendingDateFrom(e.target.value); setPendingPage(1); }}
+                                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* To Date - only when custom selected */}
+                            {(pendingDays as any) === "custom" && (
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">To Date</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="date"
+                                            value={pendingDateTo}
+                                            onChange={(e) => { setPendingDateTo(e.target.value); setPendingPage(1); }}
+                                            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Search */}
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Search User</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Name, District..."
+                                        value={pendingUserSearch}
+                                        onChange={(e) => { setPendingUserSearch(e.target.value); setPendingPage(1); }}
+                                        className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Summary badge */}
+                    <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 text-sm font-medium">
+                            <Clock className="w-4 h-4" />
+                            {pendingPagination?.totalUsers?.toLocaleString() ?? "—"} total users / {pendingPagination?.totalUnloggedUsers ?? pendingPagination?.total ?? pendingUsers.length} users have never logged in
+                        </span>
+                    </div>
+
+                    {/* Table */}
+                    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-opacity ${isUnloggedFetching ? "opacity-60" : ""}`}>
+                        {isUnloggedLoading ? (
+                            <div className="p-8 text-center">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-400 border-t-transparent"></div>
+                                <p className="mt-2 text-sm text-gray-500">Loading...</p>
+                            </div>
+                        ) : pendingUsers.length === 0 ? (
+                            <div className="p-12 text-center">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-4">
+                                    <CheckCircle className="w-8 h-8 text-green-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900">All users have logged in</h3>
+                                <p className="mt-1 text-gray-500">No pending first logins match your filters.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-50 border-b border-gray-200">
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">State</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">District</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User Name</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {pendingUsers.map((u, idx) => (
+                                            <tr key={u.user_id} className="hover:bg-orange-50 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-gray-500">{(pendingPage - 1) * 50 + idx + 1}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">{u.stateName || "—"}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-600">{u.districtName || "—"}</td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
+                                                            {u.first_name[0].toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900">{u.first_name} {u.last_name}</p>
+                                                            <p className="text-xs text-gray-400">{u.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                                        <Clock className="w-3 h-3" />
+                                                        {u.login_status_message}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    {u.created_on && !isNaN(new Date(u.created_on).getTime())
+                                                        ? <>
+                                                            {format(new Date(u.created_on), "MMM d, yyyy")}
+                                                            <div className="text-xs text-gray-400">{format(new Date(u.created_on), "h:mm a")}</div>
+                                                          </>
+                                                        : "—"
+                                                    }
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {pendingPagination && pendingPagination.totalPages > 1 && (
+                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                                <div className="text-sm text-gray-500">
+                                    Showing <span className="font-medium">{(pendingPage - 1) * 50 + 1}</span> to{" "}
+                                    <span className="font-medium">{Math.min(pendingPage * 50, pendingPagination.total)}</span>{" "}
+                                    of <span className="font-medium">{pendingPagination.total}</span> results
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setPendingPage((p) => Math.max(1, p - 1))}
+                                        disabled={pendingPage === 1}
+                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setPendingPage((p) => Math.min(pendingPagination.totalPages, p + 1))}
+                                        disabled={pendingPage === pendingPagination.totalPages}
+                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
