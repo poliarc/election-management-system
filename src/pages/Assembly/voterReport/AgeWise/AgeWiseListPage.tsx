@@ -26,7 +26,7 @@ export default function AgeWiseListPage() {
     );
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
-    const { data, isLoading, error } = useGetVotersByAssemblyPaginatedQuery(
+    const { data, isLoading, isFetching, error } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -79,7 +79,7 @@ export default function AgeWiseListPage() {
         );
     }
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]">
                 <div className="text-gray-600">Loading age wise list...</div>

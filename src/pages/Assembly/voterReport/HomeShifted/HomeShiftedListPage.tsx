@@ -55,7 +55,7 @@ const HomeShiftedListPage: React.FC = () => {
         }
     }, [shiftedState]);
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -232,7 +232,7 @@ const HomeShiftedListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-gray-600">Loading...</div>
                         </div>

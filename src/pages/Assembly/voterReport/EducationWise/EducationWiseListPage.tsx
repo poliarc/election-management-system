@@ -23,7 +23,7 @@ const EducationWiseListPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -187,7 +187,7 @@ const EducationWiseListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-gray-600">Loading...</div>
                         </div>

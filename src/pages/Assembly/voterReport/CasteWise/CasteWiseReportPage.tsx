@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
@@ -12,15 +12,14 @@ const CasteWiseReportPage: React.FC = () => {
     const [selectedCaste, setSelectedCaste] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
@@ -31,49 +30,35 @@ const CasteWiseReportPage: React.FC = () => {
 
     const totalPages = votersData?.pagination?.totalPages || 1;
     const totalVoters = votersData?.pagination?.total || 0;
-    // const filteredVoters = votersData?.data || [];    
+    const filteredVoters = votersData?.data || [];    
 
-    // Extract unique castes from voter data
-    // const uniqueCastes = useMemo(() => {
-    //     if (!votersData?.data) return [];
-
-    //     const castes = new Set<string>();
-    //     votersData.data.forEach((voter) => {
-    //         const caste = voter.caste?.trim();
-    //         if (caste) {
-    //             castes.add(caste);
-    //         }
-    //     });
-
-    //     return Array.from(castes).sort();
-    // }, [votersData]);
     const castes = ['General', 'OBC', 'SC', 'ST', 'Other']
 
     // Filter voters by selected caste
-    const filteredVoters = useMemo(() => {
-        if (!votersData?.data) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-        return votersData.data.filter((voter) => {
-            // Filter by caste if selected
-            if (selectedCaste && voter.caste !== selectedCaste) {
-                return false;
-            }
+    //     return votersData.data.filter((voter) => {
+    //         // Filter by caste if selected
+    //         if (selectedCaste && voter.caste !== selectedCaste) {
+    //             return false;
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [votersData, selectedCaste]);
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [votersData, selectedCaste]);
 
     // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
+    // const paginatedVoters = useMemo(() => {
+    //     const startIndex = (currentPage - 1) * itemsPerPage;
+    //     const endIndex = startIndex + itemsPerPage;
+    //     return filteredVoters.slice(startIndex, endIndex);
+    // }, [filteredVoters, currentPage]);
 
     // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
@@ -81,7 +66,6 @@ const CasteWiseReportPage: React.FC = () => {
         setSelectedCaste("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -192,7 +176,7 @@ const CasteWiseReportPage: React.FC = () => {
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
                     <div className="text-gray-600">Loading...</div>
                 </div>
@@ -235,7 +219,7 @@ const CasteWiseReportPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {paginatedVoters.length === 0 ? (
+                                    {totalVoters === 0 ? (
                                         <tr>
                                             <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                                 No voters found

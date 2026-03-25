@@ -41,6 +41,10 @@ const BirthWiseListPage: React.FC = () => {
             field: 'voter_dob' 
     })
 
+    const totalVoters = votersData?.pagination?.total || 0;
+    const totalPages = votersData?.pagination?.totalPages || 1;
+
+
     const uniqueDOBs = dobData?.data || []
 
     // Filter voters by selected DOB
@@ -63,13 +67,13 @@ const BirthWiseListPage: React.FC = () => {
     }, [votersData, selectedDOB]);
 
     // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
+    // const paginatedVoters = useMemo(() => {
+    //     const startIndex = (currentPage - 1) * itemsPerPage;
+    //     const endIndex = startIndex + itemsPerPage;
+    //     return filteredVoters.slice(startIndex, endIndex);
+    // }, [filteredVoters, currentPage]);
 
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedDOB("");
@@ -229,7 +233,7 @@ const BirthWiseListPage: React.FC = () => {
                             </div>
 
                             <VoterListTable
-                                voters={paginatedVoters}
+                                voters={filteredVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
@@ -237,7 +241,7 @@ const BirthWiseListPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                                     <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button
