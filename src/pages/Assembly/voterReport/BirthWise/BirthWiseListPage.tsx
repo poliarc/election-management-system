@@ -241,7 +241,7 @@ const BirthWiseListPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                                     <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {filteredVoters.length} total voters
+                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button

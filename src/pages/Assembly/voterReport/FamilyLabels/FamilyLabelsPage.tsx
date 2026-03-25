@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useGetVotersByAssemblyQuery } from "../../../../store/api/votersApi";
-import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
+import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
+// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface FamilyLabelData {
     houseNo: string;
@@ -283,7 +283,7 @@ const FamilyLabelsPage: React.FC = () => {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                             <div className="text-sm text-gray-600">
-                                Showing page {currentPage} of {totalPages} • {familyLabelsData.length} total families
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total families
                             </div>
                             <div className="flex gap-2">
                                 <button
