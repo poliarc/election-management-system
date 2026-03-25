@@ -2,14 +2,14 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import {
-  useGetVotersByAssemblyQuery,
+  useGetVotersByAssemblyPaginatedQuery,
   useUpdateVoterMutation,
 } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
-import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
+// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 const DoubleNameReportPage: React.FC = () => {
   const selectedAssignment = useSelector(
@@ -22,16 +22,25 @@ const DoubleNameReportPage: React.FC = () => {
   const [partTo, setPartTo] = useState<number | undefined>();
   const [page, setPage] = useState(1);
   const [language, setLanguage] = useState<"en" | "hi">("en");
-  const [itemsPerPage] = useState(50);
+  const [limit] = useState(50);
 
   const [updateVoter] = useUpdateVoterMutation();
 
   // get all voters by assembly
-  const { data: votersData, isLoading } = useGetVotersByAssemblyQuery({
-    assembly_id: assembly_id!,
-    },
-    { skip: !assembly_id }
-);
+  const { data: votersData, isLoading } =
+        useGetVotersByAssemblyPaginatedQuery(
+          {
+            assembly_id: assembly_id!,
+            page,
+            limit,
+            partFrom,
+            partTo,
+          },
+          { skip: !assembly_id },
+    );
+
+    const totalPages = votersData?.pagination?.totalPages || 1;
+    const totalVoters = votersData?.pagination?.total || 0;
 
 // filter for duplicate names
 const duplicateVoters = useMemo(() => {
@@ -71,16 +80,13 @@ const duplicateVoters = useMemo(() => {
     });
   }, [votersData]);
 
-  const { paginatedVoters, totalPages } = usePartFilterPagination({
-    data: duplicateVoters,
-    partFrom,
-    partTo,
-    currentPage: page,
-    itemsPerPage,
-  });
-
-  console.log(duplicateVoters, paginatedVoters);
-  
+  // const { paginatedVoters, totalPages } = usePartFilterPagination({
+  //   data: duplicateVoters,
+  //   partFrom,
+  //   partTo,
+  //   currentPage: page,
+  //   itemsPerPage,
+  // });  
 
   const handleReset = () => {
     setPartFrom(undefined);
@@ -223,7 +229,7 @@ const duplicateVoters = useMemo(() => {
                 These voters have the same name and may need verification
               </div>
               <VoterListTable
-                voters={paginatedVoters}
+                voters={duplicateVoters}
                 onEdit={handleEdit}
                 language={language}
               />
@@ -232,7 +238,7 @@ const duplicateVoters = useMemo(() => {
                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                   <div className="text-sm text-gray-600">
                     Showing page {page} of {totalPages} •{" "}
-                    {paginatedVoters.length} total voters
+                    {totalVoters} total voters
                   </div>
                   <div className="flex gap-2">
                     <button
