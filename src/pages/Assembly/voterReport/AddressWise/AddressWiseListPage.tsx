@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -32,45 +32,48 @@ const AddressWiseListPage: React.FC = () => {
             limit,
             partFrom,
             partTo,
+            townVillage: searchAddress
         },
         { skip: !assembly_id }
     );
 
     const totalPages = votersData?.pagination?.totalPages || 1;
     const totalVoters = votersData?.pagination?.total || 0;
+    const filteredVoters = votersData?.data || [];    
 
-    const filteredVoters = useMemo(() => {
-        if (!votersData?.data) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-        return votersData.data.filter((voter) => {
-            // Apply address search filter
-            if (searchAddress) {
-                const searchLower = searchAddress.toLowerCase();
-                const townEng = voter.town_village_name_eng?.toLowerCase() || "";
-                const townHin = voter.town_village_name_eng?.toLowerCase() || "";
+    //     return votersData.data.filter((voter) => {
+    //         // Apply address search filter
+    //         if (searchAddress) {
+    //             const searchLower = searchAddress.toLowerCase();
+    //             const townEng = voter.town_village_name_eng?.toLowerCase() || "";
+    //             const townHin = voter.town_village_name_hin?.toLowerCase() || "";
 
-                if (!townEng.includes(searchLower) && !townHin.includes(searchLower)) {
-                    return false;
-                }
-            }
+    //             console.log(townHin, searchLower, 'search');
+    //             if (!townEng.includes(searchLower) || !townHin.includes(searchLower)) {
+    //                 return false;
+    //             }
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            // Sort by town/village name first, then by part number
-            const townA = a.town_village_name_eng || "";
-            const townB = b.town_village_name_eng || "";
+    //         return true;
+    //     }).sort((a, b) => {
+    //         // Sort by town/village name first, then by part number
+    //         const townA = a.town_village_name_eng || "";
+    //         const townB = b.town_village_name_eng || "";
 
-            if (townA !== townB) {
-                return townA.localeCompare(townB);
-            }
+    //         if (townA !== townB) {
+    //             return townA.localeCompare(townB);
+    //         }
 
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
 
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [votersData, searchAddress]);
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [votersData, searchAddress]);
 
     const handleReset = () => {
         setSearchAddress("");

@@ -115,12 +115,14 @@ type Props = {
     initialValues?: VoterListCandidate;
     onSubmit: (data: VoterListCandidate) => void;
     onCancel: () => void;
+    language?: string
 };
 
 export const VoterEditForm: React.FC<Props> = ({
     initialValues,
     onSubmit,
     onCancel,
+    language
 }) => {
     const { t } = useTranslation();
     const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -293,8 +295,8 @@ export const VoterEditForm: React.FC<Props> = ({
                 <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                     <h2 className="text-lg font-semibold mb-1 text-[var(--text-color)]">{t("voterEditForm.sectionPersonalDetails")}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DisplayField label={t("voterEditForm.lblVoterName")} value={initialValues?.voter_full_name_en} />
-                        <DisplayField label={t("voterEditForm.lblRelativeName")} value={initialValues?.relative_full_name_en} />
+                        <DisplayField label={t("voterEditForm.lblVoterName")} value={language === 'en' ? initialValues?.voter_full_name_en : initialValues?.voter_full_name_hi} />
+                        <DisplayField label={t("voterEditForm.lblRelativeName")} value={language === 'en' ? initialValues?.relative_full_name_en : initialValues?.relative_full_name_hi} />
                         <DisplayField label={t("voterEditForm.lblVoterId")} value={initialValues?.voter_id_epic_no} />
                         <DisplayField label={t("voterEditForm.lblGender")} value={initialValues?.gender} />
                         <DisplayField label={t("voterEditForm.lblAge")} value={initialValues?.age} />

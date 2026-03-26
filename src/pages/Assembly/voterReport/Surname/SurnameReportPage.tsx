@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
 import { useTranslation } from "react-i18next";
+// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface SurnameData {
     partNo: string;
@@ -22,21 +23,25 @@ const SurnameReportPage: React.FC = () => {
     const [searchSurname, setSearchSurname] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
-    const itemsPerPage = 50;
+    const [limit] = useState(50);
+    
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
-        {
-            assembly_id: assembly_id!,
-            page,
-            limit: itemsPerPage,
-            partFrom,
-            partTo,
-        },
-        { skip: !assembly_id }
+    const { data: votersData, isLoading } =
+            useGetVotersByAssemblyPaginatedQuery(
+              {
+                assembly_id: assembly_id!,
+                page: currentPage,
+                limit,
+                partFrom,
+                partTo,
+              },
+              { skip: !assembly_id },
     );
+
+    const totalPages = votersData?.pagination?.totalPages || 1;
+    const totalVoters = votersData?.pagination?.total || 0;
 
     const surnameData = useMemo(() => {
         if (!votersData?.data) return [];
@@ -96,20 +101,21 @@ const SurnameReportPage: React.FC = () => {
         });
     }, [votersData, searchSurname, language]);
 
-    // Paginate the surname data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return surnameData.slice(startIndex, endIndex);
-    }, [surnameData, currentPage]);
+    
 
-    const totalPages = Math.ceil(surnameData.length / itemsPerPage);
+    // const { paginatedVoters, totalPages } = usePartFilterPagination({
+    //         data: surnameData,
+    //         partFrom,
+    //         partTo,
+    //         currentPage,
+    //         itemsPerPage,
+    //     });
+      
 
     const handleReset = () => {
         setSearchSurname("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -256,7 +262,7 @@ const SurnameReportPage: React.FC = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedData.map((item, index) => (
+                                        surnameData.map((item, index) => (
                                             <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-[var(--text-color)]/5">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
                                                     {item.partNo}
@@ -284,7 +290,7 @@ const SurnameReportPage: React.FC = () => {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                             <div className="text-sm text-[var(--text-secondary)]">
-                                {t("SurnameReportPage.Showing_page")} {currentPage} {t("SurnameReportPage.of")} {totalPages} • {surnameData.length} {t("SurnameReportPage.total_surnames")}
+                                {t("SurnameReportPage.Showing_page")} {currentPage} {t("SurnameReportPage.of")} {totalPages} • {totalVoters} {t("SurnameReportPage.total_surnames")}
                             </div>
                             <div className="flex gap-2">
                                 <button

@@ -27,13 +27,14 @@ const SingleVoterReportPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
             partFrom,
             partTo,
+            married: 'single'
         },
         { skip: !assembly_id }
     );
@@ -42,12 +43,7 @@ const SingleVoterReportPage: React.FC = () => {
         if (!votersData?.data) return [];
 
         return votersData.data.filter((voter) => {
-            // Filter by married column - should be "single" (case-insensitive)
-            const marriedStatus = voter.married?.toLowerCase()?.trim() || "";
-            const isSingle = marriedStatus === "single";
-
-            if (!isSingle) return false;
-
+        
             // Apply part number filter
             const partNo = Number(voter.part_no);
             const partMatch =
@@ -241,7 +237,7 @@ const SingleVoterReportPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("SingleVoterReportPage.Loading")}</div>
                         </div>

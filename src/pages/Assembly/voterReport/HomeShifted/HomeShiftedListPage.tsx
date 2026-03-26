@@ -27,6 +27,8 @@ const HomeShiftedListPage: React.FC = () => {
 
     // Fetch state master data for dropdowns
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
+    console.log(stateMasterData, 'state');
+    
 
     // Get states for dropdown
     const states = useMemo(() => {
@@ -55,11 +57,14 @@ const HomeShiftedListPage: React.FC = () => {
         }
     }, [shiftedState]);
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
+            shifted: true,
+            shiftedState,
+            shiftedCity
         },
         { skip: !assembly_id }
     );
@@ -69,31 +74,31 @@ const HomeShiftedListPage: React.FC = () => {
     const totalPages = votersData?.pagination?.totalPages || 1;
 
     // Filter voters - only show shifted voters with location filters
-    const filteredVoters = useMemo(() => {
-        if (!voters) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!voters) return [];
 
-        return voters.filter((voter) => {
-            // Only show shifted voters
-            if (!voter.shifted) return false;
+    //     return voters.filter((voter) => {
+    //         // Only show shifted voters
+    //         if (!voter.shifted) return false;
 
-            // Filter by shifted state
-            if (shiftedState && voter.shifted_state !== shiftedState) {
-                return false;
-            }
+    //         // Filter by shifted state
+    //         if (shiftedState && voter.shifted_state !== shiftedState) {
+    //             return false;
+    //         }
 
-            // Filter by shifted city
-            if (shiftedCity && voter.shifted_city !== shiftedCity) {
-                return false;
-            }
+    //         // Filter by shifted city
+    //         if (shiftedCity && voter.shifted_city !== shiftedCity) {
+    //             return false;
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [voters, shiftedState, shiftedCity]);
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [voters, shiftedState, shiftedCity]);
 
     const handleReset = () => {
         setShiftedState("");
@@ -229,14 +234,14 @@ const HomeShiftedListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("HomeShiftedListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
                             <div className="mb-1 text-sm text-[var(--text-secondary)] p-3 rounded-lg border bg-amber-50 border-amber-200">
-                                {t("HomeShiftedListPage.Found")} {filteredVoters.length} {t("HomeShiftedListPage.shifted_voters")}
+                                {t("HomeShiftedListPage.Found")} {voters.length} {t("HomeShiftedListPage.shifted_voters")}
                                 {shiftedState && (
                                     <span> • {t("HomeShiftedListPage.State:")} {shiftedState}</span>
                                 )}
@@ -245,7 +250,7 @@ const HomeShiftedListPage: React.FC = () => {
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={voters}
                                 onEdit={handleEdit}
                                 language={language}
                             />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -19,65 +19,32 @@ const DeadAliveListPage: React.FC = () => {
     const [expiredAliveStatus, setExpiredAliveStatus] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
+            expiredAliveStatus
         },
         { skip: !assembly_id }
     );
 
-    // Filter voters by expired_alive status
-    const filteredVoters = useMemo(() => {
-        if (!votersData?.data) return [];
-
-        return votersData.data.filter((voter) => {
-            // Filter by expired_alive status if selected
-            if (expiredAliveStatus) {
-                const status = voter.expired_alive?.trim();
-
-                if (expiredAliveStatus === "Expired") {
-                    // Show dead voters (expired_alive = "Expired")
-                    if (status !== "Expired") return false;
-                } else if (expiredAliveStatus === "Alive") {
-                    // Show alive voters (expired_alive = "Alive")
-                    if (status !== "Alive") return false;
-                }
-            }
-
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [votersData, expiredAliveStatus]);
-
-    // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
-
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
-
+    const voters = votersData?.data || [];
+    const totalVoters = votersData?.pagination?.total || 0;
+    const totalPages = votersData?.pagination?.totalPages || 1;
+      
     const handleReset = () => {
         setExpiredAliveStatus("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -213,7 +180,7 @@ const DeadAliveListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("DeadAliveListPage.Loading")}</div>
                         </div>
@@ -225,7 +192,7 @@ const DeadAliveListPage: React.FC = () => {
                                     ? "bg-green-50 border-green-200"
                                     : "bg-[var(--bg-main)] border-[var(--border-color)]"
                                 }`}>
-                                {t("DeadAliveListPage.Found")} {filteredVoters.length} {t("DeadAliveListPage.voters")}
+                                {t("DeadAliveListPage.Found")} {voters.length} {t("DeadAliveListPage.voters")}
                                 {expiredAliveStatus && (
                                     <span> • {t("DeadAliveListPage.Status:")} {expiredAliveStatus}</span>
                                 )}
@@ -234,7 +201,7 @@ const DeadAliveListPage: React.FC = () => {
                                 )}
                             </div>
                             <VoterListTable
-                                voters={paginatedVoters}
+                                voters={voters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
@@ -242,7 +209,7 @@ const DeadAliveListPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                                     <div className="text-sm text-[var(--text-secondary)]">
-                                        {t("DeadAliveListPage.Showing_page")} {currentPage} {t("DeadAliveListPage.of")} {totalPages} • {filteredVoters.length} {t("DeadAliveListPage.total_voters")}
+                                        {t("DeadAliveListPage.Showing_page")} {currentPage} {t("DeadAliveListPage.of")} {totalPages} • {totalVoters} {t("DeadAliveListPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button

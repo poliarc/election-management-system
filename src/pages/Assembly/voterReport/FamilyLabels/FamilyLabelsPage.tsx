@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
 import { useTranslation } from "react-i18next";
+// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface FamilyLabelData {
     houseNo: string;
@@ -23,20 +24,23 @@ const FamilyLabelsPage: React.FC = () => {
     const [selectedHouseNo, setSelectedHouseNo] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 50;
-
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
-        {
-            assembly_id: assembly_id!,
-            page,
-            limit: itemsPerPage,
-            partFrom,
-            partTo,
-        },
-        { skip: !assembly_id }
-    );
+    const [limit] = useState(50);
+    
+    const { data: votersData, isLoading } =
+          useGetVotersByAssemblyPaginatedQuery(
+            {
+              assembly_id: assembly_id!,
+              page: currentPage,
+              limit,
+              partFrom,
+              partTo,
+            },
+            { skip: !assembly_id },
+          );
+    
+        const totalPages = votersData?.pagination?.totalPages || 1;
+        const totalVoters = votersData?.pagination?.total || 0;
 
     // Extract unique house numbers
     const uniqueHouseNumbers = useMemo(() => {
@@ -101,22 +105,20 @@ const FamilyLabelsPage: React.FC = () => {
             }
             return a.houseNo.localeCompare(b.houseNo);
         });
-    }, [votersData, selectedHouseNo]);
+    }, [votersData, selectedHouseNo]);   
 
-    // Paginate the data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return familyLabelsData.slice(startIndex, endIndex);
-    }, [familyLabelsData, currentPage]);
-
-    const totalPages = Math.ceil(familyLabelsData.length / itemsPerPage);
+    //  const { paginatedVoters, totalPages } = usePartFilterPagination({
+    //         data: familyLabelsData,
+    //         partFrom,
+    //         partTo,
+    //         currentPage,
+    //         itemsPerPage,
+    //     });    
 
     const handleReset = () => {
         setSelectedHouseNo("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -245,14 +247,14 @@ const FamilyLabelsPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
-                                    {paginatedData.length === 0 ? (
+                                    {familyLabelsData.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-[var(--text-secondary)]">
                                                 {t("FamilyLabelsPage.Desc3")}
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedData.map((item, index) => (
+                                        familyLabelsData.map((item, index) => (
                                             <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-[var(--text-color)]/5">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
                                                     {item.partNo}
@@ -283,7 +285,7 @@ const FamilyLabelsPage: React.FC = () => {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                             <div className="text-sm text-[var(--text-secondary)]">
-                                {t("FamilyLabelsPage.Showing_page")} {currentPage} {t("FamilyLabelsPage.of")} {totalPages} • {familyLabelsData.length} {t("FamilyLabelsPage.total_families")}
+                                {t("FamilyLabelsPage.Showing_page")} {currentPage} {t("FamilyLabelsPage.of")} {totalPages} • {totalVoters} {t("FamilyLabelsPage.total_families")}
                             </div>
                             <div className="flex gap-2">
                                 <button

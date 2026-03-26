@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetDistinctFieldsQuery, useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -33,24 +33,21 @@ const BirthWiseListPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            voterDOB: selectedDOB
+
         },
         { skip: !assembly_id }
     );
 
-    // Extract unique DOBs from voter data
-    const uniqueDOBs = useMemo(() => {
-        if (!votersData?.data) return [];
+    const {data: dobData} = useGetDistinctFieldsQuery({
+            field: 'voter_dob' 
+    })
 
-        const dobs = new Set<string>();
-        votersData.data.forEach((voter) => {
-            const dob = voter.voter_dob?.trim();
-            if (dob) {
-                dobs.add(dob);
-            }
-        });
+    const totalVoters = votersData?.pagination?.total || 0;
+    const totalPages = votersData?.pagination?.totalPages || 1;
 
-        return Array.from(dobs).sort();
-    }, [votersData]);
+
+    const uniqueDOBs = dobData?.data || []
 
     // Filter voters by selected DOB
     const filteredVoters = useMemo(() => {
@@ -72,13 +69,13 @@ const BirthWiseListPage: React.FC = () => {
     }, [votersData, selectedDOB]);
 
     // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
+    // const paginatedVoters = useMemo(() => {
+    //     const startIndex = (currentPage - 1) * itemsPerPage;
+    //     const endIndex = startIndex + itemsPerPage;
+    //     return filteredVoters.slice(startIndex, endIndex);
+    // }, [filteredVoters, currentPage]);
 
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedDOB("");
@@ -175,8 +172,8 @@ const BirthWiseListPage: React.FC = () => {
                                 >
                                     <option value="">{t("BirthWiseListPage.All_Dates")}</option>
                                     {uniqueDOBs.map((dob) => (
-                                        <option key={dob} value={dob}>
-                                            {dob}
+                                        <option key={dob.value} value={dob.value}>
+                                            {dob.value}
                                         </option>
                                     ))}
                                 </select>
@@ -238,7 +235,7 @@ const BirthWiseListPage: React.FC = () => {
                             </div>
 
                             <VoterListTable
-                                voters={paginatedVoters}
+                                voters={filteredVoters}
                                 onEdit={handleEdit}
                                 language={language}
                             />
@@ -246,7 +243,7 @@ const BirthWiseListPage: React.FC = () => {
                             {totalPages > 1 && (
                                 <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                                     <div className="text-sm text-[var(--text-secondary)]">
-                                        {t("BirthWiseListPage.Showing_page")} {currentPage} {t("BirthWiseListPage.of")} {totalPages} • {filteredVoters.length} {t("BirthWiseListPage.total_voters")}
+                                        {t("BirthWiseListPage.Showing_page")} {currentPage} {t("BirthWiseListPage.of")} {totalPages} • {totalVoters} {t("BirthWiseListPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button

@@ -25,7 +25,7 @@ export default function AlphabeticalListPage() {
     );
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
-    const { data, isLoading, error } = useGetVotersByAssemblyPaginatedQuery(
+    const { data, isLoading, isFetching, error } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -73,7 +73,7 @@ export default function AlphabeticalListPage() {
         );
     }
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]">
                 <div className="text-[var(--text-secondary)]">Loading alphabetical list...</div>

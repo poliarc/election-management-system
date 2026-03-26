@@ -76,6 +76,49 @@ interface UserReportResponse {
     data: UserLoginReportData[];
 }
 
+export interface UnloggedUser {
+    user_id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    username?: string;
+    contact_no: string;
+    isActive: number;
+    created_on: string;
+    user_role?: string;
+    role_id?: number | null;
+    stateName?: string;
+    districtName: string;
+    last_successful_login: string | null;
+    login_status_message: string;
+}
+
+interface UnloggedUsersResponse {
+    success: boolean;
+    message: string;
+    data: UnloggedUser[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        totalUsers?: number;
+        totalUnloggedUsers?: number;
+    };
+}
+
+interface UnloggedUsersParams {
+    partyId: number;
+    days_filter?: "last_7" | "last_15" | "last_30" | "last_60" | "last_90";
+    state_id?: number;
+    district_id?: number;
+    search?: string;
+    date_from?: string;
+    date_to?: string;
+    page?: number;
+    limit?: number;
+}
+
 export const loginSessionApi = createApi({
     reducerPath: "loginSessionApi",
     baseQuery: fetchBaseQuery({
@@ -130,10 +173,29 @@ export const loginSessionApi = createApi({
                 },
             }),
         }),
+        getUnloggedUsers: builder.query<UnloggedUsersResponse, UnloggedUsersParams>({
+            query: (params) => {
+                const queryParams: Record<string, any> = {};
+                if (params.days_filter) queryParams.days_filter = params.days_filter;
+                if (params.state_id) queryParams.state_id = params.state_id;
+                if (params.district_id) queryParams.district_id = params.district_id;
+                if (params.search) queryParams.search = params.search;
+                if (params.date_from) queryParams.date_from = params.date_from;
+                if (params.date_to) queryParams.date_to = params.date_to;
+                if (params.page) queryParams.page = params.page;
+                if (params.limit) queryParams.limit = params.limit;
+                return {
+                    url: `/login-sessions/unlogged-users/${params.partyId}`,
+                    params: queryParams,
+                };
+            },
+            providesTags: ["LoginSession"],
+        }),
     }),
 });
 
 export const {
     useGetLoginSessionsByPartyQuery,
-    useGetUserLoginReportQuery
+    useGetUserLoginReportQuery,
+    useGetUnloggedUsersQuery,
 } = loginSessionApi;

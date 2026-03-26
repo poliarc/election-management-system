@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
@@ -14,70 +14,60 @@ const CasteWiseReportPage: React.FC = () => {
     const [selectedCaste, setSelectedCaste] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
+            caste: selectedCaste
         },
         { skip: !assembly_id }
     );
 
-    // Extract unique castes from voter data
-    const uniqueCastes = useMemo(() => {
-        if (!votersData?.data) return [];
+    const totalPages = votersData?.pagination?.totalPages || 1;
+    const totalVoters = votersData?.pagination?.total || 0;
+    const filteredVoters = votersData?.data || [];    
 
-        const castes = new Set<string>();
-        votersData.data.forEach((voter) => {
-            const caste = voter.caste?.trim();
-            if (caste) {
-                castes.add(caste);
-            }
-        });
-
-        return Array.from(castes).sort();
-    }, [votersData]);
+    const castes = ['General', 'OBC', 'SC', 'ST', 'Other']
 
     // Filter voters by selected caste
-    const filteredVoters = useMemo(() => {
-        if (!votersData?.data) return [];
+    // const filteredVoters = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-        return votersData.data.filter((voter) => {
-            // Filter by caste if selected
-            if (selectedCaste && voter.caste !== selectedCaste) {
-                return false;
-            }
+    //     return votersData.data.filter((voter) => {
+    //         // Filter by caste if selected
+    //         if (selectedCaste && voter.caste !== selectedCaste) {
+    //             return false;
+    //         }
 
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [votersData, selectedCaste]);
+    //         return true;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [votersData, selectedCaste]);
 
     // Paginate the filtered data
-    const paginatedVoters = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredVoters.slice(startIndex, endIndex);
-    }, [filteredVoters, currentPage]);
+    // const paginatedVoters = useMemo(() => {
+    //     const startIndex = (currentPage - 1) * itemsPerPage;
+    //     const endIndex = startIndex + itemsPerPage;
+    //     return filteredVoters.slice(startIndex, endIndex);
+    // }, [filteredVoters, currentPage]);
 
-    const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedCaste("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -139,7 +129,7 @@ const CasteWiseReportPage: React.FC = () => {
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                         >
                             <option value="">{t("CasteWiseReportPage.All_Castes")}</option>
-                            {uniqueCastes.map((caste) => (
+                            {castes.map((caste) => (
                                 <option key={caste} value={caste}>
                                     {caste}
                                 </option>
@@ -188,7 +178,7 @@ const CasteWiseReportPage: React.FC = () => {
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
                     <div className="text-[var(--text-secondary)]">{t("CasteWiseReportPage.Loading")}</div>
                 </div>
@@ -231,14 +221,14 @@ const CasteWiseReportPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
-                                    {paginatedVoters.length === 0 ? (
+                                    {totalVoters === 0 ? (
                                         <tr>
                                             <td colSpan={7} className="px-6 py-8 text-center text-[var(--text-secondary)]">
                                                 {t("CasteWiseReportPage.No_voters_found")}
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedVoters.map((voter) => (
+                                        filteredVoters.map((voter) => (
                                             <tr key={voter.id} className="hover:bg-[var(--text-color)]/5">
                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
                                                     {voter.part_no}
@@ -283,7 +273,7 @@ const CasteWiseReportPage: React.FC = () => {
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                             <div className="text-sm text-[var(--text-secondary)]">
-                                {t("CasteWiseReportPage.Showing_page")} {currentPage} {t("CasteWiseReportPage.of")} {totalPages} • {filteredVoters.length} {t("CasteWiseReportPage.total_voters")}
+                                {t("CasteWiseReportPage.Showing_page")} {currentPage} {t("CasteWiseReportPage.of")} {totalPages} • {totalVoters} {t("CasteWiseReportPage.total_voters")}
                             </div>
                             <div className="flex gap-2">
                                 <button

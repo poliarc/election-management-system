@@ -6,6 +6,66 @@ import { VoterListTable } from "./VoterListList";
 import type { VoterList, VoterListCandidate } from "../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
+import { useDebounce } from "../../../hooks/useDebounce";
+
+const translations = {
+    en: {
+        title: "Voter List",
+        subtitle: "Manage and update voter information",
+        totalVoters: "total voters",
+        searchVoters: "Search Voters",
+        search: "Search",
+        searchPlaceholder: "Search by name, mobile, EPIC, Aadhar, religion, caste, profession...",
+        fatherHusbandName: "Father/Husband Name",
+        fatherHusbandPlaceholder: "Enter relative name...",
+        address: "Address",
+        addressPlaceholder: "Enter address...",
+        partFrom: "Part From",
+        partFromPlaceholder: "From part no...",
+        partTo: "Part To",
+        partToPlaceholder: "To part no...",
+        showFilters: "Show Filters",
+        hideFilters: "Hide Filters",
+        clearAll: "Clear All",
+        noAssembly: "No assembly selected. Please select an assembly first.",
+        loadingVoters: "Loading voters...",
+        failedToLoad: "Failed to load voters. Please try again.",
+        showing: "Showing page",
+        of: "of",
+        previous: "Previous",
+        next: "Next",
+        voterUpdated: "Voter updated successfully",
+        updateFailed: "Failed to update voter"
+    },
+    hi: {
+        title: "मतदाता सूची प्रबंधन",
+        subtitle: "मतदाता जानकारी प्रबंधित और अपडेट करें",
+        totalVoters: "कुल मतदाता",
+        searchVoters: "मतदाता खोजें",
+        search: "खोजें",
+        searchPlaceholder: "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें...",
+        fatherHusbandName: "पिता/पति का नाम",
+        fatherHusbandPlaceholder: "संबंधी का नाम दर्ज करें...",
+        address: "पता",
+        addressPlaceholder: "पता दर्ज करें...",
+        partFrom: "भाग से",
+        partFromPlaceholder: "भाग संख्या से...",
+        partTo: "भाग तक",
+        partToPlaceholder: "भाग संख्या तक...",
+        showFilters: "फ़िल्टर दिखाएं",
+        hideFilters: "फ़िल्टर छुपाएं",
+        clearAll: "सभी साफ़ करें",
+        noAssembly: "कोई विधानसभा चयनित नहीं। कृपया पहले एक विधानसभा चुनें।",
+        loadingVoters: "मतदाता लोड हो रहे हैं...",
+        failedToLoad: "मतदाता लोड करने में विफल। कृपया पुनः प्रयास करें।",
+        showing: "पृष्ठ दिखा रहा है",
+        of: "का",
+        previous: "पिछला",
+        next: "अगला",
+        voterUpdated: "मतदाता सफलतापूर्वक अपडेट किया गया",
+        updateFailed: "मतदाता अपडेट करने में विफल"
+    }
+};
 import { useTranslation } from "react-i18next";
 
 export default function VoterListPage() {
@@ -22,6 +82,7 @@ export default function VoterListPage() {
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
+    const debouncedSearch = useDebounce(search, 500)
 
     // Get assembly_id from Redux state
     const selectedAssignment = useSelector(
@@ -29,19 +90,19 @@ export default function VoterListPage() {
     );
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
-    const { data, isLoading, error } = useGetVotersByAssemblyPaginatedQuery(
-        {
-            assembly_id: assembly_id!,
-            page,
-            limit,
-            search: search || undefined,
-            fatherName: fatherName || undefined,
-            address: address || undefined,
-            partFrom,
-            partTo
-        },
-        { skip: !assembly_id } // Skip query if no assembly_id
-    );
+        const { data, isLoading, isFetching, refetch, error } = useGetVotersByAssemblyPaginatedQuery(
+            {
+                assembly_id: assembly_id!,
+                page,
+                limit,
+                search: debouncedSearch || undefined,
+                fatherName: fatherName || undefined,
+                address: address || undefined,
+                partFrom,
+                partTo
+            },
+            { skip: !assembly_id } // Skip query if no assembly_id
+        );
     const [updateVoter] = useUpdateVoterMutation();
 
     const handleClearFilters = () => {
@@ -142,7 +203,7 @@ export default function VoterListPage() {
             </div>
 
             {selectedVoter ? (
-                <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} />
+                <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} language={language} />
             ) : (
                 <>
                     {/* Search and Filters */}
@@ -172,6 +233,18 @@ export default function VoterListPage() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
+                            <button
+                                onClick={() => {
+                                    if(isFetching) return
+                                    refetch()
+                                }}
+                                disabled={isLoading || isFetching}
+                                className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
+                            >
+                               {isFetching ? (
+                                <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                               ) : t.search}
+                            </button>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
                                 className="px-4 py-2 bg-green-200 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"

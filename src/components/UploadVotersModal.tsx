@@ -102,7 +102,6 @@ export default function UploadVotersModal({
 
             setTimeout(() => {
                 setSelectedFile(null);
-                onClose();
             }, 2000);
         } catch (err) {
             console.error("Upload failed:", err);

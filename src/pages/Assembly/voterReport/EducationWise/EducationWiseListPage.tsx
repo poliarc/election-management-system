@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetDistinctFieldsQuery, useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -25,13 +25,14 @@ const EducationWiseListPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
             partFrom,
             partTo,
+            education: selectedEducation
         },
         { skip: !assembly_id }
     );
@@ -40,39 +41,11 @@ const EducationWiseListPage: React.FC = () => {
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
 
-    // Extract unique education levels from voter data
-    const uniqueEducations = useMemo(() => {
-        if (!voters) return [];
-
-        const educations = new Set<string>();
-        voters.forEach((voter) => {
-            const education = voter.education?.trim();
-            if (education) {
-                educations.add(education);
-            }
-        });
-
-        return Array.from(educations).sort();
-    }, [voters]);
-
-    // Filter voters by selected education
-    const filteredVoters = useMemo(() => {
-        if (!voters) return [];
-
-        return voters.filter((voter) => {
-            // Filter by education if selected
-            if (selectedEducation && voter.education !== selectedEducation) {
-                return false;
-            }
-
-            return true;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [voters, selectedEducation]);
+    const {data: dobData} = useGetDistinctFieldsQuery({
+                field: 'education' 
+        })
+    
+    const uniqueEducations = dobData?.data || []
 
     const handleReset = () => {
         setSelectedEducation("");
@@ -168,8 +141,8 @@ const EducationWiseListPage: React.FC = () => {
                                 >
                                     <option value="">{t("EducationWiseListPage.All_Education_Levels")}</option>
                                     {uniqueEducations.map((education) => (
-                                        <option key={education} value={education}>
-                                            {education}
+                                        <option key={education.value} value={education.value}>
+                                            {education.value}
                                         </option>
                                     ))}
                                 </select>
@@ -216,21 +189,21 @@ const EducationWiseListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("EducationWiseListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
                             <div className="mb-1 text-sm text-[var(--text-secondary)] bg-teal-50 p-3 rounded-lg border border-teal-200">
-                                {t("EducationWiseListPage.Found")} {filteredVoters.length} {t("EducationWiseListPage.voters")}
+                                {t("EducationWiseListPage.Found")} {voters.length} {t("EducationWiseListPage.voters")}
                                 {selectedEducation && <span> • {t("EducationWiseListPage.Education:")} {selectedEducation}</span>}
                                 {(partFrom || partTo) && (
                                     <span> • {t("EducationWiseListPage.Part_No:")} {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
-                                voters={filteredVoters}
+                                voters={voters}
                                 onEdit={handleEdit}
                                 language={language}
                             />

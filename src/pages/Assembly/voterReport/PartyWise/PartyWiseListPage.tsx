@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
-import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
+import { useGetDistinctFieldsQuery, useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
@@ -25,13 +25,14 @@ const PartyWiseListPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
             limit: itemsPerPage,
             partFrom,
             partTo,
+            politicalParty: selectedParty
         },
         { skip: !assembly_id }
     );
@@ -40,22 +41,13 @@ const PartyWiseListPage: React.FC = () => {
     const totalVoters = votersData?.pagination?.total || 0;
     const totalPages = votersData?.pagination?.totalPages || 1;
 
-    // Extract unique political parties from voter data
-    const uniqueParties = useMemo(() => {
-        if (!votersData?.data) return [];
+    const {data: partyData} = useGetDistinctFieldsQuery({
+        field: 'politcal_party' 
+    })
+        
+    const uniqueParties = partyData?.data || []
 
-        const parties = new Set<string>();
-        votersData.data.forEach((voter) => {
-            const party = voter.politcal_party?.trim();
-            if (party) {
-                parties.add(party);
-            }
-        });
-
-        return Array.from(parties).sort();
-    }, [votersData]);
-
-    // Filter voters by selected political party (client-side for current page only)
+        // Filter voters by selected political party (client-side for current page only)
     const filteredVoters = useMemo(() => {
         if (!voters) return [];
 
@@ -168,8 +160,8 @@ const PartyWiseListPage: React.FC = () => {
                                 >
                                     <option value="">{t("PartyWiseListPage.All_Parties")}</option>
                                     {uniqueParties.map((party) => (
-                                        <option key={party} value={party}>
-                                            {party}
+                                        <option key={party.value} value={party.value}>
+                                            {party.value}
                                         </option>
                                     ))}
                                 </select>
@@ -216,7 +208,7 @@ const PartyWiseListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("PartyWiseListPage.Loading")}</div>
                         </div>

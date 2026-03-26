@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -22,6 +22,7 @@ const MarriedWomenReportPage: React.FC = () => {
     const [ageTo, setAgeTo] = useState<number | undefined>();
     const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
+    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
@@ -33,44 +34,51 @@ const MarriedWomenReportPage: React.FC = () => {
             limit: itemsPerPage,
             partFrom,
             partTo,
+            ageTo,
+            ageFrom,
+            relation: "husband"
         },
         { skip: !assembly_id }
     );
 
-    const marriedWomen = useMemo(() => {
-        if (!votersData?.data) return [];
+    const marriedWomen = votersData?.data || [];
+    const totalVoters = votersData?.pagination?.total || 0;
+    const totalPages = votersData?.pagination?.totalPages || 1;
 
-        return votersData.data.filter((voter) => {
-            // Filter by gender - must be Female
-            const isFemale = voter.gender === "F";
-            if (!isFemale) return false;
+    // const marriedWomen = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-            // Filter by relation - should be "Husband", "husband", or "पति"
-            const relation = voter.relation?.trim() || "";
-            const isMarried =
-                relation.toLowerCase() === "husband" ||
-                relation === "पति";
-            if (!isMarried) return false;
+    //     return votersData.data.filter((voter) => {
+    //         // Filter by gender - must be Female
+    //         const isFemale = voter.gender === "F";
+    //         if (!isFemale) return false;
 
-            // Apply part number filter
-            const partNo = Number(voter.part_no);
-            const partMatch =
-                (!partFrom || partNo >= partFrom) &&
-                (!partTo || partNo <= partTo);
-            if (!partMatch) return false;
+    //         // Filter by relation - should be "Husband", "husband", or "पति"
+    //         const relation = voter.relation?.trim() || "";
+    //         const isMarried =
+    //             relation.toLowerCase() === "husband" ||
+    //             relation === "पति";
+    //         if (!isMarried) return false;
 
-            // Apply age filter if specified
-            const age = voter.age || 0;
-            const ageMatch = (!ageFrom || age >= ageFrom) && (!ageTo || age <= ageTo);
+    //         // Apply part number filter
+    //         const partNo = Number(voter.part_no);
+    //         const partMatch =
+    //             (!partFrom || partNo >= partFrom) &&
+    //             (!partTo || partNo <= partTo);
+    //         if (!partMatch) return false;
 
-            return ageMatch;
-        }).sort((a, b) => {
-            if (a.part_no !== b.part_no) {
-                return Number(a.part_no) - Number(b.part_no);
-            }
-            return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
-        });
-    }, [votersData, partFrom, partTo, ageFrom, ageTo]);
+    //         // Apply age filter if specified
+    //         const age = voter.age || 0;
+    //         const ageMatch = (!ageFrom || age >= ageFrom) && (!ageTo || age <= ageTo);
+
+    //         return ageMatch;
+    //     }).sort((a, b) => {
+    //         if (a.part_no !== b.part_no) {
+    //             return Number(a.part_no) - Number(b.part_no);
+    //         }
+    //         return Number(a.sl_no_in_part || 0) - Number(b.sl_no_in_part || 0);
+    //     });
+    // }, [votersData, partFrom, partTo, ageFrom, ageTo]);
 
     const handleReset = () => {
         setPartFrom(undefined);
@@ -243,7 +251,33 @@ const MarriedWomenReportPage: React.FC = () => {
                                 onEdit={handleEdit}
                                 language={language}
                             />
+
+                            {totalPages > 1 && (
+                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            Previous
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </>
+
+                        
                     )}
                 </>
             )}
