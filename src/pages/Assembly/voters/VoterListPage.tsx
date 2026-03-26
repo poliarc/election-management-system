@@ -7,10 +7,67 @@ import type { VoterList, VoterListCandidate } from "../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
 import { useDebounce } from "../../../hooks/useDebounce";
-import { useTranslation } from "react-i18next";
+
+const translations = {
+    en: {
+        title: "Voter List",
+        subtitle: "Manage and update voter information",
+        totalVoters: "total voters",
+        searchVoters: "Search Voters",
+        search: "Search",
+        searchPlaceholder: "Search by name, mobile, EPIC, Aadhar, religion, caste, profession...",
+        fatherHusbandName: "Father/Husband Name",
+        fatherHusbandPlaceholder: "Enter relative name...",
+        address: "Address",
+        addressPlaceholder: "Enter address...",
+        partFrom: "Part From",
+        partFromPlaceholder: "From part no...",
+        partTo: "Part To",
+        partToPlaceholder: "To part no...",
+        showFilters: "Show Filters",
+        hideFilters: "Hide Filters",
+        clearAll: "Clear All",
+        noAssembly: "No assembly selected. Please select an assembly first.",
+        loadingVoters: "Loading voters...",
+        failedToLoad: "Failed to load voters. Please try again.",
+        showing: "Showing page",
+        of: "of",
+        previous: "Previous",
+        next: "Next",
+        voterUpdated: "Voter updated successfully",
+        updateFailed: "Failed to update voter"
+    },
+    hi: {
+        title: "मतदाता सूची प्रबंधन",
+        subtitle: "मतदाता जानकारी प्रबंधित और अपडेट करें",
+        totalVoters: "कुल मतदाता",
+        searchVoters: "मतदाता खोजें",
+        search: "खोजें",
+        searchPlaceholder: "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें...",
+        fatherHusbandName: "पिता/पति का नाम",
+        fatherHusbandPlaceholder: "संबंधी का नाम दर्ज करें...",
+        address: "पता",
+        addressPlaceholder: "पता दर्ज करें...",
+        partFrom: "भाग से",
+        partFromPlaceholder: "भाग संख्या से...",
+        partTo: "भाग तक",
+        partToPlaceholder: "भाग संख्या तक...",
+        showFilters: "फ़िल्टर दिखाएं",
+        hideFilters: "फ़िल्टर छुपाएं",
+        clearAll: "सभी साफ़ करें",
+        noAssembly: "कोई विधानसभा चयनित नहीं। कृपया पहले एक विधानसभा चुनें।",
+        loadingVoters: "मतदाता लोड हो रहे हैं...",
+        failedToLoad: "मतदाता लोड करने में विफल। कृपया पुनः प्रयास करें।",
+        showing: "पृष्ठ दिखा रहा है",
+        of: "का",
+        previous: "पिछला",
+        next: "अगला",
+        voterUpdated: "मतदाता सफलतापूर्वक अपडेट किया गया",
+        updateFailed: "मतदाता अपडेट करने में विफल"
+    }
+};
 
 export default function VoterListPage() {
-    const { t } = useTranslation();
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(50);
@@ -24,6 +81,8 @@ export default function VoterListPage() {
     const [partTo, setPartTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
     const debouncedSearch = useDebounce(search, 500)
+
+    const t = translations[language];
 
     // Get assembly_id from Redux state
     const selectedAssignment = useSelector(
@@ -63,11 +122,11 @@ export default function VoterListPage() {
         try {
             if (selectedVoter?.id) {
                 await updateVoter({ id: selectedVoter.id, ...updatedVoter }).unwrap();
-                toast.success(language === "en" ? t("voterListPage.toastVoterUpdated") : "मतदाता सफलतापूर्वक अपडेट किया गया");
+                toast.success(t.voterUpdated);
                 setSelectedVoter(null);
             }
         } catch (err) {
-            toast.error(language === "en" ? t("voterListPage.toastUpdateFailed") : "मतदाता अपडेट करने में विफल");
+            toast.error(t.updateFailed);
         }
     };
 
@@ -79,7 +138,7 @@ export default function VoterListPage() {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    {language === "en" ? t("voterListPage.noAssemblySelected") : "कोई विधानसभा चयनित नहीं। कृपया पहले एक विधानसभा चुनें।"}
+                    {t.noAssembly}
                 </div>
             </div>
         );
@@ -88,9 +147,7 @@ export default function VoterListPage() {
     if (isLoading) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]">
-                <div className="text-[var(--text-secondary)]">
-                    {language === "en" ? t("voterListPage.loadingVoters") : "मतदाता लोड हो रहे हैं..."}
-                </div>
+                <div className="text-gray-600">{t.loadingVoters}</div>
             </div>
         );
     }
@@ -99,7 +156,7 @@ export default function VoterListPage() {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    {language === "en" ? t("voterListPage.failedToLoadVoters") : "मतदाता लोड करने में विफल। कृपया पुनः प्रयास करें।"}
+                    {t.failedToLoad}
                 </div>
             </div>
         );
@@ -112,33 +169,29 @@ export default function VoterListPage() {
         <div className="p-1">
             <div className="mb-1 flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                        {language === "en" ? t("voterListPage.title") : "मतदाता सूची प्रबंधन"}
-                    </h1>
-                    <p className="text-[var(--text-secondary)] mt-1">
-                        {(language === "en" ? t("voterListPage.subtitle") : "मतदाता जानकारी प्रबंधित और अपडेट करें")} •{" "}
-                        {totalVoters.toLocaleString()}{" "}
-                        {language === "en" ? t("voterListPage.totalVoters") : "कुल मतदाता"}
+                    <h1 className="text-2xl font-bold text-[var(--text-main)]">{t.title}</h1>
+                    <p className="text-[var(--text-muted)] mt-1">
+                        {t.subtitle} • {totalVoters.toLocaleString()} {t.totalVoters}
                     </p>
                 </div>
-                <div className="relative inline-flex items-center bg-[var(--bg-color)] rounded-full p-1">
+                <div className="relative inline-flex items-center bg-gray-200 rounded-full p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
-                            ? "bg-[var(--bg-card)] text-[var(--text-main)] shadow-sm"
-                            : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
-                        {t("voterListPage.btnEnglish")}
+                        English
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
-                            ? "bg-[var(--bg-card)] text-[var(--text-main)] shadow-sm"
-                            : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
-                        {t("voterListPage.btnRegional")}
+                        Native
                     </button>
                 </div>
             </div>
@@ -148,29 +201,29 @@ export default function VoterListPage() {
             ) : (
                 <>
                     {/* Search and Filters */}
-                    <div className="mb-1 bg-[var(--bg-card)] p-1 rounded-lg border border-[var(--border-color)]">
+                    <div className="mb-1 bg-[var(--bg-color)] p-1 rounded-lg border border-gray-200">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                    {language === "en" ? t("voterListPage.lblSearchVoters") : "मतदाता खोजें"}
+                                <label className="block text-sm font-medium text-[var(--text-color)] mb-1">
+                                    {t.searchVoters}
                                 </label>
                                 <input
                                     type="text"
                                     value={search}
                                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                    placeholder={language === "en" ? t("voterListPage.phSearchVoters") : "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें..."}
+                                    placeholder={t.searchPlaceholder}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                    {language === "en" ? t("voterListPage.lblFatherHusbandName") : "पिता/पति का नाम"}
+                                <label className="block text-sm font-medium text-[var(--text-color)] mb-1">
+                                    {t.fatherHusbandName}
                                 </label>
                                 <input
                                     type="text"
                                     value={fatherName}
                                     onChange={(e) => { setFatherName(e.target.value); setPage(1); }}
-                                    placeholder={language === "en" ? t("voterListPage.phFatherHusbandName") : "संबंधी का नाम दर्ज करें..."}
+                                    placeholder={t.fatherHusbandPlaceholder}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
@@ -180,7 +233,7 @@ export default function VoterListPage() {
                                     refetch()
                                 }}
                                 disabled={isLoading || isFetching}
-                                className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
+                                className="px-4 py-2 bg-[var(--bg-card)] text-[var(--text-color)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"
                             >
                                {isFetching ? (
                                 <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
@@ -188,57 +241,55 @@ export default function VoterListPage() {
                             </button>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="px-4 py-2 bg-green-200 text-[var(--text-secondary)] rounded-lg hover:bg-green-300 hover:text-black transition cursor-pointer"
+                                className="px-4 py-2 bg-[var(--bg-card)] text-[var(--text-color)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"
                             >
-                                {showFilters
-                                    ? (language === "en" ? t("voterListPage.btnHideFilters") : "फ़िल्टर छुपाएं")
-                                    : (language === "en" ? t("voterListPage.btnShowFilters") : "फ़िल्टर दिखाएं")}
+                                {showFilters ? t.hideFilters : t.showFilters}
                             </button>
                             {(search || fatherName || address || partFrom || partTo) && (
                                 <button
                                     onClick={handleClearFilters}
                                     className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
                                 >
-                                    {language === "en" ? t("voterListPage.btnClearAll") : "सभी साफ़ करें"}
+                                    {t.clearAll}
                                 </button>
                             )}
                         </div>
 
                         {showFilters && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[var(--border-color)]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
                                 <div>
-                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                        {language === "en" ? t("voterListPage.lblAddress") : "पता"}
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
+                                        {t.address}
                                     </label>
                                     <input
                                         type="text"
                                         value={address}
                                         onChange={(e) => { setAddress(e.target.value); setPage(1); }}
-                                        placeholder={language === "en" ? t("voterListPage.phAddress") : "पता दर्ज करें..."}
+                                        placeholder={t.addressPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                        {language === "en" ? t("voterListPage.lblPartFrom") : "भाग से"}
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
+                                        {t.partFrom}
                                     </label>
                                     <input
                                         type="number"
                                         value={partFrom || ""}
                                         onChange={(e) => { setPartFrom(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
-                                        placeholder={language === "en" ? t("voterListPage.phPartFrom") : "भाग संख्या से..."}
+                                        placeholder={t.partFromPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                        {language === "en" ? t("voterListPage.lblPartTo") : "भाग तक"}
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
+                                        {t.partTo}
                                     </label>
                                     <input
                                         type="number"
                                         value={partTo || ""}
                                         onChange={(e) => { setPartTo(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
-                                        placeholder={language === "en" ? t("voterListPage.phPartTo") : "भाग संख्या तक..."}
+                                        placeholder={t.partToPlaceholder}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
@@ -254,12 +305,9 @@ export default function VoterListPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                            <div className="text-sm text-[var(--text-secondary)]">
-                                {(language === "en" ? t("voterListPage.showingPage") : "पृष्ठ दिखा रहा है")} {page}{" "}
-                                {(language === "en" ? t("voterListPage.of") : "का")} {totalPages} •{" "}
-                                {totalVoters.toLocaleString()}{" "}
-                                {language === "en" ? t("voterListPage.totalVoters") : "कुल मतदाता"}
+                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                {t.showing} {page} {t.of} {totalPages} • {totalVoters.toLocaleString()} {t.totalVoters}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -267,14 +315,14 @@ export default function VoterListPage() {
                                     disabled={page === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {language === "en" ? t("voterListPage.btnPrevious") : "पिछला"}
+                                    {t.previous}
                                 </button>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {language === "en" ? t("voterListPage.btnNext") : "अगला"}
+                                    {t.next}
                                 </button>
                             </div>
                         </div>
@@ -284,5 +332,3 @@ export default function VoterListPage() {
         </div>
     );
 }
-
-

@@ -45,59 +45,24 @@ export const BoothManagementDashboard: React.FC = () => {
   }, [assemblyId, partyId]);
 
   const fetchDashboardData = async () => {
-    if (!assemblyId || !partyId) {
-      setLoading(false);
-      return;
-    }
-
+    if (!assemblyId || !partyId) { setLoading(false); return; }
     setLoading(true);
     try {
-      // Fetch all agents for this assembly with party filter
-      const [allRes, insideRes, outsideRes, supportRes, activeRes] = await Promise.all([
+      const [statsRes, recentRes] = await Promise.all([
+        boothAgentApi.getStats(assemblyId, partyId),
         boothAgentApi.getAgentsByAssembly(assemblyId, {
-          limit: 5,
-          sort_by: "created_at",
-          order: "desc",
-          partyId,
-        }),
-        boothAgentApi.getAgentsByAssembly(assemblyId, {
-          category: "Booth Inside Team",
-          limit: 1,
-          partyId,
-        }),
-        boothAgentApi.getAgentsByAssembly(assemblyId, {
-          category: "Booth Outside Team",
-          limit: 1,
-          partyId,
-        }),
-        boothAgentApi.getAgentsByAssembly(assemblyId, {
-          category: "Polling Center Support Team",
-          limit: 1,
-          partyId,
-        }),
-        boothAgentApi.getAgentsByAssembly(assemblyId, {
-          status: "1",
-          limit: 1,
-          partyId,
+          limit: 5, sort_by: "created_at", order: "desc", partyId,
         }),
       ]);
-
-      setRecentAgents(allRes.data);
-
-      const total = allRes.pagination?.total || 0;
-      const boothInside = insideRes.pagination?.total || 0;
-      const boothOutside = outsideRes.pagination?.total || 0;
-      const pollingSupport = supportRes.pagination?.total || 0;
-      const active = activeRes.pagination?.total || 0;
-
       setStats({
-        total,
-        boothInside,
-        boothOutside,
-        pollingSupport,
-        active,
-        inactive: total - active,
+        total: statsRes.total_agents,
+        boothInside: statsRes.booth_inside_team,
+        boothOutside: statsRes.booth_outside_team,
+        pollingSupport: statsRes.polling_support_team,
+        active: statsRes.active_agents,
+        inactive: statsRes.inactive_agents,
       });
+      setRecentAgents(recentRes.data);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {

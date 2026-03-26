@@ -1198,7 +1198,8 @@
         "Previous":"Previous",
         "Page":"Page",
         "of":"of",
-        "Next":"Next"
+        "Next":"Next",
+        "Booth":"Booth"
     },
 
     "BoothAgentForm":{

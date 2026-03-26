@@ -850,11 +850,11 @@ export const LoginReportPage: React.FC = () => {
                 // --- FIRST LOGIN PENDING VIEW ---
                 <div className="space-y-4">
                     {/* Filters */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border-color)] p-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
                             {/* State */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                                <label className="block text-xs font-medium text-[var(--text-color)] mb-1">State</label>
                                 <SearchableSelect
                                     options={[{ value: -1, label: "All States" }, ...stateOptions]}
                                     value={pendingStateId}
@@ -869,7 +869,7 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* District */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">District</label>
+                                <label className="block text-xs font-medium text-[var(--text-color)] mb-1">District</label>
                                 <SearchableSelect
                                     options={[
                                         { value: -1, label: "All Districts" },
@@ -888,7 +888,7 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* Days Range */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Duration</label>
+                                <label className="block text-xs font-medium text-[var(--text-color)] mb-1">Duration</label>
                                 <div className="relative">
                                     <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <select
@@ -920,7 +920,7 @@ export const LoginReportPage: React.FC = () => {
                             {/* From Date - only when custom selected */}
                             {(pendingDays as any) === "custom" && (
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">From Date</label>
+                                    <label className="block text-xs font-medium text-[var(--text-color)] mb-1">From Date</label>
                                     <div className="relative">
                                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -936,7 +936,7 @@ export const LoginReportPage: React.FC = () => {
                             {/* To Date - only when custom selected */}
                             {(pendingDays as any) === "custom" && (
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">To Date</label>
+                                    <label className="block text-xs font-medium text-[var(--text-color)] mb-1">To Date</label>
                                     <div className="relative">
                                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -951,7 +951,7 @@ export const LoginReportPage: React.FC = () => {
 
                             {/* Search */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Search User</label>
+                                <label className="block text-xs font-medium text-[var(--text-color)] mb-1">Search User</label>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
@@ -975,7 +975,7 @@ export const LoginReportPage: React.FC = () => {
                     </div>
 
                     {/* Table */}
-                    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-opacity ${isUnloggedFetching ? "opacity-60" : ""}`}>
+                    <div className={`bg-[var(--bg-card)] rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-opacity ${isUnloggedFetching ? "opacity-60" : ""}`}>
                         {isUnloggedLoading ? (
                             <div className="p-8 text-center">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-400 border-t-transparent"></div>
@@ -993,29 +993,29 @@ export const LoginReportPage: React.FC = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-200">
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">State</th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">District</th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User Name</th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered At</th>
+                                        <tr className="bg-[var(--bg-color)] border-b border-gray-200">
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">#</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">State</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">District</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">User Name</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-3 text-xs font-semibold text-[var(--text-color)] uppercase tracking-wider">Registered At</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
                                         {pendingUsers.map((u, idx) => (
-                                            <tr key={u.user_id} className="hover:bg-orange-50 transition-colors">
-                                                <td className="px-6 py-4 text-sm text-gray-500">{(pendingPage - 1) * 50 + idx + 1}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-600">{u.stateName || "—"}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-600">{u.districtName || "—"}</td>
+                                            <tr key={u.user_id} className="hover:bg-[var(--text-color)]/5 transition-colors">
+                                                <td className="px-6 py-4 text-sm text-[var(--text-muted)]">{(pendingPage - 1) * 50 + idx + 1}</td>
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">{u.stateName || "—"}</td>
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">{u.districtName || "—"}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs">
                                                             {u.first_name[0].toUpperCase()}
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-medium text-gray-900">{u.first_name} {u.last_name}</p>
-                                                            <p className="text-xs text-gray-400">{u.email}</p>
+                                                            <p className="text-sm font-medium text-[var(--text-color)]">{u.first_name} {u.last_name}</p>
+                                                            <p className="text-xs text-[var(--text-color)]">{u.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -1025,11 +1025,11 @@ export const LoginReportPage: React.FC = () => {
                                                         {u.login_status_message}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                                                     {u.created_on && !isNaN(new Date(u.created_on).getTime())
                                                         ? <>
                                                             {format(new Date(u.created_on), "MMM d, yyyy")}
-                                                            <div className="text-xs text-gray-400">{format(new Date(u.created_on), "h:mm a")}</div>
+                                                            <div className="text-xs text-[var(--text-muted)]">{format(new Date(u.created_on), "h:mm a")}</div>
                                                           </>
                                                         : "—"
                                                     }

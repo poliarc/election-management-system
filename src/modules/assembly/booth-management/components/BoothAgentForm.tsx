@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import type {
@@ -133,40 +133,29 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     }
   }, [assemblyId]);
 
-  // Update available booths when polling center changes
+  // Update available booths from already-fetched polling centers data
   useEffect(() => {
     if (pollingCenterId) {
       const pcId = Number(pollingCenterId);
-      
-      // Fetch booths from BLA API
-      boothAgentApi
-        .getBoothsByPollingCenter(pcId)
-        .then((res) => {
-          setAvailableBooths(res.data);
+      const selectedPc = pollingCenters.find((pc) => pc.id === pcId);
+      const booths = selectedPc?.booths || [];
+      setAvailableBooths(booths);
 
-          // Only reset selectedBoothId if not in edit mode or if booth doesn't exist in new polling center
-          if (!isEditMode) {
-            setSelectedBoothId(null);
-          } else if (agentData?.booth_id) {
-            const boothExists = res.data.some(
-              (booth) => booth.id === agentData.booth_id
-            );
-            if (!boothExists) {
-              setSelectedBoothId(null);
-            }
-          }
-        })
-        .catch(() => {
-          setAvailableBooths([]);
-          toast.error("Failed to load booths");
-        });
+      if (!isEditMode) {
+        setSelectedBoothId(null);
+      } else if (agentData?.booth_id) {
+        const boothExists = booths.some((booth) => booth.id === agentData.booth_id);
+        if (!boothExists) {
+          setSelectedBoothId(null);
+        }
+      }
     } else {
       setAvailableBooths([]);
       if (!isEditMode) {
         setSelectedBoothId(null);
       }
     }
-  }, [pollingCenterId, isEditMode, agentData?.booth_id]);
+  }, [pollingCenterId, pollingCenters, isEditMode, agentData?.booth_id]);
 
   // Reset form when agent data is loaded - don't wait for polling centers
   useEffect(() => {
@@ -667,7 +656,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Phone")} *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Phone")}</label>
           <input
             {...register("phone", {
               required: "Phone is required",
@@ -731,7 +720,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           )}
         </div>
 
-        {/* Password */}
+        {/* Password - commented out, not needed
         <div>
           <label className="block text-sm font-medium mb-1">
             {t("BoothAgentForm.Password")} {!isEditMode && "*"}
@@ -744,43 +733,33 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 message: "Password must be at least 8 characters",
               },
               validate: (value) => {
-                if (!value && isEditMode) return true; // Skip validation in edit mode if empty
+                if (!value && isEditMode) return true;
                 if (!value) return "Password is required";
-
                 const hasUpperCase = /[A-Z]/.test(value);
                 const hasLowerCase = /[a-z]/.test(value);
                 const hasNumber = /[0-9]/.test(value);
                 const hasSpecialChar = /[@$_\-*#]/.test(value);
-
-                if (!hasUpperCase)
-                  return "Password must contain at least one uppercase letter";
-                if (!hasLowerCase)
-                  return "Password must contain at least one lowercase letter";
-                if (!hasNumber)
-                  return "Password must contain at least one number";
-                if (!hasSpecialChar)
-                  return "Password must contain at least one special character (@$_-*#)";
-
+                if (!hasUpperCase) return "Password must contain at least one uppercase letter";
+                if (!hasLowerCase) return "Password must contain at least one lowercase letter";
+                if (!hasNumber) return "Password must contain at least one number";
+                if (!hasSpecialChar) return "Password must contain at least one special character (@$_-*#)";
                 return true;
               },
             })}
             type="password"
             className="w-full border border-gray-300 rounded-md px-3 py-2"
-            placeholder={
-              isEditMode ? "Leave blank to keep current" : "Enter password"
-            }
+            placeholder={isEditMode ? "Leave blank to keep current" : "Enter password"}
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage(errors.password)}
-            </p>
+            <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors.password)}</p>
           )}
           {!isEditMode && (
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              {t("BoothAgentForm.Desc1")}
+            <p className="text-xs text-gray-500 mt-1">
+              Must contain uppercase, lowercase, number, and special character (@$_-*#)
             </p>
           )}
         </div>
+        */}
 
         {/* Address */}
         <div className="md:col-span-2">
