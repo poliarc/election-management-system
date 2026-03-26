@@ -11,6 +11,7 @@ import type {
 } from "../types";
 import { boothAgentApi } from "../services/boothAgentApi";
 import { useAppSelector } from "../../../../store/hooks";
+import { useTranslation } from "react-i18next";
 
 interface BoothAgentFormProps {
   initialData?: Partial<BoothAgent & BoothAgentFormData>;
@@ -33,6 +34,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const {t} = useTranslation();
   const isEditMode = !!initialData?.agent_id;
   const [loading, setLoading] = useState(false);
   const [loadingAgentData, setLoadingAgentData] = useState(false);
@@ -525,7 +527,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading agent details...</p>
+          <p className="text-[var(--text-secondary)]">{t("BoothAgentForm.Loading_agent_details")}</p>
         </div>
       </div>
     );
@@ -536,16 +538,16 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium mb-1">Category *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Category")}</label>
           <select
             {...register("category", { required: "Category is required" })}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="">Select Category</option>
-            <option value="Booth Inside Team">Booth Inside Team</option>
-            <option value="Booth Outside Team">Booth Outside Team</option>
+            <option value="">{t("BoothAgentForm.Select_Category")}</option>
+            <option value="Booth Inside Team">{t("BoothAgentForm.Booth_Inside_Team")}</option>
+            <option value="Booth Outside Team">{t("BoothAgentForm.Booth_Outside_Team")}</option>
             <option value="Polling Center Support Team">
-              Polling Center Support Team
+              {t("BoothAgentForm.Desc")}
             </option>
           </select>
           {errors.category && (
@@ -557,13 +559,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Role */}
         <div>
-          <label className="block text-sm font-medium mb-1">Role *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Role")}</label>
           <select
             {...register("role", { required: "Role is required" })}
             disabled={!category}
             className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100"
           >
-            <option value="">Select Role</option>
+            <option value="">{t("BoothAgentForm.Select_Role")}</option>
             {category &&
               rolesByCategory[category as BoothAgentCategory]?.map((role) => (
                 <option key={role} value={role}>
@@ -581,13 +583,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {/* Polling Center */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Polling Center (Optional)
+            {t("BoothAgentForm.Polling_Center_Optional")}
           </label>
           <select
             {...register("polling_center_id")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="">Select Polling Center</option>
+            <option value="">{t("BoothAgentForm.Select_Polling_Center")}</option>
             {pollingCenters.map((pc) => (
               <option key={pc.id} value={String(pc.id)}>
                 {pc.displayName}
@@ -600,7 +602,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {category !== "Polling Center Support Team" && (
           <div>
             <label className="block text-sm font-medium mb-1">
-              Booth No (Optional)
+              {t("BoothAgentForm.Booth_No_Optional")}
             </label>
             <select
               value={selectedBoothId || ""}
@@ -609,7 +611,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 setSelectedBoothId(value ? Number(value) : null);
               }}
               disabled={!pollingCenterId || availableBooths.length === 0}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
             >
               <option value="">
                 {pollingCenterId
@@ -629,7 +631,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Name *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Name")}</label>
           <input
             {...register("name", { required: "Name is required" })}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -644,7 +646,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Father Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Father Name</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Father_Name")}</label>
           <input
             {...register("father_name")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -654,7 +656,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium mb-1">Phone *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Phone")}</label>
           <input
             {...register("phone", {
               required: "Phone is required",
@@ -677,7 +679,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {/* Alternate Phone */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Alternate Phone
+            {t("BoothAgentForm.Alternate_Phone")}
           </label>
           <input
             {...register("alternate_no", {
@@ -699,7 +701,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Email")}</label>
           <input
             {...register("email", {
               pattern: {
@@ -721,7 +723,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {/* Password - commented out, not needed
         <div>
           <label className="block text-sm font-medium mb-1">
-            Password {!isEditMode && "*"}
+            {t("BoothAgentForm.Password")} {!isEditMode && "*"}
           </label>
           <input
             {...register("password", {
@@ -761,7 +763,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Address */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Address</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Address")}</label>
           <textarea
             {...register("address")}
             rows={2}
@@ -772,7 +774,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Photo</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Photo")}</label>
           <input
             type="file"
             accept="image/*"
@@ -803,22 +805,22 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {photoFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {photoFile.name}
+                    {t("BoothAgentForm.New")} {photoFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current photo</p>
+                  <p className="text-xs text-blue-600">Current photo {t("BoothAgentForm.Current_photo")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Aadhar Card Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Aadhar Card</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Aadhar_Card")}</label>
           <input
             type="file"
             accept="image/*,.pdf"
@@ -831,7 +833,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 {aadharFile?.type === "application/pdf" ||
                 aadharPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
-                    <span className="text-xs text-gray-600">PDF</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{t("BoothAgentForm.PDF")}</span>
                   </div>
                 ) : (
                   <img
@@ -855,23 +857,23 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {aadharFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {aadharFile.name}
+                    {t("BoothAgentForm.New")} {aadharFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current aadhar card</p>
+                  <p className="text-xs text-blue-600">{t("BoothAgentForm.Current_aadhar_card")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF, PDF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Voter ID Card Upload */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Voter ID Card
+            {t("BoothAgentForm.Voter_ID_Card")}
           </label>
           <input
             type="file"
@@ -885,7 +887,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 {voterIdFile?.type === "application/pdf" ||
                 voterIdPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
-                    <span className="text-xs text-gray-600">PDF</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{t("BoothAgentForm.PDF")}</span>
                   </div>
                 ) : (
                   <img
@@ -909,36 +911,36 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {voterIdFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {voterIdFile.name}
+                    {t("BoothAgentForm.New")} {voterIdFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current voter ID card</p>
+                  <p className="text-xs text-blue-600">{t("BoothAgentForm.Current_voter_ID_card")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF, PDF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Android Phone */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Android Phone
+            {t("BoothAgentForm.Android_Phone")}
           </label>
           <select
             {...register("android_phone")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
+            <option value="No">{t("BoothAgentForm.No")}</option>
+            <option value="Yes">{t("BoothAgentForm.Yes")}</option>
           </select>
         </div>
 
         {/* Laptop */}
         <div>
-          <label className="block text-sm font-medium mb-1">Laptop</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Laptop")}</label>
           <select
             {...register("laptop")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -950,7 +952,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Two Wheeler */}
         <div>
-          <label className="block text-sm font-medium mb-1">Two Wheeler</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Two_Wheeler")}</label>
           <select
             {...register("twoWheeler")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -962,13 +964,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Four Wheeler */}
         <div>
-          <label className="block text-sm font-medium mb-1">Four Wheeler</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Four_Wheeler")}</label>
           <select
             {...register("fourWheeler")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
+            <option value="No">{t("BoothAgentForm.No")}</option>
+            <option value="Yes">{t("BoothAgentForm.Yes")}</option>
           </select>
         </div>
       </div>
@@ -984,7 +986,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
             });
             onCancel();
           }}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-[var(--bg-color)]"
         >
           Cancel
         </button>
@@ -999,3 +1001,5 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     </form>
   );
 };
+
+

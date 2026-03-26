@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppSelector } from "../../../../store/hooks";
 import eventApi from "../services/eventApi";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface Event {
   event_id: number;
@@ -45,6 +46,7 @@ interface EventStats {
 
 export default function EventsStats() {
   const { user } = useAppSelector((state) => state.auth);
+  const {t} = useTranslation();
   const [stats, setStats] = useState<EventStats | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -162,9 +164,9 @@ export default function EventsStats() {
   };
 
   const StatCard = ({ label, value, color }: { label: string; value: number; color: string }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex-shrink-0">
+    <div className="bg-[var(--bg-color)] rounded-lg shadow p-4 flex-shrink-0">
       <div className="flex flex-col">
-        <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">{label}</p>
+        <p className="text-[var(--text-color)] text-xs font-medium">{label}</p>
         <p className={`text-2xl font-bold mt-2 ${color}`}>{value.toLocaleString()}</p>
       </div>
     </div>
@@ -180,18 +182,18 @@ export default function EventsStats() {
       }
       className={`w-full flex items-center justify-between p-4 rounded-lg shadow hover:shadow-md transition ${
         expandedSections[section]
-          ? 'bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-500 dark:border-indigo-400'
-          : 'bg-white dark:bg-gray-800 border-2 border-transparent'
+          ? 'bg-[var(--bg-color)] border-2 border-[var(--border-color)]'
+          : 'bg-[var(--bg-main)] border-2 border-transparent'
       }`}
     >
       <h2 className={`text-lg font-bold transition ${
         expandedSections[section]
-          ? 'text-indigo-700 dark:text-indigo-300'
-          : 'text-gray-900 dark:text-white'
+          ? 'text-[var(--text-color)]'
+          : 'text-[var(--text-color)]'
       }`}>{title}</h2>
       <svg
         className={`w-6 h-6 transition-transform duration-300 ${
-          expandedSections[section] ? 'text-indigo-600 dark:text-indigo-400 rotate-180' : 'text-gray-600 dark:text-gray-400'
+          expandedSections[section] ? 'text-[var(--text-color)] rotate-180' : 'text-[var(--text-color)]'
         }`}
         fill="none"
         stroke="currentColor"
@@ -203,16 +205,16 @@ export default function EventsStats() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[var(--bg-card)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         {/* Header */}
         <div className="mb-1 flex items-start justify-between gap-8">
           <div className="flex-shrink-0">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              User Activity 
+            <h1 className="text-3xl font-bold text-[var(--text-color)]">
+              {t("eventStatus.Title")}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Overview of system activities
+              {t("eventStatus.Desc")}
             </p>
           </div>
           {!loadingStats && stats && (
@@ -280,14 +282,14 @@ export default function EventsStats() {
             <div>
               <ToggleSection title="Access Report By Type" section="eventType" />
               {expandedSections.eventType && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
+                <div className="mt-2 bg-[var(--bg-color)]  rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.by_event_type.map((item) => (
                       <div
                         key={item.event_type}
-                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded"
+                        className="flex items-center justify-between p-3 border  border-gray-200 dark:border-gray-700 rounded"
                       >
-                        <span className="text-gray-900 dark:text-white text-sm">{item.event_type}</span>
+                        <span className="text-[var(--text-main)] text-sm">{item.event_type}</span>
                         <span className="font-bold text-indigo-600">{item.event_count}</span>
                       </div>
                     ))}
@@ -300,14 +302,14 @@ export default function EventsStats() {
             <div>
               <ToggleSection title="Access Report By Module" section="eventModule" />
               {expandedSections.eventModule && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
+                <div className="mt-2 bg-[var(--bg-color)]  rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.by_module.map((item) => (
                       <div
                         key={item.event_module}
                         className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded"
                       >
-                        <span className="text-gray-900 dark:text-white text-sm capitalize">{item.event_module}</span>
+                        <span className="text-[var(--text-main)] text-sm capitalize">{item.event_module}</span>
                         <span className="font-bold text-indigo-600">{item.event_count}</span>
                       </div>
                     ))}
@@ -320,7 +322,7 @@ export default function EventsStats() {
             <div>
               <ToggleSection title="Top Active Users" section="topUsers" />
               {expandedSections.topUsers && (
-                <div className="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow p-4 max-h-96 overflow-y-auto">
+                <div className="mt-2 bg-[var(--bg-color)] rounded-lg shadow p-4 max-h-96 overflow-y-auto">
                   <div className="space-y-2">
                     {stats.top_active_users.map((userStat, index) => (
                       <div
@@ -331,7 +333,7 @@ export default function EventsStats() {
                           <span className="text-white bg-indigo-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                             {index + 1}
                           </span>
-                          <span className="text-gray-900 dark:text-white text-sm">{userStat.user_full_name}</span>
+                          <span className="text-[var(--text-main)] text-sm">{userStat.user_full_name}</span>
                         </div>
                         <span className="font-bold text-indigo-600">{userStat.event_count}</span>
                       </div>
@@ -344,32 +346,32 @@ export default function EventsStats() {
         )}
 
         {/* Filter Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-6 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Activity Type
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                {t("eventStatus.Activity_Type")}
               </label>
               <select
                 name="event_type"
                 value={filters.event_type}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-secondary)]"
               >
-                <option value="">All Types</option>
-                <option value="CREATE">Create</option>
-                <option value="UPDATE">Update</option>
-                <option value="DELETE">Delete</option>
-                <option value="LOGIN">Login</option>
-                <option value="LOGOUT">Logout</option>
-                <option value="UPLOAD">Upload</option>
-                <option value="DOWNLOAD">Download</option>
+                <option value="">{t("eventStatus.All_Types")}</option>
+                <option value="CREATE">{t("eventStatus.Create")}</option>
+                <option value="UPDATE">{t("eventStatus.Update")}</option>
+                <option value="DELETE">{t("eventStatus.Delete")}</option>
+                <option value="LOGIN">{t("eventStatus.Login")}</option>
+                <option value="LOGOUT">{t("eventStatus.Logout")}</option>
+                <option value="UPLOAD">{t("eventStatus.Upload")}</option>
+                <option value="DOWNLOAD">{t("eventStatus.Download")}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Activity Module
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                {t("eventStatus.Activity_Module")}
               </label>
               <input
                 type="text"
@@ -377,31 +379,31 @@ export default function EventsStats() {
                 value={filters.event_module}
                 onChange={handleFilterChange}
                 placeholder="Search module..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-secondary)]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Status
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                {t("eventStatus.Status")}
               </label>
               <select
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-secondary)]"
               >
-                <option value="">All Status</option>
-                <option value="SUCCESS">Success</option>
-                <option value="FAILED">Failed</option>
-                <option value="PENDING">Pending</option>
-                <option value="PARTIAL">Partial</option>
+                <option value="">{t("eventStatus.All_Status")}</option>
+                <option value="SUCCESS">{t("eventStatus.Success")}</option>
+                <option value="FAILED">{t("eventStatus.Failed")}</option>
+                <option value="PENDING">{t("eventStatus.Pending")}</option>
+                <option value="PARTIAL">{t("eventStatus.Partial")}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Search
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                {t("eventStatus.Search")}
               </label>
               <input
                 type="text"
@@ -409,14 +411,14 @@ export default function EventsStats() {
                 value={filters.search}
                 onChange={handleFilterChange}
                 placeholder="Search events..."
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-secondary)]"
               />
             </div>
           </div>
         </div>
 
         {/* Events Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow overflow-hidden">
           {loadingEvents ? (
             <div className="p-8 text-center">
               <div className="inline-block">
@@ -440,50 +442,50 @@ export default function EventsStats() {
                   />
                 </svg>
               </div>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">Loading events...</p>
+              <p className="mt-2 text-gray-500 dark:text-gray-400">{t("eventStatus.Loading")}</p>
             </div>
           ) : events.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400">No Activity found</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("eventStatus.Desc1")}</p>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-900">
+                  <thead className="bg-[var(--bg-card)]">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Activity
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.Activity")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Type
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.Type")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Module
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.Module")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        User
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.User")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Status
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.Status")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        Date
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("eventStatus.Date")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-[var(--bg-color)] divide-y divide-gray-200 dark:divide-gray-700">
                     {events.map((event) => (
                       <tr
                         key={event.event_id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                        className="hover:bg-[var(--bg-card)] transition"
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm">
-                            <p className="font-medium text-gray-900 dark:text-white">
+                            <p className="font-medium text-[var(--text-main)]">
                               {event.event_action}
                             </p>
-                            <p className="text-gray-500 dark:text-gray-400 text-xs">
+                            <p className="text-[var(--text-secondary)] text-xs">
                               {event.event_description}
                             </p>
                           </div>
@@ -498,10 +500,10 @@ export default function EventsStats() {
                             {event.event_type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-main)]">
                           {event.event_module}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                           {event.user_full_name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -513,7 +515,7 @@ export default function EventsStats() {
                             {event.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                           {new Date(event.created_at).toLocaleDateString()}{" "}
                           {new Date(event.created_at).toLocaleTimeString()}
                         </td>
@@ -524,9 +526,9 @@ export default function EventsStats() {
               </div>
 
               {/* Pagination */}
-              <div className="bg-white dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {events.length} of {total} events
+              <div className="bg-[var(--bg-color)] px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div className="text-sm text-[var(--text-muted)]">
+                  {t("eventStatus.Showing")} {events.length} {t("eventStatus.of")} {total} {t("eventStatus.events")}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -534,17 +536,17 @@ export default function EventsStats() {
                     disabled={page === 1}
                     className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Previous
+                    {t("eventStatus.Previous")}
                   </button>
                   <span className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
-                    Page {page} of {totalPages}
+                    {t("eventStatus.Page")} {page} {t("eventStatus.of")} {totalPages}
                   </span>
                   <button
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     disabled={page === totalPages}
                     className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Next
+                    {t("eventStatus.Next")}
                   </button>
                 </div>
               </div>

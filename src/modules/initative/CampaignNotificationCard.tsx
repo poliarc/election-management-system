@@ -83,7 +83,7 @@ export const CampaignNotificationCard: React.FC<
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <div className="bg-[var(--bg-color)] rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
       {/* Image Header */}
       <div className="relative h-40 sm:h-48 overflow-hidden">
         <CampaignImageSlider
@@ -105,7 +105,7 @@ export const CampaignNotificationCard: React.FC<
                 notification.priority.slice(1)}
             </span>
           </span>
-          <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold bg-white bg-opacity-90 text-gray-800">
+          <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold bg-[var(--bg-color)] bg-opacity-90 text-[var(--text-color)]">
             {getCategoryIcon(notification.category)}
           </span>
         </div>
@@ -122,34 +122,34 @@ export const CampaignNotificationCard: React.FC<
 
       {/* Content */}
       <div className="p-4 sm:p-6">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-bold text-[var(--text-color)] mb-2 sm:mb-3 line-clamp-2">
           {notification.title}
         </h3>
 
-        <p className="text-gray-600 text-sm mb-3 sm:mb-4 line-clamp-3">
+        <p className="text-[var(--text-secondary)] text-sm mb-3 sm:mb-4 line-clamp-3">
           {notification.description}
         </p>
 
         {/* Event Details */}
         <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-[var(--text-secondary)]">
             <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0" />
             <span className="truncate">{formatDate(notification.date)}</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-[var(--text-secondary)]">
             <Clock className="w-4 h-4 text-green-500 flex-shrink-0" />
             <span>{notification.time}</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-[var(--text-secondary)]">
             <MapPin className="w-4 h-4 text-red-500 flex-shrink-0" />
             <span className="line-clamp-1 min-w-0">
               {notification.location}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm text-[var(--text-secondary)]">
             <Users className="w-4 h-4 text-purple-500 flex-shrink-0" />
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <span className="whitespace-nowrap">
@@ -173,8 +173,8 @@ export const CampaignNotificationCard: React.FC<
         </div>
 
         {/* Organizer */}
-        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-[var(--bg-color)] rounded-lg">
+          <p className="text-sm text-[var(--text-secondary)]">
             <span className="font-semibold">Organizer:</span>{" "}
             <span className="break-words">{notification.organizer}</span>
           </p>
@@ -185,7 +185,7 @@ export const CampaignNotificationCard: React.FC<
           <div className="mb-3 sm:mb-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <span className="text-sm font-semibold text-gray-700">
+              <span className="text-sm font-semibold text-[var(--text-secondary)]">
                 Requirements:
               </span>
             </div>
@@ -214,7 +214,7 @@ export const CampaignNotificationCard: React.FC<
             </button>
             <button
               onClick={onDecline}
-              className="flex-1 bg-gray-100 text-gray-700 py-2.5 sm:py-3 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="flex-1 bg-gray-100 text-[var(--text-secondary)] py-2.5 sm:py-3 px-4 rounded-xl font-semibold hover:bg-[var(--text-color)]/5 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <X className="w-4 h-4" />
               Decline
@@ -256,3 +256,7 @@ export const CampaignNotificationCard: React.FC<
     </div>
   );
 };
+
+
+
+

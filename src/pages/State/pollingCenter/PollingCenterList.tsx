@@ -3,11 +3,12 @@ import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import * as XLSX from "xlsx";
-
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 export default function StatePollingCenterList() {
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -527,10 +528,10 @@ export default function StatePollingCenterList() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Polling Center List
+                {t("statePollingCenter.Title")}
               </h1>
               <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                State: {stateInfo.stateName}
+                {t("statePollingCenter.State")}: {stateInfo.stateName}
               </p>
             </div>
 
@@ -555,16 +556,16 @@ export default function StatePollingCenterList() {
                     d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                Export Excel ({allPollingCenters.length})
+                {t("statePollingCenter.Export_Excel")} ({allPollingCenters.length})
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
               {/* Total Polling Centers Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-2 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-2 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Polling Centers
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("statePollingCenter.Total_Polling_Centers")}
                   </p>
                   <p className="text-lg sm:text-xl font-semibold mt-1">
                     {pollingCenters.length}
@@ -588,10 +589,10 @@ export default function StatePollingCenterList() {
               </div>
 
               {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-2 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-2 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("statePollingCenter.Total_Users")}
                   </p>
                   <p className="text-lg sm:text-xl font-semibold text-green-600 mt-1">
                     {pollingCenters.reduce(
@@ -620,7 +621,7 @@ export default function StatePollingCenterList() {
               {/* Polling Centers Without Users Card - Clickable */}
               <div
                 onClick={handlePollingCentersWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-2 flex items-center justify-between transition-all duration-200 ${
+                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-2 flex items-center justify-between transition-all duration-200 ${
                   pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
@@ -638,11 +639,11 @@ export default function StatePollingCenterList() {
                 }
               >
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Polling Centers Without Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("statePollingCenter.Without_Users")}
                     {showPollingCentersWithoutUsers && (
                       <span className="ml-2 text-red-600 font-semibold">
-                        (Filtered)
+                        ({t("statePollingCenter.Filtered")})
                       </span>
                     )}
                   </p>
@@ -651,7 +652,7 @@ export default function StatePollingCenterList() {
                       pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                         .length > 0
                         ? "text-red-600"
-                        : "text-gray-400"
+                        : "text-[var(--text-secondary)]"
                     }`}
                   >
                     {
@@ -665,7 +666,7 @@ export default function StatePollingCenterList() {
                     pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                       .length > 0
                       ? "bg-red-50"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                   }`}
                 >
                   {pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
@@ -685,7 +686,7 @@ export default function StatePollingCenterList() {
                     </svg>
                   ) : (
                     <svg
-                      className="w-4 h-4 text-gray-400"
+                      className="w-4 h-4 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -705,22 +706,22 @@ export default function StatePollingCenterList() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.State")}
               </label>
               <input
                 type="text"
                 value={stateInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select District <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Select_District")} <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedDistrictId}
@@ -734,7 +735,7 @@ export default function StatePollingCenterList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={0}>Select District</option>
+                <option value={0}>{t("statePollingCenter.Select_District")}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id || district.id}
@@ -746,8 +747,8 @@ export default function StatePollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Assembly")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -761,7 +762,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Assemblies in District</option>
+                <option value={0}>{t("statePollingCenter.Assemblies_District")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -773,8 +774,8 @@ export default function StatePollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Block
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Block")}
               </label>
               <select
                 value={selectedBlockId}
@@ -787,7 +788,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Blocks in Assembly</option>
+                <option value={0}>{t("statePollingCenter.Blocks_Assembly")}</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -796,8 +797,8 @@ export default function StatePollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mandal
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Mandal")}
               </label>
               <select
                 value={selectedMandalId}
@@ -809,7 +810,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedBlockId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Mandals in Block</option>
+                <option value={0}>{t('statePollingCenter.Mandals_Block')}</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -818,8 +819,8 @@ export default function StatePollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Polling Center
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Polling_Center")}
               </label>
               <select
                 value={selectedPollingCenterFilter}
@@ -830,7 +831,7 @@ export default function StatePollingCenterList() {
                 disabled={!selectedMandalId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">All Polling Centers</option>
+                <option value="">{t("statePollingCenter.Polling_Centers")}</option>
                 {pollingCenters.map((pc) => (
                   <option key={pc.id} value={pc.id.toString()}>
                     {pc.displayName}
@@ -839,13 +840,13 @@ export default function StatePollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("statePollingCenter.Search")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -874,20 +875,20 @@ export default function StatePollingCenterList() {
         </div>
 
         {/* Polling Center List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {loadingPollingCenters && selectedMandalId ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading polling centers...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("statePollingCenter.Loading_polling_centers")}</p>
             </div>
           ) : error && selectedMandalId ? (
             <div className="text-center py-12 text-red-600">
-              <p>Error loading polling centers</p>
+              <p>{t("statePollingCenter.Error_polling_centers")}</p>
             </div>
           ) : filteredPollingCenters.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -899,8 +900,8 @@ export default function StatePollingCenterList() {
                   d="M20 13V6a.2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">
-                No polling centers found
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                {t("statePollingCenter.No_polling_centers")}
               </p>
             </div>
           ) : (
@@ -909,35 +910,35 @@ export default function StatePollingCenterList() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        S.No
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.S_NO")}
                       </th>
 
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Mandal
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.Mandal")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Level Type
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.Level_Type")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Display Name
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.Display_Name")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Total Users
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.Total_Users")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Actions
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("statePollingCenter.Actions")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {paginatedPollingCenters.map((pollingCenter, index) => (
                       <React.Fragment key={pollingCenter.id}>
                         <tr
                           key={pollingCenter.id}
                           className="hover:bg-blue-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
 
@@ -970,10 +971,10 @@ export default function StatePollingCenterList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {pollingCenter.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {pollingCenter.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -1016,7 +1017,7 @@ export default function StatePollingCenterList() {
                                   />
                                 </svg>
                               </button>
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)]">
                                 {pollingCenter.user_count || 0}
                               </span>
                             </div>
@@ -1034,7 +1035,7 @@ export default function StatePollingCenterList() {
                                 : "Inactive"}
                             </span>
                           </td> */}
-                          {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                       {pollingCenter.created_at ? new Date(pollingCenter.created_at).toLocaleDateString() : "N/A"}
                                                   </td> */}
                           <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -1047,10 +1048,10 @@ export default function StatePollingCenterList() {
                                       : pollingCenter.id
                                   )
                                 }
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="p-2 hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
                               >
                                 <svg
-                                  className="w-5 h-5 text-gray-600"
+                                  className="w-5 h-5 text-[var(--text-secondary)]"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1065,7 +1066,7 @@ export default function StatePollingCenterList() {
                                     onClick={() => setOpenDropdownId(null)}
                                   />
                                   <div
-                                    className={`absolute right-0 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${
+                                    className={`absolute right-0 w-56 bg-[var(--bg-card)] rounded-lg shadow-xl border border-[var(--border-color)] z-50 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${
                                       index >=
                                         paginatedPollingCenters.length - 2 &&
                                       paginatedPollingCenters.length >= 5
@@ -1083,7 +1084,7 @@ export default function StatePollingCenterList() {
                                           handleViewUsers(pollingCenter.id);
                                           setOpenDropdownId(null);
                                         }}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3 transition-colors group"
+                                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-blue-50 flex items-center gap-3 transition-colors group"
                                       >
                                         <div className="p-1.5 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                                           <svg
@@ -1107,7 +1108,7 @@ export default function StatePollingCenterList() {
                                           </svg>
                                         </div>
                                         <span className="font-medium">
-                                          View Users
+                                          {t("statePollingCenter.View_Users")}
                                         </span>
                                       </button>
                                       <button
@@ -1115,7 +1116,7 @@ export default function StatePollingCenterList() {
                                           fetchBooths(pollingCenter.id);
                                           setOpenDropdownId(null);
                                         }}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 flex items-center gap-3 transition-colors group"
+                                        className="w-full text-left px-4 py-3 text-sm text-[var(--text-secondary)] hover:bg-green-50 flex items-center gap-3 transition-colors group"
                                       >
                                         <div className="p-1.5 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                                           <svg
@@ -1133,7 +1134,7 @@ export default function StatePollingCenterList() {
                                           </svg>
                                         </div>
                                         <span className="font-medium">
-                                          View Booths
+                                          {t("statePollingCenter.View_Booths")}
                                         </span>
                                       </button>
                                     </div>
@@ -1179,45 +1180,45 @@ export default function StatePollingCenterList() {
 
               {/* Pagination */}
               {filteredPollingCenters.length > 0 && (
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       <span>
-                        Showing{" "}
+                        {t("statePollingCenter.Showing")}{" "}
                         <span className="font-semibold">
                           {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
-                        to{" "}
+                        {t("statePollingCenter.To")}{" "}
                         <span className="font-semibold">
                           {Math.min(
                             currentPage * itemsPerPage,
                             filteredPollingCenters.length
                           )}
                         </span>{" "}
-                        of{" "}
+                        {t("statePollingCenter.Of")}{" "}
                         <span className="font-semibold">
                           {filteredPollingCenters.length}
                         </span>{" "}
-                        results
+                        {t("statePollingCenter.Results")}
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("statePollingCenter.Previous")}
                       </button>
-                      <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                        Page {currentPage} of {totalPages}
+                      <span className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+                        {t("statePollingCenter.Page")}{currentPage} {t("statePollingCenter.Of")} {totalPages}
                       </span>
                       <button
                         onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("statePollingCenter.Next")}
                       </button>
                     </div>
                   </div>
@@ -1230,17 +1231,17 @@ export default function StatePollingCenterList() {
 
       {/* Booths Modal */}
       {booths.length > 0 && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center p-4 z-50">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">Booths</h2>
-                  <p className="text-green-100 mt-1">List of all booths</p>
+                  <h2 className="text-2xl font-bold">{t("statePollingCenter.Booths")}</h2>
+                  <p className="text-green-100 mt-1">{t("statePollingCenter.List_booths")}</p>
                 </div>
                 <button
                   onClick={() => setBooths([])}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-[var(--bg-card)]/20 rounded-lg transition-colors"
                 >
                   <svg
                     className="w-6 h-6"
@@ -1263,12 +1264,12 @@ export default function StatePollingCenterList() {
               {loadingBooths ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                  <p className="mt-4 text-gray-600">Loading booths...</p>
+                  <p className="mt-4 text-[var(--text-secondary)]">{t("statePollingCenter.Loading_booths")}</p>
                 </div>
               ) : booths.length === 0 ? (
                 <div className="text-center py-12">
                   <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
+                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1280,39 +1281,39 @@ export default function StatePollingCenterList() {
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     />
                   </svg>
-                  <p className="mt-2 text-gray-500 font-medium">
-                    No booths found
+                  <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                    {t("statePollingCenter.No_booths")}
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-[var(--bg-main)]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          S.No
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.S_NO")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Display Name
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.Display_Name")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Level Type
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.Level_Type")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Users
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.Users")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.Status")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created Date
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("statePollingCenter.Created_Date")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                       {booths.map((booth, index) => (
-                        <tr key={booth.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <tr key={booth.id} className="hover:bg-[var(--text-color)]/5">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1333,10 +1334,10 @@ export default function StatePollingCenterList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {booth.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {booth.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -1347,9 +1348,9 @@ export default function StatePollingCenterList() {
                               {booth.levelName || "Booth"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              {booth.user_count || 0} users
+                              {booth.user_count || 0} {t("statePollingCenter.Users")}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1363,7 +1364,7 @@ export default function StatePollingCenterList() {
                               {booth.isActive === 1 ? "Active" : "Inactive"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {booth.created_at
                               ? new Date(booth.created_at).toLocaleDateString()
                               : "N/A"}
@@ -1381,3 +1382,6 @@ export default function StatePollingCenterList() {
     </div>
   );
 }
+
+
+

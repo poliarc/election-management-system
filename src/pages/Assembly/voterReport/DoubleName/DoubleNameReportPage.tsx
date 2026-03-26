@@ -2,14 +2,14 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import {
-  useGetVotersByAssemblyPaginatedQuery,
+  useGetVotersByAssemblyQuery,
   useUpdateVoterMutation,
 } from "../../../../store/api/votersApi";
 import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
-// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
+import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 const DoubleNameReportPage: React.FC = () => {
   const selectedAssignment = useSelector(
@@ -22,25 +22,16 @@ const DoubleNameReportPage: React.FC = () => {
   const [partTo, setPartTo] = useState<number | undefined>();
   const [page, setPage] = useState(1);
   const [language, setLanguage] = useState<"en" | "hi">("en");
-  const [limit] = useState(50);
+  const [itemsPerPage] = useState(50);
 
   const [updateVoter] = useUpdateVoterMutation();
 
   // get all voters by assembly
-  const { data: votersData, isLoading } =
-        useGetVotersByAssemblyPaginatedQuery(
-          {
-            assembly_id: assembly_id!,
-            page,
-            limit,
-            partFrom,
-            partTo,
-          },
-          { skip: !assembly_id },
-    );
-
-    const totalPages = votersData?.pagination?.totalPages || 1;
-    const totalVoters = votersData?.pagination?.total || 0;
+  const { data: votersData, isLoading } = useGetVotersByAssemblyQuery({
+    assembly_id: assembly_id!,
+    },
+    { skip: !assembly_id }
+);
 
 // filter for duplicate names
 const duplicateVoters = useMemo(() => {
@@ -80,13 +71,16 @@ const duplicateVoters = useMemo(() => {
     });
   }, [votersData]);
 
-  // const { paginatedVoters, totalPages } = usePartFilterPagination({
-  //   data: duplicateVoters,
-  //   partFrom,
-  //   partTo,
-  //   currentPage: page,
-  //   itemsPerPage,
-  // });  
+  const { paginatedVoters, totalPages } = usePartFilterPagination({
+    data: duplicateVoters,
+    partFrom,
+    partTo,
+    currentPage: page,
+    itemsPerPage,
+  });
+
+  console.log(duplicateVoters, paginatedVoters);
+  
 
   const handleReset = () => {
     setPartFrom(undefined);
@@ -128,14 +122,14 @@ const duplicateVoters = useMemo(() => {
     <div className="p-1">
       <div className="mb-1 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[var(--text-main)]">
             Double Name Report
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-[var(--text-muted)] mt-1">
             View voters with duplicate names in the voter list
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-[var(--bg-color)] border border-gray-300 rounded-lg p-1">
           <button
             onClick={() => setLanguage("en")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
@@ -167,10 +161,10 @@ const duplicateVoters = useMemo(() => {
         />
       ) : (
         <>
-          <div className="bg-white p-1 rounded-lg shadow mb-1">
+          <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
                   Part No From
                 </label>
                 <input
@@ -186,7 +180,7 @@ const duplicateVoters = useMemo(() => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
                   Part No To
                 </label>
                 <input
@@ -229,7 +223,7 @@ const duplicateVoters = useMemo(() => {
                 These voters have the same name and may need verification
               </div>
               <VoterListTable
-                voters={duplicateVoters}
+                voters={paginatedVoters}
                 onEdit={handleEdit}
                 language={language}
               />
@@ -238,7 +232,7 @@ const duplicateVoters = useMemo(() => {
                 <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                   <div className="text-sm text-gray-600">
                     Showing page {page} of {totalPages} •{" "}
-                    {totalVoters} total voters
+                    {paginatedVoters.length} total voters
                   </div>
                   <div className="flex gap-2">
                     <button

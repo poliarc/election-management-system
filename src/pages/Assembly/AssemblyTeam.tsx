@@ -5,6 +5,7 @@ import type { HierarchyUser } from '../../types/hierarchy';
 import { API_CONFIG } from '../../config/api';
 import toast from "react-hot-toast";
 import BannerImagesModal from '../../components/BannerImagesModal';
+import { useTranslation } from "react-i18next";
 
 interface AssemblyTeamResponse {
     success: boolean;
@@ -24,6 +25,7 @@ interface AssemblyTeamResponse {
 }
 
 export default function AssemblyTeam() {
+    const { t } = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -50,7 +52,7 @@ export default function AssemblyTeam() {
         const fetchAssemblyTeam = async () => {
             if (!assemblyId) {
                 setLoading(false);
-                setError('No assembly selected');
+                setError(t("assemblyTeam.noAssemblySelected"));
                 return;
             }
 
@@ -62,7 +64,7 @@ export default function AssemblyTeam() {
                 const token = authState ? JSON.parse(authState).accessToken : null;
 
                 if (!token) {
-                    throw new Error('Authentication required');
+                    throw new Error(t("assemblyTeam.authenticationRequired"));
                 }
 
                 const response = await fetch(
@@ -84,10 +86,10 @@ export default function AssemblyTeam() {
                 if (data.success) {
                     setAssemblyData(data.data);
                 } else {
-                    setError(data.message || 'Failed to fetch assembly team');
+                    setError(data.message || t("assemblyTeam.failedToFetchAssemblyTeam"));
                 }
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
+                setError(err instanceof Error ? err.message : t("assemblyTeam.anErrorOccurred"));
             } finally {
                 setLoading(false);
             }
@@ -150,7 +152,7 @@ export default function AssemblyTeam() {
         try {
             const authState = localStorage.getItem("auth_state");
             const token = authState ? JSON.parse(authState).accessToken : null;
-            if (!token) throw new Error("Authentication required");
+            if (!token) throw new Error(t("assemblyTeam.authenticationRequired"));
 
             // Use the same API pattern as InlineUserDisplay component
             const response = await fetch(
@@ -187,13 +189,17 @@ export default function AssemblyTeam() {
                     };
                 });
 
-                toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+                toast.success(
+                    !currentStatus
+                        ? t("assemblyTeam.toastUserActivated")
+                        : t("assemblyTeam.toastUserDeactivated")
+                );
             } else {
-                throw new Error(result.message || "Failed to toggle user status");
+                throw new Error(result.message || t("assemblyTeam.failedToToggleUserStatus"));
             }
         } catch (err) {
             console.error("Toggle status error:", err);
-            toast.error(err instanceof Error ? err.message : "Failed to toggle user status");
+            toast.error(err instanceof Error ? err.message : t("assemblyTeam.failedToToggleUserStatus"));
         } finally {
             setToggleLoading(null);
         }
@@ -204,7 +210,7 @@ export default function AssemblyTeam() {
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 font-medium">Loading assembly team...</p>
+                    <p className="mt-4 text-[var(--text-secondary)] font-medium">{t("assemblyTeam.loadingAssemblyTeam")}</p>
                 </div>
             </div>
         );
@@ -231,27 +237,27 @@ export default function AssemblyTeam() {
     if (!assemblyData) {
         return (
             <div className="p-6">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                    <p className="text-gray-600">No assembly data available</p>
+                <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-6 text-center">
+                    <p className="text-[var(--text-secondary)]">{t("assemblyTeam.noAssemblyDataAvailable")}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="p-2 bg-gray-50 min-h-screen">
+        <div className="p-2 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
-                        <h1 className="text-xl sm:text-2xl font-bold">Assembly Team</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold">{t("assemblyTeam.title")}</h1>
                         <p className="text-blue-100 mt-1 text-xs sm:text-sm">{assemblyData.location.location_name}</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("assemblyTeam.kpiTotalUsers")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold mt-1">{assemblyData.total_users}</p>
                             </div>
                             <div className="bg-blue-50 rounded-full p-2">
@@ -261,9 +267,9 @@ export default function AssemblyTeam() {
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("assemblyTeam.kpiActiveUsers")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">{assemblyData.active_users}</p>
                             </div>
                             <div className="bg-green-50 rounded-full p-2">
@@ -273,9 +279,9 @@ export default function AssemblyTeam() {
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("assemblyTeam.kpiInactiveUsers")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">{assemblyData.inactive_users}</p>
                             </div>
                             <div className="bg-red-50 rounded-full p-2">
@@ -289,11 +295,11 @@ export default function AssemblyTeam() {
             </div>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-md p-3 sm:p-3 mb-1">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 sm:p-3 mb-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <input
                         type="text"
-                        placeholder="Search by name, email, or phone..."
+                        placeholder={t("assemblyTeam.phSearch")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -303,62 +309,68 @@ export default function AssemblyTeam() {
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value as any)}
                         className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        aria-label={t("assemblyTeam.lblFilterStatus")}
+                        title={t("assemblyTeam.lblFilterStatus")}
                     >
-                        <option value="all">All Status</option>
-                        <option value="active">Active Only</option>
-                        <option value="inactive">Inactive Only</option>
+                        <option value="all">{t("assemblyTeam.optAllStatus")}</option>
+                        <option value="active">{t("assemblyTeam.optActiveOnly")}</option>
+                        <option value="inactive">{t("assemblyTeam.optInactiveOnly")}</option>
                     </select>
 
-                    <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap sm:ml-auto">
-                        Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] whitespace-nowrap sm:ml-auto">
+                        {t("assemblyTeam.showingUsersRange", {
+                            from: startIndex + 1,
+                            to: Math.min(endIndex, filteredUsers.length),
+                            total: filteredUsers.length
+                        })}
                     </p>
                 </div>
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-max divide-y divide-gray-200">
-                        <thead className="bg-gray-50 sticky top-0">
+                        <thead className="bg-[var(--bg-main)] sticky top-0">
                             <tr>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">S.No</th>
-                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">User ID</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">District</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Assembly</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Designation</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Name</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Email</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thSNo")}</th>
+                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thUserId")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thDistrict")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thAssembly")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thDesignation")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thName")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thEmail")}</th>
                                
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Status</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase whitespace-nowrap">Action</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thStatus")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thAction")}</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {filteredUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="px-6 py-12 text-center">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users found</p>
+                                        <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("assemblyTeam.emptyNoUsersFound")}</p>
                                     </td>
                                 </tr>
                             ) : (
                                 paginatedUsers.map((user, index) => (
-                                    <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{startIndex + index + 1}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_id}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_district}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{assemblyData.location.location_name}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || "N/A"}</td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                    <tr key={user.assignment_id || index} className="hover:bg-[var(--text-color)]/5">
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-color)] whitespace-nowrap">{startIndex + index + 1}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_id}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_district}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{assemblyData.location.location_name}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.user_role || user.role_name || user.role || user.designation || t("assemblyTeam.na")}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-medium text-[var(--text-color)] whitespace-nowrap">
                                             {user.first_name} {user.last_name}
                                         </td>
-                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] whitespace-nowrap">{user.email}</td>
                                         
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
                                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                                {user.is_active ? "Active" : "Inactive"}
+                                                {user.is_active ? t("assemblyTeam.statusActive") : t("assemblyTeam.statusInactive")}
                                             </span>
                                         </td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm whitespace-nowrap">
@@ -369,7 +381,7 @@ export default function AssemblyTeam() {
                                                         setOpenDropdown(openDropdown === user.user_id ? null : user.user_id);
                                                     }}
                                                     disabled={toggleLoading === user.user_id}
-                                                    className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                                                    className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                                                 >
                                                     {toggleLoading === user.user_id ? (
                                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
@@ -381,7 +393,7 @@ export default function AssemblyTeam() {
                                                 </button>
 
                                                 {openDropdown === user.user_id && (
-                                                    <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                                                    <div className="absolute right-0 mt-1 w-48 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-md shadow-lg z-10">
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -392,33 +404,33 @@ export default function AssemblyTeam() {
                                                                 setShowBannerModal(true);
                                                                 setOpenDropdown(null);
                                                             }}
-                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                            className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 flex items-center"
                                                         >
                                                             <svg className="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z" />
                                                             </svg>
-                                                            Banner Images
+                                                            {t("assemblyTeam.btnBannerImages")}
                                                         </button>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 toggleUserStatus(user.user_id, user.is_active);
                                                             }}
-                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                            className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 flex items-center"
                                                         >
                                                             {user.is_active ? (
                                                                 <>
                                                                     <svg className="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
-                                                                    Deactivate User
+                                                                    {t("assemblyTeam.btnDeactivateUser")}
                                                                 </>
                                                             ) : (
                                                                 <>
                                                                     <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
-                                                                    Activate User
+                                                                    {t("assemblyTeam.btnActivateUser")}
                                                                 </>
                                                             )}
                                                         </button>
@@ -435,23 +447,23 @@ export default function AssemblyTeam() {
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
                         <button
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                            Previous
+                            {t("assemblyTeam.btnPrevious")}
                         </button>
-                        <span className="text-sm text-gray-600">
-                            Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+                        <span className="text-sm text-[var(--text-secondary)]">
+                            {t("assemblyTeam.pageOfUsers", { page: currentPage, totalPages, users: filteredUsers.length })}
                         </span>
                         <button
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                            Next
+                            {t("assemblyTeam.btnNext")}
                         </button>
                     </div>
                 )}
@@ -473,3 +485,6 @@ export default function AssemblyTeam() {
         </div>
     );
 }
+
+
+

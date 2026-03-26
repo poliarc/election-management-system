@@ -162,7 +162,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-[var(--bg-color)] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-linear-to-r from-blue-500 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
@@ -172,7 +172,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
+              className="bg-[var(--bg-color)] bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
             >
               <X className="w-6 h-6" />
             </button>
@@ -184,29 +184,29 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
           {isLoading && (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading reports...</span>
+              <span className="ml-3 text-[var(--text-secondary)]">Loading reports...</span>
             </div>
           )}
 
           {error && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
                 Failed to Load Reports
               </h3>
-              <p className="text-gray-600">Please try again later.</p>
+              <p className="text-[var(--text-secondary)]">Please try again later.</p>
             </div>
           )}
 
           {data && (
             <>
               {/* Campaign Info */}
-              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+              <div className="bg-[var(--bg-color)] rounded-xl p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="text-sm text-gray-600">Start Date</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Start Date</p>
                       <p className="font-semibold">
                         {formatDate(data.data.campaign.start_date)}
                       </p>
@@ -215,7 +215,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="text-sm text-gray-600">End Date</p>
+                      <p className="text-sm text-[var(--text-secondary)]">End Date</p>
                       <p className="font-semibold">
                         {formatDate(data.data.campaign.end_date)}
                       </p>
@@ -224,7 +224,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-purple-600" />
                     <div>
-                      <p className="text-sm text-gray-600">Total Reports</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Total Reports</p>
                       <p className="font-semibold">{data.data.total_reports}</p>
                     </div>
                   </div>
@@ -234,68 +234,68 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
               {/* Reports Table */}
               {data.data.reports.length === 0 ? (
                 <div className="text-center py-12">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600">
+                  <FileText className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-[var(--text-secondary)]">
                     No Reports Yet
                   </h3>
-                  <p className="text-gray-500 mt-2">
+                  <p className="text-[var(--text-secondary)] mt-2">
                     You haven't submitted any reports for this campaign.
                   </p>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-[var(--bg-color)] rounded-xl border border-[var(--text-color)]/10 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-[var(--bg-color)] border-b border-[var(--text-color)]/10">
                         <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Report ID
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Submitter
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Attendees
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Report Date
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Submitted
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Description
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Images
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[var(--bg-color)] divide-y divide-gray-200">
                         {data.data.reports.map((report) => (
                           <tr
                             key={report.campaignReport_id}
-                            className="hover:bg-gray-50"
+                            className="hover:bg-[var(--bg-color)]"
                           >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="bg-blue-100 rounded-full p-2 mr-3">
                                   <FileText className="w-4 h-4 text-blue-600" />
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-[var(--text-color)]">
                                   #{report.campaignReport_id}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">
+                                <div className="text-sm font-medium text-[var(--text-color)]">
                                   {report.personName}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-[var(--text-secondary)]">
                                   {report.personPhone}
                                 </div>
                               </div>
@@ -303,25 +303,25 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <Users className="w-4 h-4 text-green-600 mr-2" />
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-[var(--text-color)]">
                                   {report.attendees}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                               {formatDate(report.report_date)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <Clock className="w-4 h-4 text-purple-600 mr-2" />
-                                <span className="text-sm text-gray-900">
+                                <span className="text-sm text-[var(--text-color)]">
                                   {formatDateTime(report.created_at)}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 max-w-xs">
                               {report.description ? (
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-[var(--text-color)]">
                                   {report.description.length > 50 ? (
                                     <div>
                                       <p
@@ -362,7 +362,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-sm text-gray-400">
+                                <span className="text-sm text-[var(--text-secondary)]">
                                   No description
                                 </span>
                               )}
@@ -382,7 +382,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                                   </span>
                                 </button>
                               ) : (
-                                <span className="text-sm text-gray-400">
+                                <span className="text-sm text-[var(--text-secondary)]">
                                   No images
                                 </span>
                               )}
@@ -426,7 +426,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
       {/* Image Viewer Modal */}
       {showImageModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-70">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-[var(--bg-color)] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="bg-gray-800 text-white p-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">Report Images</h3>
               <button
@@ -441,7 +441,7 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
                 {viewingImages.map((image, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-[var(--text-color)]/10 rounded-lg overflow-hidden"
                   >
                     <img
                       src={image}
@@ -458,3 +458,6 @@ export const MyReportsModal: React.FC<MyReportsModalProps> = ({
     </div>
   );
 };
+
+
+

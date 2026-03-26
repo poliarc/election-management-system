@@ -19,8 +19,10 @@ import {
     type BoothLevelData,
 } from "../../../services/boothApi";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 export default function BoothManagement() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -356,7 +358,7 @@ export default function BoothManagement() {
         return (
             <div className="p-1">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-                    <p className="text-red-700">Level admin panel not found</p>
+                    <p className="text-red-700">{t("BoothManagement.Desc")}</p>
                 </div>
             </div>
         );
@@ -365,24 +367,24 @@ export default function BoothManagement() {
     const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
 
     return (
-        <div className="p-1 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-color)] min-h-screen">
             {/* Header */}
             <div className="mb-1">
-                <div className="bg-white rounded-xl shadow-lg p-3 border-l-4 border-blue-500">
-                    <h1 className="text-3xl font-bold text-gray-800">Manage Booths</h1>
-                    <p className="text-gray-600 mt-2">
-                        Create and manage booth data for {currentPanel.metadata?.stateName}
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3 border-l-4 border-blue-500">
+                    <h1 className="text-3xl font-bold text-[var(--text-color)]">{t("BoothManagement.Title")}</h1>
+                    <p className="text-[var(--text-secondary)] mt-2">
+                        {t("BoothManagement.Desc1")} {currentPanel.metadata?.stateName}
                     </p>
                 </div>
             </div>
 
             {/* Selection Dropdowns */}
-            <div className="mb-6 bg-white rounded-xl shadow-lg p-6">
+            <div className="mb-6 bg-[var(--bg-card)] rounded-xl shadow-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {/* District Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Select District
+                        <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                            {t("BoothManagement.Select_District")}
                         </label>
                         <select
                             value={selectedDistrict?.location_id || ""}
@@ -393,10 +395,10 @@ export default function BoothManagement() {
                                 setHierarchyPath([]);
                                 setLevelOptions([]);
                             }}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-[var(--bg-card)]"
                             disabled={loading}
                         >
-                            <option value="">-- Select District --</option>
+                            <option value="">-- {t("BoothManagement.Select_District")} --</option>
                             {districts.map((district) => (
                                 <option key={district.location_id} value={district.location_id}>
                                     {district.location_name}
@@ -407,8 +409,8 @@ export default function BoothManagement() {
 
                     {/* Assembly Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Select Assembly
+                        <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                            {t("BoothManagement.Select_Assembly")}
                         </label>
                         <select
                             value={selectedAssembly?.location_id || ""}
@@ -418,10 +420,10 @@ export default function BoothManagement() {
                                 setHierarchyPath([]);
                                 setLevelOptions([]);
                             }}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-[var(--bg-card)]"
                             disabled={!selectedDistrict || assembliesLoading}
                         >
-                            <option value="">-- Select Assembly --</option>
+                            <option value="">-- {t("BoothManagement.Select_Assembly")} --</option>
                             {assemblies.map((assembly) => (
                                 <option key={assembly.location_id} value={assembly.location_id}>
                                     {assembly.location_name}
@@ -441,8 +443,8 @@ export default function BoothManagement() {
 
                             return (
                                 <div key={index}>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Select {levelLabel}
+                                    <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
+                                        {t("BoothManagement.Select")} {levelLabel}
                                     </label>
                                     <select
                                         value={selectedValue}
@@ -450,9 +452,9 @@ export default function BoothManagement() {
                                             const level = options.find(l => l.id === Number(e.target.value));
                                             handleLevelSelect(index, level || null);
                                         }}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
+                                        className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-[var(--bg-card)]"
                                     >
-                                        <option value="">-- Select {levelLabel} --</option>
+                                        <option value="">-- {t("BoothManagement.Select")} {levelLabel} --</option>
                                         {options.map((level) => (
                                             <option key={level.id} value={level.id}>
                                                 {level.displayName}
@@ -467,20 +469,20 @@ export default function BoothManagement() {
 
                 {/* Loading States */}
                 {(loading || assembliesLoading || dataLoading) && (
-                    <div className="mt-4 flex items-center justify-center text-gray-500">
+                    <div className="mt-4 flex items-center justify-center text-[var(--text-secondary)]">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
-                        <span className="text-sm">Loading...</span>
+                        <span className="text-sm">{t("BoothManagement.Loading")}</span>
                     </div>
                 )}
             </div>
 
             {/* Booth Data Section */}
             {selectedLevel && (
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                     <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
                         <div className="flex justify-between items-center">
                             <div className="text-white">
-                                <h2 className="text-2xl font-bold">Booth Data</h2>
+                                <h2 className="text-2xl font-bold">Booth Data{t("BoothManagement.Booth_Data")}</h2>
                                 <p className="text-blue-100 text-sm mt-1">
                                     {selectedLevel.displayName} ({selectedLevel.levelName})
                                 </p>
@@ -490,12 +492,12 @@ export default function BoothManagement() {
                                     setFormData({ boothFrom: "", boothTo: "" });
                                     setShowCreateModal(true);
                                 }}
-                                className="flex items-center px-5 py-2.5 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-all font-semibold shadow-md"
+                                className="flex items-center px-5 py-2.5 bg-[var(--bg-card)] text-blue-600 rounded-lg hover:bg-blue-50 transition-all font-semibold shadow-md"
                             >
                                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                Create Booth Data
+                                {t("BoothManagement.Create_Booth_Data")}
                             </button>
                         </div>
                     </div>
@@ -507,30 +509,30 @@ export default function BoothManagement() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-[var(--bg-main)]">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">ID</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Booth Range</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Total Booths</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("BoothManagement.ID")}</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("BoothManagement.Booth_Range")}</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("BoothManagement.Total_Booths")}</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("BoothManagement.Status")}</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("BoothManagement.Actions")}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                     {boothData.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center">
-                                                <p className="text-gray-500">No booth data found</p>
+                                                <p className="text-[var(--text-secondary)]">{t("BoothManagement.Desc2")}</p>
                                             </td>
                                         </tr>
                                     ) : (
                                         boothData.map((booth) => (
-                                            <tr key={booth.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 text-sm text-gray-900">{booth.id}</td>
-                                                <td className="px-6 py-4 text-sm text-gray-900">
+                                            <tr key={booth.id} className="hover:bg-[var(--text-color)]/5">
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">{booth.id}</td>
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                                                     {booth.boothFrom} - {booth.boothTo}
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-gray-900">
+                                                <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                                                     {booth.boothNumbers?.length || (booth.boothTo - booth.boothFrom + 1)}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm">
@@ -554,7 +556,7 @@ export default function BoothManagement() {
                                                             }}
                                                             className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                                         >
-                                                            Edit
+                                                            {t("BoothManagement.Edit")}
                                                         </button>
                                                         <button
                                                             onClick={() => handleToggleActive(booth)}
@@ -573,7 +575,7 @@ export default function BoothManagement() {
                                                             })}
                                                             className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                                         >
-                                                            Delete
+                                                            {t("BoothManagement.Delete")}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -590,11 +592,11 @@ export default function BoothManagement() {
             {/* Create Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Create Booth Data</h3>
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("BoothManagement.Create_Booth_Data")}</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Booth From</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("BoothManagement.Booth_From")}</label>
                                 <input
                                     type="number"
                                     value={formData.boothFrom}
@@ -604,7 +606,7 @@ export default function BoothManagement() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Booth To</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("BoothManagement.Booth_To")}</label>
                                 <input
                                     type="number"
                                     value={formData.boothTo}
@@ -619,16 +621,16 @@ export default function BoothManagement() {
                                 onClick={handleCreate}
                                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors"
                             >
-                                Create
+                                {t("BoothManagement.Create")}
                             </button>
                             <button
                                 onClick={() => {
                                     setShowCreateModal(false);
                                     setFormData({ boothFrom: "", boothTo: "" });
                                 }}
-                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+                                className="flex-1 px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 font-semibold transition-colors"
                             >
-                                Cancel
+                                {t("BoothManagement.Cancel")}
                             </button>
                         </div>
                     </div>
@@ -638,11 +640,11 @@ export default function BoothManagement() {
             {/* Edit Modal */}
             {showEditModal && editingBooth && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Booth Data</h3>
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("BoothManagement.Edit_Booth_Data")}</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Booth From</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("BoothManagement.Booth_From")}</label>
                                 <input
                                     type="number"
                                     value={formData.boothFrom}
@@ -651,7 +653,7 @@ export default function BoothManagement() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Booth To</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("BoothManagement.Booth_To")}</label>
                                 <input
                                     type="number"
                                     value={formData.boothTo}
@@ -665,7 +667,7 @@ export default function BoothManagement() {
                                 onClick={handleUpdate}
                                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors"
                             >
-                                Update
+                                {t("BoothManagement.Update")}
                             </button>
                             <button
                                 onClick={() => {
@@ -673,9 +675,9 @@ export default function BoothManagement() {
                                     setEditingBooth(null);
                                     setFormData({ boothFrom: "", boothTo: "" });
                                 }}
-                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition-colors"
+                                className="flex-1 px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 font-semibold transition-colors"
                             >
-                                Cancel
+                                {t("BoothManagement.Cancel")}
                             </button>
                         </div>
                     </div>
@@ -693,3 +695,6 @@ export default function BoothManagement() {
         </div>
     );
 }
+
+
+

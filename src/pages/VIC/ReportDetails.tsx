@@ -75,7 +75,7 @@ export default function ReportDetails() {
         } else if (mimetype === 'application/pdf') {
             return <FileText className="w-8 h-8 text-red-500" />;
         } else {
-            return <File className="w-8 h-8 text-gray-500" />;
+            return <File className="w-8 h-8 text-[var(--text-secondary)]" />;
         }
     };
 
@@ -176,11 +176,11 @@ export default function ReportDetails() {
             case "Rejected":
                 return "bg-red-100 text-red-800";
             case "Resolved":
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
             case "Forwarded":
                 return "bg-purple-100 text-purple-800";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
         }
     };
 
@@ -195,7 +195,7 @@ export default function ReportDetails() {
             case "Low":
                 return "bg-green-100 text-green-800";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
         }
     };
 
@@ -269,15 +269,15 @@ export default function ReportDetails() {
     return (
         <div className="p-3 sm:p-4 lg:p-6">
             <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+                <div className="px-4 sm:px-6 py-4 border-b border-[var(--border-color)]">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-color)]">
                                 Report #{report.id}
                             </h1>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-[var(--text-secondary)] mt-1">
                                 Submitted {formatDistanceToNow(new Date(report.submitted_at))} ago
                             </p>
                         </div>
@@ -296,60 +296,60 @@ export default function ReportDetails() {
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                         {/* Voter Information */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Voter Information</h2>
+                        <div className="bg-[var(--bg-main)] rounded-lg p-4">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">Voter Information</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                                    <p className="text-sm text-gray-900">{report.voter_first_name} {report.voter_last_name || ''}</p>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Name</label>
+                                    <p className="text-sm text-[var(--text-color)]">{report.voter_first_name} {report.voter_last_name || ''}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">EPIC Number</label>
-                                    <p className="text-sm text-gray-900 break-all">{report.voter_id_epic_no}</p>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">EPIC Number</label>
+                                    <p className="text-sm text-[var(--text-color)] break-all">{report.voter_id_epic_no}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Part Number</label>
-                                    <p className="text-sm text-gray-900">{report.part_no}</p>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Part Number</label>
+                                    <p className="text-sm text-[var(--text-color)]">{report.part_no}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Relative Name</label>
-                                    <p className="text-sm text-gray-900">{report.voter_relative_name}</p>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Relative Name</label>
+                                    <p className="text-sm text-[var(--text-color)]">{report.voter_relative_name}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Report Content */}
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Report Details</h2>
-                            <div className="bg-white border border-gray-200 rounded-lg p-4">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">Report Details</h2>
+                            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4">
                                 <div className="flex items-center gap-4 mb-3">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                                         {report.report_type}
                                     </span>
-                                    <span className="text-sm text-gray-500">
+                                    <span className="text-sm text-[var(--text-secondary)]">
                                         Priority: {report.priority}
                                     </span>
                                 </div>
-                                <p className="text-gray-900 whitespace-pre-wrap">{report.report_content}</p>
+                                <p className="text-[var(--text-color)] whitespace-pre-wrap">{report.report_content}</p>
                             </div>
                         </div>
 
                         {/* Attachments */}
                         {attachments.length > 0 && (
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Attachments</h2>
-                                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">Attachments</h2>
+                                <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4">
                                     <div className="grid grid-cols-1 gap-3">
                                         {attachments.map((attachment, index) => (
-                                            <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                            <div key={index} className="flex items-center gap-4 p-4 bg-[var(--bg-main)] rounded-lg hover:bg-[var(--text-color)]/5 transition-colors">
                                                 <div className="flex-shrink-0">
                                                     {getFileIcon(attachment.mimetype || 'application/octet-stream')}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900 truncate" title={attachment.originalName}>
+                                                    <p className="text-sm font-medium text-[var(--text-color)] truncate" title={attachment.originalName}>
                                                         {attachment.originalName || 'Attachment'}
                                                     </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                                                         {attachment.size ? formatFileSize(attachment.size) : 'Unknown size'} • {attachment.mimetype || 'Unknown type'}
                                                     </p>
                                                 </div>
@@ -365,7 +365,7 @@ export default function ReportDetails() {
                                                     )}
                                                     <button
                                                         onClick={() => handleDownload(attachment)}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                                                     >
                                                         <Download className="w-4 h-4" />
                                                         Download
@@ -390,7 +390,7 @@ export default function ReportDetails() {
                         {/* Resolution */}
                         {report.resolution_notes && (
                             <div>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Resolution</h2>
+                                <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">Resolution</h2>
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                                     <p className="text-green-900 whitespace-pre-wrap">{report.resolution_notes}</p>
                                     {report.resolved_by_first_name && (
@@ -412,8 +412,8 @@ export default function ReportDetails() {
                     <div className="space-y-4 sm:space-y-6">
                         {/* Actions */}
                         {canTakeAction() && (
-                            <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+                            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4">
+                                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">Actions</h3>
                                 <button
                                     onClick={() => setShowActionModal(true)}
                                     className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition text-sm"
@@ -454,23 +454,23 @@ export default function ReportDetails() {
                         )}
 
                         {/* Report Info */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Report Information</h3>
+                        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4">
+                            <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">Report Information</h3>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Submitted By</label>
-                                    <p className="text-sm text-gray-900">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Submitted By</label>
+                                    <p className="text-sm text-[var(--text-color)]">
                                         {report.submitted_by_first_name} {report.submitted_by_last_name}
                                     </p>
-                                    <p className="text-xs text-gray-500">{report.submitted_by_email}</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">{report.submitted_by_email}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Current Level</label>
-                                    <p className="text-sm text-gray-900">{report.current_level_display_name}</p>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Current Level</label>
+                                    <p className="text-sm text-[var(--text-color)]">{report.current_level_display_name}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Submitted At</label>
-                                    <p className="text-sm text-gray-900">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)]">Submitted At</label>
+                                    <p className="text-sm text-[var(--text-color)]">
                                         {format(new Date(report.submitted_at), "PPP 'at' p")}
                                     </p>
                                 </div>
@@ -479,8 +479,8 @@ export default function ReportDetails() {
 
                         {/* Hierarchy Timeline */}
                         {report.hierarchy && report.hierarchy.length > 0 && (
-                            <div className="bg-white border border-gray-200 rounded-lg p-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Hierarchy Timeline</h3>
+                            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4">
+                                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">Hierarchy Timeline</h3>
                                 <div className="space-y-4">
                                     {[...report.hierarchy]
                                         .sort((a, b) => a.hierarchy_order - b.hierarchy_order)
@@ -499,21 +499,21 @@ export default function ReportDetails() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
-                                                        <p className="text-sm font-medium text-gray-900">
+                                                        <p className="text-sm font-medium text-[var(--text-color)]">
                                                             {item.level_display_name}
                                                         </p>
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
                                                             {item.status}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-[var(--text-secondary)]">
                                                         {item.assigned_user_first_name} {item.assigned_user_last_name}
                                                     </p>
                                                     {item.action_notes && (
-                                                        <p className="text-xs text-gray-600 mt-1">{item.action_notes}</p>
+                                                        <p className="text-xs text-[var(--text-secondary)] mt-1">{item.action_notes}</p>
                                                     )}
                                                     {item.action_taken_at && (
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-xs text-[var(--text-secondary)]">
                                                             {formatDistanceToNow(new Date(item.action_taken_at))} ago
                                                         </p>
                                                     )}
@@ -529,14 +529,14 @@ export default function ReportDetails() {
 
             {/* Action Modal */}
             {showActionModal && (
-                <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-[var(--bg-card)]/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
                         <div className="px-4 sm:px-6 py-4">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Take Action on Report</h2>
+                            <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">Take Action on Report</h2>
 
                             <form onSubmit={handleActionSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Action</label>
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Action</label>
                                     <select
                                         value={actionForm.action}
                                         onChange={(e) => setActionForm(prev => ({ ...prev, action: e.target.value as any }))}
@@ -555,7 +555,7 @@ export default function ReportDetails() {
 
                                 {actionForm.action === "forward" && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Forward To Higher Level</label>
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Forward To Higher Level</label>
                                         <select
                                             value={actionForm.forward_to_level_id}
                                             onChange={(e) => setActionForm(prev => ({ ...prev, forward_to_level_id: e.target.value }))}
@@ -581,7 +581,7 @@ export default function ReportDetails() {
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                         Action Notes <span className="text-red-500">*</span>
                                     </label>
                                     <textarea
@@ -605,7 +605,7 @@ export default function ReportDetails() {
                                     <button
                                         type="button"
                                         onClick={() => setShowActionModal(false)}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition text-sm"
+                                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 font-medium transition text-sm"
                                     >
                                         Cancel
                                     </button>
@@ -619,25 +619,25 @@ export default function ReportDetails() {
             {/* File Preview Modal */}
             {previewAttachment && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)] bg-[var(--bg-main)]">
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{previewAttachment.originalName}</h3>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <h3 className="text-lg font-semibold text-[var(--text-color)]">{previewAttachment.originalName}</h3>
+                                <p className="text-sm text-[var(--text-secondary)] mt-1">
                                     {previewAttachment.size ? formatFileSize(previewAttachment.size) : 'Unknown size'} • {previewAttachment.mimetype}
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => handleDownload(previewAttachment)}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                                 >
                                     <Download className="w-4 h-4" />
                                     Download
                                 </button>
                                 <button
                                     onClick={() => setPreviewAttachment(null)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
@@ -653,8 +653,8 @@ export default function ReportDetails() {
                             ) : (
                                 <div className="text-center py-12">
                                     <FileText className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-600 text-lg">Preview not available for this file type</p>
-                                    <p className="text-gray-500 text-sm mt-2">Click download to view the file</p>
+                                    <p className="text-[var(--text-secondary)] text-lg">Preview not available for this file type</p>
+                                    <p className="text-[var(--text-secondary)] text-sm mt-2">Click download to view the file</p>
                                 </div>
                             )}
                         </div>
@@ -665,3 +665,6 @@ export default function ReportDetails() {
         </div>
     );
 }
+
+
+

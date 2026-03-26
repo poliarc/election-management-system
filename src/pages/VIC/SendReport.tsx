@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCreateVICReportMutation } from "../../store/api/vicReportsApi";
 import toast from "react-hot-toast";
 import { Upload, X, FileText, Eye, Image, File } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function SendReport() {
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const { levelId } = useParams<{ levelId: string }>();
     const [, { isLoading }] = useCreateVICReportMutation();
@@ -102,7 +104,7 @@ export default function SendReport() {
         } else if (file.type === 'application/pdf') {
             return <FileText className="w-5 h-5 text-red-500" />;
         } else {
-            return <File className="w-5 h-5 text-gray-500" />;
+            return <File className="w-5 h-5 text-[var(--text-secondary)]" />;
         }
     };
 
@@ -193,29 +195,29 @@ export default function SendReport() {
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 rounded-xl mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-lg">
+                        <div className="p-2 bg-[var(--bg-card)]/20 rounded-lg">
                             <FileText className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-white">Send VIC Report</h1>
-                            <p className="text-indigo-100 mt-1">Submit a report about voter information or issues</p>
+                            <h1 className="text-2xl font-bold text-white">{t("SendReport.Title")}</h1>
+                            <p className="text-indigo-100 mt-1">{t("SendReport.Desc")}</p>
                         </div>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Report Details */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                                 <span className="text-indigo-600 font-semibold text-sm">1</span>
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900">Report Details</h2>
+                            <h2 className="text-xl font-semibold text-[var(--text-color)]">{t("SendReport.Report_Details")}</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Report Type <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Report_Type")} <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     name="report_type"
@@ -224,16 +226,16 @@ export default function SendReport() {
                                     required
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
-                                    <option value="" disabled>Select Report Type</option>
-                                    <option value="Wrong Deleted">Wrong Deleted</option>
-                                    <option value="Wrong Added">Wrong Added</option>
-                                    <option value="New Voter F6">New Voter F6</option>
-                                    <option value="Other">Other</option>
+                                    <option value="" disabled>{t("SendReport.Select_Report_Type")}</option>
+                                    <option value="Wrong Deleted">{t("SendReport.Wrong_Deleted")}</option>
+                                    <option value="Wrong Added">{t("SendReport.Wrong_Added")}</option>
+                                    <option value="New Voter F6">{t("SendReport.New_Voter_F6")}</option>
+                                    <option value="Other">{t("SendReport.Other")}</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Priority <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Priority")} <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     name="priority"
@@ -242,16 +244,16 @@ export default function SendReport() {
                                     required
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
-                                    <option value="" disabled>Select Priority</option>
-                                    <option value="Low">🟢 Low</option>
-                                    <option value="Medium">🟡 Medium</option>
-                                    <option value="High">🟠 High</option>
-                                    <option value="Critical">🔴 Critical</option>
+                                    <option value="" disabled>Select {t("SendReport.Priority")}</option>
+                                    <option value="Low">🟢 {t("SendReport.Low")}</option>
+                                    <option value="Medium">🟡 {t("SendReport.Medium")}</option>
+                                    <option value="High">🟠 {t("SendReport.High")}</option>
+                                    <option value="Critical">🔴 {t("SendReport.Critical")}</option>
                                 </select>
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Report Content <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Report_Content")} <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     name="report_content"
@@ -264,25 +266,25 @@ export default function SendReport() {
                                     placeholder="Describe the issue or provide detailed feedback (minimum 10 characters)"
                                 />
                                 <div className="flex justify-between items-center mt-2">
-                                    <p className="text-sm text-gray-500">{formData.report_content.length} characters</p>
-                                    <p className="text-xs text-gray-400">Minimum 10 characters required</p>
+                                    <p className="text-sm text-[var(--text-secondary)]">{formData.report_content.length} {t("SendReport.characters")}</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">{t("SendReport.Minimum_10_characters")}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Voter Information */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                                 <span className="text-indigo-600 font-semibold text-sm">2</span>
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900">Voter Information</h2>
+                            <h2 className="text-xl font-semibold text-[var(--text-color)]">{t("SendReport.Voter_Information")}</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Voter Name <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Voter_Name")} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -295,8 +297,8 @@ export default function SendReport() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Relative Name <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Relative_Name")} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -309,8 +311,8 @@ export default function SendReport() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part Number <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Part_Number")} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -323,8 +325,8 @@ export default function SendReport() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Serial Number in Part <span className="text-red-500">*</span>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.Serial_Number_in_Part")} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -337,8 +339,8 @@ export default function SendReport() {
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    EPIC Voter Number {formData.report_type !== "New Voter F6" && formData.report_type !== "" && <span className="text-red-500">*</span>}
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("SendReport.EPIC_Voter_Number")} {formData.report_type !== "New Voter F6" && formData.report_type !== "" && <span className="text-red-500">*</span>}
                                 </label>
                                 <input
                                     type="text"
@@ -354,7 +356,7 @@ export default function SendReport() {
                                         <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
                                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                         </span>
-                                        EPIC number is optional for New Voter F6 reports
+                                        {t("SendReport.EPIC_optional_for_New_Voter_F6")}
                                     </p>
                                 )}
                             </div>
@@ -362,15 +364,15 @@ export default function SendReport() {
                     </div>
 
                     {/* Attachments */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                                     <span className="text-indigo-600 font-semibold text-sm">3</span>
                                 </div>
-                                <h2 className="text-xl font-semibold text-gray-900">Attachments</h2>
+                                <h2 className="text-xl font-semibold text-[var(--text-color)]">{t("SendReport.Attachments")}</h2>
                             </div>
-                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                            <span className="text-sm text-[var(--text-secondary)] bg-gray-100 px-3 py-1 rounded-full">
                                 {attachments.length}/10 files
                             </span>
                         </div>
@@ -383,12 +385,12 @@ export default function SendReport() {
                         >
                             <div className="text-center">
                                 <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${dragActive ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                                    <Upload className={`w-8 h-8 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                                    <Upload className={`w-8 h-8 ${dragActive ? 'text-indigo-500' : 'text-[var(--text-secondary)]'}`} />
                                 </div>
-                                <p className={`text-lg font-medium mb-2 ${dragActive ? 'text-indigo-900' : 'text-gray-900'}`}>
+                                <p className={`text-lg font-medium mb-2 ${dragActive ? 'text-indigo-900' : 'text-[var(--text-color)]'}`}>
                                     {dragActive ? 'Drop files here' : 'Upload supporting documents'}
                                 </p>
-                                <p className="text-gray-500 text-sm mb-4">PNG, JPG, PDF, DOC, DOCX up to 10MB each</p>
+                                <p className="text-[var(--text-secondary)] text-sm mb-4">{t("SendReport.Supported_files")}</p>
                                 <input
                                     ref={fileInputRef}
                                     type="file"
@@ -400,25 +402,25 @@ export default function SendReport() {
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--bg-card)] border border-gray-300 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 font-medium"
                                 >
                                     <Upload className="w-4 h-4" />
-                                    Browse Files
+                                    {t("SendReport.Browse_Files")}
                                 </button>
                             </div>
                         </div>
                         {attachments.length > 0 && (
                             <div className="mt-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Attached Files ({attachments.length})</h3>
+                                <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">{t("SendReport.Atteached_Files")} ({attachments.length})</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {attachments.map((file, index) => (
-                                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div key={index} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-4 hover:shadow-md transition-shadow">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-start gap-3 flex-1 min-w-0">
                                                     <div className="flex-shrink-0 mt-1">{getFileIcon(file)}</div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>{file.name}</p>
-                                                        <p className="text-xs text-gray-500 mt-1">{formatFileSize(file.size)} • {file.type.split('/')[1].toUpperCase()}</p>
+                                                        <p className="text-sm font-medium text-[var(--text-color)] truncate" title={file.name}>{file.name}</p>
+                                                        <p className="text-xs text-[var(--text-secondary)] mt-1">{formatFileSize(file.size)} • {file.type.split('/')[1].toUpperCase()}</p>
                                                         {file.type.startsWith('image/') && (
                                                             <button
                                                                 type="button"
@@ -426,7 +428,7 @@ export default function SendReport() {
                                                                 className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100 mt-2"
                                                             >
                                                                 <Eye className="w-3 h-3" />
-                                                                Preview
+                                                                {t("SendReport.Preview")}
                                                             </button>
                                                         )}
                                                     </div>
@@ -447,7 +449,7 @@ export default function SendReport() {
                     </div>
 
                     {/* Actions */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-6">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 type="submit"
@@ -457,21 +459,21 @@ export default function SendReport() {
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Submitting Report...
+                                        {t("SendReport.Submitting_Report")}
                                     </span>
                                 ) : (
                                     <span className="flex items-center justify-center gap-2">
                                         <FileText className="w-4 h-4" />
-                                        Submit Report
+                                        {t("SendReport.Submit_Report")}
                                     </span>
                                 )}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="px-8 py-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+                                className="px-8 py-4 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 font-medium"
                             >
-                                Cancel
+                                {t("SendReport.Cancel")}
                             </button>
                         </div>
                     </div>
@@ -481,17 +483,17 @@ export default function SendReport() {
             {/* File Preview Modal */}
             {previewFile && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)] bg-[var(--bg-main)]">
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{previewFile.name}</h3>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <h3 className="text-lg font-semibold text-[var(--text-color)]">{previewFile.name}</h3>
+                                <p className="text-sm text-[var(--text-secondary)] mt-1">
                                     {formatFileSize(previewFile.size)} • {previewFile.type.split('/')[1].toUpperCase()}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setPreviewFile(null)}
-                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
+                                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-lg"
                             >
                                 <X className="w-6 h-6" />
                             </button>
@@ -506,8 +508,8 @@ export default function SendReport() {
                             ) : (
                                 <div className="text-center py-12">
                                     <FileText className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-600 text-lg">Preview not available for this file type</p>
-                                    <p className="text-gray-500 text-sm mt-2">The file will be uploaded with your report</p>
+                                    <p className="text-[var(--text-secondary)] text-lg">{t("SendReport.Preview_not_available")}</p>
+                                    <p className="text-[var(--text-secondary)] text-sm mt-2">{t("SendReport.File_will_be_uploaded")}</p>
                                 </div>
                             )}
                         </div>
@@ -517,3 +519,6 @@ export default function SendReport() {
         </div>
     );
 }
+
+
+

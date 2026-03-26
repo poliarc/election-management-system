@@ -29,8 +29,8 @@ export default function DistrictDynamicLevelPage() {
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-center">
-                        <h2 className="text-xl font-semibold text-gray-900">Invalid Level</h2>
-                        <p className="text-gray-600 mt-2">Level name is required</p>
+                        <h2 className="text-xl font-semibold text-[var(--text-color)]">Invalid Level</h2>
+                        <p className="text-[var(--text-secondary)] mt-2">Level name is required</p>
                     </div>
                 </div>
             </div>
@@ -42,8 +42,8 @@ export default function DistrictDynamicLevelPage() {
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-center">
-                        <h2 className="text-xl font-semibold text-gray-900">Level Not Found</h2>
-                        <p className="text-gray-600 mt-2">
+                        <h2 className="text-xl font-semibold text-[var(--text-color)]">Level Not Found</h2>
+                        <p className="text-[var(--text-secondary)] mt-2">
                             The level "{levelName}" is not available in your current context
                         </p>
                     </div>

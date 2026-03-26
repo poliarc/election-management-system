@@ -4,8 +4,10 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import "./index.css";
 import App from "./App.tsx";
+import { ThemeProvider } from "./components/ThemeManager.tsx";
+import "./i18n";
 
-// Force light mode only - remove dark class and set light theme
+/* // Force light mode only - remove dark class and set light theme
 document.documentElement.classList.remove("dark");
 document.documentElement.classList.add("light");
 document.documentElement.style.colorScheme = "light";
@@ -34,11 +36,14 @@ observer.observe(document.documentElement, {
 
 // Also check periodically as a fallback
 setInterval(enforceLightMode, 100);
+*/
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </Provider>
   </StrictMode>
 );

@@ -4,6 +4,7 @@ import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
 import type { BoothAgent, BoothAgentCategory, PollingCenter } from "../types";
 import { BoothAgentForm } from "../components/BoothAgentForm";
+import { useTranslation } from "react-i18next";
 
 interface BoothAgentsListProps {
   category?: BoothAgentCategory;
@@ -11,6 +12,7 @@ interface BoothAgentsListProps {
 }
 
 export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, title }) => {
+  const {t} = useTranslation();
   const [agents, setAgents] = useState<BoothAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -112,7 +114,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
 
   if (showForm) {
     return (
-      <div className="bg-white rounded-lg border p-6">
+      <div className="bg-[var(--bg-color)] rounded-lg border p-6">
         <h2 className="text-xl font-semibold mb-6">{editingAgent ? "Edit Agent" : "Add New Agent"}</h2>
         <BoothAgentForm
           initialData={editingAgent ? {
@@ -148,15 +150,15 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
         >
-          Add New Agent
+          {t("BoothAgent.Add_New_Agent")}
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="bg-[var(--bg-color)] rounded-lg border p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Search</label>
+            <label className="block text-sm font-medium mb-1">{t("BoothAgent.Search")}</label>
             <input
               type="text"
               value={search}
@@ -167,7 +169,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
           </div>
           {!isPollingCenterTeam && (
           <div>
-            <label className="block text-sm font-medium mb-1">Booth</label>
+            <label className="block text-sm font-medium mb-1">{t("BoothAgent.Booth")}</label>
             <select
               value={boothFilter}
               onChange={(e) => { setBoothFilter(e.target.value); setPage(1); }}
@@ -184,29 +186,29 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border overflow-hidden">
+      <div className="bg-[var(--bg-color)] rounded-lg border overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>
+          <div className="flex items-center justify-center h-64 text-[var(--text-secondary)]">{t("BoothAgent.Loading")}</div>
         ) : agents.length === 0 ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">No agents found</div>
+          <div className="flex items-center justify-center h-64 text-[var(--text-secondary)]">{t("BoothAgent.No_agents_found")}</div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--bg-color)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Category</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Role</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Polling Center</th>
-                    {!isPollingCenterTeam && <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Booth No</th>}
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Action</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Name")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Category")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Role")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Phone")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Polling_Center")}</th>
+                    {!isPollingCenterTeam && <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Booth_No")}</th>}
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Action")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {agents.map((agent) => (
-                    <tr key={agent.agent_id} className="hover:bg-gray-50">
+                    <tr key={agent.agent_id} className="hover:bg-[var(--bg-color)]">
                       <td className="px-4 py-3 text-sm">{agent.name}</td>
                       <td className="px-4 py-3 text-sm">{agent.category}</td>
                       <td className="px-4 py-3 text-sm">{agent.role}</td>
@@ -271,9 +273,9 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t">
-                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 border rounded-md disabled:opacity-50">Previous</button>
-                <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
-                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 border rounded-md disabled:opacity-50">Next</button>
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 border rounded-md disabled:opacity-50">{t("BoothAgent.Previous")}</button>
+                <span className="text-sm text-[var(--text-secondary)]">{t("BoothAgent.Page")} {page} {t("BoothAgent.of")} {totalPages}</span>
+                <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 border rounded-md disabled:opacity-50">{t("BoothAgent.Next")}</button>
               </div>
             )}
           </>
@@ -282,3 +284,6 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
     </div>
   );
 };
+
+
+

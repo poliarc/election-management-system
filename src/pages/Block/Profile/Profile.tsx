@@ -32,9 +32,9 @@ const InlineConfirmationModal: React.FC<{
         if (!isOpen) return null;
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+                <div className="bg-[var(--bg-card)] rounded-lg p-6 w-[90%] max-w-md">
                     <h3 className="text-lg font-semibold mb-2">{title}</h3>
-                    <p className="text-sm text-gray-600 mb-4">{message}</p>
+                    <p className="text-sm text-[var(--text-secondary)] mb-4">{message}</p>
                     <div className="flex justify-end gap-2">
                         <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
                             Cancel
@@ -75,7 +75,7 @@ const InputField = ({
     maxLength,
 }: InputFieldProps) => (
     <div className="min-w-0 mb-2">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
             {label}
         </label>
         <input
@@ -509,7 +509,7 @@ export const Profile = () => {
             <div className="w-full m-0 flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-gray-600">Loading profile...</p>
+                    <p className="mt-4 text-[var(--text-secondary)]">Loading profile...</p>
                 </div>
             </div>
         );
@@ -532,9 +532,9 @@ export const Profile = () => {
     return (
         <div className="w-full m-0">
             {/* Header */}
-            <div className="w-full bg-white shadow-md hover:shadow-lg transition-shadow duration-300 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 sm:p-6 border border-gray-100">
+            <div className="w-full bg-[var(--bg-card)] shadow-md hover:shadow-lg transition-shadow duration-300 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 sm:p-6 border border-gray-100">
                 <div className="relative w-[74px] h-[74px] rounded-full bg-gradient-to-tr from-pink-200 via-red-100 to-yellow-100 p-[3px] shadow-inner">
-                    <div className="w-full h-full bg-white rounded-full overflow-hidden flex items-center justify-center">
+                    <div className="w-full h-full bg-[var(--bg-card)] rounded-full overflow-hidden flex items-center justify-center">
                         {currentUser?.profileImage && !headerAvatarError ? (
                             <img
                                 src={currentUser.profileImage}
@@ -543,23 +543,23 @@ export const Profile = () => {
                                 onError={() => setHeaderAvatarError(true)}
                             />
                         ) : (
-                            <span className="text-xl font-semibold text-gray-700">{initial}</span>
+                            <span className="text-xl font-semibold text-[var(--text-secondary)]">{initial}</span>
                         )}
                     </div>
                 </div>
 
                 <div className="text-center sm:text-left">
-                    <h1 className="text-lg font-semibold text-gray-800 leading-snug">
+                    <h1 className="text-lg font-semibold text-[var(--text-color)] leading-snug">
                         {watch("firstName")} {watch("lastName")}
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">{watch("state")}</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">{watch("state")}</p>
                 </div>
             </div>
 
             {/* Main Section */}
             <div className="mt-10 flex flex-col lg:flex-row gap-8">
                 {/* Left: Form */}
-                <div className="flex-1 bg-white rounded-2xl p-6 border border-blue-100">
+                <div className="flex-1 bg-[var(--bg-card)] rounded-2xl p-6 border border-blue-100">
                     <form onSubmit={handleSubmit(onSubmit)}>
                         {/* Edit/Save Buttons */}
                         <div className="flex justify-between items-center mb-8">
@@ -575,7 +575,7 @@ export const Profile = () => {
                                     <div className="flex-1" />
                                     <button
                                         type="button"
-                                        className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
+                                        className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-[var(--text-color)] text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
                                         onClick={() => {
                                             setIsEditing(false);
                                             reset();
@@ -587,7 +587,7 @@ export const Profile = () => {
                             ) : (
                                 <button
                                     type="button"
-                                    className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-800 text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
+                                    className="bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-[var(--text-color)] text-base py-2 px-8 rounded-lg shadow-sm transition-all duration-200"
                                     onClick={() => setIsEditing(true)}
                                 >
                                     Edit
@@ -597,7 +597,7 @@ export const Profile = () => {
 
                         {/* Basic Information */}
                         <section>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                                 <Controller
                                     name="firstName"
                                     control={control}
@@ -719,7 +719,7 @@ export const Profile = () => {
 
                         {/* Dates Section */}
                         <section className="mb-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                                 <Controller
                                     name="dob"
                                     control={control}
@@ -784,7 +784,7 @@ export const Profile = () => {
 
                         {/* Boolean Fields */}
                         <section className="mb-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                                 {(
                                     [
                                         { name: "is_youth", label: "Youth" },
@@ -806,7 +806,7 @@ export const Profile = () => {
                                         control={control}
                                         render={({ field }) => (
                                             <div className="flex items-center gap-4">
-                                                <span className="text-gray-700 text-sm font-medium w-32">
+                                                <span className="text-[var(--text-secondary)] text-sm font-medium w-32">
                                                     {item.label}:
                                                 </span>
                                                 <label className="flex items-center gap-1">
@@ -844,9 +844,9 @@ export const Profile = () => {
 
                         {/* Education Section */}
                         <section className="mb-8">
-                            <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                            <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                                 {/* Education */}
-                                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-semibold text-lg">Education</h2>
                                         {isEditing && (
@@ -855,7 +855,7 @@ export const Profile = () => {
                                                 disabled={!areAllRowsFilled(educationValues, ["std", "institute", "boardUniversity", "year"])}
                                                 onClick={() => appendEducation({ std: "", institute: "", boardUniversity: "", year: "" })}
                                                 className={`flex items-center gap-1 ${!areAllRowsFilled(educationValues, ["std", "institute", "boardUniversity", "year"])
-                                                    ? "text-gray-400 cursor-not-allowed"
+                                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
                                                     : "text-blue-600 hover:text-blue-800"
                                                     }`}
                                             >
@@ -906,7 +906,7 @@ export const Profile = () => {
                                 </div>
 
                                 {/* Professional Experience */}
-                                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-semibold text-lg">Professional Experience</h2>
                                         {isEditing && (
@@ -915,7 +915,7 @@ export const Profile = () => {
                                                 disabled={!areAllRowsFilled(experienceValues, ["designation", "organization", "years", "durationFrom", "durationTo"])}
                                                 onClick={() => appendExp({ designation: "", organization: "", years: "", durationFrom: "", durationTo: "" })}
                                                 className={`flex items-center gap-1 ${!areAllRowsFilled(experienceValues, ["designation", "organization", "years", "durationFrom", "durationTo"])
-                                                    ? "text-gray-400 cursor-not-allowed"
+                                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
                                                     : "text-blue-600 hover:text-blue-800"
                                                     }`}
                                             >
@@ -973,7 +973,7 @@ export const Profile = () => {
                                 </div>
 
                                 {/* Children */}
-                                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-semibold text-lg">Children</h2>
                                         {isEditing && (
@@ -982,7 +982,7 @@ export const Profile = () => {
                                                 disabled={!areAllRowsFilled(childrenValues, ["name", "dob", "gender", "age"])}
                                                 onClick={() => appendChildren({ name: "", dob: "", gender: "", age: "" })}
                                                 className={`flex items-center gap-1 ${!areAllRowsFilled(childrenValues, ["name", "dob", "gender", "age"])
-                                                    ? "text-gray-400 cursor-not-allowed"
+                                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
                                                     : "text-blue-600 hover:text-blue-800"
                                                     }`}
                                             >
@@ -1005,7 +1005,7 @@ export const Profile = () => {
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div className="min-w-0 mb-2">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Gender</label>
                                                         <select
                                                             className="border rounded-lg p-3 w-full text-sm"
                                                             value={field.value ?? ""}
@@ -1046,7 +1046,7 @@ export const Profile = () => {
                                 </div>
 
                                 {/* Political Position Details */}
-                                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-semibold text-lg">Political Position Details</h2>
                                         {isEditing && (
@@ -1055,7 +1055,7 @@ export const Profile = () => {
                                                 disabled={!areAllRowsFilled(positionValues, ["title", "designation", "state", "district", "durationFrom", "durationTo"])}
                                                 onClick={() => appendPosition({ title: "", designation: "", state: "", district: "", durationFrom: "", durationTo: "" })}
                                                 className={`flex items-center gap-1 ${!areAllRowsFilled(positionValues, ["title", "designation", "state", "district", "durationFrom", "durationTo"])
-                                                    ? "text-gray-400 cursor-not-allowed"
+                                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
                                                     : "text-blue-600 hover:text-blue-800"
                                                     }`}
                                             >
@@ -1120,7 +1120,7 @@ export const Profile = () => {
                                 </div>
 
                                 {/* Election Contested */}
-                                {/* <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                {/* <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">Election Contested</h2>
                     {isEditing && (
@@ -1130,7 +1130,7 @@ export const Profile = () => {
                         onClick={() => appendElection({ electionName: "", year: "", result: "", state: "", district: "", assembly: "" })}
                         className={`flex items-center gap-1 ${
                           !areAllRowsFilled(electionValues, ["electionName", "year", "result", "state", "district", "assembly"])
-                            ? "text-gray-400 cursor-not-allowed"
+                            ? "text-[var(--text-secondary)] cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
                       >
@@ -1195,7 +1195,7 @@ export const Profile = () => {
                 </div> */}
 
                                 {/* Public Representative Details */}
-                                {/* <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                {/* <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">Public Representative Details</h2>
                     {isEditing && (
@@ -1205,7 +1205,7 @@ export const Profile = () => {
                         onClick={() => appendPR({ electionName: "", year: "", result: "", state: "", district: "", assembly: "" })}
                         className={`flex items-center gap-1 ${
                           !areAllRowsFilled(prValues, ["electionName", "year", "result", "state", "district", "assembly"])
-                            ? "text-gray-400 cursor-not-allowed"
+                            ? "text-[var(--text-secondary)] cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-800"
                         }`}
                       >
@@ -1270,7 +1270,7 @@ export const Profile = () => {
                 </div> */}
 
                                 {/* Vehicles */}
-                                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                                     <div className="flex justify-between items-center mb-4">
                                         <h2 className="font-semibold text-lg">Vehicles</h2>
                                         {isEditing && (
@@ -1279,7 +1279,7 @@ export const Profile = () => {
                                                 disabled={!areAllRowsFilled(vehicleValues, ["type", "count"])}
                                                 onClick={() => appendVehicle({ type: "", count: "" })}
                                                 className={`flex items-center gap-1 ${!areAllRowsFilled(vehicleValues, ["type", "count"])
-                                                    ? "text-gray-400 cursor-not-allowed"
+                                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
                                                     : "text-blue-600 hover:text-blue-800"
                                                     }`}
                                             >
@@ -1320,7 +1320,7 @@ export const Profile = () => {
                 </div>
 
                 {/* Right: Profile Card */}
-                <div className="w-full lg:w-[32%] xl:w-[28%] h-fit bg-white rounded-2xl border border-blue-100 p-8 flex flex-col items-center shadow-xl transition-shadow duration-300">
+                <div className="w-full lg:w-[32%] xl:w-[28%] h-fit bg-[var(--bg-card)] rounded-2xl border border-blue-100 p-8 flex flex-col items-center shadow-xl transition-shadow duration-300">
                     <div className="relative w-full flex flex-col items-center mb-4">
                         <div className="absolute left-1/2 top-0 -translate-x-1/2 z-0 w-40 h-20 rounded-b-3xl overflow-hidden">
                             <img src={image} alt="Profile bg" className="w-full h-full object-cover object-center" draggable="false" />
@@ -1347,11 +1347,11 @@ export const Profile = () => {
                             <button
                                 type="button"
                                 onClick={handleSelectImageClick}
-                                className="absolute right-8 bottom-2 z-20 w-9 h-9 rounded-full bg-white border border-gray-200 shadow flex items-center justify-center hover:bg-gray-50 active:scale-95 transition disabled:opacity-60"
+                                className="absolute right-8 bottom-2 z-20 w-9 h-9 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] shadow flex items-center justify-center hover:bg-[var(--text-color)]/5 active:scale-95 transition disabled:opacity-60"
                                 disabled={isUploading || isUpdating}
                                 title={isUploading ? "Uploading..." : "Upload profile image"}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-[var(--text-secondary)]">
                                     <path d="M9 2a1 1 0 00-.894.553L7.382 4H5a3 3 0 00-3 3v10a3 3 0 003 3h14a3 3 0 003-3V7a3 3 0 00-3-3h-2.382l-.724-1.447A1 1 0 0015 2H9zm3 6a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z" />
                                 </svg>
                             </button>
@@ -1386,3 +1386,7 @@ export const Profile = () => {
         </div>
     );
 };
+
+
+
+

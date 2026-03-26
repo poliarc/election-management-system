@@ -91,14 +91,14 @@ export default function GlobalChat() {
                 // Mobile Modal View
                 <div className="fixed inset-0 z-40 lg:hidden bg-black/50" onClick={() => setChatModalOpen(false)}>
                     <div
-                        className="absolute inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl flex flex-col"
+                        className="absolute inset-y-0 right-0 w-full sm:w-96 bg-[var(--bg-card)] shadow-2xl flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-3 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+                        <div className="flex items-center justify-between p-3 border-b border-[var(--border-color)]">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">Chats</h2>
                             <button
                                 onClick={() => setChatModalOpen(false)}
-                                className="text-gray-500 hover:text-gray-700"
+                                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                             >
                                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 6L6 18M6 6l12 12" />
@@ -114,15 +114,15 @@ export default function GlobalChat() {
             {chatModalOpen && (
                 <div className="hidden lg:block fixed z-40 bg-black/30" style={{ top: 0, left: 0, right: '30px', bottom: 0 }} onClick={() => setChatModalOpen(false)}>
                     <div
-                        className="absolute bottom-0 right-0 w-96 bg-white shadow-2xl flex flex-col rounded-tl-lg"
+                        className="absolute bottom-0 right-0 w-96 bg-[var(--bg-card)] shadow-2xl flex flex-col rounded-tl-lg"
                         style={{ maxHeight: '600px' }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white rounded-tl-lg">
-                            <h2 className="text-lg font-semibold text-gray-900">Chats</h2>
+                        <div className="flex items-center justify-between p-3 border-b border-[var(--border-color)] bg-[var(--bg-card)] rounded-tl-lg">
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">Chats</h2>
                             <button
                                 onClick={() => setChatModalOpen(false)}
-                                className="text-gray-500 hover:text-gray-700"
+                                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                             >
                                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 6L6 18M6 6l12 12" />
@@ -179,3 +179,4 @@ export default function GlobalChat() {
         </>
     );
 }
+

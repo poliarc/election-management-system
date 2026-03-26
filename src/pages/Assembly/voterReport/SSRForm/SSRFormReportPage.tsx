@@ -6,6 +6,7 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import "./SSRFormReportPage.css";
+import { useTranslation } from "react-i18next";
 
 // Custom hook for responsive design
 const useResponsive = () => {
@@ -27,6 +28,7 @@ const useResponsive = () => {
 };
 
 const SSRFormReportPage: React.FC = () => {
+    const {t} = useTranslation();
     const { isMobile, isTablet } = useResponsive();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -108,40 +110,40 @@ const SSRFormReportPage: React.FC = () => {
     console.log(votersData, 'voter');
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-2 sm:p-4 lg:p-6">
+        <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-color)] p-2 sm:p-4 lg:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 text-white">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">SSR Form Report</h1>
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{t("SSRFormReportPage.Title")}</h1>
                             <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">
-                                Assembly: {selectedAssignment?.levelName || "N/A"}
+                                {t("SSRFormReportPage.Desc")}: {selectedAssignment?.levelName || "N/A"}
                             </p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                            <div className="bg-white/20 rounded-lg p-3 sm:p-4 text-center flex-1 sm:flex-none">
+                            <div className="bg-[var(--bg-card)]/20 rounded-lg p-3 sm:p-4 text-center flex-1 sm:flex-none">
                                 <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.total}</div>
-                                <div className="text-xs sm:text-sm text-blue-100">Total Voters</div>
+                                <div className="text-xs sm:text-sm text-blue-100">{t("SSRFormReportPage.Total_Voters")}</div>
                             </div>
                             <div className="bg-green-500/30 rounded-lg p-3 sm:p-4 text-center flex-1 sm:flex-none">
                                 <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.submitted}</div>
-                                <div className="text-xs sm:text-sm text-blue-100">Submitted</div>
+                                <div className="text-xs sm:text-sm text-blue-100">{t("SSRFormReportPage.Submitted")}</div>
                             </div>
                             <div className="bg-red-500/30 rounded-lg p-3 sm:p-4 text-center flex-1 sm:flex-none">
                                 <div className="text-lg sm:text-xl lg:text-2xl font-bold">{stats.notSubmitted}</div>
-                                <div className="text-xs sm:text-sm text-blue-100">Not Submitted</div>
+                                <div className="text-xs sm:text-sm text-blue-100">{t("SSRFormReportPage.Not_Submitted")}</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                SSR Form Status
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                {t("SSRFormReportPage.SSR_Form_Status")}
                             </label>
                             <select
                                 value={ssrFormStatus}
@@ -151,14 +153,14 @@ const SSRFormReportPage: React.FC = () => {
                                 }}
                                 className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                                <option value="">All Status</option>
-                                <option value="yes">Submitted</option>
-                                <option value="no">Not Submitted</option>
+                                <option value="">{t("SSRFormReportPage.All_Status")}</option>
+                                <option value="yes">{t("SSRFormReportPage.Submitted")}</option>
+                                <option value="no">{t("SSRFormReportPage.Not_Submitted")}</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Part From
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                {t("SSRFormReportPage.Part_From")}
                             </label>
                             <input
                                 type="number"
@@ -169,8 +171,8 @@ const SSRFormReportPage: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Part To
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                {t("SSRFormReportPage.Part_To")}
                             </label>
                             <input
                                 type="number"
@@ -181,43 +183,43 @@ const SSRFormReportPage: React.FC = () => {
                             />
                         </div>
                         <div className="sm:col-span-2 lg:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-2 invisible sm:visible">
-                                Actions
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2 invisible sm:visible">
+                                {t("SSRFormReportPage.Actions")}
                             </label>
                             <button
                                 onClick={handleReset}
-                                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-[var(--bg-color)] text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors font-medium"
                             >
-                                Reset Filters
+                                {t("SSRFormReportPage.Reset_Filters")}
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Results */}
-                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
-                        <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-                            Voter List ({totalVoters.toLocaleString()} voters)
+                        <h2 className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
+                            {t("SSRFormReportPage.Voter_List")} ({totalVoters.toLocaleString()} {t("SSRFormReportPage.voters")})
                         </h2>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setLanguage("en")}
                                 className={`px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg font-medium transition-colors flex-1 sm:flex-none ${language === "en"
                                     ? "bg-blue-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    : "bg-gray-200 text-[var(--text-secondary)] hover:bg-gray-300"
                                     }`}
                             >
-                                English
+                                {t("SSRFormReportPage.English")}
                             </button>
                             <button
                                 onClick={() => setLanguage("hi")}
                                 className={`px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg font-medium transition-colors flex-1 sm:flex-none ${language === "hi"
                                     ? "bg-blue-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                    : "bg-gray-200 text-[var(--text-secondary)] hover:bg-gray-300"
                                     }`}
                             >
-                                Regional
+                                {t("SSRFormReportPage.Regional")}
                             </button>
                         </div>
                     </div>
@@ -225,14 +227,14 @@ const SSRFormReportPage: React.FC = () => {
                     {isLoading ? (
                         <div className="text-center py-8 sm:py-12">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600 text-sm sm:text-base">Loading voters...</p>
+                            <p className="mt-4 text-[var(--text-secondary)] text-sm sm:text-base">{t("SSRFormReportPage.Loading_voters")}</p>
                         </div>
                     ) : voters.length === 0 ? (
                         <div className="text-center py-8 sm:py-12">
-                            <svg className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium text-sm sm:text-base">No voters found</p>
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium text-sm sm:text-base">{t("SSRFormReportPage.No_voters_found")}</p>
                         </div>
                     ) : (
                         <>
@@ -251,7 +253,7 @@ const SSRFormReportPage: React.FC = () => {
                                     <div className="block sm:hidden">
                                         <div className="mobile-pagination">
                                             <div className="mobile-pagination-info">
-                                                Page {currentPage} of {totalPages} • {totalVoters.toLocaleString()} voters
+                                                {t("SSRFormReportPage.Page")} {currentPage} {t("SSRFormReportPage.of")} {totalPages} • {totalVoters.toLocaleString()} {t("SSRFormReportPage.voters")}
                                             </div>
 
                                             {/* Main mobile pagination controls */}
@@ -262,7 +264,7 @@ const SSRFormReportPage: React.FC = () => {
                                                     className="mobile-pagination-button touch-button"
                                                     aria-label="Previous page"
                                                 >
-                                                    ← Prev
+                                                    ← {t("SSRFormReportPage.Prev")}
                                                 </button>
 
                                                 {/* Current page indicator with dropdown for quick navigation */}
@@ -270,7 +272,7 @@ const SSRFormReportPage: React.FC = () => {
                                                     <select
                                                         value={currentPage}
                                                         onChange={(e) => handlePageChange(Number(e.target.value))}
-                                                        className="appearance-none bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-16 text-center"
+                                                        className="appearance-none bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm font-medium text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-16 text-center"
                                                         aria-label="Select page"
                                                     >
                                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -280,7 +282,7 @@ const SSRFormReportPage: React.FC = () => {
                                                         ))}
                                                     </select>
                                                     <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                                                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="w-3 h-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </div>
@@ -292,7 +294,7 @@ const SSRFormReportPage: React.FC = () => {
                                                     className="mobile-pagination-button touch-button"
                                                     aria-label="Next page"
                                                 >
-                                                    Next →
+                                                    {t("SSRFormReportPage.Next")} →
                                                 </button>
                                             </div>
 
@@ -302,19 +304,19 @@ const SSRFormReportPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handlePageChange(1)}
                                                         disabled={currentPage === 1}
-                                                        className="px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-button"
+                                                        className="px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed touch-button"
                                                         aria-label="First page"
                                                     >
-                                                        First
+                                                        {t("SSRFormReportPage.First")}
                                                     </button>
-                                                    <span className="text-xs text-gray-400">•</span>
+                                                    <span className="text-xs text-[var(--text-secondary)]">•</span>
                                                     <button
                                                         onClick={() => handlePageChange(totalPages)}
                                                         disabled={currentPage === totalPages}
-                                                        className="px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-button"
+                                                        className="px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed touch-button"
                                                         aria-label="Last page"
                                                     >
-                                                        Last
+                                                        {t("SSRFormReportPage.Last")}
                                                     </button>
                                                 </div>
                                             )}
@@ -323,10 +325,10 @@ const SSRFormReportPage: React.FC = () => {
 
                                     {/* Desktop/Tablet Pagination (> 640px) */}
                                     <div className="hidden sm:flex items-center justify-between">
-                                        <div className="text-sm text-gray-700 flex-shrink-0">
-                                            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                                            {Math.min(currentPage * itemsPerPage, totalVoters)} of{" "}
-                                            {totalVoters.toLocaleString()} voters
+                                        <div className="text-sm text-[var(--text-secondary)] flex-shrink-0">
+                                            {t("SSRFormReportPage.Showing")} {(currentPage - 1) * itemsPerPage + 1} {t("SSRFormReportPage.to")}{" "}
+                                            {Math.min(currentPage * itemsPerPage, totalVoters)} {t("SSRFormReportPage.of")}{" "}
+                                            {totalVoters.toLocaleString()} {t("SSRFormReportPage.voters")}
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
@@ -335,7 +337,7 @@ const SSRFormReportPage: React.FC = () => {
                                                 className="pagination-button touch-button"
                                                 aria-label="First page"
                                             >
-                                                First
+                                                {t("SSRFormReportPage.First")}
                                             </button>
                                             <button
                                                 onClick={() => handlePageChange(currentPage - 1)}
@@ -343,7 +345,7 @@ const SSRFormReportPage: React.FC = () => {
                                                 className="pagination-button touch-button"
                                                 aria-label="Previous page"
                                             >
-                                                Previous
+                                                {t("SSRFormReportPage.Previous")}
                                             </button>
 
                                             {/* Current page indicator */}
@@ -357,7 +359,7 @@ const SSRFormReportPage: React.FC = () => {
                                                 className="pagination-button touch-button"
                                                 aria-label="Next page"
                                             >
-                                                Next
+                                                {t("SSRFormReportPage.Next")}
                                             </button>
                                             <button
                                                 onClick={() => handlePageChange(totalPages)}
@@ -365,15 +367,15 @@ const SSRFormReportPage: React.FC = () => {
                                                 className="pagination-button touch-button"
                                                 aria-label="Last page"
                                             >
-                                                Last
+                                                {t("SSRFormReportPage.Last")}
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Items per page selector for larger screens */}
-                                    <div className="hidden md:flex items-center justify-center mt-4 pt-4 border-t border-gray-200">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <span>Items per page:</span>
+                                    <div className="hidden md:flex items-center justify-center mt-4 pt-4 border-t border-[var(--border-color)]">
+                                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                                            <span>{t("SSRFormReportPage.Items_per_page")}</span>
                                             <select
                                                 value={itemsPerPage}
                                                 onChange={(e) => {
@@ -411,3 +413,6 @@ const SSRFormReportPage: React.FC = () => {
 };
 
 export default SSRFormReportPage;
+
+
+

@@ -80,7 +80,7 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="h-screen bg-gray-50 relative overflow-hidden">
+        <div className="h-screen bg-[var(--bg-main)] relative overflow-hidden">
             {/* Main content area */}
             <div className="flex items-center justify-center h-full px-4">
                 <div className="text-center max-w-md">
@@ -97,10 +97,10 @@ export default function ChatPage() {
                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                         />
                     </svg>
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
+                    <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-secondary)] mb-2">
                         Click on Messaging to start a conversation
                     </h3>
-                    <p className="text-sm sm:text-base text-gray-500">
+                    <p className="text-sm sm:text-base text-[var(--text-secondary)]">
                         Select a user from the list to open a chat window (max 2 chats)
                     </p>
                 </div>
@@ -114,3 +114,4 @@ export default function ChatPage() {
         </div>
     );
 }
+

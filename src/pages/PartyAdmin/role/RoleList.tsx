@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { Role } from "../../../types/role";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 interface RoleListProps {
   roles: Role[];
@@ -26,6 +27,7 @@ export const RoleList: React.FC<RoleListProps> = ({
   onToggleStatus,
   loading,
 }) => {
+  const {t} = useTranslation();
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     roleId: number | null;
@@ -73,20 +75,20 @@ export const RoleList: React.FC<RoleListProps> = ({
 
   if (roles.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
         <div className="text-center py-16">
           <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <User className="w-8 h-8 text-gray-400" />
+            <User className="w-8 h-8 text-[var(--text-secondary)]" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No roles found
+          <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">
+            {t("RoleList.No_roles_found")}
           </h3>
-          <p className="text-gray-500 mb-6">
-            Create your first role to get started with user management
+          <p className="text-[var(--text-secondary)] mb-6">
+            {t("RoleList.Desc")}
           </p>
           <div className="flex justify-center">
-            <div className="text-sm text-gray-400">
-              Try adjusting your search filters or create a new role
+            <div className="text-sm text-[var(--text-secondary)]">
+              {t("RoleList.Desc1")}
             </div>
           </div>
         </div>
@@ -96,18 +98,18 @@ export const RoleList: React.FC<RoleListProps> = ({
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
         {/* Table Header */}
-        <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+        <div className="bg-[var(--bg-card)] px-6 py-4 border-b border-[var(--border-color)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Shield className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Role Management
+              <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                {t("RoleList.Title")}
               </h3>
             </div>
-            <div className="text-sm text-gray-600">
-              {roles.length} role{roles.length !== 1 ? "s" : ""} found
+            <div className="text-sm text-[var(--text-secondary)]">
+              {roles.length} {t("RoleList.Role")}{roles.length !== 1 ? "s" : ""} {t("RoleList.found")}
             </div>
           </div>
         </div>
@@ -118,36 +120,36 @@ export const RoleList: React.FC<RoleListProps> = ({
             role="table"
             aria-label="Roles list"
           >
-            <thead className="bg-gray-50">
+            <thead className="bg-[var(--bg-main)]">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   <div className="flex items-center space-x-1">
                     <User className="w-4 h-4" />
-                    <span>Role Name</span>
+                    <span>{t("RoleList.Role_Name")}</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   <div className="flex items-center space-x-1">
                     <ToggleRight className="w-4 h-4" />
-                    <span>Status</span>
+                    <span>{t("RoleList.Status")}</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-4 h-4" />
-                    <span>Created Date</span>
+                    <span>{t("RoleList.Created_Date")}</span>
                   </div>
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
+                <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                  {t("RoleList.Actions")}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)] divide-y">
               {roles.map((role) => (
                 <tr
                   key={role.role_id}
-                  className="hover:bg-blue-50 transition-colors duration-150"
+                  className="hover:bg-[var(--text-color)]/5 transition-colors duration-150"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-3">
@@ -156,12 +158,12 @@ export const RoleList: React.FC<RoleListProps> = ({
                           }`}
                       >
                         <Shield
-                          className={`w-5 h-5 ${role.isActive ? "text-blue-600" : "text-gray-400"
+                          className={`w-5 h-5 ${role.isActive ? "text-blue-600" : "text-[var(--text-secondary)]"
                             }`}
                         />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-sm font-semibold text-[var(--text-color)]">
                           {role.roleName}
                         </div>
                       </div>
@@ -183,16 +185,16 @@ export const RoleList: React.FC<RoleListProps> = ({
                           <div className="flex items-center space-x-1">
                             <ToggleRight className="w-5 h-5 text-green-500" />
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Active
+                              {t("RoleList.Active")}
                             </span>
                           </div>
                         </>
                       ) : (
                         <>
                           <div className="flex items-center space-x-1">
-                            <ToggleLeft className="w-5 h-5 text-gray-400" />
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              Inactive
+                            <ToggleLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
+                              {t("RoleList.Inactive")}
                             </span>
                           </div>
                         </>
@@ -200,10 +202,10 @@ export const RoleList: React.FC<RoleListProps> = ({
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-[var(--text-color)]">
                       {formatDate(role.created_at)}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-[var(--text-secondary)]">
                       {new Date(role.created_at).toLocaleTimeString()}
                     </div>
                   </td>
@@ -248,3 +250,6 @@ export const RoleList: React.FC<RoleListProps> = ({
     </>
   );
 };
+
+
+

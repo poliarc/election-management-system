@@ -72,7 +72,7 @@ export default function CreateDistrict() {
       <div className="max-w-3xl mx-auto">
         <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/20 p-2 rounded-lg">
+            <div className="bg-[var(--bg-card)]/20 p-2 rounded-lg">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -94,8 +94,8 @@ export default function CreateDistrict() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-blue-100">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-6 mb-6 border border-blue-100">
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
             Current Context
           </h2>
           <div className="grid grid-cols-2 gap-4">
@@ -116,8 +116,8 @@ export default function CreateDistrict() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">State</p>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-xs text-[var(--text-secondary)] font-medium">State</p>
+                <p className="text-lg font-semibold text-[var(--text-color)]">
                   {stateInfo.stateName || "N/A"}
                 </p>
               </div>
@@ -125,19 +125,19 @@ export default function CreateDistrict() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-8 border border-[var(--border-color)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="districtName"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-sm font-semibold text-[var(--text-secondary)] mb-2"
               >
                 District Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -155,13 +155,13 @@ export default function CreateDistrict() {
                   id="districtName"
                   value={districtName}
                   onChange={(e) => setDistrictName(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-400"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-[var(--text-color)] placeholder-gray-400"
                   placeholder="e.g., Jhajjar, Hisar, etc."
                   required
                   disabled={isLoading}
                 />
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">
                 Enter the official district name
               </p>
             </div>
@@ -218,7 +218,7 @@ export default function CreateDistrict() {
                 type="button"
                 onClick={() => navigate("/state/districts")}
                 disabled={isLoading}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center justify-center gap-2"
+                className="flex-1 bg-gray-100 text-[var(--text-secondary)] py-3 px-6 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center justify-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -242,3 +242,5 @@ export default function CreateDistrict() {
     </div>
   );
 }
+
+

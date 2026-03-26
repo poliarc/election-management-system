@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateAssemblyMutation } from "../../../store/api/assemblyApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import toast from "react-hot-toast";
+import { useTranslation } from 'react-i18next';
+
 
 export default function CreateAssembly() {
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const [assemblyName, setAssemblyName] = useState("");
   const [createAssembly, { isLoading }] = useCreateAssemblyMutation();
@@ -63,7 +66,7 @@ export default function CreateAssembly() {
         {/* Header Card */}
         <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 mb-6 text-white">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/20 p-2 rounded-lg">
+            <div className="bg-[var(--bg-card)]/20 p-2 rounded-lg">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -78,17 +81,17 @@ export default function CreateAssembly() {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold">Create New Assembly</h1>
+            <h1 className="text-3xl font-bold">{t("districtAssembly.Create_Assembly")}</h1>
           </div>
           <p className="text-blue-100 ml-14">
-            Add a new assembly constituency to your district
+            {t("districtAssembly.Desc4")}
           </p>
         </div>
 
         {/* Context Info Card */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-blue-100">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Current Context
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-6 mb-6 border border-blue-100">
+          <h2 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
+            {t("districtAssembly.Current_Context")}
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
@@ -108,8 +111,8 @@ export default function CreateAssembly() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">State</p>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-xs text-[var(--text-secondary)] font-medium">{t("districtAssembly.State")}</p>
+                <p className="text-lg font-semibold text-[var(--text-color)]">
                   {districtInfo.stateName || "N/A"}
                 </p>
               </div>
@@ -137,8 +140,8 @@ export default function CreateAssembly() {
                 </svg>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">District</p>
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-xs text-[var(--text-secondary)] font-medium">{t("districtAssembly.District")}</p>
+                <p className="text-lg font-semibold text-[var(--text-color)]">
                   {districtInfo.districtName || "N/A"}
                 </p>
               </div>
@@ -147,20 +150,20 @@ export default function CreateAssembly() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-8 border border-[var(--border-color)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="assemblyName"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-sm font-semibold text-[var(--text-secondary)] mb-2"
               >
-                Assembly Constituency Name{" "}
+                {t("districtAssembly.Assembly_Constituency_Name")}{" "}
                 <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -178,14 +181,14 @@ export default function CreateAssembly() {
                   id="assemblyName"
                   value={assemblyName}
                   onChange={(e) => setAssemblyName(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-400"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-[var(--text-color)] placeholder-gray-400"
                   placeholder="e.g., Jhajjar, Bahadurgarh, etc."
                   required
                   disabled={isLoading}
                 />
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Enter the official name of the assembly constituency
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                {t("districtAssembly.Desc5")}
               </p>
             </div>
 
@@ -216,7 +219,7 @@ export default function CreateAssembly() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Creating Assembly...
+                    {t("districtAssembly.Creating_Assembly")}
                   </>
                 ) : (
                   <>
@@ -233,7 +236,7 @@ export default function CreateAssembly() {
                         d="M12 4v16m8-8H4"
                       />
                     </svg>
-                    Create Assembly
+                    {t("disrtictAssembly.Create Assembly")}
                   </>
                 )}
               </button>
@@ -241,7 +244,7 @@ export default function CreateAssembly() {
                 type="button"
                 onClick={() => navigate("/district/assembly")}
                 disabled={isLoading}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center justify-center gap-2"
+                className="flex-1 bg-gray-100 text-[var(--text-secondary)] py-3 px-6 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center justify-center gap-2"
               >
                 <svg
                   className="w-5 h-5"
@@ -256,7 +259,7 @@ export default function CreateAssembly() {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-                Cancel
+                {t("districtAssembly.Cancel")}
               </button>
             </div>
           </form>
@@ -279,11 +282,11 @@ export default function CreateAssembly() {
               />
             </svg>
             <div className="text-sm text-blue-800">
-              <p className="font-semibold mb-1">Quick Tips:</p>
+              <p className="font-semibold mb-1">{t("districtAssembly.Quick_Tips")}:</p>
               <ul className="list-disc list-inside space-y-1 text-blue-700">
-                <li>Assembly will be created under the current district</li>
-                <li>You can assign users to this assembly after creation</li>
-                <li>Make sure to use the official constituency name</li>
+                <li>{t("districtAssembly.Desc6")}</li>
+                <li>{t("districtAssembly.Desc7")}</li>
+                <li>{t("districtAssembly.Desc8")}</li>
               </ul>
             </div>
           </div>
@@ -292,3 +295,5 @@ export default function CreateAssembly() {
     </div>
   );
 }
+
+

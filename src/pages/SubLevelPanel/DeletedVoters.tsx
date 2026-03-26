@@ -149,11 +149,11 @@ export default function SubLevelDeletedVoters() {
   if (!boothId) {
     return (
       <div className="p-1">
-        <div className="bg-white rounded-lg shadow p-4">
-          <h1 className="text-lg font-semibold text-gray-800">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-4">
+          <h1 className="text-lg font-semibold text-[var(--text-color)]">
             Deleted Voters
           </h1>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-[var(--text-secondary)] mt-2">
             Missing booth identifier in the URL.
           </p>
         </div>
@@ -164,16 +164,16 @@ export default function SubLevelDeletedVoters() {
   if (isExplicitlyNotBooth) {
     return (
       <div className="p-1">
-        <div className="bg-white rounded-lg shadow p-5 border border-amber-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-5 border border-amber-200">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-semibold">
               !
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-[var(--text-color)]">
                 Available only for booth level
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-[var(--text-secondary)] mt-1">
                 Switch to a booth level assignment to manage deleted voter
                 files.
               </p>
@@ -185,7 +185,7 @@ export default function SubLevelDeletedVoters() {
   }
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-teal-700 text-white rounded-xl shadow-lg p-5 sm:p-6 mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -201,7 +201,7 @@ export default function SubLevelDeletedVoters() {
             )}
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="bg-white/10 backdrop-blur px-4 py-2 rounded-lg border border-white/10 text-sm">
+            <div className="bg-[var(--bg-card)]/10 backdrop-blur px-4 py-2 rounded-lg border border-white/10 text-sm">
               <span className="text-white/70">Total Files</span>
               <div className="text-xl font-semibold">
                 {loading ? "..." : total}
@@ -210,7 +210,7 @@ export default function SubLevelDeletedVoters() {
             <button
               type="button"
               onClick={() => setRefreshToken((token) => token + 1)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-teal-700 font-semibold rounded-lg shadow-sm hover:shadow transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-card)] text-teal-700 font-semibold rounded-lg shadow-sm hover:shadow transition"
             >
               <svg
                 className="h-4 w-4"
@@ -231,10 +231,10 @@ export default function SubLevelDeletedVoters() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
+      <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <div className="relative w-full md:max-w-md">
-            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[var(--text-secondary)]">
               <svg
                 className="h-5 w-5"
                 viewBox="0 0 24 24"
@@ -253,10 +253,10 @@ export default function SubLevelDeletedVoters() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by location or file name"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-11 pr-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+              className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] pl-11 pr-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
             />
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[var(--text-secondary)]">
             Page {page} of {totalPages}
           </div>
         </div>
@@ -272,13 +272,13 @@ export default function SubLevelDeletedVoters() {
             {Array.from({ length: 6 }).map((_, idx) => (
               <div
                 key={idx}
-                className="h-36 rounded-lg border border-gray-100 bg-gray-50 animate-pulse"
+                className="h-36 rounded-lg border border-gray-100 bg-[var(--bg-main)] animate-pulse"
               />
             ))}
           </div>
         ) : files.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-white shadow flex items-center justify-center text-teal-600 mb-3">
+          <div className="rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-main)] p-6 text-center">
+            <div className="mx-auto h-12 w-12 rounded-full bg-[var(--bg-card)] shadow flex items-center justify-center text-teal-600 mb-3">
               <svg
                 className="h-6 w-6"
                 viewBox="0 0 24 24"
@@ -293,10 +293,10 @@ export default function SubLevelDeletedVoters() {
                 />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-800">
+            <p className="text-base font-semibold text-[var(--text-color)]">
               No files yet
             </p>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
               Deleted voter files uploaded for this booth will show up here.
             </p>
           </div>
@@ -323,28 +323,28 @@ export default function SubLevelDeletedVoters() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                    <p className="text-xs uppercase tracking-wide text-[var(--text-secondary)]">
                       Deleted Voters
                     </p>
                     <h3
-                      className="text-sm font-semibold text-gray-900 truncate"
+                      className="text-sm font-semibold text-[var(--text-color)] truncate"
                       title={getFileName(file.filePath)}
                     >
                       {getFileName(file.filePath)}
                     </h3>
-                    <p className="text-xs text-gray-600 mt-1 truncate">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1 truncate">
                       {file.stateName || file.stateNameFromMaster || ""}
                       {file.districtName ? ` • ${file.districtName}` : ""}
                       {file.assemblyName ? ` • ${file.assemblyName}` : ""}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                       Booth {file.boothId || boothId}
                       {file.boothNameFromMaster
                         ? ` • ${file.boothNameFromMaster}`
                         : ""}
                     </p>
                     {file.created_at && (
-                      <p className="text-[11px] text-gray-500 mt-1">
+                      <p className="text-[11px] text-[var(--text-secondary)] mt-1">
                         Uploaded {formatDate(file.created_at)}
                       </p>
                     )}
@@ -355,7 +355,7 @@ export default function SubLevelDeletedVoters() {
                   <button
                     type="button"
                     onClick={() => handleView(file.filePath)}
-                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:border-teal-200 hover:text-teal-700 transition"
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] px-3 py-2 text-sm font-medium text-[var(--text-secondary)] hover:border-teal-200 hover:text-teal-700 transition"
                   >
                     <svg
                       className="h-4 w-4"
@@ -403,7 +403,7 @@ export default function SubLevelDeletedVoters() {
         )}
 
         {files.length > 0 && (
-          <div className="mt-5 flex items-center justify-between text-sm text-gray-700">
+          <div className="mt-5 flex items-center justify-between text-sm text-[var(--text-secondary)]">
             <div>
               Showing {(page - 1) * PAGE_SIZE + 1}–
               {Math.min(page * PAGE_SIZE, total)} of {total} files
@@ -413,7 +413,7 @@ export default function SubLevelDeletedVoters() {
                 type="button"
                 disabled={page === 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded-lg border border-gray-200 px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:border-teal-200 hover:text-teal-700 transition"
+                className="rounded-lg border border-[var(--border-color)] px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:border-teal-200 hover:text-teal-700 transition"
               >
                 Previous
               </button>
@@ -421,7 +421,7 @@ export default function SubLevelDeletedVoters() {
                 type="button"
                 disabled={page >= totalPages || loading}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded-lg border border-gray-200 px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:border-teal-200 hover:text-teal-700 transition"
+                className="rounded-lg border border-[var(--border-color)] px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed hover:border-teal-200 hover:text-teal-700 transition"
               >
                 Next
               </button>
@@ -432,3 +432,6 @@ export default function SubLevelDeletedVoters() {
     </div>
   );
 }
+
+
+

@@ -3,6 +3,8 @@ import { useSelectedDistrictId } from "../../hooks/useHierarchyData";
 import type { HierarchyUser } from "../../types/hierarchy";
 import { API_CONFIG } from "../../config/api";
 import { useToggleUserStatusMutation } from "../../store/api/profileApi";
+import { useTranslation } from "react-i18next";
+
 
 interface DistrictTeamResponse {
   success: boolean;
@@ -22,6 +24,7 @@ interface DistrictTeamResponse {
 }
 
 export default function DistrictTeam() {
+  const {t} = useTranslation(); 
   const districtId = useSelectedDistrictId();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -213,7 +216,7 @@ export default function DistrictTeam() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">
+          <p className="mt-4 text-[var(--text-secondary)] font-medium">
             Loading district team...
           </p>
         </div>
@@ -252,30 +255,30 @@ export default function DistrictTeam() {
   if (!districtData) {
     return (
       <div className="p-6">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-          <p className="text-gray-600">No district data available</p>
+        <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-6 text-center">
+          <p className="text-[var(--text-secondary)]">No district data available</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-2 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-3">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
-            <h1 className="text-xl sm:text-2xl font-bold">District Team</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">{t("districtTeam.Title")}</h1>
             <p className="text-blue-100 mt-1 text-xs sm:text-sm">
               {districtData.location.location_name}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
-                  Total Users
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                  {t("districtTeam.Total_Users")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold mt-1">
                   {districtData.total_users}
@@ -298,10 +301,10 @@ export default function DistrictTeam() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
-                  Active Users
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                  {t("districtTeam.Active_Users")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                   {districtData.active_users}
@@ -324,10 +327,10 @@ export default function DistrictTeam() {
               </div>
             </div>
 
-            <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
-                  Inactive Users
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                  {t("districtTeam.Inactive_Users")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">
                   {districtData.inactive_users}
@@ -354,7 +357,7 @@ export default function DistrictTeam() {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-3">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 sm:p-6 mb-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             type="text"
@@ -369,61 +372,61 @@ export default function DistrictTeam() {
             onChange={(e) => setFilterStatus(e.target.value as any)}
             className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all">{t("districtTeam.All_Status")}</option>
+            <option value="active">{t("districtTeam.Active_Only")}</option>
+            <option value="inactive">{t("districtTeam.Inactive_Only")}</option>
           </select>
 
-          <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap sm:ml-auto">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)}{" "}
-            of {filteredUsers.length} users
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] whitespace-nowrap sm:ml-auto">
+            {t("districtTeam.Showing")}{startIndex + 1}-{Math.min(endIndex, filteredUsers.length)}{" "}
+            {t("districtTeam.of")} {filteredUsers.length} {t("districtTeam.users")}
           </p>
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
         {/* Mobile scroll hint */}
-        {/* <div className="block sm:hidden bg-gray-50 px-4 py-2 text-xs text-gray-600 border-b">
+        {/* <div className="block sm:hidden bg-[var(--bg-main)] px-4 py-2 text-xs text-[var(--text-secondary)] border-b">
           ← Scroll horizontally to view all columns →
         </div> */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-[var(--bg-main)]">
               <tr>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                  S.No
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                  {t("districtTeam.S_No")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
-                  User ID
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">
+                  {t("districtTeam.User_ID")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
-                  State Name
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[100px]">
+                  {t("districtTeam.State_Name")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[120px]">
-                  District Name
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">
+                  {t("districtTeam.District_Name")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[100px]">
-                  Designation
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[100px]">
+                  {t("districtTeam.Designation")}
                 </th>
                 
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase hidden md:table-cell min-w-[150px]">
-                  Email
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase hidden md:table-cell min-w-[150px]">
+                  {t("districtTeam.Email")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[80px]">
-                  Status
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[80px]">
+                  {t("districtTeam.Status")}
                 </th>
-                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase min-w-[80px]">
-                  Action
+                <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[80px]">
+                  {t("districtTeam.Action")}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
+                      className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -435,8 +438,8 @@ export default function DistrictTeam() {
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                       />
                     </svg>
-                    <p className="mt-2 text-gray-500 font-medium">
-                      No users found
+                    <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                      {t("districtTeam.No_users_found")}
                     </p>
                   </td>
                 </tr>
@@ -448,24 +451,24 @@ export default function DistrictTeam() {
                   const isActive = checkActiveStatus(user.is_active);
 
                   return (
-                    <tr key={rowKey} className="hover:bg-gray-50">
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-900">
+                    <tr key={rowKey} className="hover:bg-[var(--text-color)]/5">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-color)]">
                         {startIndex + index + 1}
                       </td>
-                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                       <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)]">
                         {user.user_id}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)]">
                         {user.user_state}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)]">
                         {user.user_district}
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm font-medium text-gray-900">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm font-medium text-[var(--text-color)]">
                         {user.user_role || "N/A"}
                       </td>
                      
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)] hidden md:table-cell">
                         {user.email}
                       </td>
 
@@ -479,7 +482,7 @@ export default function DistrictTeam() {
                           {isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-gray-600">
+                      <td className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)]">
                         <div className="relative inline-block text-left">
                           <button
                             type="button"
@@ -488,14 +491,14 @@ export default function DistrictTeam() {
                                 prev === rowKey ? null : rowKey
                               )
                             }
-                            className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                             aria-haspopup="true"
                             aria-expanded={openMenuId === rowKey}
                             title="More actions"
                           >
                             {togglingUserId === rowKey ? (
                               <svg
-                                className="animate-spin h-4 w-4 text-gray-500"
+                                className="animate-spin h-4 w-4 text-[var(--text-secondary)]"
                                 fill="none"
                                 viewBox="0 0 24 24"
                               >
@@ -515,7 +518,7 @@ export default function DistrictTeam() {
                               </svg>
                             ) : (
                               <svg
-                                className="w-5 h-5 text-gray-500"
+                                className="w-5 h-5 text-[var(--text-secondary)]"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -525,14 +528,14 @@ export default function DistrictTeam() {
                           </button>
 
                           {openMenuId === rowKey && (
-                            <div className="absolute right-0 z-10 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 overflow-hidden">
+                            <div className="absolute right-0 z-10 mt-2 w-44 rounded-lg shadow-lg bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden">
                               <div className="py-1" role="menu">
                                 <button
                                   type="button"
                                   disabled={isActive}
                                   className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${isActive
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-green-700 hover:bg-gray-50"
+                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
+                                    : "text-green-700 hover:bg-[var(--text-color)]/5"
                                     }`}
                                   onClick={() =>
                                     handleToggleStatus(user, true, rowKey)
@@ -552,14 +555,14 @@ export default function DistrictTeam() {
                                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                     />
                                   </svg>
-                                  Mark Active
+                                  {t("districtTeam.Mark_Active")}
                                 </button>
                                 <button
                                   type="button"
                                   disabled={!isActive}
                                   className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${!isActive
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-orange-700 hover:bg-gray-50"
+                                    ? "text-[var(--text-secondary)] cursor-not-allowed"
+                                    : "text-orange-700 hover:bg-[var(--text-color)]/5"
                                     }`}
                                   onClick={() =>
                                     handleToggleStatus(user, false, rowKey)
@@ -579,7 +582,7 @@ export default function DistrictTeam() {
                                       d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
                                     />
                                   </svg>
-                                  Mark Inactive
+                                  {t("districtTeam.Mark_Inactive")}
                                 </button>
                               </div>
                             </div>
@@ -596,23 +599,23 @@ export default function DistrictTeam() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Previous
+              {t("districtTeam.Previous")}
             </button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+            <span className="text-sm text-[var(--text-secondary)]">
+              {t("districtTeam.Page")} {currentPage} {t("districtTeam.of")} {totalPages} ({filteredUsers.length} {t("districtTeam.users")})
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Next
+              {t("districtTeam.Next")}
             </button>
           </div>
         )}
@@ -620,3 +623,6 @@ export default function DistrictTeam() {
     </div>
   );
 }
+
+
+

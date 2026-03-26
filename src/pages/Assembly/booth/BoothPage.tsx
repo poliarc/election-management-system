@@ -307,11 +307,11 @@
 //   };
 
 //   return (
-//     <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
+//     <div className="p-6 rounded-2xl shadow-md bg-[var(--bg-main)] w-full">
 //       {!showForm ? (
 //         <>
 //           <div className="flex items-center justify-between mb-6">
-//             <h1 className="text-xl font-bold text-gray-800">Booth List</h1>
+//             <h1 className="text-xl font-bold text-[var(--text-color)]">Booth List</h1>
 //             <div className="flex gap-3">
 //               <button
 //                 onClick={() => setShowBulkUpload(true)}
@@ -339,7 +339,7 @@
 //                 type="text"
 //                 value={loggedInUser?.state || ""}
 //                 disabled
-//                 className="w-full px-4 py-2 border rounded bg-gray-100 text-gray-600 placeholder-gray-400"
+//                 className="w-full px-4 py-2 border rounded bg-gray-100 text-[var(--text-secondary)] placeholder-gray-400"
 //                 placeholder="State"
 //               />
 //             </div>
@@ -350,7 +350,7 @@
 //                 type="text"
 //                 value={loggedInUser?.district || ""}
 //                 disabled
-//                 className="w-full px-4 py-2 border rounded bg-gray-100 text-gray-600 placeholder-gray-400"
+//                 className="w-full px-4 py-2 border rounded bg-gray-100 text-[var(--text-secondary)] placeholder-gray-400"
 //                 placeholder="District"
 //               />
 //             </div>
@@ -360,7 +360,7 @@
 //               <select
 //                 value={selectedAssemblyId}
 //                 disabled
-//                 className="w-full px-4 py-2 border rounded bg-gray-200 text-black appearance-none"
+//                 className="w-full px-4 py-2 border rounded bg-gray-200 text-[var(--text-color)] appearance-none"
 //               >
 //                 <option value={selectedAssemblyId}>
 //                   {loggedInUser?.assembly}
@@ -433,7 +433,7 @@
 //             <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
 //               <label
 //                 htmlFor="showCount"
-//                 className="font-medium text-gray-700 whitespace-nowrap"
+//                 className="font-medium text-[var(--text-secondary)] whitespace-nowrap"
 //               >
 //                 Show Result
 //               </label>
@@ -462,14 +462,14 @@
 //       ) : (
 //         <>
 //           <div className="mb-6 flex items-center justify-between">
-//             <h2 className="text-2xl font-bold text-gray-800">
+//             <h2 className="text-2xl font-bold text-[var(--text-color)]">
 //               {editingIndex !== null ? "Edit" : "Create New"} Booth User
 //             </h2>
 
 //             <button
 //               type="button"
 //               onClick={handleCancel}
-//               className="flex items-center text-gray-600 hover:text-gray-900"
+//               className="flex items-center text-[var(--text-secondary)] hover:text-[var(--text-color)]"
 //             >
 //               <ArrowLeft className="w-5 h-5 mr-2" />
 //               Back
@@ -515,3 +515,5 @@ import BoothList from "./BoothList";
 export default function AssemblyBoothPage() {
     return <BoothList />;
 } 
+
+

@@ -114,16 +114,16 @@ export default function ForgotPasswordPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/5 rounded-full blur-2xl animate-ping"></div>
+          <div className="absolute top-20 left-20 w-72 h-72 bg-[var(--bg-card)]/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-[var(--bg-card)]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[var(--bg-card)]/5 rounded-full blur-2xl animate-ping"></div>
         </div>
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
           <div className="max-w-md space-y-6 animate-fade-in">
             {/* Logo/Icon */}
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-8 animate-bounce-slow">
+            <div className="w-20 h-20 bg-[var(--bg-card)]/20 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-8 animate-bounce-slow">
               <svg
                 className="w-12 h-12"
                 fill="currentColor"
@@ -171,25 +171,25 @@ export default function ForgotPasswordPage() {
             {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-110 transition-transform duration-300">
               <span className="text-2xl font-bold text-white">P</span>
             </div> */}
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-[var(--text-color)] dark:text-white mb-2">
               Reset your password
             </h1>
 
           </div>
 
           {/* Card */}
-          <div className="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl p-8 transform hover:shadow-3xl transition-all duration-300">
+          <div className="rounded-3xl border border-[var(--border-color)] dark:border-gray-700 bg-[var(--bg-card)] dark:bg-gray-800 shadow-2xl p-8 transform hover:shadow-3xl transition-all duration-300">
             {/* Entry */}
             {step === "entry" && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
                   Enter your email id or phone number to get OTP for password reset.
                 </p>
                 <input
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="you@example.com or +917551234567"
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  className="w-full rounded-xl border-2 border-[var(--border-color)] dark:border-gray-600 bg-[var(--bg-main)] dark:bg-gray-700 pl-4 py-3 text-sm text-[var(--text-color)] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-[var(--bg-card)] dark:focus:bg-gray-800 transition-all"
                 />
                 {error && (
                   <p className="text-xs text-red-500 dark:text-red-400">
@@ -206,7 +206,7 @@ export default function ForgotPasswordPage() {
                   </button>
                   <button
                     onClick={() => navigate(ROUTES.LOGIN)}
-                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className="px-4 py-3 bg-[var(--bg-card)] dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-[var(--text-secondary)] dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-[var(--text-color)]/5 dark:hover:bg-gray-600 transition-colors"
                   >
                     Back to login
                   </button>
@@ -217,9 +217,9 @@ export default function ForgotPasswordPage() {
             {/* OTP */}
             {step === "otp" && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
                   OTP sent to{" "}
-                  <strong className="text-gray-900 dark:text-white">
+                  <strong className="text-[var(--text-color)] dark:text-white">
                     {maskedIdentifier}
                   </strong>
                   . Enter it below.
@@ -228,7 +228,7 @@ export default function ForgotPasswordPage() {
                   value={otpInput}
                   onChange={(e) => setOtpInput(e.target.value)}
                   placeholder="Enter OTP"
-                  className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  className="w-full rounded-xl border-2 border-[var(--border-color)] dark:border-gray-600 bg-[var(--bg-main)] dark:bg-gray-700 pl-4 py-3 text-sm text-[var(--text-color)] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-[var(--bg-card)] dark:focus:bg-gray-800 transition-all"
                 />
                 {error && (
                   <p className="text-xs text-red-500 dark:text-red-400">
@@ -246,7 +246,7 @@ export default function ForgotPasswordPage() {
                   <button
                     onClick={handleResendOtp}
                     disabled={resendCooldown > 0 || loading}
-                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-3 bg-[var(--bg-card)] dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-[var(--text-secondary)] dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-[var(--text-color)]/5 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                   >
                     {resendCooldown > 0
                       ? `Resend in ${resendCooldown}s`
@@ -254,7 +254,7 @@ export default function ForgotPasswordPage() {
                   </button>
                   <button
                     onClick={() => navigate(ROUTES.LOGIN)}
-                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className="px-4 py-3 bg-[var(--bg-card)] dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-[var(--text-secondary)] dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-[var(--text-color)]/5 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -265,7 +265,7 @@ export default function ForgotPasswordPage() {
             {/* Reset */}
             {step === "reset" && (
               <div className="space-y-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
                   Create a new password for your account.
                 </p>
                 <div className="relative">
@@ -274,12 +274,12 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New password"
                     type={showNewPassword ? "text" : "password"}
-                    className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full rounded-xl border-2 border-[var(--border-color)] dark:border-gray-600 bg-[var(--bg-main)] dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-[var(--text-color)] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-[var(--bg-card)] dark:focus:bg-gray-800 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-secondary)] dark:hover:text-gray-200 transition-colors"
                   >
                     {showNewPassword ? (
                       <svg
@@ -324,12 +324,12 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm password"
                     type={showConfirmPassword ? "text" : "password"}
-                    className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full rounded-xl border-2 border-[var(--border-color)] dark:border-gray-600 bg-[var(--bg-main)] dark:bg-gray-700 pl-4 pr-12 py-3 text-sm text-[var(--text-color)] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:bg-[var(--bg-card)] dark:focus:bg-gray-800 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] dark:text-[var(--text-secondary)] hover:text-[var(--text-secondary)] dark:hover:text-gray-200 transition-colors"
                   >
                     {showConfirmPassword ? (
                       <svg
@@ -383,7 +383,7 @@ export default function ForgotPasswordPage() {
                   </button>
                   <button
                     onClick={() => navigate(ROUTES.LOGIN)}
-                    className="px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className="px-4 py-3 bg-[var(--bg-card)] dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-[var(--text-secondary)] dark:text-gray-200 font-medium rounded-xl text-sm hover:bg-[var(--text-color)]/5 dark:hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -410,7 +410,7 @@ export default function ForgotPasswordPage() {
             )}
           </div>
 
-          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-8 text-center text-sm text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
             © {new Date().getFullYear()}. All rights
             reserved.
           </p>
@@ -419,3 +419,6 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+
+
+

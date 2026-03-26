@@ -45,9 +45,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 shrink-0 h-full border-r border-gray-200 bg-white text-gray-800 flex flex-col">
+    <aside className="w-64 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-color)] flex flex-col transition-all duration-300 ease-in-out [will-change:background-color,color]">
       {/* User header */}
-      <div className="px-4 py-5 border-b border-gray-200">
+      <div className="px-4 py-5 border-b border-[var(--border-color)] transition-colors duration-300 ease-in-out">
         <div className="flex items-center gap-3">
           <img
             src={avatarUrl}
@@ -55,10 +55,10 @@ export function Sidebar() {
             className="h-10 w-10 rounded-full ring-2 ring-indigo-500/20"
           />
           <div className="min-w-0">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--text-secondary)] transition-colors duration-300 ease-in-out">
               {role} Dashboard
             </p>
-            <p className="truncate font-semibold text-gray-900">
+            <p className="truncate font-semibold text-[var(--text-color)] transition-colors duration-300 ease-in-out">
               {firstName}
             </p>
           </div>
@@ -73,22 +73,22 @@ export function Sidebar() {
             to={`${root}/${item.to}`}
             className={({ isActive }) =>
               [
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-300 ease-in-out",
                 isActive
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                  ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                  : "text-[var(--text-color)] hover:bg-[var(--text-color)]/5",
               ].join(" ")
             }
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-gray-400 group-hover:bg-indigo-500 group-[.active]:bg-indigo-600" />
-            <span>{item.label}</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-secondary)] group-hover:bg-[var(--text-color)] group-[.active]:bg-blue-500 transition-colors duration-300 ease-in-out" />
+            <span className="group-hover:text-[var(--text-color)]">{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
       {/* Account section */}
       <div className="mt-auto pt-2 pb-4">
-        <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)] transition-colors duration-300 ease-in-out">
           Account
         </div>
         <div className="px-3 space-y-1">
@@ -96,19 +96,19 @@ export function Sidebar() {
             to={`${root}/profile`}
             className={({ isActive }) =>
               [
-                "block rounded-lg px-3 py-2 text-sm transition-colors",
+                "group block rounded-lg px-3 py-2 text-sm transition-colors duration-300 ease-in-out",
                 isActive
-                  ? "bg-indigo-50 text-indigo-700"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                  ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
               ].join(" ")
             }
           >
-            Profile
+            <span className="group-hover:text-[var(--text-color)]">Profile</span>
           </NavLink>
 
           <button
             onClick={onLogout}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
           >
             Logout
           </button>
@@ -117,3 +117,4 @@ export function Sidebar() {
     </aside>
   );
 }
+

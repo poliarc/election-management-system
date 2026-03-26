@@ -1,7 +1,9 @@
 import { useGetSupporterStatsQuery } from '../../../store/api/supportersApi';
 import { useAppSelector } from '../../../store/hooks';
+import { useTranslation } from "react-i18next";
 
 export default function SupporterStats() {
+  const { t } = useTranslation();
   const { user } = useAppSelector((s) => s.auth);
 
   // Get user ID from localStorage if not available in Redux state
@@ -61,7 +63,7 @@ export default function SupporterStats() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+          <div key={i} className="bg-[var(--bg-card)] rounded-lg shadow p-6 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -73,11 +75,11 @@ export default function SupporterStats() {
   if (error && !isLoading) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600">Failed to load supporter statistics</p>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-red-600">{t("supporterStats.failedToLoadSupporterStatistics")}</p>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
           {error && typeof error === 'object' && 'message' in error
             ? String(error.message)
-            : 'Unable to fetch supporter data. Please try refreshing the page.'}
+            : t("supporterStats.unableToFetchSupporterData")}
         </p>
       </div>
     );
@@ -89,17 +91,17 @@ export default function SupporterStats() {
       <div className="space-y-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-blue-800 text-sm">
-            ℹ️ No supporter data found. Start by adding some supporters.
+            ℹ️ {t("supporterStats.noSupporterDataFound")}
           </p>
         </div>
 
         {/* Main Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Supporters</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">{t("supporterStats.totalSupporters")}</p>
+                <p className="text-3xl font-bold text-[var(--text-color)]">0</p>
               </div>
               <div className="bg-blue-500 rounded-full p-3 text-white text-xl">
                 👥
@@ -113,19 +115,19 @@ export default function SupporterStats() {
 
   const statCards = [
     {
-      title: 'Today',
+      title: t("supporterStats.today"),
       value: stats.today_supporters,
       icon: '📅',
       color: 'bg-indigo-500',
     },
     {
-      title: 'This Week',
+      title: t("supporterStats.thisWeek"),
       value: stats.week_supporters,
       icon: '📊',
       color: 'bg-orange-500',
     },
     {
-      title: 'This Month',
+      title: t("supporterStats.thisMonth"),
       value: stats.month_supporters,
       icon: '📈',
       color: 'bg-teal-500',
@@ -137,11 +139,11 @@ export default function SupporterStats() {
       {/* All Stats Cards in One Row - Responsive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Supporters Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Supporters</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.total_supporters.toLocaleString()}</p>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">{t("supporterStats.totalSupporters")}</p>
+              <p className="text-3xl font-bold text-[var(--text-color)]">{stats.total_supporters.toLocaleString()}</p>
             </div>
             <div className="bg-blue-500 rounded-full p-3 text-white text-xl">
               👥
@@ -151,11 +153,11 @@ export default function SupporterStats() {
 
         {/* Time-based Stats Cards */}
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6">
+          <div key={index} className="bg-[var(--bg-card)] rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value.toLocaleString()}</p>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">{stat.title}</p>
+                <p className="text-2xl font-bold text-[var(--text-color)]">{stat.value.toLocaleString()}</p>
               </div>
               <div className={`${stat.color} rounded-full p-3 text-white text-xl`}>
                 {stat.icon}

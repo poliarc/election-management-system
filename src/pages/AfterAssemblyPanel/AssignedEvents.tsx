@@ -1,25 +1,27 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { AssignedEventsPage } from "../../modules/initative/AssignedEventsPage";
+import { useTranslation } from "react-i18next";
 
 export default function AfterAssemblyAssignedEvents() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const navigate = useNavigate();
   const resolvedLevelId = Number(levelId) || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+    <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-color)] p-1">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-3">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
           <div className="mb-4 flex items-center gap-3">
             <button
               onClick={() =>
                 navigate(`/afterassembly/${resolvedLevelId}/dashboard`)
               }
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
               title="Back to Dashboard"
             >
               <svg
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -33,11 +35,11 @@ export default function AfterAssemblyAssignedEvents() {
               </svg>
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Assigned Events
+              <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                {t("AfterAssemblyAssignedEvents.Title")}
               </h1>
-              <p className="text-sm text-gray-600">
-                After Assembly | View and respond to assigned initiatives
+              <p className="text-sm text-[var(--text-secondary)]">
+                {t("AfterAssemblyAssignedEvents.Desc")}
               </p>
             </div>
           </div>
@@ -51,5 +53,6 @@ export default function AfterAssemblyAssignedEvents() {
     </div>
   );
 }
+
 
 

@@ -391,13 +391,13 @@ export default function VoterCommunication() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[var(--text-color)]">
             Voter Communication
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-[var(--text-secondary)] mt-1">
             Send SMS or WhatsApp messages to voters
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             Search filters query the full voter list, not just the current page.
           </p>
         </div>
@@ -407,7 +407,7 @@ export default function VoterCommunication() {
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               messageType === "SMS"
                 ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
             }`}
           >
             SMS
@@ -417,7 +417,7 @@ export default function VoterCommunication() {
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               messageType === "WhatsApp"
                 ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
             }`}
           >
             WhatsApp
@@ -431,9 +431,9 @@ export default function VoterCommunication() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
+        <div className="p-6 border-b border-[var(--border-color)]">
+          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
             Message Content
           </label>
           <textarea
@@ -448,7 +448,7 @@ export default function VoterCommunication() {
             }
             maxLength={1000}
           />
-          <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
+          <div className="mt-2 flex items-center justify-between text-sm text-[var(--text-secondary)]">
             <span>{message.length}/1000 characters</span>
             <span>
               {totalSelectedContacts} contact
@@ -457,7 +457,7 @@ export default function VoterCommunication() {
           </div>
         </div>
 
-        <div className="p-6 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="p-6 border-b border-[var(--border-color)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="w-full sm:max-w-md">
             <input
               type="text"
@@ -467,10 +467,10 @@ export default function VoterCommunication() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
-          <div className="flex items-center gap-3 text-sm text-gray-700">
+          <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
             <button
               onClick={toggleAllOnPage}
-              className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+              className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-[var(--text-color)]/5 transition"
             >
               {allPageContactsSelected
                 ? "Deselect page contacts"
@@ -484,21 +484,21 @@ export default function VoterCommunication() {
                 ? "Deselect all contacts"
                 : "Select all contacts"}
             </button>
-            <div className="hidden sm:block text-gray-500">
+            <div className="hidden sm:block text-[var(--text-secondary)]">
               {pagination.total.toLocaleString()} total voters
             </div>
           </div>
         </div>
 
         {/* Contact Tabs */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-b border-[var(--border-color)] bg-[var(--bg-main)]">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveContactTab("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeContactTab === "all"
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
               }`}
             >
               All Contacts ({contactCounts.all})
@@ -508,7 +508,7 @@ export default function VoterCommunication() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeContactTab === "contact1"
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
               }`}
             >
               Contact 1 ({contactCounts.contact1})
@@ -518,7 +518,7 @@ export default function VoterCommunication() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeContactTab === "contact2"
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
               }`}
             >
               Contact 2 ({contactCounts.contact2})
@@ -528,7 +528,7 @@ export default function VoterCommunication() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeContactTab === "contact3"
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
               }`}
             >
               Contact 3 ({contactCounts.contact3})
@@ -538,13 +538,13 @@ export default function VoterCommunication() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeContactTab === "contact4"
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
               }`}
             >
               Contact 4 ({contactCounts.contact4})
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-[var(--text-secondary)] mt-2">
             {activeContactTab === "all" 
               ? "Showing all available contact numbers for each voter"
               : `Showing only ${activeContactTab.replace('contact', 'Contact ')} for voters who have this contact number`
@@ -556,69 +556,69 @@ export default function VoterCommunication() {
           {isLoading ? (
             <div className="py-12 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-              <p className="mt-2 text-gray-600">Loading voters...</p>
+              <p className="mt-2 text-[var(--text-secondary)]">Loading voters...</p>
             </div>
           ) : hasFetchError ? (
             <div className="py-12 text-center text-red-600">
               Failed to load voters.
             </div>
           ) : voters.length === 0 ? (
-            <div className="py-12 text-center text-gray-600">
+            <div className="py-12 text-center text-[var(--text-secondary)]">
               No voters found.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--bg-main)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       Part No
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       Name
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       Gender
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       EPIC
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                       Contact Numbers
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                   {voters.map((voter) => {
                     return (
-                      <tr key={voter.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                      <tr key={voter.id} className="hover:bg-[var(--text-color)]/5">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           {voter.part_no || "-"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           <div className="font-medium">
                             {`${voter.voter_first_name_en || ""} ${
                               voter.voter_last_name_en || ""
                             }`.trim() || "-"}
                           </div>
-                          <div className="text-gray-500 text-xs">
+                          <div className="text-[var(--text-secondary)] text-xs">
                             {voter.voter_full_name_hi ||
                               voter.relative_full_name_hi ||
                               ""}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           {voter.gender || "-"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           {voter.voter_id_epic_no || "-"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           {(() => {
                             const contacts = getFilteredContacts(voter);
                             if (contacts.length === 0) {
                               return (
-                                <span className="text-gray-500">
+                                <span className="text-[var(--text-secondary)]">
                                   {activeContactTab === "all" ? "No contacts" : `No ${activeContactTab.replace('contact', 'Contact ')}`}
                                 </span>
                               );
@@ -633,7 +633,7 @@ export default function VoterCommunication() {
                                   return (
                                     <label
                                       key={`${voter.id}-${contact}`}
-                                      className="inline-flex items-center gap-2 px-2 py-1 border rounded-lg text-sm bg-gray-50 hover:bg-gray-100"
+                                      className="inline-flex items-center gap-2 px-2 py-1 border rounded-lg text-sm bg-[var(--bg-main)] hover:bg-[var(--text-color)]/5"
                                     >
                                       <input
                                         type="checkbox"
@@ -643,7 +643,7 @@ export default function VoterCommunication() {
                                         }
                                         className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                                       />
-                                      <span className="font-mono text-gray-800">
+                                      <span className="font-mono text-[var(--text-color)]">
                                         {contact}
                                       </span>
                                     </label>
@@ -663,27 +663,27 @@ export default function VoterCommunication() {
         </div>
 
         {pagination.totalPages > 1 && (
-          <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200">
-            <div className="text-sm text-gray-700 order-2 sm:order-1">
+          <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[var(--border-color)]">
+            <div className="text-sm text-[var(--text-secondary)] order-2 sm:order-1">
               Showing {(page - 1) * limit + 1} to{" "}
               {Math.min(page * limit, pagination.total)} of {pagination.total}{" "}
               results
               {isFetching && (
-                <span className="ml-2 text-gray-500">(updating...)</span>
+                <span className="ml-2 text-[var(--text-secondary)]">(updating...)</span>
               )}
             </div>
             <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 order-1 sm:order-2">
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
-                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="hidden sm:inline">Previous</span>
                 <span className="sm:hidden">‹</span>
               </button>
 
               {/* Mobile: Show only current page and total */}
-              <div className="sm:hidden px-3 py-1 text-sm text-gray-600">
+              <div className="sm:hidden px-3 py-1 text-sm text-[var(--text-secondary)]">
                 {page} / {pagination.totalPages}
               </div>
 
@@ -713,7 +713,7 @@ export default function VoterCommunication() {
                         className={`px-3 py-1 text-sm border rounded-md ${
                           page === pageNum
                             ? "bg-indigo-600 text-white border-indigo-600"
-                            : "border-gray-300 hover:bg-gray-50"
+                            : "border-gray-300 hover:bg-[var(--text-color)]/5"
                         }`}
                       >
                         {pageNum}
@@ -726,7 +726,7 @@ export default function VoterCommunication() {
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === pagination.totalPages}
-                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="hidden sm:inline">Next</span>
                 <span className="sm:hidden">›</span>
@@ -736,8 +736,8 @@ export default function VoterCommunication() {
         )}
 
         {messageType && message.trim() && totalSelectedContacts > 0 && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-gray-700">
+          <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] rounded-b-lg flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-[var(--text-secondary)]">
               Ready to send {messageType} to {totalSelectedContacts} contact
               {totalSelectedContacts !== 1 ? "s" : ""}
             </div>
@@ -758,3 +758,7 @@ export default function VoterCommunication() {
     </div>
   );
 }
+
+
+
+

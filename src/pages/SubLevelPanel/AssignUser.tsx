@@ -282,14 +282,14 @@ export default function SubLevelAssignUser() {
 
   if (!targetId) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
+      <div className="p-6 bg-[var(--bg-main)] min-h-screen">
+        <div className="max-w-4xl mx-auto bg-[var(--bg-card)] rounded-lg shadow-md p-6 text-center">
           <p className="text-red-600 font-semibold">Invalid target to assign</p>
           <button
             onClick={() =>
               navigate(`/sublevel/${resolvedLevelId}/child-hierarchy`)
             }
-            className="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+            className="mt-4 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300"
           >
             Back
           </button>
@@ -301,17 +301,17 @@ export default function SubLevelAssignUser() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-3">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
           <div className="mb-3 flex items-center gap-3">
             <button
               onClick={() =>
                 navigate(`/sublevel/${resolvedLevelId}/child-hierarchy`)
               }
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
               title="Back to Levels"
             >
               <svg
-                className="w-5 h-5 text-gray-600"
+                className="w-5 h-5 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -325,21 +325,21 @@ export default function SubLevelAssignUser() {
               </svg>
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Assign Users</h1>
-              <p className="text-sm text-gray-600">
+              <h1 className="text-2xl font-bold text-[var(--text-color)]">Assign Users</h1>
+              <p className="text-sm text-[var(--text-secondary)]">
                 {targetName || "Level"} | Sub Level
               </p>
             </div>
           </div>
 
           <div className="mb-1">
-            <div className="border-b border-gray-200">
+            <div className="border-b border-[var(--border-color)]">
               <nav className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab("assign")}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "assign"
                     ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
                     }`}
                 >
                   Available Users
@@ -348,7 +348,7 @@ export default function SubLevelAssignUser() {
                   onClick={() => setActiveTab("assigned")}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "assigned"
                     ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
                     }`}
                 >
                   Assigned Users ({assignedUsers.length})
@@ -376,16 +376,16 @@ export default function SubLevelAssignUser() {
               {loadingUsers ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">Loading users...</p>
+                  <p className="mt-2 text-[var(--text-secondary)]">Loading users...</p>
                 </div>
               ) : filteredUsers.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-[var(--text-secondary)]">
                   <p>No users found</p>
                 </div>
               ) : (
                 <>
                   <div className="mb-1 flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       {selectedUsers.length} user(s) selected | {userTotalCount}{" "}
                       total users
                     </div>
@@ -398,7 +398,7 @@ export default function SubLevelAssignUser() {
                     </button>
                   </div>
 
-                  <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                  <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                     <div className="divide-y divide-gray-200">
                       {filteredUsers.map((u) => {
                         const isSelected = selectedUsers.includes(u.user_id);
@@ -428,7 +428,7 @@ export default function SubLevelAssignUser() {
                               />
                               <div className="ml-3 flex-1">
                                 <div className="flex items-center gap-2">
-                                  <p className="font-medium text-gray-900">
+                                  <p className="font-medium text-[var(--text-color)]">
                                     {u.first_name} {u.last_name}
                                   </p>
                                   {isAlreadyAssigned && (
@@ -437,13 +437,13 @@ export default function SubLevelAssignUser() {
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-[var(--text-secondary)]">
                                   {u.districtName || 'No district assigned'}
                                 </p>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-[var(--text-secondary)]">
                                   {u.email}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {u.role} | ID: {u.user_id}
                                 </p>
                               </div>
@@ -457,7 +457,7 @@ export default function SubLevelAssignUser() {
                   {userTotalPages > 1 && (
                     <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                       {/* Results info - hidden on mobile, shown on larger screens */}
-                      <div className="hidden sm:block text-sm text-gray-700 order-1 sm:order-none">
+                      <div className="hidden sm:block text-sm text-[var(--text-secondary)] order-1 sm:order-none">
                         Showing {paginationTextStart} to {paginationTextEnd} of{" "}
                         {userTotalCount} results
                       </div>
@@ -471,7 +471,7 @@ export default function SubLevelAssignUser() {
                             loadAvailableUsers(next, searchTerm);
                           }}
                           disabled={currentPage === 1}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Prev
                         </button>
@@ -494,7 +494,7 @@ export default function SubLevelAssignUser() {
                                 }}
                                 className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded-md min-w-[32px] ${currentPage === pageNum
                                   ? "bg-blue-600 text-white border-blue-600"
-                                  : "border-gray-300 hover:bg-gray-50"
+                                  : "border-gray-300 hover:bg-[var(--text-color)]/5"
                                   }`}
                               >
                                 {pageNum}
@@ -513,14 +513,14 @@ export default function SubLevelAssignUser() {
                             loadAvailableUsers(next, searchTerm);
                           }}
                           disabled={currentPage === userTotalPages}
-                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Next
                         </button>
                       </div>
 
                       {/* Results info for mobile - shown below pagination */}
-                      <div className="sm:hidden text-xs text-gray-600 text-center order-3">
+                      <div className="sm:hidden text-xs text-[var(--text-secondary)] text-center order-3">
                         {paginationTextStart}-{paginationTextEnd} of {userTotalCount}
                       </div>
                     </div>
@@ -540,7 +540,7 @@ export default function SubLevelAssignUser() {
                           `/sublevel/${resolvedLevelId}/child-hierarchy`
                         )
                       }
-                      className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                      className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                     >
                       Cancel
                     </button>
@@ -553,14 +553,14 @@ export default function SubLevelAssignUser() {
               {loadingAssigned ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">
+                  <p className="mt-2 text-[var(--text-secondary)]">
                     Loading assigned users...
                   </p>
                 </div>
               ) : assignedUsers.length === 0 ? (
                 <div className="text-center py-8">
                   <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
+                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -572,34 +572,34 @@ export default function SubLevelAssignUser() {
                       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                     />
                   </svg>
-                  <p className="mt-2 text-gray-500 font-medium">
+                  <p className="mt-2 text-[var(--text-secondary)] font-medium">
                     No users assigned
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-[var(--text-secondary)]">
                     Use the "Assign Users" tab to add users to this level.
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="mb-4 text-sm text-gray-600">
+                  <div className="mb-4 text-sm text-[var(--text-secondary)]">
                     {assignedUsers.length} user(s) currently assigned
                   </div>
-                  <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                  <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                     <div className="divide-y divide-gray-200">
                       {assignedUsers.map((u) => (
-                        <div key={u.user_id} className="p-4 hover:bg-gray-50">
+                        <div key={u.user_id} className="p-4 hover:bg-[var(--text-color)]/5">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-[var(--text-color)]">
                                 {u.first_name} {u.last_name}
                               </p>
-                              <p className="text-sm text-gray-600">{u.email}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-sm text-[var(--text-secondary)]">{u.email}</p>
+                              <p className="text-xs text-[var(--text-secondary)]">
                                 {u.mobile_number || u.contact_no}
                               </p>
                               <div className="mt-1 flex items-center gap-2">
                                 {u.assigned_at && (
-                                  <span className="text-xs text-gray-400">
+                                  <span className="text-xs text-[var(--text-secondary)]">
                                     Assigned:{" "}
                                     {new Date(
                                       u.assigned_at
@@ -635,7 +635,7 @@ export default function SubLevelAssignUser() {
                           `/sublevel/${resolvedLevelId}/child-hierarchy`
                         )
                       }
-                      className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                      className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
                     >
                       Back to Levels
                     </button>
@@ -649,3 +649,5 @@ export default function SubLevelAssignUser() {
     </div>
   );
 }
+
+

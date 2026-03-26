@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import type { HierarchyUser } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 type HierarchyNode = Record<string, any>;
 type BlockResult = { assembly: HierarchyNode; blocks: HierarchyNode[] };
@@ -14,6 +15,7 @@ type MandalResult = {
 };
 
 export default function DistrictBoothList() {
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
   const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
@@ -529,20 +531,20 @@ export default function DistrictBoothList() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Booth List
+                {t("districtBooth.Booth_List")}
               </h1>
               <p className="text-purple-100 text-xs sm:text-sm mt-1">
-                District: {districtInfo.districtName} | State:{" "}
+                {t("districtBooth.District")}: {districtInfo.districtName} | {t("districtBooth.State")}:{" "}
                 {districtInfo.stateName}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
               {/* Total Booths Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Booths
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBooth.Total_Booths")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold mt-1">
                     {booths.length}
@@ -566,10 +568,10 @@ export default function DistrictBoothList() {
               </div>
 
               {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBooth.Total_Users")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {booths.reduce(
@@ -597,7 +599,7 @@ export default function DistrictBoothList() {
 
               {/* Booths Without Users Card */}
               <div
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                   booths.filter((booth) => (booth.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105"
@@ -618,11 +620,11 @@ export default function DistrictBoothList() {
                 }
               >
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Booths Without Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBooth.Booths_Without_Users")}
                     {showBoothsWithoutUsers && (
                       <span className="ml-2 text-orange-600 font-semibold">
-                        (Filtered)
+                        {t("districtBooth.Filtered")}
                       </span>
                     )}
                   </p>
@@ -633,7 +635,7 @@ export default function DistrictBoothList() {
                         ? showBoothsWithoutUsers
                           ? "text-orange-600"
                           : "text-red-600"
-                        : "text-gray-400"
+                        : "text-[var(--text-secondary)]"
                     }`}
                   >
                     {
@@ -649,7 +651,7 @@ export default function DistrictBoothList() {
                       ? showBoothsWithoutUsers
                         ? "bg-orange-50"
                         : "bg-red-50"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                   }`}
                 >
                   {booths.filter((booth) => (booth.user_count || 0) === 0)
@@ -685,7 +687,7 @@ export default function DistrictBoothList() {
                     )
                   ) : (
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -705,33 +707,33 @@ export default function DistrictBoothList() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.State")}
               </label>
               <input
                 type="text"
                 value={districtInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                District
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.District")}
               </label>
               <input
                 type="text"
                 value={districtInfo.districtName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.Select_Assembly")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -744,7 +746,7 @@ export default function DistrictBoothList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                <option value={0}>All Assemblies</option>
+                <option value={0}>{t("districtBooth.All_Assemblies")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -756,8 +758,8 @@ export default function DistrictBoothList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.Select_Block")}
               </label>
               <select
                 value={selectedBlockId}
@@ -770,7 +772,7 @@ export default function DistrictBoothList() {
                 disabled={selectedAssemblyId === 0}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Blocks</option>
+                <option value={0}>{t("districtBooth.All_Blocks")}</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -779,8 +781,8 @@ export default function DistrictBoothList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Mandal
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.Select_Mandal")}
               </label>
               <select
                 value={selectedMandalId}
@@ -792,7 +794,7 @@ export default function DistrictBoothList() {
                 disabled={selectedBlockId === 0}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Mandals</option>
+                <option value={0}>{t("districtBooth.All_Mandals")}</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -801,8 +803,8 @@ export default function DistrictBoothList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Polling Center
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBooth.Select_Polling_Center")}
               </label>
               <select
                 value={selectedPollingCenterId}
@@ -813,7 +815,7 @@ export default function DistrictBoothList() {
                 disabled={selectedMandalId === 0}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Polling Centers</option>
+                <option value={0}>{t("districtBooth.All_Polling_Centers")}</option>
                 {pollingCenters.map((pc) => (
                   <option key={pc.id} value={pc.id}>
                     {pc.displayName}
@@ -823,13 +825,13 @@ export default function DistrictBoothList() {
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Booths
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              {t("districtBooth.Search_Booths")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
-                  className="w-5 h-5 text-gray-400"
+                  className="w-5 h-5 text-[var(--text-secondary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -874,19 +876,19 @@ export default function DistrictBoothList() {
                     />
                   </svg>
                   <span className="text-sm font-medium text-orange-800">
-                    Showing only booths without users (
+                    {t("districtBooth.Desc")}
                     {
                       booths.filter((booth) => (booth.user_count || 0) === 0)
                         .length
                     }{" "}
-                    booths)
+                    {t("districtBooth.Desc1")}
                   </span>
                 </div>
                 <button
                   onClick={handleBoothsWithoutUsersClick}
                   className="text-orange-600 hover:text-orange-800 text-sm font-medium"
                 >
-                  Clear Filter
+                  {t("districtBooth.Clear_Filter")}
                 </button>
               </div>
             </div>
@@ -894,16 +896,16 @@ export default function DistrictBoothList() {
         </div>
 
         {/* Booth List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {isLoadingAllBooths ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-              <p className="mt-4 text-gray-600">Loading booths...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("districtBooth.Loading_booths")}</p>
             </div>
           ) : filteredBooths.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -915,7 +917,7 @@ export default function DistrictBoothList() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">No booths found</p>
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("districtBooth.No_booths_found")}</p>
             </div>
           ) : (
             <>
@@ -923,53 +925,53 @@ export default function DistrictBoothList() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-purple-50 to-purple-100 sticky top-0">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        S.No
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtBooth.S_No")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                         {booths.length > 0 && booths[0].pollingCenterName
                           ? "Polling Center"
                           : booths.length > 0 && booths[0].mandalName
                           ? "Mandal"
                           : "Parent Location"}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Level Type
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtBooth.Level_Type")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Display Name
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtBooth.Display_Name")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Users
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtBooth.Users")}
                       </th>
-                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                         Status
                       </th> */}
-                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {/* <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Created Date
                                             </th>*/}
-                      {/* <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      {/* <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                         Actions
                       </th> */}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {paginatedBooths.map((booth, index) => (
                       <>
                         <tr
                           key={booth.id}
                           className="hover:bg-purple-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 font-medium">
+                            <div className="text-sm text-[var(--text-color)] font-medium">
                               {booth.pollingCenterName ||
                                 booth.mandalName ||
                                 "N/A"}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-[var(--text-secondary)]">
                               {booth.pollingCenterName
                                 ? "Polling Center"
                                 : "Mandal"}
@@ -977,7 +979,7 @@ export default function DistrictBoothList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              Booth
+                              {t("districtBooth.Booth")}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -998,10 +1000,10 @@ export default function DistrictBoothList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {booth.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {booth.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -1042,7 +1044,7 @@ export default function DistrictBoothList() {
                                   />
                                 </svg>
                               </button>
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)]">
                                 {booth.user_count || 0}
                               </span>
                             </div>
@@ -1125,26 +1127,26 @@ export default function DistrictBoothList() {
 
               {/* Pagination */}
               {filteredBooths.length > 0 && (
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       <span>
-                        Showing{" "}
+                        {t("districtBooth.Showing")}{" "}
                         <span className="font-semibold">
                           {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
-                        to{" "}
+                        {t("districtBooth.to")}{" "}
                         <span className="font-semibold">
                           {Math.min(
                             currentPage * itemsPerPage,
                             filteredBooths.length
                           )}
                         </span>{" "}
-                        of{" "}
+                        {t("districtBooth.of")}{" "}
                         <span className="font-semibold">
                           {filteredBooths.length}
                         </span>{" "}
-                        results
+                        {t("districtBooth.results")}
                       </span>
                     </div>
                     <div className="flex gap-2">
@@ -1153,12 +1155,12 @@ export default function DistrictBoothList() {
                           setCurrentPage((prev) => Math.max(1, prev - 1))
                         }
                         disabled={currentPage === 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("districtBooth.Previous")}
                       </button>
-                      <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                        Page {currentPage} of {totalPages}
+                      <span className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+                        {t("districtBooth.Page")} {currentPage} {t("districtBooth.of")} {totalPages}
                       </span>
                       <button
                         onClick={() =>
@@ -1167,9 +1169,9 @@ export default function DistrictBoothList() {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("districtBooth.Next")}
                       </button>
                     </div>
                   </div>
@@ -1182,3 +1184,6 @@ export default function DistrictBoothList() {
     </div>
   );
 }
+
+
+
