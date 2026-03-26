@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppSelector } from "../store/hooks";
 import { sendOtp, verifyOtpAndResetPasswordPhone } from "../services/passwordResetApi";
+import { useTranslation } from "react-i18next";
 
 export default function UpdatePasswordPage() {
+  const {t} =useTranslation();
   const navigate = useNavigate();
   const user = useAppSelector((s) => s.auth.user);
 
@@ -96,18 +98,18 @@ export default function UpdatePasswordPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-76px)] bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-4 py-6">
+    <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-main)] px-4 py-6">
 
       <div className="mx-auto max-w-xl">
 
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              Update Password
+            <h1 className="text-xl font-semibold text-[var(--text-main)]">
+              {t("UpdatePasswordPage.Title")}
             </h1>
-            <p className="text-sm text-slate-600">
-              Change your account password securely
+            <p className="text-sm text-[var(--text-secondary)]">
+              {t("UpdatePasswordPage.Desc")}
             </p>
           </div>
 
@@ -120,11 +122,11 @@ export default function UpdatePasswordPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5 shadow-sm">
 
           {/* Phone Info */}
-          <div className="mb-5 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm text-indigo-800">
-            OTP will be sent to:{" "}
+          <div className="mb-5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-color)] px-3 py-2 text-sm text-[var(--text-secondary)]">
+            {t("UpdatePasswordPage.Desc1")}{" "}
             <span className="font-semibold">{maskedPhone || "Not available"}</span>
           </div>
 
@@ -132,8 +134,8 @@ export default function UpdatePasswordPage() {
 
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                New Password
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
+                {t("UpdatePasswordPage.New_Password")}
               </label>
 
               <div className="relative">
@@ -149,8 +151,8 @@ export default function UpdatePasswordPage() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Confirm Password
+              <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
+                {t("UpdatePasswordPage.Confirm_Password")}
               </label>
 
               <div className="relative">
@@ -188,7 +190,7 @@ export default function UpdatePasswordPage() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Enter OTP
+                    {t("UpdatePasswordPage.Enter_OTP")}
                   </label>
 
                   <input

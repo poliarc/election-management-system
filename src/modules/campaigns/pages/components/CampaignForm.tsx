@@ -878,19 +878,19 @@ export const CampaignForm = ({
           {/* Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+              <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1">
                 {t("stateCampaign.Start_Date")}
               </label>
               <input
                 type="date"
                 {...register("start_date")}
                 min={new Date().toISOString().split("T")[0]}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg [&::-webkit-calendar-picker-indicator]:cursor-pointer  focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.start_date ? "border-red-300" : "border-gray-300"
                 }`}
               />
               {errors.start_date && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1 ">
                   {errors.start_date.message}
                 </p>
               )}
@@ -903,7 +903,7 @@ export const CampaignForm = ({
                 type="date"
                 {...register("end_date")}
                 min={new Date().toISOString().split("T")[0]}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 border rounded-lg [&::-webkit-calendar-picker-indicator]:cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.end_date ? "border-red-300" : "border-gray-300"
                 }`}
               />
@@ -936,7 +936,7 @@ export const CampaignForm = ({
           </div>
 
           {/* Cascading Dropdowns for Category Selection */}
-          <div className="p-4 border rounded-xl bg-gray-100 mb-4">
+          <div className="p-4 border rounded-xl bg-[var(--bg-card)] mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-[var(--text-color)]">
                 {t("stateCampaign.Select_Categories")}
@@ -955,7 +955,7 @@ export const CampaignForm = ({
                 className="bg-[var(--bg-color)] p-4 rounded-lg shadow-sm border mb-4"
               >
                 {/* Individual Auto-Include Toggle */}
-                <div className="flex items-center justify-between mb-4 p-3 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-4 p-3 bg-linear-to-r bg-[var(--bg-card)] rounded-lg border border-blue-200">
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-[var(--text-color)] mb-1">
                       {t("stateCampaign.Auto_Include_Subordinates")} ({t("stateCampaign.Row")} {idx + 1})
@@ -964,7 +964,7 @@ export const CampaignForm = ({
                       {t("stateCampaign.Desc1")}
                     </p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex  items-center">
                     <input
                       type="checkbox"
                       className="sr-only peer"
@@ -995,8 +995,8 @@ export const CampaignForm = ({
                   {/* District Dropdown with Checkboxes - Hide if user is at District level or below */}
                   {userLevelType !== "District" &&
                     userLevelType !== "Assembly" && (
-                      <div className="relative">
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                      <div className="relative ">
+                        <label className="block text-sm font-medium  text-[var(--text-secondary)] mb-2">
                           {t("stateCampaign.District")} ({sel.district_ids.length})
                         </label>
                         <button
@@ -1024,7 +1024,7 @@ export const CampaignForm = ({
                             {!loadingHierarchy &&
                               !hierarchyError &&
                               districtsData.length > 0 && (
-                                <label className="flex items-center px-3 py-2 bg-blue-50 border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
+                                <label className="flex items-center px-3 py-2 bg-[var(--bg-card)] border-b border-blue-200 hover:bg-blue-100  sticky top-0">
                                   <input
                                     type="checkbox"
                                     checked={
@@ -1048,7 +1048,7 @@ export const CampaignForm = ({
                                     }}
                                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                   />
-                                  <span className="ml-2 text-sm font-semibold text-blue-700">
+                                  <span className="ml-2 text-sm font-semibold  text-blue-700">
                                     {t("stateCampaign.Select_All")}
                                   </span>
                                 </label>
@@ -1056,7 +1056,7 @@ export const CampaignForm = ({
                             {districtsData.map((district) => (
                               <label
                                 key={district.id}
-                                className="flex items-center px-3 py-2 hover:bg-[var(--bg-color)] cursor-pointer"
+                                className="flex items-center px-3 py-2 hover:bg-[var(--bg-color)] bg-[var(--bg-card)] "
                               >
                                 <input
                                   type="checkbox"
@@ -1092,7 +1092,7 @@ export const CampaignForm = ({
                   {/* Assembly Dropdown with Checkboxes - Hide if user is at Assembly level */}
                   {userLevelType !== "Assembly" && (
                     <div className="relative">
-                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                      <label className="block text-sm font-medium  text-[var(--text-secondary)] mb-2">
                         {t("stateCampaign.Assembly")} ({sel.assembly_ids.length})
                       </label>
                       <button
@@ -1105,7 +1105,7 @@ export const CampaignForm = ({
                           userLevelType !== "District" &&
                           sel.district_ids.length === 0
                         }
-                        className="w-full px-3 py-2 border rounded-lg text-left bg-[var(--bg-color)] hover:bg-[var(--bg-color)] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full px-3 py-2 border rounded-lg text-left bg-[var(--bg-color)] hover:bg-[var(--bg-hover)] disabled:bg-[var(--bg-hover)] text-[var(--text-primary)] border border-[var(--border-color)] disabled:cursor-not-allowed"
                       >
                         {sel.assembly_ids.length > 0
                           ? `${sel.assembly_ids.length} selected`
@@ -1120,7 +1120,7 @@ export const CampaignForm = ({
                           sel.district_ids.length > 0) && (
                           <div
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute z-20 w-full mt-1 bg-[var(--bg-color)] border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                            className="absolute z-20 w-full mt-1 bg-[var(--bg-card)] border rounded-lg shadow-lg max-h-48 overflow-y-auto"
                           >
                             {(() => {
                               const assemblies =
@@ -1132,7 +1132,7 @@ export const CampaignForm = ({
                               return (
                                 <>
                                   {assemblies.length > 0 && (
-                                    <label className="flex items-center px-3 py-2 bg-blue-50 border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
+                                    <label className="flex items-center px-3 py-2 bg-[var(--bg-card)] border-b border-blue-200 hover:bg-blue-100 cursor-pointer sticky top-0">
                                       <input
                                         type="checkbox"
                                         checked={
@@ -1327,7 +1327,7 @@ export const CampaignForm = ({
                             toggleDropdown(idx, dropdownName);
                           }}
                           disabled={isDisabled}
-                          className="w-full px-3 py-2 border rounded-lg text-left bg-[var(--bg-color)] hover:bg-[var(--bg-color)] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          className="w-full px-3 py-2 border rounded-lg text-left bg-[var(--bg-color)] hover:bg-[var(--bg-hover)] disabled:bg-[var(--bg-hover)] text-[var(--text-primary)]  border border-[var(--border-color)] disabled:cursor-not-allowed"
                         >
                           {selectedCount > 0
                             ? `${selectedCount} selected`
@@ -1545,7 +1545,7 @@ export const CampaignForm = ({
             <button
               type="button"
               onClick={onCancel}
-              className="bg-gray-200 hover:bg-gray-600 hover:text-white text-[var(--text-secondary)] px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md"
+              className="bg-gray-200 hover:bg-gray-600 hover:text-[var(--text-main)] text-[var(--text-secondary)] px-6 py-2 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md"
             >
               {t("stateCampaign.Cancel")}
             </button>

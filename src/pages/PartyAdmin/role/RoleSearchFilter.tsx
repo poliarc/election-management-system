@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, X, Users } from "lucide-react";
 import type { RoleSearchParams } from "../../../types/role";
+import { useTranslation } from "react-i18next";
 
 interface RoleSearchFilterProps {
   searchParams: RoleSearchParams;
@@ -13,6 +14,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
   onSearchChange,
   totalResults,
 }) => {
+  const {t} = useTranslation();
   const [localSearch, setLocalSearch] = useState(searchParams.search || "");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -73,7 +75,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
             }`}
           >
             <Filter className="w-4 h-4" />
-            Filters
+            {t("RoleSearchFilter.Filters")}
             {hasActiveFilters && (
               <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {[localSearch, searchParams.isActive].filter(Boolean).length}
@@ -88,7 +90,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
               title="Clear all filters"
             >
               <X className="w-4 h-4" />
-              Clear
+              {t("RoleSearchFilter.Clear")}
             </button>
           )}
         </div>
@@ -101,7 +103,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Status
+                {t("RoleSearchFilter.Status")}
               </label>
               <select
                 value={
@@ -121,16 +123,16 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{t("RoleSearchFilter.All_Status")}</option>
+                <option value="active">{t("RoleSearchFilter.Active")}</option>
+                <option value="inactive">{t("RoleSearchFilter.Inactive")}</option>
               </select>
             </div>
 
             {/* Results per page */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Results per page
+                {t("RoleSearchFilter.Results_per_page")}
               </label>
               <select
                 value={searchParams.limit || 100}
@@ -149,7 +151,7 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
             {/* Quick Actions */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Quick Actions
+                {t("RoleSearchFilter.Quick_Actions")}
               </label>
               <div className="flex gap-2">
                 <button
@@ -157,14 +159,14 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
                   className="flex items-center gap-1 px-3 py-2 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
                 >
                   <Users className="w-3 h-3" />
-                  Active Only
+                  {t("RoleSearchFilter.Active_Only")}
                 </button>
                 <button
                   onClick={() => handleFilterChange("isActive", false)}
                   className="flex items-center gap-1 px-3 py-2 text-xs bg-gray-100 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                 >
                   <Users className="w-3 h-3" />
-                  Inactive Only
+                  {t("RoleSearchFilter.Inactive_Only")}
                 </button>
               </div>
             </div>
@@ -178,13 +180,13 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
           {totalResults > 0 ? (
             <span className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              Showing {totalResults} role{totalResults !== 1 ? "s" : ""}
+              {t("RoleSearchFilter.Showing")} {totalResults} {t("RoleSearchFilter.role")}{totalResults !== 1 ? "s" : ""}
               {hasActiveFilters && " (filtered)"}
             </span>
           ) : (
             <span className="flex items-center gap-1 text-[var(--text-secondary)]">
               <Users className="w-4 h-4" />
-              No roles found
+              {t("RoleSearchFilter.No_roles_found")}
             </span>
           )}
         </div>
@@ -193,11 +195,11 @@ export const RoleSearchFilter: React.FC<RoleSearchFilterProps> = ({
         <div className="hidden sm:flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Active</span>
+            <span>{t("RoleSearchFilter.Active")}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-            <span>Inactive</span>
+            <span>{t("RoleSearchFilter.Inactive")}</span>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import type {
     CreateRegistrationLinkRequest,
     UpdateRegistrationLinkRequest,
 } from "../../../store/api/registrationLinksApi";
+import { useTranslation } from "react-i18next";
 
 interface RegistrationLinkFormProps {
     link?: RegistrationLink | null;
@@ -32,6 +33,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
     partyId,
     partyName,
 }) => {
+    const {t} = useTranslation();
     const isEditing = !!link;
 
     // Fetch state master data
@@ -159,7 +161,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         {/* Party Info - Read Only */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Party
+                                {t("RegistrationLinkForm.Party")}
                             </label>
                             <input
                                 type="text"
@@ -168,18 +170,18 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Party is automatically set for this admin panel
+                                {t("RegistrationLinkForm.Desc")}
                             </p>
                         </div>
 
                         {/* State Selection */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                State *
+                                {t("RegistrationLinkForm.State")}
                             </label>
                             {isLoadingStates ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                    <span className="text-[var(--text-secondary)]">Loading states...</span>
+                                    <span className="text-[var(--text-secondary)]">{t("RegistrationLinkForm.Loading_state")}</span>
                                 </div>
                             ) : (
                                 <select
@@ -189,7 +191,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.state_id ? "border-red-500" : "border-gray-300"
                                         }`}
                                 >
-                                    <option value="">Select a state</option>
+                                    <option value="">{t("RegistrationLinkForm.Select_state")}</option>
                                     {states.map((state) => (
                                         <option key={state.id} value={state.id}>
                                             {state.levelName}
@@ -207,11 +209,11 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         {/* District Selection */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                District (Optional)
+                                {t("RegistrationLinkForm.District_Optional")}
                             </label>
                             {isLoadingStates ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
+                                    <span className="text-[var(--text-secondary)]">{t("RegistrationLinkForm.Loading_districts")}</span>
                                 </div>
                             ) : (
                                 <select
@@ -219,7 +221,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     disabled={!watchStateId}
                                 >
-                                    <option value="">Select a district (optional)</option>
+                                    <option value="">{t("RegistrationLinkForm.Desc1")}</option>
                                     {districts.map((district) => (
                                         <option key={district.id} value={district.id}>
                                             {district.levelName}
@@ -229,11 +231,11 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                             )}
                             {!watchStateId && (
                                 <p className="text-[var(--text-secondary)] text-xs mt-1">
-                                    Please select a state first
+                                    {t("RegistrationLinkForm.Desc2")}
                                 </p>
                             )}
                             <p className="text-[var(--text-secondary)] text-xs mt-1">
-                                Leave empty to allow users to select any district in the state
+                                {t("RegistrationLinkForm.Desc3")}
                             </p>
                         </div>
                     </div>
@@ -244,7 +246,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 <Calendar className="inline w-4 h-4 mr-1" />
-                                Expiration Date & Time
+                                {t("RegistrationLinkForm.Desc4")}
                             </label>
                             <input
                                 type="datetime-local"
@@ -254,7 +256,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                 placeholder={defaultExpiration}
                             />
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Leave empty for default 30-day expiration. Link will be automatically disabled after this date.
+                                {t("RegistrationLinkForm.Desc5")}
                             </p>
                         </div>
 
@@ -262,7 +264,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         {isEditing && (
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
-                                    Link Status
+                                    {t("RegistrationLinkForm.Link_Status")}
                                 </label>
                                 <button
                                     type="button"
@@ -274,21 +276,21 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                                             <>
                                                 <ToggleRight className="w-6 h-6 text-green-500" />
                                                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                    Active
+                                                    {t("RegistrationLinkForm.Active")}
                                                 </span>
                                             </>
                                         ) : (
                                             <>
                                                 <ToggleLeft className="w-6 h-6 text-[var(--text-secondary)]" />
                                                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-[var(--text-color)]">
-                                                    Inactive
+                                                    {t("RegistrationLinkForm.Inactive")}
                                                 </span>
                                             </>
                                         )}
                                     </div>
                                     <div className="flex-1 text-left">
                                         <p className="text-sm text-[var(--text-secondary)]">
-                                            Click to {watchIsActive ? "deactivate" : "activate"} this link
+                                            {t("RegistrationLinkForm.Click_to")} {watchIsActive ? "deactivate" : "activate"} {t("RegistrationLinkForm.this_link")}
                                         </p>
                                     </div>
                                 </button>
@@ -297,13 +299,13 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
 
                         {/* Link Preview Info */}
                         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                            <h3 className="font-medium text-blue-900 mb-2">Link Behavior</h3>
+                            <h3 className="font-medium text-blue-900 mb-2">{t("RegistrationLinkForm.Link_Behavior")}</h3>
                             <div className="space-y-1 text-sm text-blue-800">
-                                <p>• Users will see a registration form</p>
-                                <p>• Party and state will be pre-filled and disabled</p>
-                                <p>• District will be {watchStateId && districts.find(d => d.id === Number(watch("district_id"))) ? "pre-filled and disabled" : "selectable from the state"}</p>
-                                <p>• Users must complete personal information</p>
-                                <p>• Account will be created automatically</p>
+                                <p>• {t("RegistrationLinkForm.Desc6")}</p>
+                                <p>• {t("RegistrationLinkForm.Desc7")}</p>
+                                <p>• {t("RegistrationLinkForm.Desc8")} {watchStateId && districts.find(d => d.id === Number(watch("district_id"))) ? "pre-filled and disabled" : "selectable from the state"}</p>
+                                <p>• {t("RegistrationLinkForm.Desc9")}</p>
+                                <p>• {t("RegistrationLinkForm.Desc10")}</p>
                             </div>
                         </div>
                     </div>
@@ -316,7 +318,7 @@ export const RegistrationLinkForm: React.FC<RegistrationLinkFormProps> = ({
                         onClick={onCancel}
                         className="px-6 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                     >
-                        Cancel
+                        {t("RegistrationLinkForm.Cancel")}
                     </button>
                     <button
                         type="submit"

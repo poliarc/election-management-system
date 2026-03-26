@@ -301,7 +301,7 @@ export default function AssemblyForm20() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+    <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-card)]/10 p-1">
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl shadow-lg p-6 mb-6 text-white">

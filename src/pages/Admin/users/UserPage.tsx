@@ -257,7 +257,7 @@ export const UserPage: React.FC = () => {
   //   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-1">
+    <div className="min-h-screen bg-[var(--bg-color)] p-1">
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-1">

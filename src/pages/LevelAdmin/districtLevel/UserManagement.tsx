@@ -12,8 +12,10 @@ import {
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 
 import type { HierarchyChild } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function DistrictUserManagement() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -302,7 +304,7 @@ export default function DistrictUserManagement() {
     return (
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("DistrictUserManagement.Desc")}</p>
         </div>
       </div>
     );
@@ -311,9 +313,9 @@ export default function DistrictUserManagement() {
   return (
     <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 text-white mb-1">
-        <h1 className="text-3xl font-bold">District User Management</h1>
+        <h1 className="text-3xl font-bold">{t("DistrictUserManagement.Title")}</h1>
         <p className="text-purple-100 mt-2">
-          Manage users for districts in {currentPanel.metadata?.stateName} -{" "}
+          {t("DistrictUserManagement.Desc1")} {currentPanel.metadata?.stateName} -{" "}
           {currentPanel.metadata?.partyName}
         </p>
       </div>
@@ -324,7 +326,7 @@ export default function DistrictUserManagement() {
           <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
             <div className="p-4 border-b border-[var(--border-color)]">
               <h2 className="text-lg font-bold text-[var(--text-color)] mb-3">
-                Districts
+                {t("DistrictUserManagement.Districts")}
               </h2>
               {/* District Search */}
               <input
@@ -342,7 +344,7 @@ export default function DistrictUserManagement() {
                 </div>
               ) : filteredDistricts.length === 0 ? (
                 <div className="p-6 text-center text-[var(--text-secondary)]">
-                  No districts found
+                  {t("DistrictUserManagement.No_districts_found")}
                 </div>
               ) : (
                 filteredDistricts.map((district) => (
@@ -363,8 +365,8 @@ export default function DistrictUserManagement() {
                           {district.location_name}
                         </p>
                         <p className="text-sm text-[var(--text-secondary)] mt-1">
-                          {district.total_users} users ({district.active_users}{" "}
-                          active)
+                          {district.total_users} {t("DistrictUserManagement.users")} ({district.active_users}{" "}
+                          {t("DistrictUserManagement.active")})
                         </p>
                       </div>
                     </div>
@@ -398,7 +400,7 @@ export default function DistrictUserManagement() {
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <p className="text-[var(--text-secondary)]">Select a district to manage users</p>
+              <p className="text-[var(--text-secondary)]">{t("DistrictUserManagement.Desc2")}</p>
             </div>
           ) : (
             <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
@@ -431,22 +433,22 @@ export default function DistrictUserManagement() {
                     <thead className="bg-[var(--bg-main)]">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          S.No
+                          {t("DistrictUserManagement.S_No")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Name
+                          {t("DistrictUserManagement.Name")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Email
+                          {t("DistrictUserManagement.Email")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          User Id
+                          {t("DistrictUserManagement.User_Id")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Status
+                          {t("DistrictUserManagement.Status")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Actions
+                          {t("DistrictUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
@@ -455,7 +457,7 @@ export default function DistrictUserManagement() {
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
                             <p className="text-[var(--text-secondary)]">
-                              No users assigned to this district
+                              {t("DistrictUserManagement.Desc2")}
                             </p>
                           </td>
                         </tr>
@@ -520,11 +522,11 @@ export default function DistrictUserManagement() {
                         disabled={assignedPage === 1}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("DistrictUserManagement.Previous")}
                       </button>
                       <span className="text-sm text-[var(--text-secondary)]">
-                        Page {assignedPage} of {totalPagesAssigned} (
-                        {totalUsersAssigned} users)
+                        {t("DistrictUserManagement.Page")} {assignedPage} {t("DistrictUserManagement.of")} {totalPagesAssigned} (
+                        {totalUsersAssigned} {t("DistrictUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -535,7 +537,7 @@ export default function DistrictUserManagement() {
                         disabled={assignedPage === totalPagesAssigned}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("DistrictUserManagement.Next")}
                       </button>
                     </div>
                   )}
@@ -547,22 +549,22 @@ export default function DistrictUserManagement() {
                     <thead className="bg-[var(--bg-main)]">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          S.No
+                          {t("DistrictUserManagement.S_No")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Name
+                          {t("DistrictUserManagement.Name")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Email
+                          {t("DistrictUserManagement.Email")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          User Id
+                          {t("DistrictUserManagement.User_Id")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Status
+                          {t("DistrictUserManagement.Status")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Actions
+                          {t("DistrictUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
@@ -577,7 +579,7 @@ export default function DistrictUserManagement() {
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
                             <p className="text-[var(--text-secondary)]">
-                              No available users found
+                              {t("DistrictUserManagement.Desc3")}
                             </p>
                           </td>
                         </tr>
@@ -633,11 +635,11 @@ export default function DistrictUserManagement() {
                         disabled={availablePage === 1}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("DistrictUserManagement.Previous")}
                       </button>
                       <span className="text-sm text-[var(--text-secondary)]">
-                        Page {availablePage} of {totalPagesUnassigned} (
-                        {totalUsersUnassigned} users)
+                        {t("DistrictUserManagement.Page")} {availablePage} {t("DistrictUserManagement.of")} {totalPagesUnassigned} (
+                        {totalUsersUnassigned} {t("DistrictUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -648,7 +650,7 @@ export default function DistrictUserManagement() {
                         disabled={availablePage === totalPagesUnassigned}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("DistrictUserManagement.Next")}
                       </button>
                     </div>
                   )}

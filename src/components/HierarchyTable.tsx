@@ -221,7 +221,7 @@ export default function HierarchyTable({
     if (sortField !== field) {
       return (
         <svg
-          className="w-4 h-4 text-[var(--text-secondary)]"
+          className="w-4 h-4 text-[var(--text-secondary)] bg-[var(--bg-card)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

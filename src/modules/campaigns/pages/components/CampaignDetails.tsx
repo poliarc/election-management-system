@@ -284,8 +284,8 @@ export const CampaignDetails = ({
                 <span
                   className={`px-2 py-1 rounded-full text-xs ${
                     isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-[var(--text-color)]"
+                      ? "bg-gray-600 text-green-800"
+                      : "bg-[var(--bg-card)] text-[var(--text-color)]"
                   }`}
                 >
                   {isActive ? "active" : "completed"}

@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { fetchAssignedUsersForLevel } from "../../services/afterAssemblyApi";
 import { useToggleUserStatusMutation } from "../../store/api/profileApi";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function SubLevelPanelTeam() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -122,7 +124,7 @@ export default function SubLevelPanelTeam() {
     return (
         <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 mb-1">
-                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Team Management</h1>
+                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">{t("SubLevelPanelTeam.Title")}</h1>
 
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,37 +152,37 @@ export default function SubLevelPanelTeam() {
                         <thead className="bg-[var(--bg-main)]">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    S.No
+                                    {t("SubLevelPanelTeam.S_No")}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    User ID
+                                    {t("SubLevelPanelTeam.User_ID")}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    State
+                                    {t("SubLevelPanelTeam.State")}
                                 </th>
                                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Assembly Name
                                 </th> */}
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Display Name
+                                    {t("SubLevelPanelTeam.Display_Name")}
                                 </th>
                                 
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Name
+                                    {t("SubLevelPanelTeam.Name")}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Designation
+                                    {t("SubLevelPanelTeam.Designation")}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Email
+                                    {t("SubLevelPanelTeam.Email")}
                                 </th>
 
 
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Status
+                                    {t("SubLevelPanelTeam.Status")}
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                    Action
+                                    {t("SubLevelPanelTeam.Action")}
                                 </th>
                             </tr>
                         </thead>
@@ -188,7 +190,7 @@ export default function SubLevelPanelTeam() {
                             {filteredUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan={9} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                                        No team members found
+                                        {t("SubLevelPanelTeam.Desc")}
                                     </td>
                                 </tr>
                             ) : (
@@ -344,12 +346,12 @@ export default function SubLevelPanelTeam() {
                                                                 return isActive ? (
                                                                     <>
 
-                                                                        Inactive
+                                                                        {t("SubLevelPanelTeam.Inactive")}
                                                                     </>
                                                                 ) : (
                                                                     <>
 
-                                                                        Active
+                                                                        {t("SubLevelPanelTeam.Active")}
                                                                     </>
                                                                 );
                                                             })()}
@@ -372,17 +374,17 @@ export default function SubLevelPanelTeam() {
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Previous
+                                {t("SubLevelPanelTeam.Previous")}
                             </button>
                             <span className="text-sm text-[var(--text-secondary)]">
-                                Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+                                {t("SubLevelPanelTeam.Page")} {currentPage} {t("SubLevelPanelTeam.of")} {totalPages} ({filteredUsers.length} {t("SubLevelPanelTeam.users")})
                             </span>
                             <button
                                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
                                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Next
+                                {t("SubLevelPanelTeam.Next")}
                             </button>
                         </div>
                     )}

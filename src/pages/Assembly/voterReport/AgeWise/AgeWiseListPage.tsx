@@ -224,7 +224,7 @@ export default function AgeWiseListPage() {
                             <div>
                                 <button
                                     onClick={handleClearFilters}
-                                    className="w-full px-4 py-2 bg-[var(--bg-color)]0 text-white rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full px-4 py-2 bg-[var(--bg-color)] text-[var(--text-secondary)] rounded-lg hover:bg-gray-600 transition"
                                 >
                                     {t("AgeWiseListPage.Reset")}
                                 </button>

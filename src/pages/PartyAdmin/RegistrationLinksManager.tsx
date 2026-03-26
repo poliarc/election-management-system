@@ -263,7 +263,7 @@ export const RegistrationLinksManager: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
+        <div className="min-h-screen bg-[var(--bg-main)] p-2 sm:p-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-4 sm:mb-6">

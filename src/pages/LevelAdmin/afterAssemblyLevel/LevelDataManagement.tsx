@@ -14,8 +14,10 @@ import {
 } from "../../../services/afterAssemblyApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 export default function LevelDataManagement() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -280,7 +282,7 @@ export default function LevelDataManagement() {
         return (
             <div className="p-1">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-                    <p className="text-red-700">Level admin panel not found</p>
+                    <p className="text-red-700">{t("LevelDataManagement.Desc")}</p>
                 </div>
             </div>
         );
@@ -304,9 +306,9 @@ export default function LevelDataManagement() {
             {/* Header */}
             <div className="mb-6">
                 <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-                    <h1 className="text-3xl font-bold text-[var(--text-color)]">Level Data Management</h1>
+                    <h1 className="text-3xl font-bold text-[var(--text-color)]">{t("LevelDataManagement.Title")}</h1>
                     <p className="text-[var(--text-secondary)] mt-2">
-                        Create and manage sub-levels for assemblies in {currentPanel.metadata?.stateName}
+                        {t("LevelDataManagement.Desc1")} {currentPanel.metadata?.stateName}
                     </p>
                 </div>
             </div>
@@ -334,7 +336,7 @@ export default function LevelDataManagement() {
                 <div className="lg:col-span-3">
                     <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
-                            <h2 className="text-lg font-bold text-white">Districts</h2>
+                            <h2 className="text-lg font-bold text-white">{t("LevelDataManagement.Districts")}</h2>
                         </div>
                         <div className="max-h-[600px] overflow-y-auto">
                             {loading ? (
@@ -342,7 +344,7 @@ export default function LevelDataManagement() {
                                     <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-blue-600 mx-auto"></div>
                                 </div>
                             ) : filteredDistricts.length === 0 ? (
-                                <div className="p-8 text-center text-[var(--text-secondary)]">No districts found</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">{t("LevelDataManagement.No_district_found")}</div>
                             ) : (
                                 filteredDistricts.map((district) => (
                                     <button
@@ -373,17 +375,17 @@ export default function LevelDataManagement() {
                 <div className="lg:col-span-3">
                     <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-4">
-                            <h2 className="text-lg font-bold text-white">Assemblies</h2>
+                            <h2 className="text-lg font-bold text-white">{t("LevelDataManagement.Assemblies")}</h2>
                         </div>
                         <div className="max-h-[600px] overflow-y-auto">
                             {!selectedDistrict ? (
-                                <div className="p-8 text-center text-[var(--text-secondary)]">Select a district</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">{t("LevelDataManagement.Select_district")}</div>
                             ) : assembliesLoading ? (
                                 <div className="p-8 text-center">
                                     <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-indigo-600 mx-auto"></div>
                                 </div>
                             ) : filteredAssemblies.length === 0 ? (
-                                <div className="p-8 text-center text-[var(--text-secondary)]">No assemblies found</div>
+                                <div className="p-8 text-center text-[var(--text-secondary)]">{t("LevelDataManagement.No_assemblies_found")}</div>
                             ) : (
                                 filteredAssemblies.map((assembly) => (
                                     <button
@@ -417,8 +419,8 @@ export default function LevelDataManagement() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-bold text-[var(--text-color)] mb-2">Select an Assembly</h3>
-                                <p className="text-[var(--text-secondary)]">Choose a district and assembly to manage level data</p>
+                                <h3 className="text-xl font-bold text-[var(--text-color)] mb-2">{t("LevelDataManagement.Select_Assembly")}</h3>
+                                <p className="text-[var(--text-secondary)]">{t("LevelDataManagement.Desc2")}</p>
                             </div>
                         </div>
                     ) : (
@@ -436,7 +438,7 @@ export default function LevelDataManagement() {
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
-                                        Create Level
+                                      {t("LevelDataManagement.Create_Level")}  
                                     </button>
                                 </div>
                             </div>
@@ -448,17 +450,17 @@ export default function LevelDataManagement() {
                                     </div>
                                 ) : filteredLevelData.length === 0 ? (
                                     <div className="p-12 text-center">
-                                        <p className="text-[var(--text-secondary)]">No level data found. Create one to get started.</p>
+                                        <p className="text-[var(--text-secondary)]">{t("LevelDataManagement.Desc3")}</p>
                                     </div>
                                 ) : (
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-[var(--bg-main)]">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Level Name</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Display Name</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Party Level</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</th>
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Actions</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("LevelDataManagement.Level_Name")}</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("LevelDataManagement.Display_Name")}</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("LevelDataManagement.Party_Level")}</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("LevelDataManagement.Status")}</th>
+                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("LevelDataManagement.Actions")}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
@@ -481,7 +483,7 @@ export default function LevelDataManagement() {
                                                                 onClick={() => openEditModal(data)}
                                                                 className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                                             >
-                                                                Edit
+                                                                {t("LevelDataManagement.Edit")}
                                                             </button>
                                                             <button
                                                                 onClick={() => handleToggleActive(data.id, data.isActive)}
@@ -496,7 +498,7 @@ export default function LevelDataManagement() {
                                                                 onClick={() => openDeleteModal(data.id, data.displayName)}
                                                                 className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                                             >
-                                                                Delete
+                                                                {t("LevelDataManagement.Delete")}
                                                             </button>
                                                         </div>
                                                     </td>

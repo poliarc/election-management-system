@@ -10,6 +10,7 @@ import {
   unassignUserFromState,
   type User,
 } from "../../../services/levelAdminApi";
+import { useTranslation } from "react-i18next";
 
 interface AssignedUser {
   assignment_id?: number;
@@ -31,6 +32,7 @@ interface AssignedUser {
 }
 
 export default function UserManagement() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -300,7 +302,7 @@ export default function UserManagement() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("UserManagement.Desc")}</p>
         </div>
       </div>
     );
@@ -315,9 +317,9 @@ export default function UserManagement() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
               <div className="shrink-0">
-                <h1 className="text-xl sm:text-2xl font-bold">User Management</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">{t("UserManagement.Title")}</h1>
                 <p className="text-purple-100 mt-1 text-xs sm:text-sm">
-                  Assign users to {currentPanel.metadata?.stateName} -{" "}
+                  {t("UserManagement.Desc1")} {currentPanel.metadata?.stateName} -{" "}
                   {currentPanel.metadata?.partyName}
                 </p>
               </div>
@@ -343,7 +345,7 @@ export default function UserManagement() {
               <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                    Assigned Users
+                    {t("UserManagement.Assigned_Users")}
                   </p>
                   <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                     {assignedLoading ? "..." : assignedTotalCount}
@@ -369,7 +371,7 @@ export default function UserManagement() {
               <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                    Available Users
+                    {t("UserManagement.Available_Users")}
                   </p>
                   <p className="text-2xl sm:text-3xl font-semibold text-blue-600 mt-1">
                     {loading ? "..." : unassignedUsers.length}
@@ -407,7 +409,7 @@ export default function UserManagement() {
                 : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
             >
-              Assigned Users ({assignedTotalCount})
+              {t("UserManagement.Assigned_Users")} ({assignedTotalCount})
             </button>
             <button
               onClick={() => setShowAssignModal(true)}
@@ -416,7 +418,7 @@ export default function UserManagement() {
                 : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
             >
-              Available Users ({unassignedUsers.length})
+              {t("UserManagement.Available_Users")} ({unassignedUsers.length})
             </button>
           </nav>
         </div>
@@ -431,28 +433,28 @@ export default function UserManagement() {
               <thead className="bg-[var(--bg-main)]">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    S.No
+                    {t("UserManagement.S_No")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Name
+                    {t("UserManagement.Name")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Email
+                    {t("UserManagement.Email")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    User Id
+                    {t("UserManagement.User_Id")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Assigned Level
+                    {t("UserManagement.Assigned_Level")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Status
+                    {t("UserManagement.Status")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Assigned Date
+                    {t("UserManagement.Assigned_Date")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Actions
+                    {t("UserManagement.Actions")}
                   </th>
                 </tr>
               </thead>
@@ -466,7 +468,7 @@ export default function UserManagement() {
                 ) : assignedUsers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <p className="text-[var(--text-secondary)]">No assigned users found</p>
+                      <p className="text-[var(--text-secondary)]">{t("UserManagement.Desc2")}</p>
                     </td>
                   </tr>
                 ) : (
@@ -544,10 +546,10 @@ export default function UserManagement() {
                 disabled={assignedPage === 1}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("UserManagement.Previous")}
               </button>
               <span className="text-sm text-[var(--text-secondary)]">
-                Page {assignedPage} of {assignedTotalPages}
+                {t("UserManagement.Page")} {assignedPage} {t("UserManagement.of")} {assignedTotalPages}
               </span>
               <button
                 onClick={() =>
@@ -556,7 +558,7 @@ export default function UserManagement() {
                 disabled={assignedPage === assignedTotalPages}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("UserManagement.Next")}
               </button>
             </div>
           )}
@@ -569,25 +571,25 @@ export default function UserManagement() {
               <thead className="bg-[var(--bg-main)]">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    S.No
+                    {t("UserManagement.S_No")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Name
+                    {t("UserManagement.Name")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Email
+                    {t("UserManagement.Email")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    User Id
+                    {t("UserManagement.User_Id")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    District
+                    {t("UserManagement.District")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Status
+                    {t("UserManagement.Status")}
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                    Actions
+                    {t("UserManagement.Actions")}
                   </th>
                 </tr>
               </thead>
@@ -601,7 +603,7 @@ export default function UserManagement() {
                 ) : unassignedUsers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
-                      <p className="text-[var(--text-secondary)]">No available users found</p>
+                      <p className="text-[var(--text-secondary)]">{t("UserManagement.Desc3")}</p>
                     </td>
                   </tr>
                 ) : (
@@ -656,10 +658,10 @@ export default function UserManagement() {
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("UserManagement.Previous")}
               </button>
               <span className="text-sm text-[var(--text-secondary)]">
-                Page {currentPage} of {totalPages}
+                {t("UserManagement.Page")} {currentPage} {t("UserManagement.of")} {totalPages}
               </span>
               <button
                 onClick={() =>
@@ -668,7 +670,7 @@ export default function UserManagement() {
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("UserManagement.Next")}
               </button>
             </div>
           )}

@@ -372,7 +372,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
-            <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-3 sm:p-4 shadow-sm border border-blue-100 hover:shadow-xl hover:scale-105 hover:border-blue-300 transition-all duration-300 cursor-pointer group">
+            <div className="bg-gradient-to-br bg-[var(--bg-card)] rounded-xl p-3 sm:p-4 shadow-sm border border-blue-100 hover:shadow-xl hover:scale-105 hover:border-blue-300 transition-all duration-300 cursor-pointer group">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300">
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 group-hover:text-white transition-colors" />
@@ -388,7 +388,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl p-3 sm:p-4 shadow-sm border border-orange-100 hover:shadow-xl hover:scale-105 hover:border-orange-300 transition-all duration-300 cursor-pointer group">
+            <div className="bg-gradient-to-br bg-[var(--bg-card)] rounded-xl p-3 sm:p-4 shadow-sm border border-orange-100 hover:shadow-xl hover:scale-105 hover:border-orange-300 transition-all duration-300 cursor-pointer group">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg group-hover:bg-orange-600 group-hover:scale-110 transition-all duration-300">
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 group-hover:text-white transition-colors" />
@@ -404,7 +404,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-white rounded-xl p-3 sm:p-4 shadow-sm border border-green-100 hover:shadow-xl hover:scale-105 hover:border-green-300 transition-all duration-300 cursor-pointer group">
+            <div className="bg-gradient-to-br bg-[var(--bg-card)] rounded-xl p-3 sm:p-4 shadow-sm border border-green-100 hover:shadow-xl hover:scale-105 hover:border-green-300 transition-all duration-300 cursor-pointer group">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg group-hover:bg-green-600 group-hover:scale-110 transition-all duration-300">
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 group-hover:text-white transition-colors" />
@@ -420,7 +420,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl p-3 sm:p-4 shadow-sm border border-purple-100 hover:shadow-xl hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer group col-span-2 lg:col-span-1">
+            <div className="bg-gradient-to-br bg-[var(--bg-card)] rounded-xl p-3 sm:p-4 shadow-sm border border-purple-100 hover:shadow-xl hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer group col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg group-hover:bg-purple-600 group-hover:scale-110 transition-all duration-300">
                   <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 group-hover:text-white transition-colors" />
@@ -440,7 +440,7 @@ export const AssignedEventsPage: React.FC<AssignedEventsPageProps> = () => {
 
         {/* Filter Tabs */}
         <div className="mb-4 sm:mb-6">
-          <div className="bg-[var(--bg-color)] rounded-2xl p-1.5 sm:p-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-1.5 sm:p-2 shadow-sm border hover:bg-[var(--bg-card)] border-gray-100 hover:shadow-md transition-shadow duration-300">
             <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
               {[
                 {

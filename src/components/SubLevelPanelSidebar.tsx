@@ -507,7 +507,7 @@ export default function SubLevelPanelSidebar({
             <button
               type="button"
               onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-              className="w-full flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
+              className="w-full flex items-center justify-between rounded-lg border  border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm  transition"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <svg
@@ -523,7 +523,7 @@ export default function SubLevelPanelSidebar({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-medium text-[var(--text-secondary)] truncate">
+                <span className="font-medium text- truncate">
                   {selectedAssignment.displayName ||
                     selectedAssignment.levelName}
                 </span>
@@ -627,13 +627,13 @@ export default function SubLevelPanelSidebar({
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
                 "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400",
                 isActive
-                  ? "bg-gradient-to-r from-teal-50 to-white ring-1 ring-teal-200"
+                  ? "bg-gradient-to-r bg-[var(--bg-color)]"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
             <span className="text-teal-600 shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
+            <span className="truncate ">{item.label}</span>
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-teal-500/0 group-hover:bg-teal-500/30" />
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-teal-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>

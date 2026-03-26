@@ -158,11 +158,11 @@ export const BoothManagementDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 text-[var(--text-secondary)]">
         <StatCard
           title="Total Agents"
           value={stats.total}
-          color="border-indigo-200 bg-indigo-50"
+          color="border-indigo-200 bg-indigo-50 "
           link="/assembly/booth-management/agents"
         />
         <StatCard

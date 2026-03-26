@@ -35,7 +35,7 @@ export const UserList: React.FC<UserListProps> = ({
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-[var(--bg-main)]">
+            <thead className="bg-[var(--bg-color)]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   User ID

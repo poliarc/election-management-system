@@ -17,8 +17,10 @@ import {
 } from "../../../services/levelAdminApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 export default function UserAssignment() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -427,7 +429,7 @@ export default function UserAssignment() {
     return (
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("UserAssignment.Desc")}</p>
         </div>
       </div>
     );
@@ -438,9 +440,9 @@ export default function UserAssignment() {
       {/* Header */}
       <div className="mb-1">
         <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <h1 className="text-3xl font-bold text-[var(--text-color)]">User Assignment</h1>
+          <h1 className="text-3xl font-bold text-[var(--text-color)]">{t("UserAssignment.Title")}</h1>
           <p className="text-[var(--text-secondary)] mt-2">
-            Assign users to sub-levels in {currentPanel.metadata?.stateName}
+            {t("UserAssignment.Desc1")} {currentPanel.metadata?.stateName}
           </p>
         </div>
       </div>
@@ -451,7 +453,7 @@ export default function UserAssignment() {
           {/* District Select */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
-              Select District
+              {t("UserAssignment.Select_District")}
             </label>
             <select
               value={selectedDistrict?.location_id || ""}
@@ -467,7 +469,7 @@ export default function UserAssignment() {
               className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-[var(--bg-card)]"
               disabled={loading}
             >
-              <option value="">-- Select District --</option>
+              <option value="">-- {t("UserAssignment.Select_District")} --</option>
               {districts.map((district) => (
                 <option key={district.location_id} value={district.location_id}>
                   {district.location_name}
@@ -479,7 +481,7 @@ export default function UserAssignment() {
           {/* Assembly Select */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
-              Select Assembly
+              {t("UserAssignment.Select_Assembly")}
             </label>
             <select
               value={selectedAssembly?.location_id || ""}
@@ -494,7 +496,7 @@ export default function UserAssignment() {
               className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-[var(--bg-card)]"
               disabled={!selectedDistrict || assembliesLoading}
             >
-              <option value="">-- Select Assembly --</option>
+              <option value="">-- {t("UserAssignment.Select_Assembly")} --</option>
               {assemblies.map((assembly) => (
                 <option key={assembly.location_id} value={assembly.location_id}>
                   {assembly.location_name}
@@ -548,7 +550,7 @@ export default function UserAssignment() {
         {(loading || assembliesLoading || levelsLoading) && (
           <div className="mt-4 flex items-center justify-center text-[var(--text-secondary)]">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mr-2"></div>
-            <span className="text-sm">Loading...</span>
+            <span className="text-sm">{t("UserAssignment.Loading")}</span>
           </div>
         )}
       </div>
@@ -615,7 +617,7 @@ export default function UserAssignment() {
                           d="M15 19l-7-7 7-7"
                         />
                       </svg>
-                      View Assigned
+                      {t("UserAssignment.View_Assigned")}
                     </>
                   ) : (
                     <>
@@ -632,7 +634,7 @@ export default function UserAssignment() {
                           d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
                       </svg>
-                      Assign Users
+                      {t("UserAssignment.Assign_Users")}
                     </>
                   )}
                 </button>
@@ -646,16 +648,16 @@ export default function UserAssignment() {
                   <thead className="bg-[var(--bg-main)]">
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Name
+                        {t("UserAssignment.Name")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Email
+                        {t("UserAssignment.Email")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        User Id
+                        {t("UserAssignment.User_Id")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Actions
+                        {t("UserAssignment.Actions")}
                       </th>
                     </tr>
                   </thead>
@@ -718,12 +720,12 @@ export default function UserAssignment() {
                 {totalAssignedPages > 1 && (
                   <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] flex items-center justify-between">
                     <div className="text-sm text-[var(--text-secondary)]">
-                      Showing {(assignedPage - 1) * itemsPerPage + 1} to{" "}
+                      {t("UserAssignment.Showing")} {(assignedPage - 1) * itemsPerPage + 1} {t("UserAssignment.to")}{" "}
                       {Math.min(
                         assignedPage * itemsPerPage,
                         filteredAssignedUsers.length
                       )}{" "}
-                      of {filteredAssignedUsers.length} users
+                      {t("UserAssignment.of")} {filteredAssignedUsers.length} {t("UserAssignment.users")}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -733,10 +735,10 @@ export default function UserAssignment() {
                         disabled={assignedPage === 1}
                         className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
-                        Previous
+                        {t("UserAssignment.Previous")}
                       </button>
                       <span className="px-4 py-1 text-sm font-medium text-[var(--text-secondary)]">
-                        Page {assignedPage} of {totalAssignedPages}
+                        {t("UserAssignment.Page")} {assignedPage} {t("UserAssignment.of")} {totalAssignedPages}
                       </span>
                       <button
                         onClick={() =>
@@ -747,7 +749,7 @@ export default function UserAssignment() {
                         disabled={assignedPage === totalAssignedPages}
                         className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
-                        Next
+                        {t("UserAssignment.Next")}
                       </button>
                     </div>
                   </div>
@@ -760,16 +762,16 @@ export default function UserAssignment() {
                   <thead className="bg-[var(--bg-main)]">
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Name
+                        {t("UserAssignment.Name")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Email
+                        {t("UserAssignment.Email")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        User Id
+                        {t("UserAssignment.User_Id")}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                        Actions
+                        {t("UserAssignment.Actions")}
                       </th>
                     </tr>
                   </thead>
@@ -823,12 +825,12 @@ export default function UserAssignment() {
                 {totalUnassignedPages > 1 && (
                   <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] flex items-center justify-between">
                     <div className="text-sm text-[var(--text-secondary)]">
-                      Showing {(unassignedPage - 1) * itemsPerPage + 1} to{" "}
+                      {t("UserAssignment.Showing")} {(unassignedPage - 1) * itemsPerPage + 1} {t("UserAssignment.to")}{" "}
                       {Math.min(
                         unassignedPage * itemsPerPage,
                         totalUnassignedUsers
                       )}{" "}
-                      of {totalUnassignedUsers} users
+                      {t("UserAssignment.of")} {totalUnassignedUsers} {t("UserAssignment.users")}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -838,10 +840,10 @@ export default function UserAssignment() {
                         disabled={unassignedPage === 1}
                         className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
-                        Previous
+                        {t("UserAssignment.Previous")}
                       </button>
                       <span className="px-4 py-1 text-sm font-medium text-[var(--text-secondary)]">
-                        Page {unassignedPage} of {totalUnassignedPages}
+                        {t("UserAssignment.Page")} {unassignedPage} {t("UserAssignment.of")} {totalUnassignedPages}
                       </span>
                       <button
                         onClick={() =>
@@ -852,7 +854,7 @@ export default function UserAssignment() {
                         disabled={unassignedPage === totalUnassignedPages}
                         className="px-3 py-1 bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
-                        Next
+                        {t("UserAssignment.Next")}
                       </button>
                     </div>
                   </div>

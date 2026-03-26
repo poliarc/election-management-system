@@ -985,7 +985,7 @@ export default function DistrictDynamicLevelList({
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-color)] p-1">
+      <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-card)] p-1">
         <div className="w-full mx-auto">
           {/* Header with Stats Cards */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-[var(--text-color)]">

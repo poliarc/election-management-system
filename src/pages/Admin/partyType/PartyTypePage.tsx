@@ -526,7 +526,7 @@ export const PartyTypePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-1">
+    <div className="min-h-screen bg-[var(--bg-card)]-100 p-1">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-1">

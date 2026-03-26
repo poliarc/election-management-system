@@ -121,7 +121,7 @@ export default function VoterListPage() {
                         {language === "en" ? t("voterListPage.totalVoters") : "कुल मतदाता"}
                     </p>
                 </div>
-                <div className="relative inline-flex items-center bg-gray-200 rounded-full p-1">
+                <div className="relative inline-flex items-center bg-[var(--bg-color)] rounded-full p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
@@ -188,7 +188,7 @@ export default function VoterListPage() {
                             </button>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="px-4 py-2 bg-green-200 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"
+                                className="px-4 py-2 bg-green-200 text-[var(--text-secondary)] rounded-lg hover:bg-green-300 hover:text-black transition cursor-pointer"
                             >
                                 {showFilters
                                     ? (language === "en" ? t("voterListPage.btnHideFilters") : "फ़िल्टर छुपाएं")

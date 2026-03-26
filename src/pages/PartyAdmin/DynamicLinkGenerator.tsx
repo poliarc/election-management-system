@@ -5,8 +5,10 @@ import toast from "react-hot-toast";
 import { useGetPartiesQuery } from "../../store/api/partyUserApi";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import { useCreateRegistrationLinkMutation } from "../../store/api/registrationLinksApi";
+import { useTranslation } from "react-i18next";
 
 export const DynamicLinkGenerator: React.FC = () => {
+    const {t} = useTranslation();
     const { partyId } = useParams<{ partyId: string }>();
     const [selectedStateId, setSelectedStateId] = useState<string>("");
     const [selectedDistrictId, setSelectedDistrictId] = useState<string>("");
@@ -117,25 +119,25 @@ export const DynamicLinkGenerator: React.FC = () => {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                         <Link className="text-blue-600" />
-                        Dynamic Registration Links
+                        {t("DynamicLinkGenerator.Title")}
                     </h1>
                     <p className="text-[var(--text-secondary)] mt-2">
-                        Create custom registration links for {currentParty?.partyName || "your party"}
-                        with pre-filled party and location information
+                        {t("DynamicLinkGenerator.Desc")} {currentParty?.partyName || "your party"}
+                        {t("DynamicLinkGenerator.Desc1")}
                     </p>
                 </div>
 
                 {/* Link Generator Form */}
                 <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 mb-6">
                     <h2 className="text-xl font-semibold text-[var(--text-color)] mb-4">
-                        Generate Registration Link
+                        {t("DynamicLinkGenerator.Desc2")}
                     </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Party Info - Read Only */}
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Party
+                                {t("DynamicLinkGenerator.Party")}
                             </label>
                             <input
                                 type="text"
@@ -144,18 +146,18 @@ export const DynamicLinkGenerator: React.FC = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Party is automatically set for this admin panel
+                                {t("DynamicLinkGenerator.Desc3")}
                             </p>
                         </div>
 
                         {/* State Selection */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                State *
+                                {t("DynamicLinkGenerator.State")}
                             </label>
                             {isLoadingStates ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                    <span className="text-[var(--text-secondary)]">Loading states...</span>
+                                    <span className="text-[var(--text-secondary)]">{t("DynamicLinkGenerator.Loading")}</span>
                                 </div>
                             ) : (
                                 <select
@@ -163,7 +165,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                     onChange={(e) => setSelectedStateId(e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="">Select a state</option>
+                                    <option value="">{t("DynamicLinkGenerator.Select_State")}</option>
                                     {states.map((state) => (
                                         <option key={state.id} value={state.id}>
                                             {state.levelName}
@@ -176,11 +178,11 @@ export const DynamicLinkGenerator: React.FC = () => {
                         {/* District Selection */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                District (Optional)
+                                {t("DynamicLinkGenerator.District_Optional")}
                             </label>
                             {isLoadingStates ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
+                                    <span className="text-[var(--text-secondary)]">{t("DynamicLinkGenerator.Loading1")}</span>
                                 </div>
                             ) : (
                                 <select
@@ -189,7 +191,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     disabled={!selectedStateId}
                                 >
-                                    <option value="">Select a district (optional)</option>
+                                    <option value="">{t("DynamicLinkGenerator.Select_district")}</option>
                                     {districts.map((district) => (
                                         <option key={district.id} value={district.id}>
                                             {district.levelName}
@@ -199,7 +201,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                             )}
                             {!selectedStateId && (
                                 <p className="text-[var(--text-secondary)] text-xs mt-1">
-                                    Please select a state first
+                                    {t("DynamicLinkGenerator.Desc4")}
                                 </p>
                             )}
                         </div>
@@ -207,7 +209,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                         {/* Expiration Date */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Expiration Date & Time (Optional)
+                                {t("DynamicLinkGenerator.Desc5")}
                             </label>
                             <input
                                 type="datetime-local"
@@ -218,7 +220,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                 placeholder={defaultExpiration}
                             />
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Leave empty for default 30-day expiration
+                                {t("DynamicLinkGenerator.Desc6")}
                             </p>
                         </div>
 
@@ -232,12 +234,12 @@ export const DynamicLinkGenerator: React.FC = () => {
                                 {isCreating ? (
                                     <>
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                        Generating Link...
+                                        {t("DynamicLinkGenerator.Generating")}
                                     </>
                                 ) : (
                                     <>
                                         <Link className="w-5 h-5" />
-                                        Generate Registration Link
+                                        {t("DynamicLinkGenerator.Generate_Registration")}
                                     </>
                                 )}
                             </button>
@@ -249,7 +251,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                 {generatedLink && (
                     <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-semibold text-[var(--text-color)] mb-4">
-                            Generated Registration Link
+                            {t("DynamicLinkGenerator.Generated_Registration")}
                         </h2>
 
                         {/* Link Preview */}
@@ -257,7 +259,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                        Registration Link:
+                                        {t("DynamicLinkGenerator.Registration")}
                                     </p>
                                     <p className="text-sm text-[var(--text-secondary)] break-all">
                                         {generatedLink}
@@ -272,12 +274,12 @@ export const DynamicLinkGenerator: React.FC = () => {
                                         {copiedLink === generatedLink ? (
                                             <>
                                                 <CheckCircle className="w-4 h-4" />
-                                                Copied
+                                                {t("DynamicLinkGenerator.Copied")}
                                             </>
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4" />
-                                                Copy
+                                                {t("DynamicLinkGenerator.Copy")}
                                             </>
                                         )}
                                     </button>
@@ -287,7 +289,7 @@ export const DynamicLinkGenerator: React.FC = () => {
                                         title="Open in new tab"
                                     >
                                         <ExternalLink className="w-4 h-4" />
-                                        Preview
+                                        {t("DynamicLinkGenerator.Preview")}
                                     </button>
                                 </div>
                             </div>
@@ -296,47 +298,47 @@ export const DynamicLinkGenerator: React.FC = () => {
                         {/* Link Details */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                                <h3 className="font-medium text-blue-900 mb-2">Link Details</h3>
+                                <h3 className="font-medium text-blue-900 mb-2">{t("DynamicLinkGenerator.Link_Details")}</h3>
                                 <div className="space-y-1 text-sm">
-                                    <p><span className="font-medium">Party:</span> {currentParty?.partyName}</p>
-                                    <p><span className="font-medium">State:</span> {selectedState?.levelName}</p>
+                                    <p><span className="font-medium">{t("DynamicLinkGenerator.Party:")}</span> {currentParty?.partyName}</p>
+                                    <p><span className="font-medium">{t("DynamicLinkGenerator.State:")}</span> {selectedState?.levelName}</p>
                                     {selectedDistrict && (
-                                        <p><span className="font-medium">District:</span> {selectedDistrict.levelName}</p>
+                                        <p><span className="font-medium">{t("DynamicLinkGenerator.District:")}</span> {selectedDistrict.levelName}</p>
                                     )}
                                     {expirationDate && (
-                                        <p><span className="font-medium">Expires:</span> {new Date(expirationDate).toLocaleString()}</p>
+                                        <p><span className="font-medium">{t("DynamicLinkGenerator.Expires:")}</span> {new Date(expirationDate).toLocaleString()}</p>
                                     )}
                                 </div>
                             </div>
 
                             <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                                <h3 className="font-medium text-green-900 mb-2">What happens when users register?</h3>
+                                <h3 className="font-medium text-green-900 mb-2">{t("DynamicLinkGenerator.Desc7")}</h3>
                                 <div className="space-y-1 text-sm text-green-800">
-                                    <p>• Party and state will be pre-filled and disabled</p>
+                                    <p>• {t("DynamicLinkGenerator.Desc8")}</p>
                                     {selectedDistrict ? (
-                                        <p>• District will be pre-filled and disabled</p>
+                                        <p>• {t("DynamicLinkGenerator.Desc9")}</p>
                                     ) : (
-                                        <p>• Users can select any district within {selectedState?.levelName}</p>
+                                        <p>• {t("DynamicLinkGenerator.Desc10")} {selectedState?.levelName}</p>
                                     )}
-                                    <p>• Users must fill in personal information (name, email, phone, password)</p>
-                                    <p>• All form validations will apply</p>
-                                    <p>• Registration will be completed automatically</p>
+                                    <p>• {t("DynamicLinkGenerator.Desc11")}</p>
+                                    <p>• {t("DynamicLinkGenerator.Desc12")}</p>
+                                    <p>• {t("DynamicLinkGenerator.Desc13")}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Usage Instructions */}
                         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                            <h3 className="font-medium text-yellow-900 mb-2">How to use this link:</h3>
+                            <h3 className="font-medium text-yellow-900 mb-2">{t("DynamicLinkGenerator.Desc14")}</h3>
                             <div className="space-y-1 text-sm text-yellow-800">
-                                <p>1. Copy the generated link using the "Copy" button</p>
-                                <p>2. Share it via WhatsApp, email, SMS, or social media</p>
-                                <p>3. Users clicking the link will see a registration form with:</p>
-                                <p className="ml-4">• Pre-filled party and location information (disabled fields)</p>
-                                <p className="ml-4">• Required personal information fields to complete</p>
-                                <p>4. New registrations will be automatically assigned to your party and selected location</p>
-                                <p>5. Users will receive confirmation and can login immediately after registration</p>
-                                <p>6. This link is stored in your database and can be managed from the Registration Links Manager</p>
+                                <p>{t("DynamicLinkGenerator.Desc15")}</p>
+                                <p>{t("DynamicLinkGenerator.Desc16")}</p>
+                                <p>{t("DynamicLinkGenerator.Desc17")}</p>
+                                <p className="ml-4">• {t("DynamicLinkGenerator.Desc18")}</p>
+                                <p className="ml-4">• {t("DynamicLinkGenerator.Desc19")}</p>
+                                <p>{t("DynamicLinkGenerator.Desc20")}</p>
+                                <p>{t("DynamicLinkGenerator.Desc21")}</p>
+                                <p>{t("DynamicLinkGenerator.Desc22")}</p>
                             </div>
                         </div>
                     </div>

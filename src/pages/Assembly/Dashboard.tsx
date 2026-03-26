@@ -95,7 +95,7 @@ export default function AssemblyDashboard() {
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-8">
                         {cards.map((card, index) => {
-                            const colorClasses = getDynamicCardColor(partyId || 0);
+                            const colorClasses = getDynamicCardColor(index || 0);
                             const iconSvg = getIconForCard(card.title);
 
                             return (

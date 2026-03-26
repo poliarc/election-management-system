@@ -7,6 +7,7 @@ import type {
     Role,
 } from "../../../types/user";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useTranslation } from "react-i18next";
 
 interface PartyUserFormProps {
     user?: User | null;
@@ -29,6 +30,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
     roles,
     isLoadingRoles = false,
 }) => {
+    const {t} = useTranslation();
     const [showPassword, setShowPassword] = React.useState(false);
     const isEditing = !!user;
 
@@ -154,7 +156,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    First Name *
+                                    {t("PartyUserForm.First_Name")}
                                 </label>
                                 <input
                                     type="text"
@@ -178,7 +180,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    Last Name *
+                                    {t("PartyUserForm.Last_Name")}
                                 </label>
                                 <input
                                     type="text"
@@ -204,7 +206,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         {/* Email Field */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Email Address *
+                                {t("PartyUserForm.Email_Address")}
                             </label>
                             <input
                                 type="email"
@@ -229,7 +231,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         {/* Contact Number */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Contact Number
+                                {t("PartyUserForm.Contact_Number")}
                             </label>
                             <input
                                 type="tel"
@@ -257,10 +259,10 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         {/* Password Field */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Password {!isEditing && "*"}
+                                {t("PartyUserForm.Password")} {!isEditing && "*"}
                                 {isEditing && (
                                     <span className="text-sm text-[var(--text-secondary)] font-normal">
-                                        (Leave empty to keep current password)
+                                        {t("PartyUserForm.Desc")}
                                     </span>
                                 )}
                             </label>
@@ -308,7 +310,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         {/* Party Field - Disabled */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Party
+                                {t("PartyUserForm.Party")}
                             </label>
                             <input
                                 type="text"
@@ -317,18 +319,18 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Party is automatically assigned
+                                {t("PartyUserForm.Desc1")}
                             </p>
                         </div>
 
                         {/* Role Selection */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                Role
+                                {t("PartyUserForm.Role")}
                             </label>
                             {isLoadingRoles ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                    <span className="text-[var(--text-secondary)]">Loading roles...</span>
+                                    <span className="text-[var(--text-secondary)]">{t("PartyUserForm.Loading2")}</span>
                                 </div>
                             ) : (
                                 <select
@@ -340,7 +342,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                                     })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="">Select a role (optional)</option>
+                                    <option value="">{t("PartyUserForm.Desc2")}</option>
                                     {activeRoles.map((role) => (
                                         <option key={role.role_id} value={role.role_id}>
                                             {role.role}
@@ -354,11 +356,11 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    State {!isEditing && "*"}
+                                    {t("PartyUserForm.State")} {!isEditing && "*"}
                                 </label>
                                 {isLoadingStates ? (
                                     <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                        <span className="text-[var(--text-secondary)]">Loading states...</span>
+                                        <span className="text-[var(--text-secondary)]">{t("PartyUserForm.Loading")}</span>
                                     </div>
                                 ) : (
                                     <select
@@ -403,11 +405,11 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    District {!isEditing && "*"}
+                                    {t("PartyUserForm.District")} {!isEditing && "*"}
                                 </label>
                                 {isLoadingStates ? (
                                     <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                                        <span className="text-[var(--text-secondary)]">Loading districts...</span>
+                                        <span className="text-[var(--text-secondary)]">{t("PartyUserForm.Loading1")}</span>
                                     </div>
                                 ) : (
                                     <select
@@ -451,7 +453,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                                 )}
                                 {!watchStateId && !isEditing && (
                                     <p className="text-[var(--text-secondary)] text-xs mt-1">
-                                        Please select a state first
+                                        {t("PartyUserForm.Desc3")} 
                                     </p>
                                 )}
                             </div>
@@ -460,7 +462,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         {/* Status Toggle */}
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
-                                User Status
+                                {t("PartyUserForm.User_Status")}
                             </label>
                             <button
                                 type="button"
@@ -472,22 +474,21 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                                         <>
                                             <ToggleRight className="w-6 h-6 text-green-500" />
                                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                Active
+                                                {t("PartyUserForm.Active")}
                                             </span>
                                         </>
                                     ) : (
                                         <>
                                             <ToggleLeft className="w-6 h-6 text-[var(--text-secondary)]" />
                                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-[var(--text-color)]">
-                                                Inactive
+                                                {t("PartyUserForm.Inactive")}
                                             </span>
                                         </>
                                     )}
                                 </div>
                                 <div className="flex-1 text-left">
                                     <p className="text-sm text-[var(--text-secondary)]">
-                                        Click to {watchIsActive ? "deactivate" : "activate"} this
-                                        user
+                                        {t("PartyUserForm.Click")} {watchIsActive ? "deactivate" : "activate"} {t("PartyUserForm.this")}
                                     </p>
                                 </div>
                             </button>
@@ -502,7 +503,7 @@ export const PartyUserForm: React.FC<PartyUserFormProps> = ({
                         onClick={onCancel}
                         className="px-6 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                     >
-                        Cancel
+                        {t("PartyUserForm.Cancel")}
                     </button>
                     <button
                         type="submit"

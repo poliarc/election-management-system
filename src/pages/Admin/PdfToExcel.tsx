@@ -2,8 +2,10 @@ import { useState, useRef } from "react";
 import { convertPdfToExcel } from "../../utils/pdfToExcel";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function PdfToExcel() {
+    const {t} = useTranslation();
     const [file, setFile] = useState<File | null>(null);
     const [converting, setConverting] = useState(false);
     const [result, setResult] = useState<{
@@ -75,10 +77,10 @@ export default function PdfToExcel() {
             <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-6">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">
-                        PDF to Excel Converter
+                        {t("PdfToExcel.Title")}
                     </h1>
                     <p className="text-[var(--text-secondary)]">
-                        Convert your PDF documents to Excel spreadsheets with ease
+                        {t("PdfToExcel.Desc")}
                     </p>
                 </div>
 
@@ -111,10 +113,10 @@ export default function PdfToExcel() {
                                 />
                             </svg>
                             <span className="text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                Click to upload PDF file
+                                {t("PdfToExcel.Desc1")}
                             </span>
                             <span className="text-xs text-[var(--text-secondary)]">
-                                or drag and drop your file here
+                                {t("PdfToExcel.Desc2")}
                             </span>
                         </label>
                     </div>
@@ -145,7 +147,7 @@ export default function PdfToExcel() {
                                 onClick={handleReset}
                                 className="text-red-600 hover:text-red-700 font-medium text-sm"
                             >
-                                Remove
+                                {t("PdfToExcel.Remove")}
                             </button>
                         </div>
                     )}
@@ -178,7 +180,7 @@ export default function PdfToExcel() {
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                         />
                                     </svg>
-                                    Converting...
+                                    {t("PdfToExcel.Converting")}
                                 </>
                             ) : (
                                 <>
@@ -195,7 +197,7 @@ export default function PdfToExcel() {
                                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                         />
                                     </svg>
-                                    Convert to Excel
+                                    {t("PdfToExcel.Convert_Excel")}
                                 </>
                             )}
                         </button>
@@ -244,12 +246,12 @@ export default function PdfToExcel() {
                                     </p>
                                     {result.success && (
                                         <div className="mt-2 text-sm text-green-700 space-y-1">
-                                            {result.pages && <p>Pages: {result.pages}</p>}
+                                            {result.pages && <p>{t("PdfToExcel.Page")}: {result.pages}</p>}
                                             {result.rowsExtracted && (
-                                                <p>Rows extracted: {result.rowsExtracted}</p>
+                                                <p>{t("PdfToExcel.Rows_extracted")}: {result.rowsExtracted}</p>
                                             )}
                                             {result.columnsDetected && (
-                                                <p>Columns detected: {result.columnsDetected}</p>
+                                                <p>{t("PdfToExcel.Columns_detected")}: {result.columnsDetected}</p>
                                             )}
                                         </div>
                                     )}
@@ -260,11 +262,11 @@ export default function PdfToExcel() {
 
                     {/* Instructions */}
                     <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
-                        <h3 className="font-medium text-[var(--text-color)] mb-2">How to use:</h3>
+                        <h3 className="font-medium text-[var(--text-color)] mb-2">{t("PdfToExcel.How_to_use")}:</h3>
                         <ol className="list-decimal list-inside space-y-1 text-sm text-[var(--text-secondary)]">
-                            <li>Click the upload area or drag and drop a PDF file</li>
-                            <li>Click "Convert to Excel" button</li>
-                            <li>The Excel file will be automatically downloaded</li>
+                            <li>{t("PdfToExcel.Desc3")}</li>
+                            <li>{t("PdfToExcel.Desc4")}</li>
+                            <li>{t("PdfToExcel.Desc5")}</li>
                         </ol>
                     </div>
                 </div>

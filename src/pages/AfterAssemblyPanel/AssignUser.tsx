@@ -8,6 +8,7 @@ import {
 } from "../../services/afterAssemblyApi";
 import { useDeleteAssignedLevelsMutation } from "../../store/api/afterAssemblyApi";
 import { useAppSelector } from "../../store/hooks";
+import { useTranslation } from "react-i18next";
 
 interface HierarchyUser {
   districtName: string | null;
@@ -24,6 +25,7 @@ interface HierarchyUser {
 }
 
 export default function AfterAssemblyAssignUser() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -293,7 +295,7 @@ export default function AfterAssemblyAssignUser() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+    <div className="min-h-screen bg-[var(--bg-color)] p-1">
       <div className="max-w-4xl mx-auto">
         <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
           <div className="mb-3 flex items-center gap-3">
@@ -319,9 +321,9 @@ export default function AfterAssemblyAssignUser() {
               </svg>
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-[var(--text-color)]">Assign Users</h1>
+              <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("AfterAssemblyAssignUser.Assign_Users")}</h1>
               <p className="text-sm text-[var(--text-secondary)]">
-                {targetName || "Level"} | After Assembly
+                {targetName || "Level"} | {t("AfterAssemblyAssignUser.After_Assembly")}
               </p>
             </div>
           </div>
@@ -336,7 +338,7 @@ export default function AfterAssemblyAssignUser() {
                     : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
                     }`}
                 >
-                  Available Users
+                  {t("AfterAssemblyAssignUser.Available_Users")}
                 </button>
                 <button
                   onClick={() => setActiveTab("assigned")}
@@ -345,7 +347,7 @@ export default function AfterAssemblyAssignUser() {
                     : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
                     }`}
                 >
-                  Assigned Users ({assignedUsers.length})
+                  {t("AfterAssemblyAssignUser.Assigned_Users")} ({assignedUsers.length})
                 </button>
               </nav>
             </div>
@@ -370,18 +372,18 @@ export default function AfterAssemblyAssignUser() {
               {loadingUsers ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-[var(--text-secondary)]">Loading users...</p>
+                  <p className="mt-2 text-[var(--text-secondary)]">{t("AfterAssemblyAssignUser.Loading_users")}</p>
                 </div>
               ) : filteredUsers.length === 0 ? (
                 <div className="p-4 text-center text-[var(--text-secondary)]">
-                  <p>No users found</p>
+                  <p>{t("AfterAssemblyAssignUser.No_users_found")}</p>
                 </div>
               ) : (
                 <>
                   <div className="mb-1 flex items-center justify-between">
                     <div className="text-sm text-[var(--text-secondary)]">
-                      {selectedUsers.length} user(s) selected | {userTotalCount}{" "}
-                      total users
+                      {selectedUsers.length} {t("AfterAssemblyAssignUser.Desc1")} {userTotalCount}{" "}
+                      {t("AfterAssemblyAssignUser.total_users")}
                     </div>
                     <button
                       onClick={handleAssign}
@@ -402,7 +404,7 @@ export default function AfterAssemblyAssignUser() {
                         return (
                           <div
                             key={u.user_id}
-                            className={`p-4 hover:bg-blue-50 ${isAlreadyAssigned ? "bg-blue-50" : ""
+                            className={`p-4 hover:bg-[var(--text-color)]/5 ${isAlreadyAssigned ? "bg-blue-50" : ""
                               }`}
                           >
                             <label
@@ -427,7 +429,7 @@ export default function AfterAssemblyAssignUser() {
                                   </p>
                                   {isAlreadyAssigned && (
                                     <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                      Already Assigned
+                                      {t("AfterAssemblyAssignUser.Already_Assigned")}
                                     </span>
                                   )}
                                 </div>
@@ -438,7 +440,7 @@ export default function AfterAssemblyAssignUser() {
                                   {u.email}
                                 </p>
                                 <p className="text-xs text-[var(--text-secondary)]">
-                                  {u.role} | ID: {u.user_id}
+                                  {u.role} | {t("AfterAssemblyAssignUser.ID")}: {u.user_id}
                                 </p>
                               </div>
                             </label>
@@ -452,8 +454,8 @@ export default function AfterAssemblyAssignUser() {
                     <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                       {/* Results info - hidden on mobile, shown on larger screens */}
                       <div className="hidden sm:block text-sm text-[var(--text-secondary)] order-1 sm:order-none">
-                        Showing {paginationTextStart} to {paginationTextEnd} of{" "}
-                        {userTotalCount} results
+                        {t("AfterAssemblyAssignUser.Showing")} {paginationTextStart} {t("AfterAssemblyAssignUser.to")} {paginationTextEnd} {t("AfterAssemblyAssignUser.of")}{" "}
+                        {userTotalCount} {t("AfterAssemblyAssignUser.results")}
                       </div>
 
                       {/* Pagination controls - centered */}
@@ -467,7 +469,7 @@ export default function AfterAssemblyAssignUser() {
                           disabled={currentPage === 1}
                           className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Prev
+                          {t("AfterAssemblyAssignUser.Prev")}
                         </button>
 
                         {/* Page numbers - responsive display */}
@@ -509,7 +511,7 @@ export default function AfterAssemblyAssignUser() {
                           disabled={currentPage === userTotalPages}
                           className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Next
+                          {t("AfterAssemblyAssignUser.Next")}
                         </button>
                       </div>
 
@@ -536,7 +538,7 @@ export default function AfterAssemblyAssignUser() {
                       }
                       className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                     >
-                      Cancel
+                      {t("AfterAssemblyAssignUser.Cancel")}
                     </button>
                   </div>
                 </>
@@ -548,7 +550,7 @@ export default function AfterAssemblyAssignUser() {
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   <p className="mt-2 text-[var(--text-secondary)]">
-                    Loading assigned users...
+                    {t("AfterAssemblyAssignUser.Desc2")}
                   </p>
                 </div>
               ) : assignedUsers.length === 0 ? (
@@ -567,16 +569,16 @@ export default function AfterAssemblyAssignUser() {
                     />
                   </svg>
                   <p className="mt-2 text-[var(--text-secondary)] font-medium">
-                    No users assigned
+                    {t("AfterAssemblyAssignUser.Desc3")}
                   </p>
                   <p className="text-sm text-[var(--text-secondary)]">
-                    Use the "Assign Users" tab to add users to this level.
+                    {t("AfterAssemblyAssignUser.Desc4")}
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="mb-4 text-sm text-[var(--text-secondary)]">
-                    {assignedUsers.length} user(s) currently assigned
+                    {assignedUsers.length} {t("AfterAssemblyAssignUser.Desc5")}
                   </div>
                   <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                     <div className="divide-y divide-gray-200">
@@ -589,12 +591,12 @@ export default function AfterAssemblyAssignUser() {
                               </p>
                               <p className="text-sm text-[var(--text-secondary)]">{u.email}</p>
                               <p className="text-xs text-[var(--text-secondary)]">
-                                ID: {u.user_id}
+                                {t("AfterAssemblyAssignUser.ID")}: {u.user_id}
                               </p>
                               <div className="mt-1 flex items-center gap-2">
                                 {u.assigned_at && (
                                   <span className="text-xs text-[var(--text-secondary)]">
-                                    Assigned:{" "}
+                                    {t("AfterAssemblyAssignUser.Assigned")}:{" "}
                                     {new Date(
                                       u.assigned_at
                                     ).toLocaleDateString()}
@@ -631,7 +633,7 @@ export default function AfterAssemblyAssignUser() {
                       }
                       className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
                     >
-                      Back to Levels
+                      {t("AfterAssemblyAssignUser.Back_to_Levels")}
                     </button>
                   </div>
                 </>

@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { fetchBoothsByLevelSmart } from "../../services/afterAssemblyApi";
 import { useAppSelector } from "../../store/hooks";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function AfterAssemblyBooths() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
     const [booths, setBooths] = useState<any[]>([]);
@@ -62,12 +64,12 @@ export default function AfterAssemblyBooths() {
     return (
         <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 mb-1">
-                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Booth Management</h1>
+                <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">{t("AfterAssemblyBooths.Title")}</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            Filter by Parent Level
+                            {t("AfterAssemblyBooths.Desc")}
                         </label>
                         <select
                             value={selectedParentLevel}
@@ -77,7 +79,7 @@ export default function AfterAssemblyBooths() {
                             }}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         >
-                            <option value="">All Parent Levels</option>
+                            <option value="">{t("AfterAssemblyBooths.Desc1")}</option>
                             {uniqueParentLevels.map((booth) => (
                                 <option key={booth.parentLevelId} value={booth.parentLevelId}>
                                     {booth.parentLevelName} ({booth.parentLevelType})
@@ -87,7 +89,7 @@ export default function AfterAssemblyBooths() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            Search Booths
+                            {t("AfterAssemblyBooths.Search_Booths")}
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -120,20 +122,20 @@ export default function AfterAssemblyBooths() {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-[var(--bg-main)]">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">#</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Parent Level</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Parent Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Booth Range</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Booth Numbers</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Total Booths</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.#")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Parent_Level")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Parent_Type")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Booth_Range")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Booth_Numbers")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Total_Booths")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("AfterAssemblyBooths.Status")}</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                 {currentItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                                            No booths found
+                                            {t("AfterAssemblyBooths.No_booths_found")}
                                         </td>
                                     </tr>
                                 ) : (
@@ -169,7 +171,7 @@ export default function AfterAssemblyBooths() {
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[var(--text-secondary)] italic">No booth numbers</span>
+                                                        <span className="text-[var(--text-secondary)] italic">{t("AfterAssemblyBooths.No_booth_numbers")}</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -195,9 +197,9 @@ export default function AfterAssemblyBooths() {
                     {totalPages > 1 && (
                         <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6 rounded-b-lg mt-4">
                             <div className="text-sm text-[var(--text-secondary)]">
-                                Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
-                                <span className="font-medium">{Math.min(indexOfLastItem, filteredBooths.length)}</span> of{' '}
-                                <span className="font-medium">{filteredBooths.length}</span> results
+                                {t("AfterAssemblyBooths.Showing")} <span className="font-medium">{indexOfFirstItem + 1}</span> {t("AfterAssemblyBooths.to")}{' '}
+                                <span className="font-medium">{Math.min(indexOfLastItem, filteredBooths.length)}</span> {t("AfterAssemblyBooths.of")}{' '}
+                                <span className="font-medium">{filteredBooths.length}</span> {t("AfterAssemblyBooths.results")}
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button
@@ -205,7 +207,7 @@ export default function AfterAssemblyBooths() {
                                     disabled={currentPage === 1}
                                     className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
-                                    Previous
+                                    {t("AfterAssemblyBooths.Previous")}
                                 </button>
                                 {[...Array(totalPages)].map((_, i) => (
                                     <button
@@ -224,7 +226,7 @@ export default function AfterAssemblyBooths() {
                                     disabled={currentPage === totalPages}
                                     className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
-                                    Next
+                                    {t("AfterAssemblyBooths.Next")}
                                 </button>
                             </div>
                         </div>

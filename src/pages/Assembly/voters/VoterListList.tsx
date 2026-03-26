@@ -66,17 +66,17 @@ export const VoterListTable: React.FC<Props> = ({
     return (
         <div className="overflow-x-auto w-full rounded-lg border border-[var(--border-color)]">
             <table className="w-full text-sm text-left bg-[var(--bg-card)]">
-                <thead className="bg-indigo-50 text-[var(--text-secondary)] text-xs uppercase sticky top-0 z-10">
+                <thead className="bg-indigo-50 text-[var(--text-secondary)] bg-[var(--bg-card)] text-xs uppercase sticky top-0 z-10">
                     <tr>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thPart")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thName")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thFatherHusband")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thGender")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAge")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thMobile")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thVoterId")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAddress")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("voterListTable.thAction")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thPart")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thName")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thFatherHusband")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thGender")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thAge")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thMobile")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thVoterId")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thAddress")}</th>
+                        <th className="px-4 py-3 font-semibold bg-[var(--bg-color)]">{t("voterListTable.thAction")}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,7 +90,7 @@ export const VoterListTable: React.FC<Props> = ({
                         voters.map((voter, index) => (
                             <tr
                                 key={voter.id}
-                                className="border-b border-gray-100 hover:bg-indigo-50/50 transition"
+                                className="border-b border-gray-100 hover:bg-[var(--text-color)]/5 transition"
                             >
                                 <td className="px-4 py-3">{voter.part_no || "-"}</td>
                                 <td
@@ -123,13 +123,13 @@ export const VoterListTable: React.FC<Props> = ({
                                         <EllipsisVertical className="w-4 h-4" />
                                     </button>
                                     {openDropdown === index && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border-color)] z-20">
+                                        <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-card)]  rounded-lg shadow-lg border border-[var(--border-color)] z-20">
                                             <button
                                                 onClick={() => {
                                                     onEdit(voter);
                                                     setOpenDropdown(null);
                                                 }}
-                                                className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-indigo-50 rounded-t-lg transition"
+                                                className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-t-lg transition"
                                             >
                                                 {t("voterListTable.btnEdit")}
                                             </button>

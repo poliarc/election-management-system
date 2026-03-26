@@ -128,7 +128,7 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
                         onClick={onNavigate}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                ? "bg-blue-50 text-blue-700 font-semibold shadow-sm"
+                                ? "bg-[var(--bg-color)] text-blue-700 font-semibold shadow-sm"
                                 : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`
                         }

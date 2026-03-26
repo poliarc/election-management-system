@@ -1567,7 +1567,7 @@ export default function AssemblyDynamicLevelList({
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+            <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-card)] p-1">
                 <div className="flex items-center justify-center h-64">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
@@ -1577,7 +1577,7 @@ export default function AssemblyDynamicLevelList({
 
     return (
         <>
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+            <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-card)] p-1">
                 <div className="w-full mx-auto">
                     {/* Header with Stats Cards */}
                     <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-1 text-white">
@@ -1924,7 +1924,7 @@ export default function AssemblyDynamicLevelList({
                                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200">
                                     <div className="max-h-[600px] sm:max-h-[700px] overflow-y-auto">
                                         <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
+                                            <thead className="bg-gradient-to-r bg-[var(--bg-card)] sticky top-0">
                                                 <tr>
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         {t("AssemblyDynamic.S_No")}
@@ -1966,10 +1966,10 @@ export default function AssemblyDynamicLevelList({
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
+                                            <tbody className="bg-[var(--bg-card)] divide-y  divide-gray-200">
                                                 {paginatedItems.map((item, index) => (
                                                     <React.Fragment key={item.id}>
-                                                        <tr className="hover:bg-blue-50 transition-colors">
+                                                        <tr className="hover:bg-[var(--text-color)]/5 transition-colors">
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                                 {(currentPage - 1) * itemsPerPage + index + 1}
                                                             </td>

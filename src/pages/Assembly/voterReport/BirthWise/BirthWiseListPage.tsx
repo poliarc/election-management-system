@@ -212,7 +212,7 @@ const BirthWiseListPage: React.FC = () => {
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-[var(--bg-color)]0 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
                                     {t("BirthWiseListPage.Reset")}
                                 </button>

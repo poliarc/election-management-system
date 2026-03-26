@@ -195,7 +195,7 @@ export default function StateDistricts() {
               onClick={handleAssignedUsersClick}
               className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                 totalUsers > 0 
-                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50' 
+                  ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-100' 
                   : 'cursor-default'
               } ${
                 showAssignedUsers 

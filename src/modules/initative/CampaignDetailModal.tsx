@@ -105,7 +105,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
             onClick={onClose}
             className="absolute top-4 right-4 bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30 rounded-full p-2 transition-all duration-200"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
 
           {/* Status and Priority Badges */}
@@ -135,7 +135,7 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
               <span className="text-2xl">
                 {getCategoryIcon(notification.category)}
               </span>
-              <span className="text-white text-sm bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm px-2 py-1 rounded-md">
+              <span className="text-[var(--text-secondary)] text-sm bg-[var(--bg-color)] bg-opacity-20 backdrop-blur-sm px-2 py-1 rounded-md">
                 {notification.category.charAt(0).toUpperCase() +
                   notification.category.slice(1)}
               </span>
@@ -150,33 +150,33 @@ export const CampaignDetailModal: React.FC<CampaignDetailModalProps> = ({
         <div className="p-6 lg:p-8">
           {/* Event Details Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-blue-100   rounded-xl">
               <Calendar className="w-6 h-6 text-blue-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-blue-600 font-medium">Date</p>
-                <div className="flex items-center gap-2 text-[var(--text-color)] font-semibold">
+                <div className="flex items-center gap-2 text-black font-semibold">
                   <span>{formatDate(notification.startDate)}</span>
-                  <span className="mx-1 text-[var(--text-secondary)]">-</span>
+                  <span className="mx-1 text-black">-</span>
                   <span>{formatDate(notification.endDate)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-green-100 rounded-xl">
               <Clock className="w-6 h-6 text-green-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-green-600 font-medium">Time</p>
-                <p className="text-[var(--text-color)] font-semibold">
+                <p className="text-black font-semibold">
                   {notification.time}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-3 p-4  bg-red-100 rounded-xl sm:col-span-2 lg:col-span-1">
               <MapPin className="w-6 h-6 text-red-600 flex-shrink-0" />
               <div>
                 <p className="text-sm text-red-600 font-medium">Location</p>
-                <p className="text-[var(--text-color)] font-semibold">
+                <p className="text-black font-semibold">
                   {notification.location}
                 </p>
               </div>

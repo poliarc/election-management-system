@@ -738,6 +738,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <div className="hidden md:block">
             <GoogleTranslate />
           </div>
+          
           <button
             type="button"
             onClick={() => setDarkMode((prev) => !prev)}
@@ -878,8 +879,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       [
                         "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
                         isActive
-                          ? "bg-gray-50 text-gray-900"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                          ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                          : "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                       ].join(" ")
                     }
                   >

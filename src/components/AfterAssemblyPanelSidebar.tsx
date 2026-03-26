@@ -471,7 +471,7 @@ export default function AfterAssemblyPanelSidebar({
             <button
               type="button"
               onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-              className="w-full flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
+              className="w-full flex items-center justify-between rounded-lg border  border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <svg

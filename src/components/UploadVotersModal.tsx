@@ -147,7 +147,7 @@ export default function UploadVotersModal({
                 {/* Content */}
                 <div className="p-6">
                     {/* Assembly Info */}
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <div className="mb-6 p-4 bg-[var(--bg-color)] rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-sm font-semibold text-[var(--text-secondary)]">{t("uploadVoter.Upload_Details")}</h3>
                             <button

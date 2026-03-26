@@ -11,8 +11,10 @@ import {
 } from "../../../services/levelAdminApi";
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function AssemblyUserManagement() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -337,7 +339,7 @@ export default function AssemblyUserManagement() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("AssemblyUserManagement.Desc")}</p>
         </div>
       </div>
     );
@@ -346,9 +348,9 @@ export default function AssemblyUserManagement() {
   return (
     <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="bg-linear-to-r from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white mb-1">
-        <h1 className="text-3xl font-bold">Assembly User Management</h1>
+        <h1 className="text-3xl font-bold">{t("AssemblyUserManagement.Title")}</h1>
         <p className="text-indigo-100 mt-2">
-          Manage users for assemblies in {currentPanel.metadata?.stateName} -{" "}
+          {t("AssemblyUserManagement.Desc1")} {currentPanel.metadata?.stateName} -{" "}
           {currentPanel.metadata?.partyName}
         </p>
       </div>
@@ -359,7 +361,7 @@ export default function AssemblyUserManagement() {
           <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
             <div className="p-4 border-b border-[var(--border-color)]">
               <h2 className="text-lg font-bold text-[var(--text-color)] mb-3">
-                Districts
+                {t("AssemblyUserManagement.Districts")}
               </h2>
               {/* District Search */}
               <input
@@ -377,7 +379,7 @@ export default function AssemblyUserManagement() {
                 </div>
               ) : filteredDistricts.length === 0 ? (
                 <div className="p-6 text-center text-[var(--text-secondary)]">
-                  No districts found
+                  {t("AssemblyUserManagement.No_districts")}
                 </div>
               ) : (
                 filteredDistricts.map((district) => (
@@ -408,7 +410,7 @@ export default function AssemblyUserManagement() {
           <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
             <div className="p-4 border-b border-[var(--border-color)]">
               <h2 className="text-lg font-bold text-[var(--text-color)] mb-3">
-                Assemblies
+                {t("AssemblyUserManagement.Assemblies")}
               </h2>
               {/* Assembly Search */}
               {selectedDistrict && (
@@ -424,7 +426,7 @@ export default function AssemblyUserManagement() {
             <div className="max-h-[600px] overflow-y-auto">
               {!selectedDistrict ? (
                 <div className="p-6 text-center text-[var(--text-secondary)]">
-                  Select a district first
+                  {t("AssemblyUserManagement.Select_district_first")}
                 </div>
               ) : assembliesLoading ? (
                 <div className="p-6 text-center">
@@ -432,7 +434,7 @@ export default function AssemblyUserManagement() {
                 </div>
               ) : filteredAssemblies.length === 0 ? (
                 <div className="p-6 text-center text-[var(--text-secondary)]">
-                  No assemblies found
+                  {t("AssemblyUserManagement.No_assemblies_found")}
                 </div>
               ) : (
                 filteredAssemblies.map((assembly) => (
@@ -451,7 +453,7 @@ export default function AssemblyUserManagement() {
                       {assembly.location_name}
                     </p>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
-                      {assembly.total_users} users
+                      {assembly.total_users} {t("AssemblyUserManagement.users")}
                     </p>
                   </button>
                 ))
@@ -478,7 +480,7 @@ export default function AssemblyUserManagement() {
                 />
               </svg>
               <p className="text-[var(--text-secondary)]">
-                Select an assembly to manage users
+                {t("AssemblyUserManagement.Desc2")}
               </p>
             </div>
           ) : (
@@ -517,22 +519,22 @@ export default function AssemblyUserManagement() {
                     <thead className="bg-[var(--bg-main)]">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          S.No
+                          {t("AssemblyUserManagement.S_No")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Name
+                          {t("AssemblyUserManagement.Name")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Email
+                          {t("AssemblyUserManagement.Email")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          User Id
+                          {t("AssemblyUserManagement.User_Id")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Status
+                          {t("AssemblyUserManagement.Status")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Actions
+                          {t("AssemblyUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
@@ -541,7 +543,7 @@ export default function AssemblyUserManagement() {
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
                             <p className="text-[var(--text-secondary)]">
-                              No users assigned to this assembly
+                              {t("AssemblyUserManagement.Desc3")}
                             </p>
                           </td>
                         </tr>
@@ -606,11 +608,11 @@ export default function AssemblyUserManagement() {
                         disabled={assignedPage === 1}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("AssemblyUserManagement.Previous")}
                       </button>
                       <span className="text-sm text-[var(--text-secondary)]">
-                        Page {assignedPage} of {totalPagesAssigned} (
-                        {totalUsersAssigned} users)
+                        {t("AssemblyUserManagement.Page")} {assignedPage} {t("AssemblyUserManagement.of")} {totalPagesAssigned} (
+                        {totalUsersAssigned} {t("AssemblyUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -621,7 +623,7 @@ export default function AssemblyUserManagement() {
                         disabled={assignedPage === totalPagesAssigned}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("AssemblyUserManagement.Next")}
                       </button>
                     </div>
                   )}
@@ -633,22 +635,22 @@ export default function AssemblyUserManagement() {
                     <thead className="bg-[var(--bg-main)]">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          S.No
+                          {t("AssemblyUserManagement.S_No")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Name
+                          {t("AssemblyUserManagement.Name")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Email
+                          {t("AssemblyUserManagement.Email")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          User Id
+                          {t("AssemblyUserManagement.User_Id")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Status
+                          {t("AssemblyUserManagement.Status")}
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
-                          Actions
+                          {t("AssemblyUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
@@ -663,7 +665,7 @@ export default function AssemblyUserManagement() {
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
                             <p className="text-[var(--text-secondary)]">
-                              No available users found
+                              {t("AssemblyUserManagement.Desc4")}
                             </p>
                           </td>
                         </tr>
@@ -719,11 +721,11 @@ export default function AssemblyUserManagement() {
                         disabled={availablePage === 1}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("AssemblyUserManagement.Previous")}
                       </button>
                       <span className="text-sm text-[var(--text-secondary)]">
-                        Page {availablePage} of {totalPagesUnassigned} (
-                        {totalUsersUnassigned} users)
+                        {t("AssemblyUserManagement.Page")} {availablePage} {t("AssemblyUserManagement.of")} {totalPagesUnassigned} (
+                        {totalUsersUnassigned} {t("AssemblyUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -734,7 +736,7 @@ export default function AssemblyUserManagement() {
                         disabled={availablePage === totalPagesUnassigned}
                         className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("AssemblyUserManagement.Next")}
                       </button>
                     </div>
                   )}

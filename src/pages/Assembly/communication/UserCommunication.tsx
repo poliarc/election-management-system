@@ -534,7 +534,7 @@ const {
                 className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
                   messageType === "SMS"
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                    : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -559,7 +559,7 @@ const {
                 className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
                   messageType === "WHATSAPP"
                     ? "bg-green-600 text-white"
-                    : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                    : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -702,9 +702,9 @@ const {
                         {users.map((user) => (
                           <tr
                             key={user.user_id}
-                            className={`hover:bg-indigo-50 cursor-pointer transition-colors ${
+                            className={`hover:bg-[var(--text-color)]/5 text-[var(--text-secondary)] cursor-pointer transition-colors ${
                               selectedUsers.has(user.user_id)
-                                ? "bg-indigo-50"
+                                ? " text-[var(--text-secondary)]"
                                 : ""
                             }`}
                             onClick={() => handleUserSelect(user.user_id)}

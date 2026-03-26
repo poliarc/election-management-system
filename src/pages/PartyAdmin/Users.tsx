@@ -21,6 +21,7 @@ import type {
     UserSearchParams,
     UserForm as UserFormType,
 } from "../../types/user";
+import { useTranslation } from "react-i18next";
 
 // Error response types
 interface ValidationError {
@@ -37,6 +38,7 @@ interface ApiError {
 }
 
 export const PartyAdminUsers: React.FC = () => {
+    const {t} = useTranslation();
     const { partyId } = useParams<{ partyId: string }>();
     const [showForm, setShowForm] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -246,7 +248,7 @@ export const PartyAdminUsers: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="min-h-screen bg-[var(--bg-main)] p-4">
             <div className="w-full mx-auto">
                 {/* Header */}
                 <div className="mb-1">
@@ -254,10 +256,10 @@ export const PartyAdminUsers: React.FC = () => {
                         <div>
                             <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                                 <Users className="text-blue-600" />
-                                User Management
+                                {t("PartyAdminUsers.Title")}
                             </h1>
                             <p className="text-[var(--text-secondary)] mt-1">
-                                Manage users for {currentParty?.partyName || "your party"}
+                                {t("PartyAdminUsers.Desc")} {currentParty?.partyName || "your party"}
                             </p>
                         </div>
 
@@ -267,7 +269,7 @@ export const PartyAdminUsers: React.FC = () => {
                                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
                             >
                                 <Upload className="w-4 h-4" />
-                                Upload Users
+                                {t("PartyAdminUsers.Upload_Users")}
                             </button>
 
                             <button
@@ -275,7 +277,7 @@ export const PartyAdminUsers: React.FC = () => {
                                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                             >
                                 <Plus className="w-4 h-4" />
-                                Add User
+                                {t("PartyAdminUsers.Add_User")}
                             </button>
                         </div>
                     </div>
@@ -333,12 +335,12 @@ export const PartyAdminUsers: React.FC = () => {
                                 disabled={pagination.page === 1}
                                 className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                             >
-                                Previous
+                                {t("PartyAdminUsers.Previous")}
                             </button>
 
                             <span className="px-4 py-2 text-sm text-[var(--text-secondary)] font-medium">
-                                Page {pagination.page} of {pagination.totalPages} (
-                                {pagination.total} total)
+                                {t("PartyAdminUsers.Page")} {pagination.page} {t("PartyAdminUsers.of")} {pagination.totalPages} (
+                                {pagination.total} {t("PartyAdminUsers.total")})
                             </span>
 
                             <button
@@ -351,7 +353,7 @@ export const PartyAdminUsers: React.FC = () => {
                                 disabled={pagination.page >= pagination.totalPages}
                                 className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                             >
-                                Next
+                                {t("PartyAdminUsers.Next")}
                             </button>
                         </div>
                     </div>
@@ -371,7 +373,7 @@ export const PartyAdminUsers: React.FC = () => {
                         <div className="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl">
                             <div className="flex items-center gap-3">
                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                <span className="text-[var(--text-secondary)]">Loading users...</span>
+                                <span className="text-[var(--text-secondary)]">{t("PartyAdminUsers.Loading")}</span>
                             </div>
                         </div>
                     </div>
@@ -389,15 +391,14 @@ export const PartyAdminUsers: React.FC = () => {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
-                                            Delete User
+                                            {t("PartyAdminUsers.Delete")}
                                         </h3>
                                         <p className="text-sm text-[var(--text-secondary)]">
-                                            Are you sure you want to delete{" "}
+                                            {t("PartyAdminUsers.Desc1")}{" "}
                                             <span className="font-semibold text-[var(--text-color)]">
                                                 {userToDelete.first_name} {userToDelete.last_name}
                                             </span>
-                                            ? This action cannot be undone and will permanently remove
-                                            the user from the system.
+                                            {t("PartyAdminUsers.Desc2")}
                                         </p>
                                     </div>
                                 </div>
@@ -407,7 +408,7 @@ export const PartyAdminUsers: React.FC = () => {
                                         onClick={cancelDeleteUser}
                                         className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                                     >
-                                        Cancel
+                                        {t("PartyAdminUsers.Cancel")}
                                     </button>
                                     <button
                                         onClick={confirmDeleteUser}
@@ -417,7 +418,7 @@ export const PartyAdminUsers: React.FC = () => {
                                         {isDeleting ? (
                                             <>
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                Deleting...
+                                               {t("PartyAdminUsers.Deleting")}
                                             </>
                                         ) : (
                                             "Delete User"

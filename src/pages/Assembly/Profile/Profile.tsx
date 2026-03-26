@@ -112,17 +112,17 @@ const InputField = ({
       disabled={disabled}
       placeholder={placeholder}
       maxLength={maxLength}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        maxWidth: "100%",
-        height: "38px",
-        border: "1px solid #CBD5E1",
-        fontSize: "15px",
-        background: disabled ? "#F1F5F9" : "#F8FAFC",
-        cursor: disabled ? "not-allowed" : "text",
-      }}
-      className="rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-150 shadow-sm"
+      className={`
+          w-full min-w-0 max-w-full h-[38px] text-[15px]
+          rounded-lg px-4 py-2
+          bg-[var(--input-bg)]
+          text-[var(--text-primary)]
+          border border-[var(--border-color)]
+          cursor-text disabled:cursor-not-allowed
+          disabled:bg-[var(--input-disabled)]
+          focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+          outline-none transition-all duration-150 shadow-sm
+          rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-150 shadow-sm`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />
@@ -612,12 +612,12 @@ export const Profile = () => {
   return (
     <div className="w-full m-0 animate-fadeIn">
       {/* Header */}
-      <div className="w-full bg-gradient-to-br from-white via-blue-50/30 to-white shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 sm:p-8 border border-blue-100/50 backdrop-blur-sm transform hover:scale-[1.01]">
+      <div className="w-full bg-[var(--bg-card)] shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 sm:p-8 border border-blue-100/50 backdrop-blur-sm transform hover:scale-[1.01]">
         <div
           className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 p-1 shadow-xl animate-gradient-rotate group cursor-pointer"
           onClick={handleSelectImageClick}
         >
-          <div className="w-full h-full bg-[var(--bg-card)] rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white shadow-inner relative">
+          <div className="w-full h-full bg-[var(--bg-color)] rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white shadow-inner relative">
             {profileImagePreview ? (
               <img
                 src={profileImagePreview}
@@ -683,7 +683,7 @@ export const Profile = () => {
         </div>
 
         <div className="text-center sm:text-left flex-1 space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-900 to-gray-800 bg-clip-text text-transparent leading-tight animate-slideInLeft">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-secondary)] bg-clip-text  leading-tight animate-slideInLeft">
             {currentUser?.first_name} {currentUser?.last_name}
           </h1>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
@@ -734,7 +734,7 @@ export const Profile = () => {
       <div className="mt-8 flex flex-col lg:flex-row gap-6">
         {/* Left: Form */}
         <div
-          className="flex-1 bg-gradient-to-br from-white to-blue-50/20 rounded-3xl p-6 sm:p-8 border border-blue-100/50 shadow-xl backdrop-blur-sm animate-fadeIn"
+          className="flex-1 bg-[var(--bg-card)] rounded-3xl p-6 sm:p-8 border border-blue-100/50 shadow-xl backdrop-blur-sm animate-fadeIn"
           style={{ animationDelay: "0.2s", animationFillMode: "both" }}
         >
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -845,7 +845,7 @@ export const Profile = () => {
 
             {/* Basic Information */}
             <section>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-[var(--bg-card)]/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-[var(--bg-color)] backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
                 <Controller
                   name="firstName"
                   control={control}

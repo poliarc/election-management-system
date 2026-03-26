@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { RegistrationLink } from "../../../store/api/registrationLinksApi";
+import { useTranslation } from "react-i18next";
 
 interface RegistrationLinksListProps {
     links: RegistrationLink[];
@@ -40,6 +41,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
     onBulkDelete,
     onBulkToggleStatus,
 }) => {
+    const {t} = useTranslation();
     const [copiedLink, setCopiedLink] = useState<string>("");
 
     const copyToClipboard = async (url: string) => {
@@ -75,7 +77,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
         if (link.isActive === 0) {
             return (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
-                    Inactive
+                    {t("RegistrationLinksList.Inactive")}
                 </span>
             );
         }
@@ -83,14 +85,14 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
         if (isExpired(link.expires_at)) {
             return (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    Expired
+                    {t("RegistrationLinksList.Expired")}
                 </span>
             );
         }
 
         return (
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Active
+                {t("RegistrationLinksList.Active")}
             </span>
         );
     };
@@ -100,7 +102,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
             <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-8">
                 <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-[var(--text-secondary)]">Loading registration links...</span>
+                    <span className="ml-3 text-[var(--text-secondary)]">{t("RegistrationLinksList.Loading")}</span>
                 </div>
             </div>
         );
@@ -110,9 +112,9 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
         return (
             <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-8 text-center">
                 <Users className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">No Registration Links</h3>
+                <h3 className="text-lg font-medium text-[var(--text-color)] mb-2">{t("RegistrationLinksList.Desc")}</h3>
                 <p className="text-[var(--text-secondary)] mb-4">
-                    You haven't created any registration links yet. Create your first link to start onboarding users.
+                    {t("RegistrationLinksList.Desc1")}
                 </p>
             </div>
         );
@@ -146,19 +148,19 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                     onClick={() => onBulkToggleStatus(true)}
                                     className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
                                 >
-                                    Activate
+                                    {t("RegistrationLinksList.Activate")}
                                 </button>
                                 <button
                                     onClick={() => onBulkToggleStatus(false)}
                                     className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors"
                                 >
-                                    Deactivate
+                                    {t("RegistrationLinksList.Deactivate")}
                                 </button>
                                 <button
                                     onClick={onBulkDelete}
                                     className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
                                 >
-                                    Delete
+                                    {t("RegistrationLinksList.Delete")}
                                 </button>
                             </div>
                         )}
@@ -207,7 +209,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                             <span className="truncate">
                                                 {link.expires_at ? (
                                                     <>
-                                                        Expires: {formatDate(link.expires_at)}
+                                                        {t("RegistrationLinksList.Expires")}: {formatDate(link.expires_at)}
                                                         {isExpired(link.expires_at) && (
                                                             <AlertTriangle className="inline w-4 h-4 text-red-500 ml-1" />
                                                         )}
@@ -258,7 +260,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
-                                        Registration URL:
+                                        {t("RegistrationLinksList.Registration_URL")}
                                     </p>
                                     <p className="text-sm text-[var(--text-secondary)] break-all font-mono">
                                         {link.registration_url}
@@ -274,12 +276,12 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                         {copiedLink === link.registration_url ? (
                                             <>
                                                 <CheckCircle className="w-4 h-4" />
-                                                Copied
+                                                {t("RegistrationLinksList.Copied")}
                                             </>
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4" />
-                                                Copy
+                                                {t("RegistrationLinksList.Copy")}
                                             </>
                                         )}
                                     </button>
@@ -290,7 +292,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                                         title="Open in new tab"
                                     >
                                         <ExternalLink className="w-4 h-4" />
-                                        Preview
+                                        {t("RegistrationLinksList.Preview")}
                                     </button>
                                 </div>
                             </div>
@@ -299,19 +301,19 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                         {/* Metadata */}
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-[var(--text-secondary)]">
                             <div className="truncate">
-                                <span className="font-medium">Created by:</span>{" "}
+                                <span className="font-medium">{t("RegistrationLinksList.Created_by")}</span>{" "}
                                 {link.first_name && link.last_name
                                     ? `${link.first_name} ${link.last_name}`
                                     : link.created_by_email || `User ${link.created_by}`}
                             </div>
 
                             <div className="truncate">
-                                <span className="font-medium">Created:</span>{" "}
+                                <span className="font-medium">{t("RegistrationLinksList.Created")}</span>{" "}
                                 {formatDate(link.created_at)}
                             </div>
 
                             <div className="truncate">
-                                <span className="font-medium">Last updated:</span>{" "}
+                                <span className="font-medium">{t("RegistrationLinksList.Last_updated")}</span>{" "}
                                 {formatDate(link.updated_at)}
                             </div>
                         </div>
@@ -319,7 +321,7 @@ export const RegistrationLinksList: React.FC<RegistrationLinksListProps> = ({
                         {/* Token (for debugging - can be removed in production) */}
                         {process.env.NODE_ENV === 'development' && (
                             <div className="mt-2 text-xs text-[var(--text-secondary)] break-all">
-                                <span className="font-medium">Token:</span> {link.link_token}
+                                <span className="font-medium">{t("RegistrationLinksList.Token")}</span> {link.link_token}
                             </div>
                         )}
                     </div>

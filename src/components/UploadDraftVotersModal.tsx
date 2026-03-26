@@ -144,9 +144,9 @@ export default function UploadDraftVotersModal({
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-[var(--text-secondary)] mb-2">{t("uploadDraftVoter.Target")}</h3>
+        <div className="p-6 ">
+          <div className="mb-6 p-4 bg-[var(--bg-color)] rounded-lg">
+            <h3 className="text-sm font-semibold text-[var(--text-secondary)]  mb-2">{t("uploadDraftVoter.Target")}</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.State_ID")}:</span>

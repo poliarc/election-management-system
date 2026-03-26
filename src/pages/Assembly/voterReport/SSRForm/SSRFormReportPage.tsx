@@ -110,7 +110,7 @@ const SSRFormReportPage: React.FC = () => {
     console.log(votersData, 'voter');
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-2 sm:p-4 lg:p-6">
+        <div className="min-h-screen bg-gradient-to-br bg-[var(--bg-color)] p-2 sm:p-4 lg:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 text-white">
@@ -188,7 +188,7 @@ const SSRFormReportPage: React.FC = () => {
                             </label>
                             <button
                                 onClick={handleReset}
-                                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base bg-[var(--bg-color)] text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors font-medium"
                             >
                                 {t("SSRFormReportPage.Reset_Filters")}
                             </button>

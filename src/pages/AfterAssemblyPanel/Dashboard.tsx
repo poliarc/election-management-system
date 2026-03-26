@@ -6,8 +6,10 @@ import {
 } from "../../services/afterAssemblyApi";
 import { useAppSelector } from "../../store/hooks";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function AfterAssemblyPanelDashboard() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { user } = useAppSelector((s) => s.auth);
   const [stats, setStats] = useState({
@@ -93,10 +95,10 @@ export default function AfterAssemblyPanelDashboard() {
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl font-bold">
               {levelInfo?.displayName || levelInfo?.levelName || "Level"}{" "}
-              Dashboard
+              {t("AfterAssemblyPanelDashboard.Dashboard")}
             </h1>
             <p className="text-indigo-100 mt-1 text-xs sm:text-sm">
-              {levelInfo?.levelType || "Level"} - Direct child of Assembly
+              {levelInfo?.levelType || "Level"} {t("AfterAssemblyPanelDashboard.Desc")}
             </p>
           </div>
 
@@ -104,7 +106,7 @@ export default function AfterAssemblyPanelDashboard() {
             <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                  Total Users
+                  {t("AfterAssemblyPanelDashboard.Total_Users")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold mt-1">
                   {loading ? "..." : stats.totalUsers}
@@ -130,7 +132,7 @@ export default function AfterAssemblyPanelDashboard() {
             <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                  Active Users
+                  {t("AfterAssemblyPanelDashboard.Active_Users")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                   {loading ? "..." : stats.activeUsers}
@@ -156,7 +158,7 @@ export default function AfterAssemblyPanelDashboard() {
             <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
-                  Sub Levels
+                  {t("AfterAssemblyPanelDashboard.Sub_Levels")}
                 </p>
                 <p className="text-2xl sm:text-3xl font-semibold text-purple-600 mt-1">
                   {loading ? "..." : stats.childLevels}
@@ -185,29 +187,29 @@ export default function AfterAssemblyPanelDashboard() {
       {/* Level Information */}
       <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg sm:text-xl font-bold text-[var(--text-color)] mb-4">
-          Level Information
+          {t("AfterAssemblyPanelDashboard.Level_Information")}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Level Name</p>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("AfterAssemblyPanelDashboard.Level_Name")}</p>
             <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.levelName || levelInfo?.displayName || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Level Type</p>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("AfterAssemblyPanelDashboard.Level_Type")}</p>
             <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.levelType || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Party Name</p>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("AfterAssemblyPanelDashboard.Party_Name")}</p>
             <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {user?.partyName || "N/A"}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Assembly Name</p>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("AfterAssemblyPanelDashboard.Assembly_Name")}</p>
             <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
               {levelInfo?.assemblyName || "N/A"}
             </p>

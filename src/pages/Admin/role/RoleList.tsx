@@ -98,11 +98,11 @@ export const RoleList: React.FC<RoleListProps> = ({
     <>
       <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
         {/* Table Header */}
-        <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-[var(--border-color)]">
+        <div className="bg-[var(--bg-card)] px-6 py-4 border-b border-[var(--border-color)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Shield className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-[var(--text-color)]">
+              <h3 className="text-lg font-semibold bg-[var(--bg-card)] text-[var(--text-color)]">
                 Role Management
               </h3>
             </div>
@@ -143,16 +143,16 @@ export const RoleList: React.FC<RoleListProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
+            <tbody className="bg-[var(--bg-card)]  divide-y ">
               {roles.map((role) => (
                 <tr
                   key={role.role_id}
-                  className="hover:bg-blue-50 transition-colors duration-150"
+                  className=" hover:bg-[var(--bg-color)] transition-colors duration-150"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-3">
+                  <td className="px-6 py-4 whitespace-nowrap ">
+                    <div className="flex items-center space-x-3 ">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${role.isActive ? "bg-blue-100" : "bg-gray-100"
+                        className={`w-10 h-10 rounded-full flex items-center  justify-center ${role.isActive ? "bg-blue-100" : "bg-gray-100"
                           }`}
                       >
                         <Shield

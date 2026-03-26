@@ -328,7 +328,7 @@ export const CampaignListing = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-sm border border-blue-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
+        <div className="bg-gradient-to-br bg-[var(--bg-card)] p-6 rounded-xl shadow-sm border border-blue-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[var(--text-secondary)] group-hover:text-blue-600 transition-colors">{t("stateCampaign.Total_Campaigns")}</p>
@@ -340,7 +340,7 @@ export const CampaignListing = ({
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl shadow-sm border border-green-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
+        <div className="bg-gradient-to-br bg-[var(--bg-card)] p-6 rounded-xl shadow-sm border border-green-100 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[var(--text-secondary)] group-hover:text-green-600 transition-colors">{t("stateCampaign.Active_Campaigns")}</p>
@@ -354,7 +354,7 @@ export const CampaignListing = ({
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl shadow-sm border border-[var(--text-color)]/10 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
+        <div className="bg-gradient-to-br bg-[var(--bg-card)] p-6 rounded-xl shadow-sm border border-[var(--text-color)]/10 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-secondary)] transition-colors">{t("stateCampaign.Completed")}</p>
@@ -398,7 +398,7 @@ export const CampaignListing = ({
       </div>
 
       {/* Campaigns List */}
-      <div className="bg-[var(--bg-color)] rounded-lg shadow-sm border">
+      <div className="bg-[var(--bg-color)]  rounded-lg shadow-sm border">
         <div className="p-3 border-b">
           <h2 className="text-lg font-semibold text-[var(--text-color)]">
             {t("stateCampaign.Campaigns")} ({filteredCampaigns.length})
@@ -435,7 +435,7 @@ export const CampaignListing = ({
                 return (
                   <div
                     key={campaign.id}
-                    className="border border-[var(--text-color)]/10 rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-0 group"
+                    className="border border-[var(--text-color)]/10  rounded-xl p-4 hover:bg-[var(--bg-card)] hover:border-blue-300 hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row gap-0 group"
                   >
                     {/* Campaign Images */}
                     {images.length > 0 && (

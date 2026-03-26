@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
 import { fetchAssignedUsers } from "../../../services/levelAdminApi";
+import { useTranslation } from "react-i18next";
 
 export default function LevelAdminDashboard() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
     const [stats, setStats] = useState({
@@ -59,7 +61,7 @@ export default function LevelAdminDashboard() {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-                    <p className="text-red-700">Level admin panel not found</p>
+                    <p className="text-red-700">{t("LevelAdminDashboard.Desc")}</p>
                 </div>
             </div>
         );
@@ -71,7 +73,7 @@ export default function LevelAdminDashboard() {
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
-                        <h1 className="text-xl sm:text-2xl font-bold">{currentPanel.displayName} Dashboard</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold">{currentPanel.displayName} {t("LevelAdminDashboard.Dashboard")}</h1>
                         <p className="text-blue-100 mt-1 text-xs sm:text-sm">
                             {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
                         </p>
@@ -80,7 +82,7 @@ export default function LevelAdminDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">Total Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Total_Users")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold mt-1">
                                     {loading ? "..." : stats.totalUsers}
                                 </p>
@@ -94,7 +96,7 @@ export default function LevelAdminDashboard() {
 
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">Active Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Active_Users")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                                     {loading ? "..." : stats.activeUsers}
                                 </p>
@@ -108,7 +110,7 @@ export default function LevelAdminDashboard() {
 
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">Inactive Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Inactive_Users")}</p>
                                 <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">
                                     {loading ? "..." : stats.inactiveUsers}
                                 </p>
@@ -125,22 +127,22 @@ export default function LevelAdminDashboard() {
 
             {/* Info Card */}
             <div className="mt-1 bg-[var(--bg-card)] rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">Panel Information</h2>
+                <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("LevelAdminDashboard.Panel_Information")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <p className="text-sm text-[var(--text-secondary)]">Level Type</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Level_Type")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.stateLevelType}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-[var(--text-secondary)]">State</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.State")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.stateName}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-[var(--text-secondary)]">Party</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Party")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.partyName}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-[var(--text-secondary)]">Parent Level</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Parent_Level")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">
                             {currentPanel.metadata?.parentLevelName || "None"}
                         </p>

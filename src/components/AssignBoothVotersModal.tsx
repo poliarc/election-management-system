@@ -7,6 +7,7 @@ import {
     deletePartNoAssignment,
     type PartNoAssignment,
 } from "../services/partNoAssignmentApi";
+import { useTranslation } from "react-i18next";
 
 interface AssignBoothVotersModalProps {
     isOpen: boolean;
@@ -29,6 +30,7 @@ export default function AssignBoothVotersModal({
     stateId,
     districtId,
 }: AssignBoothVotersModalProps) {
+    const {t} = useTranslation();
     const [availablePartNos, setAvailablePartNos] = useState<string[]>([]);
     const [selectedPartNos, setSelectedPartNos] = useState<Set<string>>(new Set());
     const [partNoFrom, setPartNoFrom] = useState("");
@@ -274,7 +276,7 @@ export default function AssignBoothVotersModal({
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold">Assign Booth Voters</h2>
+                            <h2 className="text-2xl font-bold">{t("AssignBoothVotersModal.Title")}</h2>
                             <p className="text-indigo-100 mt-1">{levelName}</p>
                         </div>
                         <button
@@ -291,12 +293,12 @@ export default function AssignBoothVotersModal({
                 {/* Body */}
                 <div className="p-6 overflow-y-auto flex-1">
                     {/* Assign by Range */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">Assign Part No Range</h3>
+                    <div className="bg-[var(--bg-color)] rounded-lg p-6 mb-6">
+                        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("AssignBoothVotersModal.Desc")}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    Part No From
+                                    {t("AssignBoothVotersModal.Desc1")}
                                 </label>
                                 <input
                                     type="number"
@@ -308,7 +310,7 @@ export default function AssignBoothVotersModal({
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    Part No To
+                                    {t("AssignBoothVotersModal.Desc2")}
                                 </label>
                                 <input
                                     type="number"
@@ -334,7 +336,7 @@ export default function AssignBoothVotersModal({
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-[var(--text-color)]">
-                                Available Part Numbers ({availablePartNos.length})
+                                {t("AssignBoothVotersModal.Desc3")} ({availablePartNos.length})
                             </h3>
                             <div className="flex gap-2">
                                 <button
@@ -348,7 +350,7 @@ export default function AssignBoothVotersModal({
                                     disabled={loading || selectedPartNos.size === 0}
                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Assign Selected ({selectedPartNos.size})
+                                    {t("AssignBoothVotersModal.Assign_Selected")} ({selectedPartNos.size})
                                 </button>
                             </div>
                         </div>
@@ -384,7 +386,7 @@ export default function AssignBoothVotersModal({
                             </div>
                             {searchPartNo && (
                                 <p className="text-sm text-[var(--text-secondary)] mt-2">
-                                    Showing {filteredPartNos.length} of {availablePartNos.length} part numbers
+                                    {t("AssignBoothVotersModal.Showing")} {filteredPartNos.length} {t("AssignBoothVotersModal.of")} {availablePartNos.length} {t("AssignBoothVotersModal.part_numbers")}
                                 </p>
                             )}
                         </div>
@@ -392,15 +394,15 @@ export default function AssignBoothVotersModal({
                         {loading ? (
                             <div className="text-center py-8">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                                <p className="mt-2 text-[var(--text-secondary)]">Loading part numbers...</p>
+                                <p className="mt-2 text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Loading")}</p>
                             </div>
                         ) : availablePartNos.length === 0 ? (
                             <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
-                                <p className="text-[var(--text-secondary)]">No available part numbers found</p>
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Desc4")}</p>
                             </div>
                         ) : filteredPartNos.length === 0 ? (
                             <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
-                                <p className="text-[var(--text-secondary)]">No part numbers match your search</p>
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Desc5")}</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 max-h-60 overflow-y-auto p-4 bg-[var(--bg-main)] rounded-lg">
@@ -423,7 +425,7 @@ export default function AssignBoothVotersModal({
                     {/* Existing Assignments */}
                     <div>
                         <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
-                            Current Assignments ({assignments.length})
+                            {t("AssignBoothVotersModal.Current_Assignments")} ({assignments.length})
                         </h3>
                         {loadingAssignments ? (
                             <div className="text-center py-8">
@@ -431,7 +433,7 @@ export default function AssignBoothVotersModal({
                             </div>
                         ) : assignments.length === 0 ? (
                             <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
-                                <p className="text-[var(--text-secondary)]">No assignments yet</p>
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.No_assignments_yet")}</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -448,10 +450,10 @@ export default function AssignBoothVotersModal({
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-[var(--text-color)]">
-                                                    Part No: {assignment.part_no_from} - {assignment.part_no_to}
+                                                    {t("AssignBoothVotersModal.Part_No")} {assignment.part_no_from} - {assignment.part_no_to}
                                                 </p>
                                                 <p className="text-xs text-[var(--text-secondary)]">
-                                                    Assigned on {new Date(assignment.created_at).toLocaleDateString()}
+                                                    {t("AssignBoothVotersModal.Assigned_no")} {new Date(assignment.created_at).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -459,7 +461,7 @@ export default function AssignBoothVotersModal({
                                             onClick={() => handleDeleteAssignment(assignment.id)}
                                             className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
                                         >
-                                            Delete
+                                            {t("AssignBoothVotersModal.Delete")}
                                         </button>
                                     </div>
                                 ))}
@@ -474,7 +476,7 @@ export default function AssignBoothVotersModal({
                         onClick={onClose}
                         className="px-6 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                     >
-                        Close
+                        {t("AssignBoothVotersModal.Close")}
                     </button>
                 </div>
             </div>

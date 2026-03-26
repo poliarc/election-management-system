@@ -4,8 +4,10 @@ import toast from "react-hot-toast";
 
 import { fetchAssignedUsersForLevel } from "../../services/afterAssemblyApi";
 import { useToggleUserStatusMutation } from "../../store/api/profileApi";
+import { useTranslation } from "react-i18next";
 
 export default function AfterAssemblyPanelTeam() {
+  const {t} =useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -170,7 +172,7 @@ export default function AfterAssemblyPanelTeam() {
     <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 mb-1">
         <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">
-          Team Management
+          {t("AfterAssemblyPanelTeam.Title")}
         </h1>
 
         <div className="relative">
@@ -209,41 +211,41 @@ export default function AfterAssemblyPanelTeam() {
             <thead className="bg-[var(--bg-main)]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  S.No
+                  {t("AfterAssemblyPanelTeam.S_No")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  User ID
+                  {t("AfterAssemblyPanelTeam.User_ID")}
                 </th>
 
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  State
+                  {t("AfterAssemblyPanelTeam.State")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  District
+                  {t("AfterAssemblyPanelTeam.District")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Assembly
+                  {t("AfterAssemblyPanelTeam.Assembly")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Block
+                  {t("AfterAssemblyPanelTeam.Block")}
                 </th>
                 
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Name
+                  {t("AfterAssemblyPanelTeam.Name")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Designation
+                  {t("AfterAssemblyPanelTeam.Designation")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Email
+                  {t("AfterAssemblyPanelTeam.Email")}
                 </th>
 
 
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                  Status
+                  {t("AfterAssemblyPanelTeam.Status")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider hidden xl:table-cell">
-                  Action
+                   {t("AfterAssemblyPanelTeam.Action")}
                 </th>
               </tr>
             </thead>
@@ -254,7 +256,7 @@ export default function AfterAssemblyPanelTeam() {
                     colSpan={10}
                     className="px-6 py-12 text-center text-[var(--text-secondary)]"
                   >
-                    No team members found
+                    {t("AfterAssemblyPanelTeam.Desc")}
                   </td>
                 </tr>
               ) : (
@@ -425,7 +427,7 @@ export default function AfterAssemblyPanelTeam() {
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                                       />
                                     </svg>
-                                    Mark Active
+                                    {t("AfterAssemblyPanelTeam.Mark_Active")}
                                   </button>
                                   <button
                                     type="button"
@@ -453,7 +455,7 @@ export default function AfterAssemblyPanelTeam() {
                                         d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
                                       />
                                     </svg>
-                                    Mark Inactive
+                                    {t("AfterAssemblyPanelTeam.Mark_Inactive")}
                                   </button>
                                 </div>
                               </div>
@@ -476,11 +478,11 @@ export default function AfterAssemblyPanelTeam() {
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Previous
+                {t("AfterAssemblyPanelTeam.Previous")}
               </button>
               <span className="text-sm text-[var(--text-secondary)]">
-                Page {currentPage} of {totalPages} ({filteredUsers.length}{" "}
-                users)
+                {t("AfterAssemblyPanelTeam.Page")} {currentPage} {t("AfterAssemblyPanelTeam.of")} {totalPages} ({filteredUsers.length}{" "}
+                {t("AfterAssemblyPanelTeam.users")})
               </span>
               <button
                 onClick={() =>
@@ -489,7 +491,7 @@ export default function AfterAssemblyPanelTeam() {
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Next
+                {t("AfterAssemblyPanelTeam.Next")}
               </button>
             </div>
           )}

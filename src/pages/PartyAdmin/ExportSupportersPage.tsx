@@ -4,6 +4,7 @@ import { Download, MapPin, Loader2, X, Calendar } from "lucide-react";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import toast from "react-hot-toast";
 import type { Supporter } from "../../types/supporter";
+import { useTranslation } from "react-i18next";
 
 interface ExportModalProps {
     stateName: string;
@@ -12,6 +13,7 @@ interface ExportModalProps {
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose }) => {
+    const {t} = useTranslation();
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
@@ -24,7 +26,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-indigo-600" />
-                        <h3 className="font-semibold text-gray-900">Export — {stateName}</h3>
+                        <h3 className="font-semibold text-gray-900">{t("ExportModal.Export")} — {stateName}</h3>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <X className="w-4 h-4" />
@@ -32,12 +34,12 @@ const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose
                 </div>
 
                 <p className="text-xs text-gray-500 mb-4">
-                    Select a date range to filter by creation date, or leave blank to export all.
+                    {t("ExportModal.Desc")}
                 </p>
 
                 <div className="flex flex-col gap-3 mb-5">
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t("ExportModal.From_Date")}</label>
                         <input
                             type="date"
                             value={fromDate}
@@ -46,7 +48,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t("ExportModal.To_Date")}</label>
                         <input
                             type="date"
                             value={toDate}
@@ -62,14 +64,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose
                         onClick={onClose}
                         className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
                     >
-                        Cancel
+                        {t("ExportModal.Cancel")}
                     </button>
                     <button
                         onClick={() => onConfirm(fromDate, toDate)}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 font-medium"
                     >
                         <Download className="w-4 h-4" />
-                        Export
+                        {t("ExportModal.Export")}
                     </button>
                 </div>
             </div>
@@ -78,6 +80,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ stateName, onConfirm, onClose
 };
 
 export const ExportSupportersPage: React.FC = () => {
+    const {t} = useTranslation();
     const { partyId } = useParams<{ partyId: string }>();
     const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
     const [isExporting, setIsExporting] = useState(false);
@@ -338,8 +341,8 @@ export const ExportSupportersPage: React.FC = () => {
             )}
 
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-[var(--text-color)]">Export</h1>
-                <p className="text-[var(--text-secondary)] mt-2">Select a state to export all supporters data</p>
+                <h1 className="text-3xl font-bold text-[var(--text-color)]">{t("ExportModal.Export")}</h1>
+                <p className="text-[var(--text-secondary)] mt-2">{t("ExportModal.Desc1")}</p>
             </div>
 
             {/* Progress bar with cancel */}
@@ -347,7 +350,7 @@ export const ExportSupportersPage: React.FC = () => {
                 <div className="mb-4 bg-white rounded-lg shadow-md p-4 flex items-center gap-4">
                     <div className="flex-1">
                         <div className="flex justify-between text-sm text-gray-600 mb-1">
-                            <span>Fetching page {exportProgress.current} of {exportProgress.total}</span>
+                            <span>{t("ExportModal.Fetching_page")} {exportProgress.current} {t("ExportModal.of")} {exportProgress.total}</span>
                             <span>{Math.round((exportProgress.current / exportProgress.total) * 100)}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -362,7 +365,7 @@ export const ExportSupportersPage: React.FC = () => {
                         className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium"
                     >
                         <X className="w-4 h-4" />
-                        Cancel
+                        {t("ExportModal.Cancel")}
                     </button>
                 </div>
             )}
@@ -371,12 +374,12 @@ export const ExportSupportersPage: React.FC = () => {
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                        <span className="ml-3 text-[var(--text-secondary)]">Loading states...</span>
+                        <span className="ml-3 text-[var(--text-secondary)]">{t("ExportModal.Loading")}</span>
                     </div>
                 ) : states.length === 0 ? (
                     <div className="text-center py-12">
                         <MapPin className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3" />
-                        <p className="text-[var(--text-secondary)]">No states available.</p>
+                        <p className="text-[var(--text-secondary)]">{t("ExportModal.Desc2")}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -391,7 +394,7 @@ export const ExportSupportersPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-[var(--text-color)] text-lg">{state.levelName}</p>
-                                        <p className="text-sm text-[var(--text-secondary)]">State ID: {state.id}</p>
+                                        <p className="text-sm text-[var(--text-secondary)]">{t("ExportModal.Desc3")} {state.id}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -403,12 +406,12 @@ export const ExportSupportersPage: React.FC = () => {
                                         {isExporting && selectedStateId === state.id ? (
                                             <>
                                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                                <span>Exporting...</span>
+                                                <span>{t("ExportModal.Exporting")}</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Download className="w-4 h-4" />
-                                                <span>Export</span>
+                                                <span>{t("ExportModal.Export")}</span>
                                             </>
                                         )}
                                     </button>

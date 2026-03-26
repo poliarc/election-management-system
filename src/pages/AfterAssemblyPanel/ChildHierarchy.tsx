@@ -7,6 +7,7 @@ import {
 import { useAppSelector } from "../../store/hooks";
 import toast from "react-hot-toast";
 import InlineUserDisplay from "../../components/InlineUserDisplay";
+import { useTranslation } from "react-i18next";
 
 type InlineLocationType =
   | "State"
@@ -39,6 +40,7 @@ const normalizeLocationType = (
 };
 
 export default function AfterAssemblyChildHierarchy() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const navigate = useNavigate();
   const [children, setChildren] = useState<any[]>([]);
@@ -154,7 +156,7 @@ export default function AfterAssemblyChildHierarchy() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-              Filter by Level
+              {t("AfterAssemblyChildHierarchy.Filter_by_Level")}
             </label>
             <select
               value={selectedLevelFilter}
@@ -164,7 +166,7 @@ export default function AfterAssemblyChildHierarchy() {
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             >
-              <option value="">All Levels</option>
+              <option value="">{t("AfterAssemblyChildHierarchy.All_Levels")}</option>
               {children.map((child) => (
                 <option key={child.id} value={child.id}>
                   {child.displayName}
@@ -174,7 +176,7 @@ export default function AfterAssemblyChildHierarchy() {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-              Search Levels
+              {t("AfterAssemblyChildHierarchy.Search_Levels")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -218,22 +220,22 @@ export default function AfterAssemblyChildHierarchy() {
               <thead className="bg-[var(--bg-main)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    S.No
+                    {t("AfterAssemblyChildHierarchy.S_No")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    Level Type
+                    {t("AfterAssemblyChildHierarchy.Level_Name")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    Display Name
+                    {t("AfterAssemblyChildHierarchy.Display_Name")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    Status
+                    {t("AfterAssemblyChildHierarchy.Status")}
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    Users
+                    {t("AfterAssemblyChildHierarchy.Users")}
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                    Assign
+                    {t("AfterAssemblyChildHierarchy.Assign")}
                   </th>
                 </tr>
               </thead>
@@ -244,7 +246,7 @@ export default function AfterAssemblyChildHierarchy() {
                       colSpan={8}
                       className="px-6 py-12 text-center text-[var(--text-secondary)]"
                     >
-                      No child levels found
+                      {t("AfterAssemblyChildHierarchy.Desc")}
                     </td>
                   </tr>
                 ) : (
@@ -395,14 +397,14 @@ export default function AfterAssemblyChildHierarchy() {
           {totalPages > 1 && (
             <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6 rounded-b-lg mt-4">
               <div className="text-sm text-[var(--text-secondary)]">
-                Showing{" "}
-                <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
+                {t("AfterAssemblyChildHierarchy.Showing")}{" "}
+                <span className="font-medium">{indexOfFirstItem + 1}</span> {t("AfterAssemblyChildHierarchy.to")}{" "}
                 <span className="font-medium">
                   {Math.min(indexOfLastItem, filteredChildren.length)}
                 </span>{" "}
-                of{" "}
+                {t("AfterAssemblyChildHierarchy.of")}{" "}
                 <span className="font-medium">{filteredChildren.length}</span>{" "}
-                results
+                {t("AfterAssemblyChildHierarchy.results")}
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -412,7 +414,7 @@ export default function AfterAssemblyChildHierarchy() {
                   disabled={currentPage === 1}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                 >
-                  Previous
+                  {t("AfterAssemblyChildHierarchy.Previous")}
                 </button>
                 {[...Array(totalPages)].map((_, i) => (
                   <button
@@ -434,7 +436,7 @@ export default function AfterAssemblyChildHierarchy() {
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                 >
-                  Next
+                  {t("AfterAssemblyChildHierarchy.Next")}
                 </button>
               </div>
             </div>

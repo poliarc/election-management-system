@@ -11,10 +11,12 @@ import { useDeleteAssignedLevelsMutation } from "../../../store/api/afterAssembl
 import { useAppSelector } from "../../../store/hooks";
 import toast from "react-hot-toast";
 import type { HierarchyUser } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function AssignBlock() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const {t} = useTranslation();
 
     // Support both old (blockId/blockName) and new (levelId/levelName/levelType) query params
     const levelId = searchParams.get("levelId") || searchParams.get("blockId");
@@ -362,7 +364,7 @@ export default function AssignBlock() {
                         onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
                         className="mt-4 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300"
                     >
-                        Back to {levelType} List
+                        {t("AssemblyassignBlock.Back_to")} {levelType} {t("AssemblyassignBlock.List")}
                     </button>
                 </div>
             </div>
@@ -370,7 +372,7 @@ export default function AssignBlock() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-1">
+        <div className="min-h-screen bg-gradient-to-br  p-1">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
                     <div className="mb-1">
@@ -385,7 +387,7 @@ export default function AssignBlock() {
                                 </svg>
                             </button>
                             <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                                Manage {levelType} Users
+                                {t("AssemblyassignBlock.Manage")} {levelType}{t("AssemblyassignBlock.Users")}
                             </h1>
                         </div>
                         <p className="text-sm text-[var(--text-secondary)] mt-2 px-13">
@@ -398,7 +400,7 @@ export default function AssignBlock() {
                         )} */}
                         {!stateId && (
                             <p className="text-xs text-red-600 mt-1">
-                                Warning: state_id not found - this may limit user filtering
+                                {t("AssemblyassignBlock.Desc")}
                             </p>
                         )}
 
@@ -416,7 +418,7 @@ export default function AssignBlock() {
                                         : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
-                                    Available Users
+                                    {t("AssemblyassignBlock.Available_Users")}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('assigned')}
@@ -425,7 +427,7 @@ export default function AssignBlock() {
                                         : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
-                                    Assigned Users ({assignedUsers.length})
+                                    {t("AssemblyassignBlock.Assigned_Users")}({assignedUsers.length})
                                 </button>
                             </nav>
                         </div>
@@ -448,12 +450,12 @@ export default function AssignBlock() {
                             {loadingUsers ? (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    <p className="mt-2 text-[var(--text-secondary)]">Loading users...</p>
+                                    <p className="mt-2 text-[var(--text-secondary)]">{t("AssemblyassignBlock.Loading_users")}</p>
                                 </div>
                             ) : usersError ? (
                                 <div className="text-center py-8">
                                     <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                                        <p className="text-red-600 font-medium">Error loading users</p>
+                                        <p className="text-red-600 font-medium">{t("AssemblyassignBlock.Error_loading_users")}</p>
                                         <p className="text-red-500 text-sm mt-2">
                                             {usersError && 'status' in usersError ? `Error: ${usersError.status}` : 'Please try again later.'}
                                         </p>
@@ -461,7 +463,7 @@ export default function AssignBlock() {
                                             onClick={() => window.location.reload()}
                                             className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
                                         >
-                                            Retry
+                                            {t("AssemblyassignBlock.Retry")}
                                         </button>
                                     </div>
                                 </div>
@@ -469,7 +471,7 @@ export default function AssignBlock() {
                                 <>
                                     <div className="mb-1 flex items-center justify-between">
                                         <div className="text-sm text-[var(--text-secondary)]">
-                                            {selectedUsers.length} user(s) selected | {pagination.total} total users
+                                            {selectedUsers.length} {t("AssemblyassignBlock.Desc1")} {pagination.total} {t("AssemblyassignBlock.total_users")}
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <button
@@ -486,16 +488,16 @@ export default function AssignBlock() {
                                     <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                                         {filteredUsers.length === 0 ? (
                                             <div className="p-4 text-center text-[var(--text-secondary)]">
-                                                <p>No users found</p>
+                                                <p>{t("AssemblyassignBlock.No_users_found")}</p>
                                                 {/* Debug information */}
                                                 <div className="mt-4 text-xs text-[var(--text-secondary)] space-y-1">
-                                                    <p>Debug Info:</p>
-                                                    <p>Party ID: {partyId || 'Not set'}</p>
-                                                    <p>State ID: {stateId || 'Not set'}</p>
-                                                    <p>Total users from API: {users.length}</p>
-                                                    <p>Filtered users: {filteredUsers.length}</p>
-                                                    <p>Search term: {searchTerm || 'None'}</p>
-                                                    <p>State resolved: {stateIdResolved ? 'Yes' : 'No'}</p>
+                                                    <p>{t("AssemblyassignBlock.Debug_Info")}</p>
+                                                    <p>{t("AssemblyassignBlock.Party_ID")} {partyId || 'Not set'}</p>
+                                                    <p>{t("AssemblyassignBlock.State_ID")} {stateId || 'Not set'}</p>
+                                                    <p>{t("AssemblyassignBlock.Total_users_from_API")} {users.length}</p>
+                                                    <p>{t("AssemblyassignBlock.Filtered_users")} {filteredUsers.length}</p>
+                                                    <p>{t("AssemblyassignBlock.Search_term")} {searchTerm || 'None'}</p>
+                                                    <p>{t("AssemblyassignBlock.State_resolved")} {stateIdResolved ? 'Yes' : 'No'}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -507,7 +509,7 @@ export default function AssignBlock() {
                                                     return (
                                                         <div
                                                             key={user.user_id}
-                                                            className={`p-4 hover:bg-blue-50 ${isAlreadyAssigned ? 'bg-blue-50' : ''}`}
+                                                            className={`p-4 hover:bg-[var(--text-color)]/5 ${isAlreadyAssigned ? 'bg-blue-50' : ''}`}
                                                         >
                                                             <label className="flex items-center cursor-pointer">
                                                                 <input
@@ -525,7 +527,7 @@ export default function AssignBlock() {
                                                                                 </p>
                                                                                 {isAlreadyAssigned && (
                                                                                     <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                                                        Already Assigned
+                                                                                        {t("AssemblyassignBlock.Already_Assigned")}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
@@ -554,9 +556,9 @@ export default function AssignBlock() {
                                     {pagination.totalPages > 1 && (
                                         <div className="mt-4 flex items-center justify-between">
                                             <div className="text-sm text-[var(--text-secondary)]">
-                                                Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                                                {Math.min(currentPage * pageSize, pagination.total)} of{" "}
-                                                {pagination.total} results
+                                                {t("AssemblyassignBlock.Showing")} {(currentPage - 1) * pageSize + 1} {t("AssemblyassignBlock.to")}{" "}
+                                                {Math.min(currentPage * pageSize, pagination.total)} {t("AssemblyassignBlock.of")}{" "}
+                                                {pagination.total} {t("AssemblyassignBlock.results")}
                                             </div>
                                             <div className="flex gap-2">
                                                 <button
@@ -564,7 +566,7 @@ export default function AssignBlock() {
                                                     disabled={currentPage === 1}
                                                     className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    Previous
+                                                    {t("AssemblyassignBlock.Previous")}
                                                 </button>
                                                 {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                                                     const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
@@ -587,7 +589,7 @@ export default function AssignBlock() {
                                                     disabled={currentPage === pagination.totalPages}
                                                     className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    Next
+                                                    {t("AssemblyassignBlock.Next")}
                                                 </button>
                                             </div>
                                         </div>
@@ -603,9 +605,9 @@ export default function AssignBlock() {
                                         </button>
                                         <button
                                             onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                                            className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                                            className="flex-1 bg-[var(--bg-color)] text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-[var(--text-color)] transition-colors font-semibold"
                                         >
-                                            Cancel
+                                            {t("AssemblyassignBlock.Cancel")}
                                         </button>
                                     </div>
                                 </>
@@ -617,20 +619,20 @@ export default function AssignBlock() {
                             {loadingAssignedUsers ? (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    <p className="mt-2 text-[var(--text-secondary)]">Loading assigned users...</p>
+                                    <p className="mt-2 text-[var(--text-secondary)]">{t("AssemblyassignBlock.Loading")}</p>
                                 </div>
                             ) : assignedUsers.length === 0 ? (
                                 <div className="text-center py-8">
                                     <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
-                                    <p className="mt-2 text-[var(--text-secondary)] font-medium">No users assigned to this block</p>
-                                    <p className="text-sm text-[var(--text-secondary)]">Use the "Assign Users" tab to assign users to this block.</p>
+                                    <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("AssemblyassignBlock.Desc2")}</p>
+                                    <p className="text-sm text-[var(--text-secondary)]">{t("AssemblyassignBlock.Desc3")}</p>
                                 </div>
                             ) : (
                                 <>
                                     <div className="mb-4 text-sm text-[var(--text-secondary)]">
-                                        {assignedUsers.length} user(s) currently assigned to this block
+                                        {assignedUsers.length} {t("AssemblyassignBlock.Desc4")}
                                     </div>
                                     <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                                         <div className="divide-y divide-gray-200">
@@ -643,12 +645,12 @@ export default function AssignBlock() {
                                                             </p>
                                                             <p className="text-sm text-[var(--text-secondary)]">{user.email}</p>
                                                             <p className="text-xs text-[var(--text-secondary)]">
-                                                                ID : {user.user_id}
+                                                                {t("AssemblyassignBlock.ID")} : {user.user_id}
                                                             </p>
                                                             <div className="mt-1 flex items-center gap-2">
                                                                 {user.assigned_at && (
                                                                     <span className="text-xs text-[var(--text-secondary)]">
-                                                                        Assigned: {new Date(user.assigned_at).toLocaleDateString()}
+                                                                        {t("AssemblyassignBlock.Assigned")}: {new Date(user.assigned_at).toLocaleDateString()}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -668,9 +670,9 @@ export default function AssignBlock() {
                                     <div className="flex gap-4 mt-6">
                                         <button
                                             onClick={() => navigate(`/assembly/dynamic-level/${levelType}`)}
-                                            className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                                            className="flex-1 bg-[var(--bg-color)] text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-[var(--text-color)] transition-colors"
                                         >
-                                            Back to {levelType} List
+                                            {t("AssemblyassignBlock.Back_to")} {levelType} {t("AssemblyassignBlock.List")}
                                         </button>
                                     </div>
                                 </>

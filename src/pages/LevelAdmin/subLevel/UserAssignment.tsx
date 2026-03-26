@@ -17,8 +17,10 @@ import {
 } from "../../../services/levelAdminApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 export default function UserAssignment() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -410,20 +412,20 @@ export default function UserAssignment() {
 
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("subUserAssignment.Desc")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-1 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-color)] min-h-screen">
       {/* Header */}
       <div className="mb-1">
         <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <h1 className="text-3xl font-bold text-[var(--text-color)]">User Assignment</h1>
+          <h1 className="text-3xl font-bold text-[var(--text-color)]">{t("subUserAssignment.Title")}</h1>
           <p className="text-[var(--text-secondary)] mt-2">
-            Assign users to sub-levels in {currentPanel.metadata?.stateName}
+            {t("subUserAssignment.Desc1")} {currentPanel.metadata?.stateName}
           </p>
         </div>
       </div>
@@ -434,7 +436,7 @@ export default function UserAssignment() {
           {/* District Select */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
-              Select District
+              {t("subUserAssignment.District")}
             </label>
             <select
               value={selectedDistrict?.location_id || ""}
@@ -450,7 +452,7 @@ export default function UserAssignment() {
               className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-[var(--bg-card)]"
               disabled={loading}
             >
-              <option value="">-- Select District --</option>
+              <option value="">-- {t("subUserAssignment.District")} --</option>
               {(districts || []).map((district) => (
                 <option key={district.location_id} value={district.location_id}>
                   {district.location_name}
@@ -462,7 +464,7 @@ export default function UserAssignment() {
           {/* Assembly Select */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
-              Select Assembly
+              {t("subUserAssignment.Select_Assembly")}
             </label>
             <select
               value={selectedAssembly?.location_id || ""}
@@ -477,7 +479,7 @@ export default function UserAssignment() {
               className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-[var(--bg-card)]"
               disabled={!selectedDistrict || assembliesLoading}
             >
-              <option value="">-- Select Assembly --</option>
+              <option value="">-- {t("subUserAssignment.Select_Assembly")} --</option>
               {(assemblies || []).map((assembly) => (
                 <option key={assembly.location_id} value={assembly.location_id}>
                   {assembly.location_name}
@@ -513,7 +515,7 @@ export default function UserAssignment() {
                     }}
                     className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-[var(--bg-card)]"
                   >
-                    <option value="">-- Select {levelLabel} --</option>
+                    <option value="">-- {t("subUserAssignment.Select")} {levelLabel} --</option>
                     {options.map((level) => (
                       <option key={level.id} value={level.id}>
                         {level.displayName} ({level.levelName})
@@ -531,7 +533,7 @@ export default function UserAssignment() {
         {(loading || assembliesLoading || dataLoading) && (
           <div className="mt-4 flex items-center justify-center text-[var(--text-secondary)]">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mr-2"></div>
-            <span className="text-sm">Loading...</span>
+            <span className="text-sm">{t("subUserAssignment.Loading")}</span>
           </div>
         )}
       </div>
@@ -598,7 +600,7 @@ export default function UserAssignment() {
                           d="M15 19l-7-7 7-7"
                         />
                       </svg>
-                      View Assigned
+                      {t("subUserAssignment.View_Assigned")}
                     </>
                   ) : (
                     <>
@@ -615,7 +617,7 @@ export default function UserAssignment() {
                           d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
                       </svg>
-                      Assign Users
+                      {t("subUserAssignment.Assign_Users")}
                     </>
                   )}
                 </button>
