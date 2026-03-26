@@ -189,32 +189,43 @@ export const boothAgentApi = {
 
     if (Array.isArray(rawData)) {
       allChildren = rawData;
+    } else if (Array.isArray(rawData?.data?.polling_centers)) {
+      allChildren = rawData.data.polling_centers;
+    } else if (Array.isArray(rawData?.polling_centers)) {
+      allChildren = rawData.polling_centers;
     } else if (Array.isArray(rawData?.data)) {
       allChildren = rawData.data;
     } else if (Array.isArray(rawData?.children)) {
       allChildren = rawData.children;
     }
 
-    const pollingCenters = allChildren.filter((item) => {
-      const name = String(item.levelName || item.display_level_name || "").toLowerCase();
-      return name.includes("polling");
-    });
-
     return {
       success: true,
       message: "Polling centers retrieved",
-      data: pollingCenters.map((pc) => ({
+      data: allChildren.map((pc) => ({
         id: pc.id as number,
-        displayName: String(pc.displayName || pc.levelName || ""),
-        levelName: String(pc.levelName || ""),
+        displayName: String(pc.name || pc.displayName || pc.levelName || ""),
+        levelName: String(pc.levelName || pc.name || ""),
         parentId: (pc.parentId as number) || 0,
         parentAssemblyId: (pc.parentAssemblyId as number) || null,
         partyLevelId: (pc.partyLevelId as number) || 0,
         isActive: (pc.isActive as number) || 1,
         created_at: String(pc.created_at || ""),
         updated_at: String(pc.updated_at || ""),
-        booths: [],
-        boothCount: 0,
+        booths: Array.isArray(pc.booths)
+          ? (pc.booths as Record<string, unknown>[]).map((b) => ({
+              id: b.id as number,
+              displayName: String(b.name || b.displayName || b.levelName || ""),
+              levelName: String(b.levelName || "Booth"),
+              parentId: (b.polling_center_id as number) || (b.parentId as number) || 0,
+              parentAssemblyId: null,
+              partyLevelId: 0,
+              isActive: 1,
+              created_at: "",
+              updated_at: "",
+            }))
+          : [],
+        boothCount: (pc.booth_count as number) || 0,
       })),
     };
   },
@@ -253,6 +264,19 @@ export const boothAgentApi = {
         boothCount: 0,
       })),
     };
+  },
+
+  // Get dashboard stats
+  getStats: async (assemblyId: number, partyId: number): Promise<{
+    total_agents: number;
+    booth_inside_team: number;
+    booth_outside_team: number;
+    polling_support_team: number;
+    active_agents: number;
+    inactive_agents: number;
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/stats/${assemblyId}/${partyId}`);
+    return response.data.data;
   },
 
   // Get polling centers hierarchy
