@@ -394,7 +394,7 @@ const boothManagementItems: NavItem[] = [
     label: "Dashboard",
     icon: Icons.dashboard,
   },
-  { to: "booth-management/agents", label: "Booth Agents", icon: Icons.team },
+  { to: "booth-management/agents", label: "Team Agents", icon: Icons.team },
   {
     to: "booth-management/inside",
     label: "Booth Inside Team",
