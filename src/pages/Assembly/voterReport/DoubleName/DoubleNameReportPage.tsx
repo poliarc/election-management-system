@@ -118,9 +118,140 @@ const duplicateVoters = useMemo(() => {
 
   if (!assembly_id) {
     return (
+<<<<<<< Updated upstream
       <div className="p-6">
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
           No assembly selected. Please select an assembly first.
+=======
+        <div className="p-1">
+            <div className="mb-1 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("DoubleNameReportPage.Title")}
+                    </h1>
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("DoubleNameReportPage.Desc")}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
+                    <button
+                        onClick={() => setLanguage("en")}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
+                            ? "bg-indigo-600 text-white"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            }`}
+                    >
+                        {t("DoubleNameReportPage.English")}
+                    </button>
+                    <button
+                        onClick={() => setLanguage("hi")}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
+                            ? "bg-indigo-600 text-white"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            }`}
+                    >
+                        {t("DoubleNameReportPage.Regional")}
+                    </button>
+                </div>
+            </div>
+
+            {selectedVoter ? (
+                <VoterEditForm
+                    initialValues={selectedVoter}
+                    onSubmit={handleSave}
+                    onCancel={handleCancel}
+                />
+            ) : (
+                <>
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("DoubleNameReportPage.Part_No_From")}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={partFrom || ""}
+                                    onChange={(e) =>
+                                        setPartFrom(e.target.value ? Number(e.target.value) : undefined)
+                                    }
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Enter part number"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("DoubleNameReportPage.Part_No_To")}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={partTo || ""}
+                                    onChange={(e) =>
+                                        setPartTo(e.target.value ? Number(e.target.value) : undefined)
+                                    }
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Enter part number"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    &nbsp;
+                                </label>
+                                <button
+                                    onClick={handleReset}
+                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                >
+                                    {t("DoubleNameReportPage.Reset")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {isLoading ? (
+                        <div className="text-center py-8">
+                            <div className="text-[var(--text-secondary)]">{t("DoubleNameReportPage.Loading")}</div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                                <strong>⚠️ {t("DoubleNameReportPage.Found")} {duplicateVoters.length} {t("DoubleNameReportPage.Desc1")}</strong>
+                                <br />
+                                {t("DoubleNameReportPage.Desc2")}
+                            </div>
+                            <VoterListTable
+                                voters={duplicateVoters}
+                                onEdit={handleEdit}
+                                language={language}
+                            />
+
+                            {totalPages > 1 && (
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("DoubleNameReportPage.Showing_page")} {page} {t("DoubleNameReportPage.of")} {totalPages} • {totalVoters.toLocaleString()} {t("DoubleNameReportPage.total_voters")}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setPage(page - 1)}
+                                            disabled={page === 1}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            {t("DoubleNameReportPage.Previous")}
+                                        </button>
+                                        <button
+                                            onClick={() => setPage(page + 1)}
+                                            disabled={page === totalPages}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
+                                        >
+                                            {t("DoubleNameReportPage.Next")}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
+>>>>>>> Stashed changes
         </div>
       </div>
     );
