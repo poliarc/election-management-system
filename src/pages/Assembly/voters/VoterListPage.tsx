@@ -7,65 +7,6 @@ import type { VoterList, VoterListCandidate } from "../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
 import { useDebounce } from "../../../hooks/useDebounce";
-
-const translations = {
-    en: {
-        title: "Voter List",
-        subtitle: "Manage and update voter information",
-        totalVoters: "total voters",
-        searchVoters: "Search Voters",
-        search: "Search",
-        searchPlaceholder: "Search by name, mobile, EPIC, Aadhar, religion, caste, profession...",
-        fatherHusbandName: "Father/Husband Name",
-        fatherHusbandPlaceholder: "Enter relative name...",
-        address: "Address",
-        addressPlaceholder: "Enter address...",
-        partFrom: "Part From",
-        partFromPlaceholder: "From part no...",
-        partTo: "Part To",
-        partToPlaceholder: "To part no...",
-        showFilters: "Show Filters",
-        hideFilters: "Hide Filters",
-        clearAll: "Clear All",
-        noAssembly: "No assembly selected. Please select an assembly first.",
-        loadingVoters: "Loading voters...",
-        failedToLoad: "Failed to load voters. Please try again.",
-        showing: "Showing page",
-        of: "of",
-        previous: "Previous",
-        next: "Next",
-        voterUpdated: "Voter updated successfully",
-        updateFailed: "Failed to update voter"
-    },
-    hi: {
-        title: "मतदाता सूची प्रबंधन",
-        subtitle: "मतदाता जानकारी प्रबंधित और अपडेट करें",
-        totalVoters: "कुल मतदाता",
-        searchVoters: "मतदाता खोजें",
-        search: "खोजें",
-        searchPlaceholder: "नाम, मोबाइल, EPIC, आधार, धर्म, जाति, पेशे से खोजें...",
-        fatherHusbandName: "पिता/पति का नाम",
-        fatherHusbandPlaceholder: "संबंधी का नाम दर्ज करें...",
-        address: "पता",
-        addressPlaceholder: "पता दर्ज करें...",
-        partFrom: "भाग से",
-        partFromPlaceholder: "भाग संख्या से...",
-        partTo: "भाग तक",
-        partToPlaceholder: "भाग संख्या तक...",
-        showFilters: "फ़िल्टर दिखाएं",
-        hideFilters: "फ़िल्टर छुपाएं",
-        clearAll: "सभी साफ़ करें",
-        noAssembly: "कोई विधानसभा चयनित नहीं। कृपया पहले एक विधानसभा चुनें।",
-        loadingVoters: "मतदाता लोड हो रहे हैं...",
-        failedToLoad: "मतदाता लोड करने में विफल। कृपया पुनः प्रयास करें।",
-        showing: "पृष्ठ दिखा रहा है",
-        of: "का",
-        previous: "पिछला",
-        next: "अगला",
-        voterUpdated: "मतदाता सफलतापूर्वक अपडेट किया गया",
-        updateFailed: "मतदाता अपडेट करने में विफल"
-    }
-};
 import { useTranslation } from "react-i18next";
 
 export default function VoterListPage() {
@@ -184,7 +125,7 @@ export default function VoterListPage() {
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
-                            ? "bg-[var(--bg-card)] text-indigo-600 shadow-sm"
+                            ? "bg-[var(--bg-card)] text-[var(--text-main)] shadow-sm"
                             : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                             }`}
                     >
@@ -193,7 +134,7 @@ export default function VoterListPage() {
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
-                            ? "bg-[var(--bg-card)] text-indigo-600 shadow-sm"
+                            ? "bg-[var(--bg-card)] text-[var(--text-main)] shadow-sm"
                             : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                             }`}
                     >
