@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
-import type { BoothAgent } from "../types";
 import { useTranslation } from "react-i18next";
 
 export const BoothManagementDashboard: React.FC = () => {
@@ -17,7 +16,6 @@ export const BoothManagementDashboard: React.FC = () => {
     inactive: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [recentAgents, setRecentAgents] = useState<BoothAgent[]>([]);
 
   // Get assembly ID from Redux store
   const selectedAssignment = useSelector(
@@ -48,12 +46,7 @@ export const BoothManagementDashboard: React.FC = () => {
     if (!assemblyId || !partyId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const [statsRes, recentRes] = await Promise.all([
-        boothAgentApi.getStats(assemblyId, partyId),
-        boothAgentApi.getAgentsByAssembly(assemblyId, {
-          limit: 5, sort_by: "created_at", order: "desc", partyId,
-        }),
-      ]);
+      const statsRes = await boothAgentApi.getStats(assemblyId, partyId);
       setStats({
         total: statsRes.total_agents,
         boothInside: statsRes.booth_inside_team,
@@ -62,7 +55,6 @@ export const BoothManagementDashboard: React.FC = () => {
         active: statsRes.active_agents,
         inactive: statsRes.inactive_agents,
       });
-      setRecentAgents(recentRes.data);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {
@@ -162,61 +154,72 @@ export const BoothManagementDashboard: React.FC = () => {
         />
       </div>
 
-      {/* Recent Agents */}
-      <div className="bg-[var(--bg-color)] rounded-lg border p-6">
-        <h2 className="text-lg font-semibold mb-4">{t("Booth_Management_Dash.Recent_Agents")}</h2>
-        {recentAgents.length === 0 ? (
-          <p className="text-[var(--text-secondary)] text-center py-8">{t("Booth_Management_Dash.No_agents_found")}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[var(--bg-color)]">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
-                    {t("Booth_Management_Dash.Name")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
-                    {t("Booth_Management_Dash.Category")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
-                    {t("Booth_Management_Dash.Role")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
-                    {t("Booth_Management_Dash.Phone")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">
-                    {t("Booth_Management_Dash.Status")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {recentAgents.map((agent) => (
-                  <tr key={agent.agent_id} className="hover:bg-[var(--bg-color)]">
-                    <td className="px-4 py-3 text-sm">{agent.name}</td>
-                    <td className="px-4 py-3 text-sm">{agent.category}</td>
-                    <td className="px-4 py-3 text-sm">{agent.role}</td>
-                    <td className="px-4 py-3 text-sm">{agent.phone}</td>
-                    <td className="px-4 py-3 text-sm">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          agent.status === 1
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {agent.status === 1 ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Team Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Active vs Inactive */}
+        <div className="bg-[var(--bg-color)] rounded-lg border p-6">
+          <h2 className="text-lg font-semibold mb-4">Agent Status Overview</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-green-600 font-medium">Active</span>
+                <span className="font-semibold">{stats.active} / {stats.total}</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div
+                  className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                  style={{ width: stats.total > 0 ? `${(stats.active / stats.total) * 100}%` : "0%" }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-red-500 font-medium">Inactive</span>
+                <span className="font-semibold">{stats.inactive} / {stats.total}</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div
+                  className="bg-red-400 h-3 rounded-full transition-all duration-500"
+                  style={{ width: stats.total > 0 ? `${(stats.inactive / stats.total) * 100}%` : "0%" }}
+                />
+              </div>
+            </div>
+            <div className="pt-2 flex items-center justify-center gap-6 text-sm text-[var(--text-secondary)]">
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" />Active {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-400 inline-block" />Inactive {stats.total > 0 ? Math.round((stats.inactive / stats.total) * 100) : 0}%</span>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Category Breakdown */}
+        <div className="bg-[var(--bg-color)] rounded-lg border p-6">
+          <h2 className="text-lg font-semibold mb-4">Category Breakdown</h2>
+          <div className="space-y-4">
+            {[
+              { label: "Booth Inside Team", value: stats.boothInside, color: "bg-blue-500", link: "/assembly/booth-management/inside" },
+              { label: "Booth Outside Team", value: stats.boothOutside, color: "bg-green-500", link: "/assembly/booth-management/outside" },
+              { label: "Polling Support Team", value: stats.pollingSupport, color: "bg-purple-500", link: "/assembly/booth-management/polling-support" },
+            ].map((item) => (
+              <Link key={item.label} to={item.link} className="block group">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-[var(--text-secondary)] group-hover:text-indigo-600 transition-colors">{item.label}</span>
+                  <span className="font-semibold">{item.value}</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2.5">
+                  <div
+                    className={`${item.color} h-2.5 rounded-full transition-all duration-500`}
+                    style={{ width: stats.total > 0 ? `${(item.value / stats.total) * 100}%` : "0%" }}
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link
           to="/assembly/booth-management/inside"
           className="p-6 border-2 border-blue-200 rounded-lg hover:shadow-lg transition-shadow"
@@ -244,7 +247,7 @@ export const BoothManagementDashboard: React.FC = () => {
             {t("Booth_Management_Dash.Desc4")}
           </p>
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };
