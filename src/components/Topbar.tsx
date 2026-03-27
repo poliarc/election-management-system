@@ -570,7 +570,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                     <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{f.type}</div>
                                   </div>
                                   {selectedAssignment?.levelType === f.type && (
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
@@ -618,7 +618,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                   <div className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">{g.items.length} Assigned</div>
                                 </div>
                                 {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
-                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
@@ -940,11 +940,3 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     </header>
   );
 }
-
-
-
-
-
-
-
-

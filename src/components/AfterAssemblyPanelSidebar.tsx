@@ -341,7 +341,7 @@ export default function AfterAssemblyPanelSidebar({
   // Auto-scroll to selected item when dropdown opens
   useEffect(() => {
     if (switchDropdownOpen && switchDropdownRef.current) {
-      const selectedButton = switchDropdownRef.current.querySelector('.bg-indigo-50');
+      const selectedButton = switchDropdownRef.current.querySelector('.bg-indigo-500/10');
       if (selectedButton) {
         selectedButton.scrollIntoView({
           behavior: 'smooth',
@@ -527,7 +527,7 @@ export default function AfterAssemblyPanelSidebar({
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===
                         assignment.assignment_id
-                        ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-500/20 dark:text-indigo-100"
+                        ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
                         : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                     ].join(" ")}
                   >
@@ -591,7 +591,7 @@ export default function AfterAssemblyPanelSidebar({
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
                 "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200 text-indigo-700 dark:from-indigo-500/20 dark:to-indigo-500/10 dark:ring-indigo-400/40 dark:text-indigo-200"
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
@@ -614,7 +614,7 @@ export default function AfterAssemblyPanelSidebar({
               "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
               "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
               vicDropdownOpen
-                ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-500/20 dark:ring-indigo-400/40"
+                ? "bg-[var(--bg-color)] ring-1 ring-indigo-400/40 "
                 : "border border-transparent hover:border-[var(--border-color)]",
             ].join(" ")}
           >
@@ -655,7 +655,7 @@ export default function AfterAssemblyPanelSidebar({
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
                       "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                       isActive
-                        ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-100"
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 "
                         : "border border-transparent hover:border-[var(--border-color)]",
                     ].join(" ")
                   }
@@ -686,7 +686,7 @@ export default function AfterAssemblyPanelSidebar({
                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",
                 "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-100"
+                  ? "bg-[var(--bg-color)] hover:border-[var(--border-color)] text-[var(--border-color)]"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
@@ -733,6 +733,3 @@ export default function AfterAssemblyPanelSidebar({
     </aside>
   );
 }
-
-
-

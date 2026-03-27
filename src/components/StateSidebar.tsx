@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -365,7 +365,7 @@ export default function StateSidebar({
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-color)] flex flex-col overflow-y-auto">
+    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
       {/* User header */}
       <div className="px-5 py-6 border-b border-[var(--border-color)] shrink-0">
         <div className="flex items-center gap-4">
@@ -399,7 +399,7 @@ export default function StateSidebar({
                   "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                   "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                   isActive
-                    ? "bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                     : "border border-transparent hover:border-[var(--border-color)]",
                 ].join(" ")
               }
@@ -423,7 +423,7 @@ export default function StateSidebar({
                   "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                   "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                   isActive
-                    ? "bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                     : "border border-transparent hover:border-[var(--border-color)]",
                 ].join(" ")
               }
@@ -448,7 +448,7 @@ export default function StateSidebar({
                 "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
                 "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 listOpen
-                  ? "bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")}
             >
@@ -497,7 +497,7 @@ export default function StateSidebar({
                         "no-underline group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
                         "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                         isActive
-                          ? "border-[var(--border-color)] ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                           : "border border-transparent hover:border-[var(--border-color)]",
                       ].join(" ")
                     }
@@ -523,7 +523,7 @@ export default function StateSidebar({
                     "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                     "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                     isActive
-                      ? "bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                       : "border border-transparent hover:border-[var(--border-color)]",
                   ].join(" ")
                 }
@@ -556,7 +556,7 @@ export default function StateSidebar({
                 "no-underline group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
                 "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-indigo-50 ring-1 ring-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:ring-indigo-400/40 dark:text-indigo-200"
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
@@ -576,5 +576,3 @@ export default function StateSidebar({
     </aside>
   );
 }
-
-

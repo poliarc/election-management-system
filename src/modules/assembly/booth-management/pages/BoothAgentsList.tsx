@@ -203,7 +203,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Phone")}</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Polling_Center")}</th>
                     {!isPollingCenterTeam && <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Booth_No")}</th>}
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Action")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">

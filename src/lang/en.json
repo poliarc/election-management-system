@@ -1199,7 +1199,8 @@
         "Page":"Page",
         "of":"of",
         "Next":"Next",
-        "Booth":"Booth"
+        "Booth":"Booth",
+        "Booth_No":"Booth No"
     },
 
     "BoothAgentForm":{
