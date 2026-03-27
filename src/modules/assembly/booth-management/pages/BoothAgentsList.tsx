@@ -93,10 +93,10 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
     catch { alert("Failed to delete agent"); }
   };
 
-  const handleToggleStatus = async (id: number, currentStatus: number) => {
-    try { await boothAgentApi.toggleStatus(id, currentStatus === 1 ? 0 : 1); fetchAgents(); }
-    catch { alert("Failed to toggle status"); }
-  };
+  // const handleToggleStatus = async (id: number, currentStatus: number) => {
+  //   try { await boothAgentApi.toggleStatus(id, currentStatus === 1 ? 0 : 1); fetchAgents(); }
+  //   catch { alert("Failed to toggle status"); }
+  // };
 
   const handleEdit = (agent: BoothAgent) => { setEditingAgent(agent); setShowForm(true); };
   const handleFormSuccess = () => { setShowForm(false); setEditingAgent(null); fetchAgents(); };
@@ -243,7 +243,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
                                 </svg>
                                 Edit
                               </button>
-                              <button
+                              {/* <button
                                 onClick={() => { handleToggleStatus(agent.agent_id, agent.status); setOpenMenuId(null); }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                               >
@@ -251,7 +251,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                                 </svg>
                                 {agent.status === 1 ? "Set Inactive" : "Set Active"}
-                              </button>
+                              </button> */}
                               <button
                                 onClick={() => { handleDelete(agent.agent_id); setOpenMenuId(null); }}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"

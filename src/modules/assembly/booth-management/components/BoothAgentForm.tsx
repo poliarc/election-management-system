@@ -251,146 +251,54 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
-
-    // Show loading toast
     const loadingToast = toast.loading(
       isEditMode ? "Updating booth agent..." : "Creating booth agent..."
     );
 
     try {
-      // Check if we have any files to upload
-      const hasFiles = photoFile || aadharFile || voterIdFile;
+      // Always use multipart/form-data — API only accepts this format
+      const formData = new FormData();
 
-      if (hasFiles) {
-        // Use FormData for file uploads
-        const formData = new FormData();
+      if (assemblyId) formData.append("assembly_id", assemblyId.toString());
+      if (partyId) formData.append("party_id", partyId.toString());
 
-        // Add required fields - assembly_id and party_id
-        if (assemblyId) formData.append("assembly_id", assemblyId.toString());
-        if (partyId) formData.append("party_id", partyId.toString());
+      formData.append("category", data.category as string);
+      formData.append("role", data.role as string);
+      formData.append("name", data.name as string);
+      formData.append("phone", data.phone as string);
 
-        // Add text fields
-        formData.append("category", data.category as string);
-        formData.append("role", data.role as string);
-        formData.append("name", data.name as string);
-        formData.append("phone", data.phone as string);
+      if (data.father_name) formData.append("father_name", data.father_name as string);
+      if (data.alternate_no) formData.append("alternate_no", data.alternate_no as string);
+      if (data.email) formData.append("email", data.email as string);
+      if (data.address) formData.append("address", data.address as string);
+      if (data.android_phone) formData.append("android_phone", data.android_phone as string);
+      if (data.laptop) formData.append("laptop", data.laptop as string);
+      if (data.twoWheeler) formData.append("twoWheeler", data.twoWheeler as string);
+      if (data.fourWheeler) formData.append("fourWheeler", data.fourWheeler as string);
 
-        // Add optional string fields
-        if (data.father_name)
-          formData.append("father_name", data.father_name as string);
-        if (data.alternate_no)
-          formData.append("alternate_no", data.alternate_no as string);
-        if (data.email) formData.append("email", data.email as string);
-        if (data.address) formData.append("address", data.address as string);
-        if (data.password) formData.append("password", data.password as string);
-
-        // Add optional enum fields
-        if (data.android_phone)
-          formData.append("android_phone", data.android_phone as string);
-        if (data.laptop) formData.append("laptop", data.laptop as string);
-        if (data.twoWheeler)
-          formData.append("twoWheeler", data.twoWheeler as string);
-        if (data.fourWheeler)
-          formData.append("fourWheeler", data.fourWheeler as string);
-
-        // Add polling_center_id if valid - ensure it's a clean integer string
-        if (
-          data.polling_center_id &&
-          data.polling_center_id !== "" &&
-          data.polling_center_id !== "0"
-        ) {
-          const pcId = parseInt(String(data.polling_center_id), 10);
-          if (!isNaN(pcId) && pcId > 0) {
-            formData.append("polling_center_id", pcId.toString());
-          }
-        }
-
-        // Add booth_id if valid - ensure it's a clean integer string
-        if (selectedBoothId !== null && selectedBoothId > 0) {
-          const boothId = parseInt(String(selectedBoothId), 10);
-          if (!isNaN(boothId) && boothId > 0) {
-            formData.append("booth_id", boothId.toString());
-          }
-        }
-
-        // Add files
-        if (photoFile) {
-          formData.append("photo", photoFile);
-        }
-        if (aadharFile) {
-          formData.append("aadhar_card", aadharFile);
-        }
-        if (voterIdFile) {
-          formData.append("voter_id_file", voterIdFile);
-        }
-
-        if (isEditMode && agentData?.agent_id) {
-          await boothAgentApi.updateAgentWithFiles(
-            agentData.agent_id,
-            formData
-          );
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent updated successfully!");
-        } else {
-          await boothAgentApi.createAgentWithFiles(formData);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent created successfully!");
-        }
-      } else {
-        // No files - use JSON payload
-        const payload: Partial<BoothAgentFormData> = {
-          category: data.category as BoothAgentCategory,
-          role: data.role as BoothAgentRole,
-          name: data.name as string,
-          phone: data.phone as string,
-        };
-
-        // Add required fields - assembly_id and party_id
-        if (assemblyId) payload.assembly_id = assemblyId;
-        if (partyId) payload.party_id = partyId;
-
-        // Add optional string fields
-        if (data.father_name) payload.father_name = data.father_name as string;
-        if (data.alternate_no)
-          payload.alternate_no = data.alternate_no as string;
-        if (data.email) payload.email = data.email as string;
-        if (data.address) payload.address = data.address as string;
-        if (data.password) payload.password = data.password as string;
-
-        // Add optional enum fields
-        if (data.android_phone)
-          payload.android_phone = data.android_phone as "Yes" | "No";
-        if (data.laptop) payload.laptop = data.laptop as "Yes" | "No";
-        if (data.twoWheeler)
-          payload.twoWheeler = data.twoWheeler as "Yes" | "No";
-        if (data.fourWheeler)
-          payload.fourWheeler = data.fourWheeler as "Yes" | "No";
-
-        // Only add polling_center_id if it's a valid number
-        if (data.polling_center_id && data.polling_center_id !== "") {
-          const pcId = Number(data.polling_center_id);
-          if (!isNaN(pcId) && pcId > 0) {
-            payload.polling_center_id = pcId;
-          }
-        }
-
-        // Only add booth_id if it's a valid number
-        if (selectedBoothId !== null && selectedBoothId > 0) {
-          payload.booth_id = selectedBoothId;
-        }
-
-        if (isEditMode && agentData?.agent_id) {
-          await boothAgentApi.updateAgent(agentData.agent_id, payload);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent updated successfully!");
-        } else {
-          await boothAgentApi.createAgent(payload as BoothAgentFormData);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent created successfully!");
-        }
+      if (data.polling_center_id && data.polling_center_id !== "" && data.polling_center_id !== "0") {
+        const pcId = parseInt(String(data.polling_center_id), 10);
+        if (!isNaN(pcId) && pcId > 0) formData.append("polling_center_id", pcId.toString());
       }
 
-      // Reset file states on success
+      if (selectedBoothId !== null && selectedBoothId > 0) {
+        formData.append("booth_id", selectedBoothId.toString());
+      }
+
+      if (photoFile) formData.append("photo", photoFile);
+      if (aadharFile) formData.append("aadhar_card", aadharFile);
+      if (voterIdFile) formData.append("voter_id_file", voterIdFile);
+
+      if (isEditMode && agentData?.agent_id) {
+        await boothAgentApi.updateAgentWithFiles(agentData.agent_id, formData);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent updated successfully!");
+      } else {
+        await boothAgentApi.createAgentWithFiles(formData);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent created successfully!");
+      }
+
       resetFileStates();
       onSuccess();
     } catch (error: unknown) {

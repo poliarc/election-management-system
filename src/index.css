@@ -261,7 +261,7 @@ a {
 /* Optional: keep a subtle hover state for regular links */
 a:hover {
   color: var(--color-brand);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .container-page {
