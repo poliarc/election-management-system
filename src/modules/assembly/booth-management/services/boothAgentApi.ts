@@ -41,51 +41,26 @@ apiClient.interceptors.response.use(
 export const boothAgentApi = {
   // Create booth agent (JSON - no files)
   createAgent: async (data: BoothAgentFormData): Promise<ApiResponse<BoothAgent>> => {
-    const jsonData: Record<string, unknown> = {};
+    const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, String(value));
+      }
     });
-    const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
-      headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
+    const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, formData, {
+      headers: { Authorization: getAuthToken() },
     });
     return response.data;
   },
 
-  // Create booth agent with files (FormData)
+  // Create booth agent with files (FormData) — single multipart request
   createAgentWithFiles: async (formData: FormData): Promise<ApiResponse<BoothAgent>> => {
-    const jsonData: Record<string, unknown> = {};
-    const fileFormData = new FormData();
-    let hasFiles = false;
-
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        fileFormData.append(key, value);
-        hasFiles = true;
-      } else if (key === "polling_center_id" || key === "booth_id") {
-        const numValue = Number(value);
-        if (!isNaN(numValue) && numValue > 0) jsonData[key] = numValue;
-      } else {
-        if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
-      }
-    }
-
-    if (hasFiles) {
-      const createResponse = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
-        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
-      });
-      const agentId = createResponse.data.data?.agent_id;
-      if (!agentId) throw new Error("Failed to get agent ID from create response");
-
-      const updateResponse = await axios.put(`${API_BASE_URL}${BASE_PATH}/${agentId}`, fileFormData, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
-      });
-      return updateResponse.data;
-    } else {
-      const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, jsonData, {
-        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
-      });
-      return response.data;
-    }
+    // Send as multipart/form-data — do NOT set Content-Type manually
+    // Browser sets it automatically with correct boundary
+    const response = await axios.post(`${API_BASE_URL}${BASE_PATH}`, formData, {
+      headers: { Authorization: getAuthToken() },
+    });
+    return response.data;
   },
 
   // Get all booth agents
@@ -126,46 +101,10 @@ export const boothAgentApi = {
 
   // Update booth agent with files
   updateAgentWithFiles: async (id: number, formData: FormData): Promise<ApiResponse<BoothAgent>> => {
-    const jsonData: Record<string, unknown> = {};
-    const fileFormData = new FormData();
-    let hasFiles = false;
-
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        fileFormData.append(key, value);
-        hasFiles = true;
-      } else if (key === "polling_center_id" || key === "booth_id") {
-        const numValue = Number(value);
-        if (!isNaN(numValue) && numValue > 0) jsonData[key] = numValue;
-      } else {
-        if (value !== undefined && value !== null && value !== "") jsonData[key] = value;
-      }
-    }
-
-    if (hasFiles) {
-      fileFormData.append("data", JSON.stringify(jsonData));
-      try {
-        const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, fileFormData, {
-          headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
-        });
-        return response.data;
-      } catch {
-        if (Object.keys(jsonData).length > 0) {
-          await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, jsonData, {
-            headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
-          });
-        }
-        const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, fileFormData, {
-          headers: { "Content-Type": "multipart/form-data", Authorization: getAuthToken() },
-        });
-        return response.data;
-      }
-    } else {
-      const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, jsonData, {
-        headers: { "Content-Type": "application/json", Authorization: getAuthToken() },
-      });
-      return response.data;
-    }
+    const response = await axios.put(`${API_BASE_URL}${BASE_PATH}/${id}`, formData, {
+      headers: { Authorization: getAuthToken() },
+    });
+    return response.data;
   },
 
   // Toggle agent status

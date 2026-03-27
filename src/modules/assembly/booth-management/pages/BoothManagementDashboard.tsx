@@ -65,20 +65,28 @@ export const BoothManagementDashboard: React.FC = () => {
   const StatCard = ({
     title,
     value,
-    color,
+    gradient,
+    icon,
     link,
+    subtitle,
   }: {
     title: string;
     value: number;
-    color: string;
+    gradient: string;
+    icon: string;
     link: string;
+    subtitle?: string;
   }) => (
     <Link
       to={link}
-      className={`block p-6 rounded-lg border-2 ${color} hover:shadow-lg transition-shadow`}
+      className={`block p-5 rounded-xl ${gradient} hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 no-underline [text-decoration:none] hover:[text-decoration:none]`}
     >
-      <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-2">{title}</h3>
-      <p className="text-3xl font-bold">{value}</p>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-2xl">{icon}</span>
+        <span className="text-white/70 text-xs font-medium uppercase tracking-wide">{title}</span>
+      </div>
+      <p className="text-3xl font-bold text-white">{value}</p>
+      {subtitle && <p className="text-white/60 text-xs mt-1">{subtitle}</p>}
     </Link>
   );
 
@@ -115,100 +123,48 @@ export const BoothManagementDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 text-[var(--text-secondary)]">
-        <StatCard
-          title="Total Agents"
-          value={stats.total}
-          color="border-indigo-200 bg-indigo-50 "
-          link="/assembly/booth-management/agents"
-        />
-        <StatCard
-          title="Booth Inside Team"
-          value={stats.boothInside}
-          color="border-blue-200 bg-blue-50"
-          link="/assembly/booth-management/inside"
-        />
-        <StatCard
-          title="Booth Outside Team"
-          value={stats.boothOutside}
-          color="border-green-200 bg-green-50"
-          link="/assembly/booth-management/outside"
-        />
-        <StatCard
-          title="Polling Support"
-          value={stats.pollingSupport}
-          color="border-purple-200 bg-purple-50"
-          link="/assembly/booth-management/polling-support"
-        />
-        <StatCard
-          title="Active"
-          value={stats.active}
-          color="border-emerald-200 bg-emerald-50"
-          link="/assembly/booth-management/agents?status=1"
-        />
-        <StatCard
-          title="Inactive"
-          value={stats.inactive}
-          color="border-red-200 bg-red-50"
-          link="/assembly/booth-management/agents?status=0"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Team Count" value={stats.total}
+          gradient="bg-gradient-to-br from-indigo-500 to-indigo-700"
+          icon="👥" link="/assembly/booth-management/agents" />
+        <StatCard title="Booth Inside Team" value={stats.boothInside}
+          gradient="bg-gradient-to-br from-blue-500 to-cyan-600"
+          icon="🏠" link="/assembly/booth-management/inside" />
+        <StatCard title="Booth Outside Team" value={stats.boothOutside}
+          gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+          icon="🌿" link="/assembly/booth-management/outside" />
+        <StatCard title="PC Support Team" value={stats.pollingSupport}
+          gradient="bg-gradient-to-br from-violet-500 to-purple-700"
+          icon="🏛️" link="/assembly/booth-management/polling-support" />
       </div>
 
       {/* Team Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Active vs Inactive */}
-        <div className="bg-[var(--bg-color)] rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Agent Status Overview</h2>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-green-600 font-medium">Active</span>
-                <span className="font-semibold">{stats.active} / {stats.total}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div
-                  className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: stats.total > 0 ? `${(stats.active / stats.total) * 100}%` : "0%" }}
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-red-500 font-medium">Inactive</span>
-                <span className="font-semibold">{stats.inactive} / {stats.total}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div
-                  className="bg-red-400 h-3 rounded-full transition-all duration-500"
-                  style={{ width: stats.total > 0 ? `${(stats.inactive / stats.total) * 100}%` : "0%" }}
-                />
-              </div>
-            </div>
-            <div className="pt-2 flex items-center justify-center gap-6 text-sm text-[var(--text-secondary)]">
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" />Active {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-400 inline-block" />Inactive {stats.total > 0 ? Math.round((stats.inactive / stats.total) * 100) : 0}%</span>
-            </div>
-          </div>
-        </div>
-
         {/* Category Breakdown */}
-        <div className="bg-[var(--bg-color)] rounded-lg border p-6">
-          <h2 className="text-lg font-semibold mb-4">Category Breakdown</h2>
+        <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-800 mb-1">Category Breakdown <span className="text-indigo-600 font-bold">({stats.total})</span></h2>
+          <p className="text-sm text-slate-400 mb-5">Distribution across teams</p>
           <div className="space-y-4">
             {[
-              { label: "Booth Inside Team", value: stats.boothInside, color: "bg-blue-500", link: "/assembly/booth-management/inside" },
-              { label: "Booth Outside Team", value: stats.boothOutside, color: "bg-green-500", link: "/assembly/booth-management/outside" },
-              { label: "Polling Support Team", value: stats.pollingSupport, color: "bg-purple-500", link: "/assembly/booth-management/polling-support" },
+              { label: "Booth Inside Team", value: stats.boothInside, bar: "from-blue-500 to-cyan-400", dot: "bg-blue-500", link: "/assembly/booth-management/inside" },
+              { label: "Booth Outside Team", value: stats.boothOutside, bar: "from-emerald-500 to-teal-400", dot: "bg-emerald-500", link: "/assembly/booth-management/outside" },
+              { label: "Polling Support Team", value: stats.pollingSupport, bar: "from-violet-500 to-purple-400", dot: "bg-violet-500", link: "/assembly/booth-management/polling-support" },
             ].map((item) => (
-              <Link key={item.label} to={item.link} className="block group">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-[var(--text-secondary)] group-hover:text-indigo-600 transition-colors">{item.label}</span>
-                  <span className="font-semibold">{item.value}</span>
+              <Link key={item.label} to={item.link} className="block group no-underline">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${item.dot}`} />
+                    <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">{item.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-800">{item.value}<span className="text-slate-400 font-normal">/{stats.total}</span></span>
+                    <span className="text-xs text-slate-400">({stats.total > 0 ? Math.round((item.value / stats.total) * 100) : 0}%)</span>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2.5">
+                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
                   <div
-                    className={`${item.color} h-2.5 rounded-full transition-all duration-500`}
+                    className={`bg-gradient-to-r ${item.bar} h-2.5 rounded-full transition-all duration-700`}
                     style={{ width: stats.total > 0 ? `${(item.value / stats.total) * 100}%` : "0%" }}
                   />
                 </div>
@@ -216,6 +172,62 @@ export const BoothManagementDashboard: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Team Strength - Pie Chart */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white">
+          <h2 className="text-lg font-semibold mb-1">Team Graph</h2>
+          <p className="text-sm text-slate-400 mb-4">Total <span className="text-white font-bold">{stats.total}</span> agents across 3 teams</p>
+          {stats.total === 0 ? (
+            <div className="flex items-center justify-center h-32 text-slate-500 text-sm">No data yet</div>
+          ) : (() => {
+            const teams = [
+              { label: "Inside", value: stats.boothInside, color: "#60a5fa" },
+              { label: "Outside", value: stats.boothOutside, color: "#34d399" },
+              { label: "Support", value: stats.pollingSupport, color: "#a78bfa" },
+            ];
+            const total = stats.total || 1;
+            const cx = 60, cy = 60, r = 50;
+            let cumAngle = -Math.PI / 2;
+            const slices = teams.map((t) => {
+              const angle = (t.value / total) * 2 * Math.PI;
+              const x1 = cx + r * Math.cos(cumAngle);
+              const y1 = cy + r * Math.sin(cumAngle);
+              cumAngle += angle;
+              const x2 = cx + r * Math.cos(cumAngle);
+              const y2 = cy + r * Math.sin(cumAngle);
+              const large = angle > Math.PI ? 1 : 0;
+              return { ...t, d: `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`, angle };
+            });
+            return (
+              <div className="flex items-center gap-6">
+                <svg width="120" height="120" viewBox="0 0 120 120" className="flex-shrink-0">
+                  {slices.map((s) => s.value > 0 && (
+                    <path key={s.label} d={s.d} fill={s.color} opacity="0.9" />
+                  ))}
+                  <circle cx={cx} cy={cy} r="28" fill="#1e293b" />
+                  <text x={cx} y={cy - 4} textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">{stats.total}</text>
+                  <text x={cx} y={cy + 12} textAnchor="middle" fill="#94a3b8" fontSize="8">total</text>
+                </svg>
+                <div className="space-y-2.5 flex-1">
+                  {teams.map((t) => (
+                    <div key={t.label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
+                        <span className="text-xs text-slate-300">{t.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold">{t.value}</span>
+                        <span className="text-xs text-slate-500">({total > 0 ? Math.round((t.value / total) * 100) : 0}%)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        
       </div>
 
       {/* Quick Links */}
