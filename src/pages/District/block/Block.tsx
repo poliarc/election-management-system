@@ -5,8 +5,10 @@ import type { RootState } from "../../../store";
 import { useHierarchyData } from "../../../hooks/useHierarchyData";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import type { HierarchyUser } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function DistrictBlock() {
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number | null>(
     null
@@ -152,27 +154,27 @@ export default function DistrictBlock() {
   );
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="w-full mx-auto">
         {/* Header with Stats Cards */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-3 mb-3 text-white">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Block List
+                {t("districtBlock.Title")}
               </h1>
               <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                District: {districtInfo.districtName} | State:{" "}
+                {t("districtBlock.District")}: {districtInfo.districtName} | {t("districtBlock.State")}:{" "}
                 {districtInfo.stateName}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
               {/* Total Blocks Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Blocks
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBlock.Total_Blocks")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold mt-1">
                     {blocks.length}
@@ -196,10 +198,10 @@ export default function DistrictBlock() {
               </div>
 
               {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBlock.Total_Users")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {Object.values(blockUserCounts).reduce(
@@ -226,10 +228,10 @@ export default function DistrictBlock() {
               </div>
 
               {/* Blocks Without Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Blocks Without Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtBlock.Blocks_Without_Users")}
                   </p>
                   <p
                     className={`text-xl sm:text-2xl font-semibold mt-1 ${
@@ -237,7 +239,7 @@ export default function DistrictBlock() {
                         (count) => count === 0
                       ).length > 0
                         ? "text-red-600"
-                        : "text-gray-400"
+                        : "text-[var(--text-secondary)]"
                     }`}
                   >
                     {
@@ -253,7 +255,7 @@ export default function DistrictBlock() {
                       (count) => count === 0
                     ).length > 0
                       ? "bg-red-50"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                   }`}
                 >
                   {Object.values(blockUserCounts).filter((count) => count === 0)
@@ -273,7 +275,7 @@ export default function DistrictBlock() {
                     </svg>
                   ) : (
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -293,33 +295,33 @@ export default function DistrictBlock() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-3">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-3">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBlock.State")}
               </label>
               <input
                 type="text"
                 value={districtInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                District
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBlock.District")}
               </label>
               <input
                 type="text"
                 value={districtInfo.districtName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBlock.Assembly")} <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedAssemblyId || ""}
@@ -329,7 +331,7 @@ export default function DistrictBlock() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">Select Assembly</option>
+                <option value="">{t("districtBlock.Select_Assembly")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -341,13 +343,13 @@ export default function DistrictBlock() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Blocks
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtBlock.Search_Blocks")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -377,11 +379,11 @@ export default function DistrictBlock() {
         </div>
 
         {/* Block List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {!selectedAssemblyId ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -393,23 +395,23 @@ export default function DistrictBlock() {
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">
-                Please select an assembly to view blocks
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                {t("districtBlock.Desc")}
               </p>
             </div>
           ) : isLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading blocks...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("districtBlock.Loading_blocks")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12 text-red-600">
-              <p>Error loading blocks</p>
+              <p>{t("districtBlock.Error_loading_blocks")}</p>
             </div>
           ) : filteredBlocks.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -421,35 +423,35 @@ export default function DistrictBlock() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">No blocks found</p>
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("districtBlock.No_blocks_found")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-[var(--bg-main)]">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      S.No
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("districtBlock.S.No")}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Assembly
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("districtBlock.Assembly")}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Block Name
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("districtBlock.Block_Name")}
                     </th>
-                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Users
+                    <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                      {t("districtBlock.Users")}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                   {paginatedBlocks.map((block, index) => (
                     <>
                       <tr
                         key={block.id}
                         className="hover:bg-blue-50 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -458,7 +460,7 @@ export default function DistrictBlock() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-semibold text-gray-900">
+                          <div className="text-sm font-semibold text-[var(--text-color)]">
                             {block.displayName}
                           </div>
                         </td>
@@ -498,11 +500,11 @@ export default function DistrictBlock() {
                               </svg>
                             </button>
                             {blockUserCounts[block.id] !== undefined ? (
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)]">
                                 {blockUserCounts[block.id]}
                               </span>
                             ) : (
-                              <span className="text-sm text-gray-400">
+                              <span className="text-sm text-[var(--text-secondary)]">
                                 Loading...
                               </span>
                             )}
@@ -543,20 +545,20 @@ export default function DistrictBlock() {
 
         {/* Pagination */}
         {filteredBlocks.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between mt-6">
-            <div className="flex items-center text-sm text-gray-700">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-md px-6 py-4 flex items-center justify-between mt-6">
+            <div className="flex items-center text-sm text-[var(--text-secondary)]">
               <span>
-                Showing{" "}
+                {t("districtBlock.Showing")}{" "}
                 <span className="font-semibold">
                   {(currentPage - 1) * itemsPerPage + 1}
                 </span>{" "}
-                to{" "}
+                {t("districtBlock.to")}{" "}
                 <span className="font-semibold">
                   {Math.min(currentPage * itemsPerPage, filteredBlocks.length)}
                 </span>{" "}
-                of{" "}
+                {t("districtBlock.of")}{" "}
                 <span className="font-semibold">{filteredBlocks.length}</span>{" "}
-                results
+                {t("districtBlock.results")}
               </span>
             </div>
             {totalPages > 1 && (
@@ -564,9 +566,9 @@ export default function DistrictBlock() {
                 <button
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Previous
+                  {t("districtBlock.Previous")}
                 </button>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -587,7 +589,7 @@ export default function DistrictBlock() {
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           currentPage === pageNum
                             ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                         }`}
                       >
                         {pageNum}
@@ -598,9 +600,9 @@ export default function DistrictBlock() {
                 <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next
+                  {t("districtBlock.Next")}
                 </button>
               </div>
             )}
@@ -610,3 +612,6 @@ export default function DistrictBlock() {
     </div>
   );
 }
+
+
+

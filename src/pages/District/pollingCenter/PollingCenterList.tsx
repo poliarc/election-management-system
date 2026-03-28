@@ -5,6 +5,7 @@ import type { RootState } from "../../../store";
 import axios from "axios";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 import type { HierarchyUser } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 type HierarchyNode = Record<string, any>;
 type BlockResult = { assembly: HierarchyNode; blocks: HierarchyNode[] };
@@ -15,6 +16,7 @@ type MandalResult = {
 };
 
 export default function DistrictPollingCenterList() {
+  const {t}=useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
   const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
@@ -563,19 +565,19 @@ export default function DistrictPollingCenterList() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Polling Center List
+                {t("districtPolling.Polling_Center_List")}
               </h1>
               <p className="text-green-100 text-xs sm:text-sm mt-1">
-                District: {districtInfo.districtName}
+                {t("districtPolling.District")}: {districtInfo.districtName}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
               {/* Total Polling Centers Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Polling Centers
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtPolling.Total_Polling_Centers")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold mt-1">
                     {pollingCenters.length}
@@ -599,10 +601,10 @@ export default function DistrictPollingCenterList() {
               </div>
 
               {/* Total Users Card */}
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Total Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("districtPolling.Total_Users")}
                   </p>
                   <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                     {pollingCenters.reduce(
@@ -631,7 +633,7 @@ export default function DistrictPollingCenterList() {
               {/* Polling Centers Without Users Card - Clickable */}
               <div
                 onClick={handlePollingCentersWithoutUsersClick}
-                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                   pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                     .length > 0
                     ? "cursor-pointer hover:shadow-lg hover:scale-105"
@@ -651,11 +653,11 @@ export default function DistrictPollingCenterList() {
                 }
               >
                 <div>
-                  <p className="text-xs font-medium text-gray-600">
-                    Polling Centers Without Users
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    {t("distrcitPolling.Polling_Centers_Without_Users")}
                     {showPollingCentersWithoutUsers && (
                       <span className="ml-2 text-orange-600 font-semibold">
-                        (Filtered)
+                        {t("distrcitPolling.Filtered")}
                       </span>
                     )}
                   </p>
@@ -666,7 +668,7 @@ export default function DistrictPollingCenterList() {
                         ? showPollingCentersWithoutUsers
                           ? "text-orange-600"
                           : "text-red-600"
-                        : "text-gray-400"
+                        : "text-[var(--text-secondary)]"
                     }`}
                   >
                     {
@@ -682,7 +684,7 @@ export default function DistrictPollingCenterList() {
                       ? showPollingCentersWithoutUsers
                         ? "bg-orange-50"
                         : "bg-red-50"
-                      : "bg-gray-50"
+                      : "bg-[var(--bg-main)]"
                   }`}
                 >
                   {pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
@@ -718,7 +720,7 @@ export default function DistrictPollingCenterList() {
                     )
                   ) : (
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -738,22 +740,22 @@ export default function DistrictPollingCenterList() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                District
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.District")}
               </label>
               <input
                 type="text"
                 value={districtInfo.districtName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Assembly
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.Select_Assembly")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -766,7 +768,7 @@ export default function DistrictPollingCenterList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={0}>All Assemblies</option>
+                <option value={0}>{t("districtPolling.All_Assemblies")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -778,8 +780,8 @@ export default function DistrictPollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Block
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.Select_Block")}
               </label>
               <select
                 value={selectedBlockId}
@@ -792,7 +794,7 @@ export default function DistrictPollingCenterList() {
                 disabled={selectedAssemblyId === 0}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Blocks</option>
+                <option value={0}>{t("districtPolling.All_Blocks")}</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -801,8 +803,8 @@ export default function DistrictPollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Mandal
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.Select_Mandal")}
               </label>
               <select
                 value={selectedMandalId}
@@ -823,8 +825,8 @@ export default function DistrictPollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Polling Center
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.Select_Polling_Center")}
               </label>
               <select
                 value={selectedPollingCenterFilter}
@@ -834,7 +836,7 @@ export default function DistrictPollingCenterList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">All Polling Centers</option>
+                <option value="">{t("districtPolling.All_Polling_Centers")}</option>
                 {pollingCenters.map((pc) => (
                   <option key={pc.id} value={pc.id.toString()}>
                     {pc.displayName}
@@ -843,13 +845,13 @@ export default function DistrictPollingCenterList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Polling Centers
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("districtPolling.Search_Polling_Centers")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -896,35 +898,35 @@ export default function DistrictPollingCenterList() {
                   />
                 </svg>
                 <span className="text-sm font-medium text-orange-800">
-                  Showing only polling centers without users (
+                  {t("districtPolling.Desc")}
                   {
                     pollingCenters.filter((pc) => (pc.user_count || 0) === 0)
                       .length
                   }{" "}
-                  polling centers)
+                  {t("districtPolling.Desc1")}
                 </span>
               </div>
               <button
                 onClick={handlePollingCentersWithoutUsersClick}
                 className="text-orange-600 hover:text-orange-800 text-sm font-medium"
               >
-                Clear Filter
+                {t("districtPolling.Clear_Filter")}
               </button>
             </div>
           </div>
         )}
 
         {/* Polling Center List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {isLoadingAllPollingCenters ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading polling centers...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("districtPolling.Loading_polling_centers")}</p>
             </div>
           ) : filteredPollingCenters.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -936,10 +938,10 @@ export default function DistrictPollingCenterList() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">
-                No polling centers found
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                {t("districtPolling.Desc2")}
               </p>
-              {/* <div className="mt-4 text-xs text-gray-400 space-y-1">
+              {/* <div className="mt-4 text-xs text-[var(--text-secondary)] space-y-1">
                 <p>Debug Info:</p>
                 <p>Total polling centers: {allPollingCenters.length}</p>
                 <p>Filtered polling centers: {pollingCenters.length}</p>
@@ -959,47 +961,47 @@ export default function DistrictPollingCenterList() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        S.No
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtPolling.S_No")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                         {pollingCenters.length > 0 &&
                         pollingCenters[0].mandalName
                           ? "Mandal"
                           : "Parent Location"}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Level Type
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtPolling.Level_Type")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Display Name
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtPolling.Display_Name")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        View Users
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtPolling.View_Users")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        View Booths
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("districtPolling.View_Booths")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {paginatedPollingCenters.map((pollingCenter, index) => (
                       <React.Fragment key={pollingCenter.id}>
                         <tr className="hover:bg-blue-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 font-medium">
+                            <div className="text-sm text-[var(--text-color)] font-medium">
                               {pollingCenter.mandalName || "N/A"}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-[var(--text-secondary)]">
                               {pollingCenter.mandalName ? "Mandal" : "Unknown"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              Polling Center
+                              {t("districtPolling.Polling_Center")}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1020,10 +1022,10 @@ export default function DistrictPollingCenterList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {pollingCenter.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {pollingCenter.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -1105,7 +1107,7 @@ export default function DistrictPollingCenterList() {
                                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                                 />
                               </svg>
-                              View Booths
+                              {t("districtPolling.View_Booths")}
                             </button>
                           </td>
                         </tr>
@@ -1144,7 +1146,7 @@ export default function DistrictPollingCenterList() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
+                <div className="bg-[var(--bg-main)] px-4 py-3 border-t border-[var(--border-color)] sm:px-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 flex justify-between sm:hidden">
                       <button
@@ -1152,9 +1154,9 @@ export default function DistrictPollingCenterList() {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("districtPolling.Previous")}
                       </button>
                       <button
                         onClick={() =>
@@ -1163,30 +1165,30 @@ export default function DistrictPollingCenterList() {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("districtPolling.Next")}
                       </button>
                     </div>
                     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm text-gray-700">
-                          Showing{" "}
+                        <p className="text-sm text-[var(--text-secondary)]">
+                          {t("districtPolling.Showing")}{" "}
                           <span className="font-medium">
                             {(currentPage - 1) * itemsPerPage + 1}
                           </span>{" "}
-                          to{" "}
+                          {t("districtPolling.to")}{" "}
                           <span className="font-medium">
                             {Math.min(
                               currentPage * itemsPerPage,
                               filteredPollingCenters.length
                             )}
                           </span>{" "}
-                          of{" "}
+                          {t("districtPolling.of")}{" "}
                           <span className="font-medium">
                             {filteredPollingCenters.length}
                           </span>{" "}
-                          results
+                          {t("districtPolling.results")}
                         </p>
                       </div>
                       <div>
@@ -1196,9 +1198,9 @@ export default function DistrictPollingCenterList() {
                               setCurrentPage((prev) => Math.max(prev - 1, 1))
                             }
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <span className="sr-only">Previous</span>
+                            <span className="sr-only">{t("districtPolling.Previous")}</span>
                             <svg
                               className="h-5 w-5"
                               fill="currentColor"
@@ -1218,7 +1220,7 @@ export default function DistrictPollingCenterList() {
                               className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                                 currentPage === i + 1
                                   ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                                  : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                                  : "bg-[var(--bg-card)] border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                               }`}
                             >
                               {i + 1}
@@ -1231,9 +1233,9 @@ export default function DistrictPollingCenterList() {
                               )
                             }
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <span className="sr-only">Next</span>
+                            <span className="sr-only">{t("districtPolling.Next")}</span>
                             <svg
                               className="h-5 w-5"
                               fill="currentColor"
@@ -1259,17 +1261,17 @@ export default function DistrictPollingCenterList() {
 
       {/* Booths Modal */}
       {booths.length > 0 && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center p-4 z-50">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">Booths</h2>
-                  <p className="text-green-100 mt-1">List of all booths</p>
+                  <h2 className="text-2xl font-bold">{t("districtPolling.Booths")}</h2>
+                  <p className="text-green-100 mt-1">{t("districtPolling.List_all_booths")}</p>
                 </div>
                 <button
                   onClick={() => setBooths([])}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-[var(--bg-card)]/20 rounded-lg transition-colors"
                 >
                   <svg
                     className="w-6 h-6"
@@ -1292,12 +1294,12 @@ export default function DistrictPollingCenterList() {
               {loadingBooths ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                  <p className="mt-4 text-gray-600">Loading booths...</p>
+                  <p className="mt-4 text-[var(--text-secondary)]">{t("districtPolling.Loading_booths")}</p>
                 </div>
               ) : booths.length === 0 ? (
                 <div className="text-center py-12">
                   <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
+                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1309,39 +1311,39 @@ export default function DistrictPollingCenterList() {
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                     />
                   </svg>
-                  <p className="mt-2 text-gray-500 font-medium">
-                    No booths found
+                  <p className="mt-2 text-[var(--text-secondary)] font-medium">
+                    {t("districtPolling.No_booths_found")}
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-[var(--bg-main)]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          S.No
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("districtPolling.S_No")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Display Name
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("distirctPolling.Display_Name")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Level Type
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("districtPolling.Level_Type")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Users
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("districtPolling.Users")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("districtPolling.Status")}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created Date
+                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                          {t("districtPolling.Created_Date")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                       {booths.map((booth, index) => (
-                        <tr key={booth.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <tr key={booth.id} className="hover:bg-[var(--text-color)]/5">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {index + 1}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1362,10 +1364,10 @@ export default function DistrictPollingCenterList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {booth.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {booth.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -1376,7 +1378,7 @@ export default function DistrictPollingCenterList() {
                               {booth.levelName || "Booth"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               {booth.user_count || 0} users
                             </span>
@@ -1392,7 +1394,7 @@ export default function DistrictPollingCenterList() {
                               {booth.isActive === 1 ? "Active" : "Inactive"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {booth.created_at
                               ? new Date(booth.created_at).toLocaleDateString()
                               : "N/A"}
@@ -1410,3 +1412,6 @@ export default function DistrictPollingCenterList() {
     </div>
   );
 }
+
+
+

@@ -424,9 +424,9 @@ export default function DistrictSidebar({
   };
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col">
+    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col">
       {/* User header */}
-      <div className="px-5 py-6 border-b border-gray-200">
+      <div className="px-5 py-6 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-4">
           <img
             src={avatarUrl}
@@ -434,7 +434,7 @@ export default function DistrictSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
           />
           <div className="min-w-0">
-            <p className="truncate font-semibold text-black text-sm">
+            <p className="truncate font-semibold text-[var(--text-color)] text-sm">
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
@@ -449,18 +449,18 @@ export default function DistrictSidebar({
             <button
               type="button"
               onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-              className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition"
+              className="w-full flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <svg className="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="font-medium text-gray-700 truncate">
+                <span className="font-medium text-[var(--text-secondary)] truncate">
                   {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
               </div>
               <svg
-                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                className={`h-4 w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"}`}
                 viewBox="0 0 20 20"
                 fill="none"
               >
@@ -469,8 +469,8 @@ export default function DistrictSidebar({
             </button>
 
             {switchDropdownOpen && (
-              <div className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto">
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <div className="mt-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2 text-sm shadow-lg max-h-64 overflow-y-auto">
+                <div className="px-2 py-1.5 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                   Switch District
                 </div>
                 {sameTypeAssignments.map((assignment) => (
@@ -480,8 +480,8 @@ export default function DistrictSidebar({
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id === assignment.assignment_id
-                        ? "bg-indigo-50 text-indigo-900"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                        ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                     ].join(" ")}
                   >
                     <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -492,7 +492,7 @@ export default function DistrictSidebar({
                         {assignment.displayName || assignment.levelName}
                       </div>
                       {assignment.parentLevelName && (
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-[var(--text-secondary)] truncate">
                           {assignment.parentLevelName}
                         </div>
                       )}
@@ -521,10 +521,10 @@ export default function DistrictSidebar({
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
@@ -545,10 +545,10 @@ export default function DistrictSidebar({
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
@@ -570,10 +570,10 @@ export default function DistrictSidebar({
             onClick={() => setListOpen((v) => !v)}
             className={[
               "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
               listOpen
-                ? "bg-gray-50 ring-1 ring-indigo-200"
-                : "border border-transparent hover:border-gray-200",
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                : "border border-transparent hover:border-[var(--border-color)]",
             ].join(" ")}
           >
             <span className="flex items-center gap-3 text-indigo-600">
@@ -590,7 +590,7 @@ export default function DistrictSidebar({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-black">
+              <span className="text-[var(--text-color)]">
                 List {sidebarLoading && "(Loading...)"}
                 {sidebarError && "(Error)"}
               </span>
@@ -613,13 +613,13 @@ export default function DistrictSidebar({
             </svg>
           </button>
           {listOpen && (
-            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
               {sidebarLoading ? (
-                <div className="px-3 py-2 text-sm text-gray-500">Loading levels...</div>
+                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">Loading levels...</div>
               ) : sidebarError ? (
                 <div className="px-3 py-2 text-sm text-red-500">Error loading levels</div>
               ) : listItems.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-500">No levels available</div>
+                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">No levels available</div>
               ) : (
                 listItems.map((li) => (
                   <NavLink
@@ -629,10 +629,10 @@ export default function DistrictSidebar({
                     className={({ isActive }) =>
                       [
                         "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                        "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                         isActive
-                          ? "bg-indigo-50 ring-1 ring-indigo-200"
-                          : "border border-transparent hover:border-gray-200",
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
                       ].join(" ")
                     }
                   >
@@ -656,10 +656,10 @@ export default function DistrictSidebar({
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
@@ -675,7 +675,7 @@ export default function DistrictSidebar({
 
       {/* Account section */}
       <div className="mt-auto pt-3 pb-5">
-        <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+        <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
           Account
         </div>
         <div className="px-4 space-y-2">
@@ -685,10 +685,10 @@ export default function DistrictSidebar({
             className={({ isActive }) =>
               [
                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-indigo-50 ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >

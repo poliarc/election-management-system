@@ -15,8 +15,10 @@ import {
 } from "../../store/api/partyWiseLevelApi";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import { useGetUsersByPartyQuery } from "../../store/api/partyUserApi";
+import { useTranslation } from "react-i18next";
 
 export const PartyAdminLevels: React.FC = () => {
+    const {t} = useTranslation();
     const { partyId, stateId: urlStateId } = useParams<{ partyId: string; stateId?: string }>();
     const [showForm, setShowForm] = useState(false);
     const [editingLevel, setEditingLevel] = useState<PartyWiseLevel | null>(null);
@@ -263,16 +265,16 @@ export const PartyAdminLevels: React.FC = () => {
     };
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="mb-1">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Organizational Levels
+                        <h1 className="text-3xl font-bold text-[var(--text-color)]">
+                            {t("PartyAdminLevels.Title")}
                         </h1>
-                        <p className="text-gray-600 mt-2">
-                            Manage your party's organizational hierarchy
+                        <p className="text-[var(--text-secondary)] mt-2">
+                            {t("PartyAdminLevels.Desc")}
                         </p>
                     </div>
                     {!showForm && (
@@ -284,7 +286,7 @@ export const PartyAdminLevels: React.FC = () => {
                             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                         >
                             <Plus className="w-4 h-4" />
-                            Add Level
+                            {t("PartyAdminLevels.Add_Level")}
                         </button>
                     )}
                 </div>
@@ -292,17 +294,17 @@ export const PartyAdminLevels: React.FC = () => {
 
             {/* State Filter */}
             {!showForm && (
-                <div className="mb-1 bg-white rounded-lg shadow-md p-4">
+                <div className="mb-1 bg-[var(--bg-card)] rounded-lg shadow-md p-4">
                     <div className="flex items-center gap-4">
-                        <label className="text-sm font-medium text-gray-700">
-                            Filter by State:
+                        <label className="text-sm font-medium text-[var(--text-secondary)]">
+                            {t("PartyAdminLevels.Desc1")}
                         </label>
                         <select
                             value={filterStateId}
                             onChange={(e) => setFilterStateId(Number(e.target.value))}
                             className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value={0}>All States</option>
+                            <option value={0}>{t("PartyAdminLevels.All_States")}</option>
                             {states.map((state) => (
                                 <option key={state.id} value={state.id}>
                                     {state.levelName}
@@ -310,8 +312,8 @@ export const PartyAdminLevels: React.FC = () => {
                             ))}
                         </select>
                         {filterStateId !== 0 && (
-                            <span className="text-sm text-gray-600">
-                                Showing {uniqueLevels.length} level{uniqueLevels.length !== 1 ? 's' : ''}
+                            <span className="text-sm text-[var(--text-secondary)]">
+                                {t("PartyAdminLevels.Showing")} {uniqueLevels.length} {t("PartyAdminLevels.Levels")}{uniqueLevels.length !== 1 ? 's' : ''}
                             </span>
                         )}
                     </div>
@@ -337,68 +339,68 @@ export const PartyAdminLevels: React.FC = () => {
             )}
 
             {/* Levels List */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
+                <div className="px-6 py-4 bg-[var(--bg-main)] border-b border-[var(--border-color)]">
+                    <h3 className="text-lg font-medium text-[var(--text-color)] flex items-center gap-2">
                         <Network className="w-5 h-5" />
-                        Levels ({uniqueLevels.length})
+                        {t("PartyAdminLevels.Levels")} ({uniqueLevels.length})
                     </h3>
                 </div>
 
                 {isLoading ? (
-                    <div className="p-10 text-center text-gray-500">Loading levels...</div>
+                    <div className="p-10 text-center text-[var(--text-secondary)]">{t("PartyAdminLevels.Loading")}</div>
                 ) : uniqueLevels.length === 0 ? (
-                    <div className="p-10 text-center text-gray-500">
-                        No levels found. Click "Add Level" to create one.
+                    <div className="p-10 text-center text-[var(--text-secondary)]">
+                        {t("PartyAdminLevels.Desc2")}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[var(--bg-main)]">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Level Name
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                        {t("PartyAdminLevels.Level_Name")}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Display Name
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                         {t("PartyAdminLevels.Display_Name")}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Parent Level
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                         {t("PartyAdminLevels.Parent_Level")}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        State
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                         {t("PartyAdminLevels.State")}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Level Admin
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                         {t("PartyAdminLevels.Level_Admin")}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                         {t("PartyAdminLevels.Status")}
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                                        {t("PartyAdminLevels.Actions")}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                 {uniqueLevels.map((level) => (
-                                    <tr key={level.party_wise_id} className="hover:bg-gray-50">
+                                    <tr key={level.party_wise_id} className="hover:bg-[var(--text-color)]/5">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">
+                                            <div className="text-sm font-medium text-[var(--text-color)]">
                                                 {level.level_name}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
+                                            <div className="text-sm text-[var(--text-color)]">
                                                 {level.display_level_name}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-sm text-[var(--text-secondary)]">
                                                 {level.parent_level_name || "-"}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-sm text-[var(--text-secondary)]">
                                                 {level.state_name}
                                             </div>
                                         </td>
@@ -411,7 +413,7 @@ export const PartyAdminLevels: React.FC = () => {
 
                                                     return (
                                                         <>
-                                                            <span className="text-sm text-gray-900">
+                                                            <span className="text-sm text-[var(--text-color)]">
                                                                 {adminsWithNames.length > 0
                                                                     ? `${adminsWithNames.length} Admin${adminsWithNames.length > 1 ? 's' : ''}`
                                                                     : 'No admin'}
@@ -446,14 +448,14 @@ export const PartyAdminLevels: React.FC = () => {
                                                     <>
                                                         <ToggleRight className="w-5 h-5 text-green-500" />
                                                         <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                                            Active
+                                                            {t("PartyAdminLevels.Active")}
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <ToggleLeft className="w-5 h-5 text-gray-400" />
-                                                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                                                            Inactive
+                                                        <ToggleLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                                                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-[var(--text-color)] rounded-full">
+                                                            {t("PartyAdminLevels.Inactive")}
                                                         </span>
                                                     </>
                                                 )}
@@ -488,11 +490,11 @@ export const PartyAdminLevels: React.FC = () => {
             {/* Admin Selection Modal */}
             {showAdminModal && selectedLevel && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between px-5 py-4 border-b">
                             <div className="flex items-center gap-2 text-indigo-700 font-semibold">
                                 <UserPlus className="w-5 h-5" />
-                                Assign Admin for {selectedLevel.display_level_name}
+                                {t("PartyAdminLevels.Desc4")} {selectedLevel.display_level_name}
                             </div>
                             <button
                                 onClick={() => {
@@ -501,7 +503,7 @@ export const PartyAdminLevels: React.FC = () => {
                                     setAdminSearchTerm("");
                                     setUserPage(1);
                                 }}
-                                className="text-gray-500 hover:text-gray-700"
+                                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -519,11 +521,11 @@ export const PartyAdminLevels: React.FC = () => {
                             {usersLoading ? (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                                    <p className="mt-2 text-gray-600">Loading users...</p>
+                                    <p className="mt-2 text-[var(--text-secondary)]">{t("PartyAdminLevels.Loading_users")}</p>
                                 </div>
                             ) : users.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    No users found
+                                <div className="text-center py-8 text-[var(--text-secondary)]">
+                                    {t("PartyAdminLevels.Desc5")}
                                 </div>
                             ) : (
                                 <div className="space-y-2">
@@ -541,7 +543,7 @@ export const PartyAdminLevels: React.FC = () => {
                                                 disabled={isAlreadyAdmin}
                                                 className={`w-full p-4 border rounded-lg text-left transition-colors ${isAlreadyAdmin
                                                     ? "bg-gray-100 border-gray-300 cursor-not-allowed opacity-60"
-                                                    : "border-gray-200 hover:bg-blue-50"
+                                                    : "border-[var(--border-color)] hover:bg-blue-50"
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -553,23 +555,23 @@ export const PartyAdminLevels: React.FC = () => {
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <div className="font-semibold text-gray-900">
+                                                            <div className="font-semibold text-[var(--text-color)]">
                                                                 {user.first_name} {user.last_name}
                                                             </div>
-                                                            <div className="text-sm text-gray-600">
+                                                            <div className="text-sm text-[var(--text-secondary)]">
                                                                 {user.email}
                                                             </div>
-                                                            <div className="text-xs text-gray-500">
+                                                            <div className="text-xs text-[var(--text-secondary)]">
                                                                 {user.partyName || "No party"} • {user.stateName || "No state"}
                                                             </div>
-                                                            <div className="text-xs text-gray-500">
+                                                            <div className="text-xs text-[var(--text-secondary)]">
                                                                 {user.role || "No role"} • {user.districtName || "No district"}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     {isAlreadyAdmin && (
                                                         <div className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                            Already Admin
+                                                            {t("PartyAdminLevels.Already_Admin")}
                                                         </div>
                                                     )}
                                                 </div>
@@ -582,20 +584,20 @@ export const PartyAdminLevels: React.FC = () => {
 
                         {/* Pagination Controls */}
                         {pagination && pagination.totalPages > 1 && (
-                            <div className="px-5 py-4 border-t border-gray-200 bg-gray-50">
+                            <div className="px-5 py-4 border-t border-[var(--border-color)] bg-[var(--bg-main)]">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-700">
-                                        Page <span className="font-medium">{pagination.page}</span> of{' '}
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("PartyAdminLevels.Page")} <span className="font-medium">{pagination.page}</span> {t("PartyAdminLevels.of")}{' '}
                                         <span className="font-medium">{pagination.totalPages}</span>
-                                        {' '}({pagination.total} total users)
+                                        {' '}({pagination.total} {t("PartyAdminLevels.total_users")})
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setUserPage(prev => Math.max(1, prev - 1))}
                                             disabled={pagination.page === 1 || usersLoading}
-                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Previous
+                                            {t("PartyAdminLevels.Previous")}
                                         </button>
 
                                         {/* Page Numbers */}
@@ -618,7 +620,7 @@ export const PartyAdminLevels: React.FC = () => {
                                                             disabled={usersLoading}
                                                             className={`px-3 py-1 text-sm border rounded-md ${pagination.page === i
                                                                     ? 'bg-indigo-600 text-white border-indigo-600'
-                                                                    : 'border-gray-300 hover:bg-gray-100'
+                                                                    : 'border-gray-300 hover:bg-[var(--text-color)]/5'
                                                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                                                         >
                                                             {i}
@@ -632,9 +634,9 @@ export const PartyAdminLevels: React.FC = () => {
                                         <button
                                             onClick={() => setUserPage(prev => Math.min(pagination.totalPages, prev + 1))}
                                             disabled={pagination.page === pagination.totalPages || usersLoading}
-                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Next
+                                            {t("PartyAdminLevels.Next")}
                                         </button>
                                     </div>
                                 </div>
@@ -648,11 +650,11 @@ export const PartyAdminLevels: React.FC = () => {
             {
                 showViewAdminsModal && viewingLevel && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
                             <div className="flex items-center justify-between px-5 py-4 border-b">
                                 <div className="flex items-center gap-2 text-indigo-700 font-semibold">
                                     <Eye className="w-5 h-5" />
-                                    Assigned Admins - {viewingLevel.display_level_name}
+                                    {t("PartyAdminLevels.Assigned_Admins")} {viewingLevel.display_level_name}
                                 </div>
                                 <button
                                     onClick={() => {
@@ -660,7 +662,7 @@ export const PartyAdminLevels: React.FC = () => {
                                         setViewingLevel(null);
                                         setViewAdminsSearchTerm("");
                                     }}
-                                    className="text-gray-500 hover:text-gray-700"
+                                    className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -691,7 +693,7 @@ export const PartyAdminLevels: React.FC = () => {
 
                                     if (filteredAdmins.length === 0) {
                                         return (
-                                            <div className="text-center py-8 text-gray-500">
+                                            <div className="text-center py-8 text-[var(--text-secondary)]">
                                                 {viewAdminsSearchTerm ? "No admins found matching your search" : "No admins assigned to this level"}
                                             </div>
                                         );
@@ -702,7 +704,7 @@ export const PartyAdminLevels: React.FC = () => {
                                             {filteredAdmins.map((admin) => (
                                                 <div
                                                     key={admin.party_wise_id}
-                                                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                                                    className="flex items-center justify-between p-4 border border-[var(--border-color)] rounded-lg hover:bg-[var(--text-color)]/5"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -711,11 +713,11 @@ export const PartyAdminLevels: React.FC = () => {
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <div className="font-semibold text-gray-900">
+                                                            <div className="font-semibold text-[var(--text-color)]">
                                                                 {admin.admin_name}
                                                             </div>
                                                             {admin.admin_email && (
-                                                                <div className="text-sm text-gray-600">
+                                                                <div className="text-sm text-[var(--text-secondary)]">
                                                                     {admin.admin_email}
                                                                 </div>
                                                             )}
@@ -734,7 +736,7 @@ export const PartyAdminLevels: React.FC = () => {
                                     );
                                 })()}
                             </div>
-                            <div className="px-5 py-4 border-t bg-gray-50">
+                            <div className="px-5 py-4 border-t bg-[var(--bg-main)]">
                                 <button
                                     onClick={() => {
                                         setShowViewAdminsModal(false);
@@ -744,7 +746,7 @@ export const PartyAdminLevels: React.FC = () => {
                                     className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                                 >
                                     <UserPlus className="w-4 h-4" />
-                                    Add Another Admin
+                                    {t("PartyAdminLevels.Add_Another_Admin")}
                                 </button>
                             </div>
                         </div>
@@ -756,28 +758,28 @@ export const PartyAdminLevels: React.FC = () => {
             {
                 showRemoveAdminModal && adminToRemove && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-md">
                             <div className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                                         <Trash2 className="w-6 h-6 text-red-600" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                            Remove Admin
+                                        <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                                            {t("PartyAdminLevels.Remove_Admin")}
                                         </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Admin will be unassigned from this level
+                                        <p className="text-sm text-[var(--text-secondary)]">
+                                            {t("PartyAdminLevels.Desc6")}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="mb-6">
-                                    <p className="text-gray-700 mb-3">
-                                        Are you sure you want to remove <span className="font-semibold">{adminToRemove.name}</span> from this level?
+                                    <p className="text-[var(--text-secondary)] mb-3">
+                                        {t("PartyAdminLevels.Desc7")} <span className="font-semibold">{adminToRemove.name}</span> {t("PartyAdminLevels.Desc8")}
                                     </p>
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                                         <p className="text-sm text-blue-800">
-                                            <span className="font-medium">Note:</span> The level will remain active and you can assign a new admin later.
+                                            <span className="font-medium">{t("PartyAdminLevels.Note")}</span> {t("PartyAdminLevels.Desc9")}
                                         </p>
                                     </div>
                                 </div>
@@ -787,15 +789,15 @@ export const PartyAdminLevels: React.FC = () => {
                                             setShowRemoveAdminModal(false);
                                             setAdminToRemove(null);
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                                     >
-                                        Cancel
+                                        {t("PartyAdminLevels.Cancel")}
                                     </button>
                                     <button
                                         onClick={handleRemoveAdmin}
                                         className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                                     >
-                                        Remove Admin
+                                        {t("PartyAdminLevels.Remove_Admin")}
                                     </button>
                                 </div>
                             </div>
@@ -808,23 +810,23 @@ export const PartyAdminLevels: React.FC = () => {
             {
                 showDeleteModal && levelToDelete && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-md">
                             <div className="p-6">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                                         <Trash2 className="w-6 h-6 text-red-600" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                            Delete Level
+                                        <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                                            {t("PartyAdminLevels.Delete_Level")}
                                         </h3>
-                                        <p className="text-sm text-gray-600">
-                                            This action cannot be undone
+                                        <p className="text-sm text-[var(--text-secondary)]">
+                                            {t("PartyAdminLevels.Desc10")}
                                         </p>
                                     </div>
                                 </div>
-                                <p className="text-gray-700 mb-6">
-                                    Are you sure you want to delete this level? All associated data will be removed.
+                                <p className="text-[var(--text-secondary)] mb-6">
+                                    {t("PartyAdminLevels.Desc11")}
                                 </p>
                                 <div className="flex gap-3">
                                     <button
@@ -832,15 +834,15 @@ export const PartyAdminLevels: React.FC = () => {
                                             setShowDeleteModal(false);
                                             setLevelToDelete(null);
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                                     >
-                                        Cancel
+                                        {t("PartyAdminLevels.Cancel")}
                                     </button>
                                     <button
                                         onClick={handleDelete}
                                         className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                                     >
-                                        Delete
+                                        {t("PartyAdminLevels.Delete")}
                                     </button>
                                 </div>
                             </div>
@@ -872,6 +874,7 @@ const LevelForm: React.FC<LevelFormProps> = ({
     onCancel,
     isLoading,
 }) => {
+    const {t} = useTranslation();
     const [levelName, setLevelName] = useState(level?.level_name || "");
     const [displayName, setDisplayName] = useState(level?.display_level_name || "");
     const [parentLevel, setParentLevel] = useState<number | null>(
@@ -901,15 +904,15 @@ const LevelForm: React.FC<LevelFormProps> = ({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <div className="bg-[var(--bg-color)] rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">
                 {level ? "Edit Level" : "Create New Level"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Level Name *
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("PartyAdminLevels.Level_Name_*")}
                         </label>
                         <input
                             type="text"
@@ -922,8 +925,8 @@ const LevelForm: React.FC<LevelFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Display Name *
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("PartyAdminLevels.Display_Name_*")}
                         </label>
                         <input
                             type="text"
@@ -936,8 +939,8 @@ const LevelForm: React.FC<LevelFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            State *
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("PartyAdminLevels.State_*")}
                         </label>
                         <select
                             value={stateId}
@@ -945,7 +948,7 @@ const LevelForm: React.FC<LevelFormProps> = ({
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         >
-                            <option value={0}>Select a state</option>
+                            <option value={0}>{t("PartyAdminLevels.Select_state")}</option>
                             {states.map((state) => (
                                 <option key={state.id} value={state.id}>
                                     {state.levelName}
@@ -955,8 +958,8 @@ const LevelForm: React.FC<LevelFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Parent Level
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("PartyAdminLevels.Parent_Level")}
                         </label>
                         <select
                             value={parentLevel || ""}
@@ -966,7 +969,7 @@ const LevelForm: React.FC<LevelFormProps> = ({
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             disabled={!stateId}
                         >
-                            <option value="">No Parent (Top Level)</option>
+                            <option value="">{t("PartyAdminLevels.Desc12")}</option>
                             {stateId ? (
                                 levels
                                     .filter((l) =>
@@ -980,12 +983,12 @@ const LevelForm: React.FC<LevelFormProps> = ({
                                         </option>
                                     ))
                             ) : (
-                                <option value="" disabled>Select a state first</option>
+                                <option value="" disabled>{t("PartyAdminLevels.Desc13")}</option>
                             )}
                         </select>
                         {!stateId && (
-                            <p className="mt-1 text-xs text-gray-500">
-                                Please select a state to see available parent levels
+                            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                                {t("PartyAdminLevels.Desc14")}
                             </p>
                         )}
                     </div>
@@ -995,10 +998,10 @@ const LevelForm: React.FC<LevelFormProps> = ({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                         disabled={isLoading}
                     >
-                        Cancel
+                        {t("PartyAdminLevels.Cancel")}
                     </button>
                     <button
                         type="submit"
@@ -1012,3 +1015,7 @@ const LevelForm: React.FC<LevelFormProps> = ({
         </div>
     );
 };
+
+
+
+

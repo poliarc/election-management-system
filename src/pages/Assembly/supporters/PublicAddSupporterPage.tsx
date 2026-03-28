@@ -385,12 +385,12 @@ export default function PublicAddSupporterPage() {
   if (!partyId || !stateId || !districtId || !assemblyId || !blockId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Invalid Registration Link</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">Invalid Registration Link</h1>
+          <p className="text-[var(--text-secondary)] mb-6">
             This registration link is invalid or missing required parameters.
           </p>
           <button
@@ -408,12 +408,12 @@ export default function PublicAddSupporterPage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">Registration Successful!</h1>
+          <p className="text-[var(--text-secondary)] mb-6">
             Thank you for registering as a supporter. Your information has been submitted successfully.
           </p>
           <button
@@ -449,15 +449,15 @@ export default function PublicAddSupporterPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-b-lg shadow-lg p-6">
+        <div className="bg-[var(--bg-card)] rounded-b-lg shadow-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Initials */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Initials *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Initials *</label>
                   <select
                     name="initials"
                     value={formData.initials}
@@ -474,7 +474,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">First Name *</label>
                   <input
                     type="text"
                     name="first_name"
@@ -488,7 +488,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Last Name *</label>
                   <input
                     type="text"
                     name="last_name"
@@ -502,7 +502,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* Father's Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Father's Name *</label>
                   <input
                     type="text"
                     name="father_name"
@@ -516,7 +516,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* Date of Birth */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date of Birth *</label>
                   <input
                     type="date"
                     name="date_of_birth"
@@ -529,21 +529,21 @@ export default function PublicAddSupporterPage() {
 
                 {/* Age - Auto-calculated */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Age</label>
                   <input
                     type="number"
                     name="age"
                     value={formData.age}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     placeholder="Auto-calculated"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Automatically calculated from date of birth</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Automatically calculated from date of birth</p>
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Gender *</label>
                   <select
                     name="gender"
                     value={formData.gender}
@@ -560,7 +560,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Phone Number *</label>
                   <input
                     type="tel"
                     name="phone_no"
@@ -575,7 +575,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* WhatsApp Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">WhatsApp Number</label>
                   <input
                     type="tel"
                     name="whatsapp_no"
@@ -590,7 +590,7 @@ export default function PublicAddSupporterPage() {
 
                 {/* EPIC ID */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">EPIC ID</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">EPIC ID</label>
                   <input
                     type="text"
                     name="voter_epic_id"
@@ -608,12 +608,12 @@ export default function PublicAddSupporterPage() {
 
             {/* Language and Religion Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Language & Religion Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Language & Religion Information</h3>
 
               {/* Language Selection */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Languages * <span className="text-gray-500">(Select multiple)</span>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Languages * <span className="text-[var(--text-secondary)]">(Select multiple)</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 border border-gray-300 rounded-lg">
                   {LANGUAGE_OPTIONS.map((language) => (
@@ -624,7 +624,7 @@ export default function PublicAddSupporterPage() {
                         onChange={() => handleLanguageChange(language)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">{language}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{language}</span>
                     </label>
                   ))}
                 </div>
@@ -634,7 +634,7 @@ export default function PublicAddSupporterPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Religion */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Religion *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Religion *</label>
                   <select
                     name="religion"
                     value={formData.religion}
@@ -651,13 +651,13 @@ export default function PublicAddSupporterPage() {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Category *</label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
                     disabled={!formData.religion}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)] ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
                   >
                     <option value="">Select Category</option>
                     {getAvailableCategories().map((category) => (
@@ -670,7 +670,7 @@ export default function PublicAddSupporterPage() {
                 {/* Caste (only for Hindu religion) */}
                 {shouldShowCaste && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Caste</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Caste</label>
                     <select
                       name="caste"
                       value={formData.caste}
@@ -688,7 +688,7 @@ export default function PublicAddSupporterPage() {
                 {/* Custom Category Input for Others */}
                 {formData.religion === 'Others' && formData.category === 'Others' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Specify Category</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Specify Category</label>
                     <input
                       type="text"
                       name="caste"
@@ -704,73 +704,73 @@ export default function PublicAddSupporterPage() {
 
             {/* Location Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Location Information</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* State - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     State
                   </label>
                   <input
                     type="text"
                     value={stateName || 'Unknown State'}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* District - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     District
                   </label>
                   <input
                     type="text"
                     value={districtName || 'Unknown District'}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Assembly - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Assembly
                   </label>
                   <input
                     type="text"
                     value={assemblyName || 'Unknown Assembly'}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Block - Always Disabled (Required from URL) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Block
                   </label>
                   <input
                     type="text"
                     value={blockName || 'Unknown Block'}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Mandal - Disabled if provided in URL, otherwise optional dropdown */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mandal {mandalId && <span className="text-gray-400">(Pre-filled)</span>}
-                    {!mandalId && <span className="text-gray-400">(Optional)</span>}
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Mandal {mandalId && <span className="text-[var(--text-secondary)]">(Pre-filled)</span>}
+                    {!mandalId && <span className="text-[var(--text-secondary)]">(Optional)</span>}
                   </label>
                   {mandalId ? (
                     <input
                       type="text"
                       value={mandalName || 'Unknown Mandal'}
                       disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
                   ) : (
                     <select
@@ -778,7 +778,7 @@ export default function PublicAddSupporterPage() {
                       value={formData.mandal_id}
                       onChange={handleInputChange}
                       disabled={hierarchyLoading || mandals.length === 0}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
                     >
                       <option value={0}>Select Mandal</option>
                       {mandals.map((mandal: any) => (
@@ -789,7 +789,7 @@ export default function PublicAddSupporterPage() {
                     </select>
                   )}
                   {!mandalId && !hierarchyLoading && mandals.length === 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                       No mandals available
                     </p>
                   )}
@@ -797,16 +797,16 @@ export default function PublicAddSupporterPage() {
 
                 {/* Booth - Disabled if provided in URL, otherwise optional dropdown */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Booth {boothId && <span className="text-gray-400">(Pre-filled)</span>}
-                    {!boothId && <span className="text-gray-400">(Optional)</span>}
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Booth {boothId && <span className="text-[var(--text-secondary)]">(Pre-filled)</span>}
+                    {!boothId && <span className="text-[var(--text-secondary)]">(Optional)</span>}
                   </label>
                   {boothId ? (
                     <input
                       type="text"
                       value={boothName || 'Unknown Booth'}
                       disabled
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
                   ) : (
                     <select
@@ -814,7 +814,7 @@ export default function PublicAddSupporterPage() {
                       value={formData.booth_id}
                       onChange={handleInputChange}
                       disabled={hierarchyLoading || booths.length === 0}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
                     >
                       <option value={0}>Select Booth</option>
                       {booths.map((booth: any) => (
@@ -825,10 +825,10 @@ export default function PublicAddSupporterPage() {
                     </select>
                   )}
                   {!boothId && !hierarchyLoading && booths.length === 0 && !formData.mandal_id && (
-                    <p className="text-xs text-gray-500 mt-1">Select a mandal first</p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">Select a mandal first</p>
                   )}
                   {!boothId && !hierarchyLoading && booths.length === 0 && formData.mandal_id && (
-                    <p className="text-xs text-gray-500 mt-1">No booths available for this mandal</p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available for this mandal</p>
                   )}
                 </div>
               </div>
@@ -836,10 +836,10 @@ export default function PublicAddSupporterPage() {
 
             {/* Address and Remarks */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Additional Information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Address *</label>
                   <textarea
                     name="address"
                     value={formData.address}
@@ -852,7 +852,7 @@ export default function PublicAddSupporterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Remarks</label>
                   <textarea
                     name="remarks"
                     value={formData.remarks}
@@ -866,7 +866,7 @@ export default function PublicAddSupporterPage() {
             </div>
 
             {/* Form Actions */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--border-color)]">
               <button
                 type="submit"
                 disabled={isCreating}
@@ -887,3 +887,5 @@ export default function PublicAddSupporterPage() {
     </div>
   );
 }
+
+

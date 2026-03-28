@@ -20,8 +20,8 @@ export const AdminAssignmentCell: React.FC<AdminAssignmentCellProps> = ({
                 <div className="flex items-center gap-2">
                     <UserCheck className="w-4 h-4 text-green-600" />
                     <div>
-                        <div className="text-sm font-medium text-gray-900">{party.admin_name}</div>
-                        <div className="text-xs text-gray-500">{party.admin_email}</div>
+                        <div className="text-sm font-medium text-[var(--text-color)]">{party.admin_name}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">{party.admin_email}</div>
                     </div>
                 </div>
                 <div className="text-xs text-blue-600 mt-1">Click to change</div>
@@ -39,3 +39,4 @@ export const AdminAssignmentCell: React.FC<AdminAssignmentCellProps> = ({
         </button>
     );
 };
+

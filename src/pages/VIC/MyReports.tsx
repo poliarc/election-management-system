@@ -4,8 +4,10 @@ import { useGetMyReportsQuery, useUpdateVICReportMutation, useDeleteVICReportMut
 import { formatDistanceToNow } from "date-fns";
 import { Edit, Trash2, X, Save, Upload, Eye, FileText, Image, File } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function MyReports() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const [page, setPage] = useState(1);
     const [filters, setFilters] = useState({
@@ -78,9 +80,9 @@ export default function MyReports() {
             case "Rejected":
                 return "bg-red-100 text-red-800";
             case "Resolved":
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
         }
     };
 
@@ -95,7 +97,7 @@ export default function MyReports() {
             case "Low":
                 return "bg-green-100 text-green-800";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-[var(--text-color)]";
         }
     };
 
@@ -176,7 +178,7 @@ export default function MyReports() {
         } else if (file.type === 'application/pdf') {
             return <FileText className="w-5 h-5 text-red-500" />;
         } else {
-            return <File className="w-5 h-5 text-gray-500" />;
+            return <File className="w-5 h-5 text-[var(--text-secondary)]" />;
         }
     };
 
@@ -304,26 +306,26 @@ export default function MyReports() {
 
     return (
         <div className="p-3 sm:p-4 lg:p-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
+                <div className="px-4 sm:px-6 py-4 border-b border-[var(--border-color)]">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Reports</h1>
-                            <p className="text-sm text-gray-600 mt-1">
-                                Reports submitted by you
+                            <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-color)]">{t("MyReports.Title")}</h1>
+                            <p className="text-sm text-[var(--text-secondary)] mt-1">
+                                {t("MyReports.Subtitle")}
                             </p>
                         </div>
                         <Link
                             to={`${basePath}/send-report`}
                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition text-center text-sm sm:text-base"
                         >
-                            Send New Report
+                            {t("MyReports.Send_New_Report")}
                         </Link>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <div className="px-4 sm:px-6 py-4 border-b border-[var(--border-color)] bg-[var(--bg-main)]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div>
                             <input
@@ -340,12 +342,12 @@ export default function MyReports() {
                                 onChange={(e) => handleFilterChange("status", e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">All Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In_Progress">In Progress</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
-                                <option value="Resolved">Resolved</option>
+                                <option value="">{t("MyReports.All_Status")}</option>
+                                <option value="Pending">{t("MyReports.Pending")}</option>
+                                <option value="In_Progress">{t("MyReports.In_Progress")}</option>
+                                <option value="Approved">{t("MyReports.Approved")}</option>
+                                <option value="Rejected">{t("MyReports.Rejected")}</option>
+                                <option value="Resolved">{t("MyReports.Resolved")}</option>
                             </select>
                         </div>
                         <div>
@@ -354,11 +356,11 @@ export default function MyReports() {
                                 onChange={(e) => handleFilterChange("priority", e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">All Priority</option>
-                                <option value="Critical">Critical</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
+                                <option value="">{t("MyReports.All_Priority")}</option>
+                                <option value="Critical">{t("MyReports.Critical")}</option>
+                                <option value="High">{t("MyReports.High")}</option>
+                                <option value="Medium">{t("MyReports.Medium")}</option>
+                                <option value="Low">{t("MyReports.Low")}</option>
                             </select>
                         </div>
                         <div>
@@ -367,11 +369,11 @@ export default function MyReports() {
                                 onChange={(e) => handleFilterChange("report_type", e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">All Types</option>
-                                <option value="Wrong Deleted">Wrong Deleted</option>
-                                <option value="Wrong Added">Wrong Added</option>
-                                <option value="New Voter F6">New Voter F6</option>
-                                <option value="Other">Other</option>
+                                <option value="">{t("MyReports.All_Types")}</option>
+                                <option value="Wrong Deleted">{t("MyReports.Wrong_Deleted")}</option>
+                                <option value="Wrong Added">{t("MyReports.Wrong_Added")}</option>
+                                <option value="New Voter F6">{t("MyReports.New_Voter_F6")}</option>
+                                <option value="Other">{t("MyReports.Other")}</option>
                             </select>
                         </div>
                     </div>
@@ -382,7 +384,7 @@ export default function MyReports() {
                     {reports.length === 0 ? (
                         <div className="p-8 text-center">
                             <svg
-                                className="mx-auto h-12 w-12 text-gray-400"
+                                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -394,30 +396,30 @@ export default function MyReports() {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">No reports found</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Get started by sending your first report.
+                            <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t("MyReports.No_reports_found")}</h3>
+                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                                {t("MyReports.Get_started")}
                             </p>
                             <div className="mt-6">
                                 <Link
                                     to={`${basePath}/send-report`}
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                                 >
-                                    Send Report
+                                    {t("MyReports.Send_Report")}
                                 </Link>
                             </div>
                         </div>
                     ) : (
                         reports.map((report) => (
-                            <div key={report.id} className="p-4 sm:p-6 hover:bg-gray-50 transition">
+                            <div key={report.id} className="p-4 sm:p-6 hover:bg-[var(--text-color)]/5 transition">
                                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                                            <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">
+                                            <h3 className="text-base sm:text-lg font-medium text-[var(--text-color)] truncate">
                                                 {report.voter_first_name} {report.voter_last_name || ''}
                                             </h3>
-                                            <span className="text-sm text-gray-500 truncate">
-                                                EPIC: {report.voter_id_epic_no}
+                                            <span className="text-sm text-[var(--text-secondary)] truncate">
+                                                {t("MyReports.EPIC")}: {report.voter_id_epic_no}
                                             </span>
                                         </div>
 
@@ -428,12 +430,12 @@ export default function MyReports() {
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(report.priority)}`}>
                                                 {report.priority}
                                             </span>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]">
                                                 {report.report_type}
                                             </span>
                                         </div>
 
-                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                        <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">
                                             {report.report_content}
                                         </p>
 
@@ -456,11 +458,11 @@ export default function MyReports() {
 
                                             return attachments.length > 0 && (
                                                 <div className="mb-3">
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                                                    <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-1">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                                         </svg>
-                                                        <span>{attachments.length} attachment{attachments.length > 1 ? 's' : ''}</span>
+                                                        <span>{attachments.length} {t("MyReports.Attachment")}{attachments.length > 1 ? 's' : ''}</span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-1">
                                                         {attachments.slice(0, 3).map((attachment, idx) => (
@@ -469,7 +471,7 @@ export default function MyReports() {
                                                             </span>
                                                         ))}
                                                         {attachments.length > 3 && (
-                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-50 text-gray-700">
+                                                            <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-[var(--bg-main)] text-[var(--text-secondary)]">
                                                                 +{attachments.length - 3} more
                                                             </span>
                                                         )}
@@ -478,13 +480,13 @@ export default function MyReports() {
                                             );
                                         })()}
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-[var(--text-secondary)]">
                                             <span>
-                                                Submitted {formatDistanceToNow(new Date(report.submitted_at))} ago
+                                                {t("MyReports.Submitted")} {formatDistanceToNow(new Date(report.submitted_at))} {t("MyReports.ago")}
                                             </span>
                                             <span className="hidden sm:inline">•</span>
                                             <span>
-                                                Current Level: {report.current_level_display_name}
+                                                {t("MyReports.Current_Level")}: {report.current_level_display_name}
                                             </span>
                                         </div>
                                     </div>
@@ -492,9 +494,9 @@ export default function MyReports() {
                                     <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 lg:shrink-0">
                                         <Link
                                             to={`${basePath}/report-details/${report.id}`}
-                                            className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition"
+                                            className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 transition"
                                         >
-                                            View Details
+                                            {t("MyReports.View_Details")}
                                         </Link>
                                         {canEditOrDelete(report) && (
                                             <>
@@ -503,14 +505,14 @@ export default function MyReports() {
                                                     className="inline-flex items-center justify-center gap-1 px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
                                                 >
                                                     <Edit className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Edit</span>
+                                                    <span className="hidden sm:inline">{t("MyReports.Edit")}</span>
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteClick(report)}
                                                     className="inline-flex items-center justify-center gap-1 px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                    <span className="hidden sm:inline">Delete</span>
+                                                    <span className="hidden sm:inline">{t("MyReports.Delete")}</span>
                                                 </button>
                                             </>
                                         )}
@@ -523,57 +525,57 @@ export default function MyReports() {
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
-                    <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="px-4 sm:px-6 py-4 border-t border-[var(--border-color)] bg-[var(--bg-main)]">
                         {/* Mobile Layout */}
                         <div className="block sm:hidden">
-                            <div className="text-center text-sm text-gray-700 mb-3">
-                                Page {pagination.page} of {pagination.totalPages}
+                            <div className="text-center text-sm text-[var(--text-secondary)] mb-3">
+                                {t("MyReports.Page")} {pagination.page} {t("MyReports.of")} {pagination.totalPages}
                             </div>
                             <div className="flex justify-center gap-2">
                                 <button
                                     onClick={() => setPage(page - 1)}
                                     disabled={page === 1}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--text-color)]/5 transition"
                                 >
-                                    Prev
+                                    {t("MyReports.Prev")}
                                 </button>
-                                <span className="px-3 py-1 text-gray-700 bg-gray-100 rounded text-sm min-w-[60px] text-center">
+                                <span className="px-3 py-1 text-[var(--text-secondary)] bg-gray-100 rounded text-sm min-w-[60px] text-center">
                                     {pagination.page}/{pagination.totalPages}
                                 </span>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === pagination.totalPages}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--text-color)]/5 transition"
                                 >
-                                    Next
+                                    {t("MyReports.Next")}
                                 </button>
                             </div>
-                            <div className="text-center text-xs text-gray-500 mt-2">
-                                {pagination.total} total results
+                            <div className="text-center text-xs text-[var(--text-secondary)] mt-2">
+                                {pagination.total} {t("MyReports.total_results")}
                             </div>
                         </div>
 
                         {/* Desktop Layout */}
                         <div className="hidden sm:flex items-center justify-between">
-                            <div className="text-sm text-gray-700">
-                                Showing {((pagination.page - 1) * pagination.limit) + 1} to{" "}
-                                {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-                                {pagination.total} results
+                            <div className="text-sm text-[var(--text-secondary)]">
+                                {t("MyReports.Showing")} {((pagination.page - 1) * pagination.limit) + 1} {t("MyReports.to")}{" "}
+                                {Math.min(pagination.page * pagination.limit, pagination.total)} {t("MyReports.of")}{" "}
+                                {pagination.total} {t("MyReports.results")}
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setPage(page - 1)}
                                     disabled={page === 1}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--text-color)]/5 transition"
                                 >
-                                    Previous
+                                    {t("MyReports.Previous")}
                                 </button>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === pagination.totalPages}
-                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                                    className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--text-color)]/5 transition"
                                 >
-                                    Next
+                                    {t("MyReports.Next")}
                                 </button>
                             </div>
                         </div>
@@ -583,14 +585,14 @@ export default function MyReports() {
 
             {/* Edit Modal */}
             {editingReport && (
-                <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 border-b border-gray-200">
+                <div className="fixed inset-0 bg-[var(--bg-card)]/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="px-6 py-4 border-b border-[var(--border-color)]">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-medium text-gray-900">Edit Report</h3>
+                                <h3 className="text-lg font-medium text-[var(--text-color)]">{t("MyReports.Edit_Report")}</h3>
                                 <button
                                     onClick={() => setEditingReport(null)}
-                                    className="text-gray-400 hover:text-gray-600"
+                                    className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
@@ -600,11 +602,11 @@ export default function MyReports() {
                         <div className="px-6 py-4 space-y-4">
                             {/* Voter Information Section */}
                             <div>
-                                <h4 className="text-md font-semibold text-gray-900 mb-3">Voter Information</h4>
+                                <h4 className="text-md font-semibold text-[var(--text-color)] mb-3">{t("MyReports.Voter_Information")}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Voter Name
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Voter_Name")}
                                         </label>
                                         <input
                                             type="text"
@@ -615,8 +617,8 @@ export default function MyReports() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Relative Name
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Relative_Name")}
                                         </label>
                                         <input
                                             type="text"
@@ -627,8 +629,8 @@ export default function MyReports() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Part Number
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Part_Number")}
                                         </label>
                                         <input
                                             type="text"
@@ -639,8 +641,8 @@ export default function MyReports() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Sl Part No
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Sl_Part_No")}
                                         </label>
                                         <input
                                             type="text"
@@ -651,8 +653,8 @@ export default function MyReports() {
                                         />
                                     </div>
                                     <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            EPIC Number
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.EPIC_Number")}
                                         </label>
                                         <input
                                             type="text"
@@ -667,45 +669,45 @@ export default function MyReports() {
 
                             {/* Report Details Section */}
                             <div>
-                                <h4 className="text-md font-semibold text-gray-900 mb-3">Report Details</h4>
+                                <h4 className="text-md font-semibold text-[var(--text-color)] mb-3">{t("MyReports.Report_Details")}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Priority
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Priority")}
                                         </label>
                                         <select
                                             value={editForm.priority}
                                             onChange={(e) => setEditForm(prev => ({ ...prev, priority: e.target.value as any }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="">Select Priority</option>
-                                            <option value="Low">Low</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="High">High</option>
-                                            <option value="Critical">Critical</option>
+                                            <option value="">{t("MyReports.Select_Priority")}</option>
+                                            <option value="Low">{t("MyReports.Low")}</option>
+                                            <option value="Medium">{t("MyReports.Medium")}</option>
+                                            <option value="High">{t("MyReports.High")}</option>
+                                            <option value="Critical">{t("MyReports.Critical")}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Report Type
+                                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                            {t("MyReports.Report_Type")}
                                         </label>
                                         <select
                                             value={editForm.report_type}
                                             onChange={(e) => setEditForm(prev => ({ ...prev, report_type: e.target.value as any }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="">Select Type</option>
-                                            <option value="Wrong Deleted">Wrong Deleted</option>
-                                            <option value="Wrong Added">Wrong Added</option>
-                                            <option value="New Voter F6">New Voter F6</option>
-                                            <option value="Other">Other</option>
+                                            <option value="">{t("MyReports.Select_Type")}</option>
+                                            <option value="Wrong Deleted">{t("MyReports.Wrong_Deleted")}</option>
+                                            <option value="Wrong Added">{t("MyReports.Wrong_Added")}</option>
+                                            <option value="New Voter F6">{t("MyReports.New_Voter_f6")}</option>
+                                            <option value="Other">{t("MyReports.Other")}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Report Content
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                        {t("MyReports.Report_Content")}
                                     </label>
                                     <textarea
                                         value={editForm.report_content}
@@ -719,22 +721,22 @@ export default function MyReports() {
 
                             {/* Attachments Section */}
                             <div>
-                                <h4 className="text-md font-semibold text-gray-900 mb-3">Attachments</h4>
+                                <h4 className="text-md font-semibold text-[var(--text-color)] mb-3">{t("MyReports.Attachments")}</h4>
 
                                 {/* Existing Attachments */}
                                 {existingAttachments.length > 0 && (
                                     <div className="mb-4">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-2">Current Attachments</h5>
+                                        <h5 className="text-sm font-medium text-[var(--text-secondary)] mb-2">{t("MyReports.Current_Attachments")}</h5>
                                         <div className="grid grid-cols-1 gap-2">
                                             {existingAttachments.map((attachment, index) => (
                                                 <div key={index} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                                         {getFileIcon({ type: attachment.mimetype })}
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-gray-900 truncate" title={attachment.originalName}>
+                                                            <p className="text-sm font-medium text-[var(--text-color)] truncate" title={attachment.originalName}>
                                                                 {attachment.originalName}
                                                             </p>
-                                                            <p className="text-xs text-gray-500">
+                                                            <p className="text-xs text-[var(--text-secondary)]">
                                                                 {formatFileSize(attachment.size)} • {attachment.mimetype.split('/')[1].toUpperCase()}
                                                             </p>
                                                         </div>
@@ -777,12 +779,12 @@ export default function MyReports() {
                                 {/* Add New Attachments */}
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
                                     <div className="text-center">
-                                        <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                        <Upload className="mx-auto h-8 w-8 text-[var(--text-secondary)] mb-2" />
                                         <div className="mb-2">
                                             <label htmlFor="edit-file-upload" className="cursor-pointer">
-                                                <span className="text-sm font-medium text-gray-900">Add new files</span>
-                                                <span className="block text-xs text-gray-500 mt-1">
-                                                    PNG, JPG, PDF, DOC, DOCX up to 10MB each
+                                                <span className="text-sm font-medium text-[var(--text-color)]">{t("MyReports.Add_new_files")}</span>
+                                                <span className="block text-xs text-[var(--text-secondary)] mt-1">
+                                                    {t("MyReports.Supported_files")}
                                                 </span>
                                             </label>
                                             <input
@@ -800,7 +802,7 @@ export default function MyReports() {
                                             onClick={() => document.getElementById('edit-file-upload')?.click()}
                                             className="text-sm font-medium text-blue-600 hover:text-blue-500"
                                         >
-                                            Browse files
+                                            {t("MyReports.Browse_files")}
                                         </button>
                                     </div>
                                 </div>
@@ -808,17 +810,17 @@ export default function MyReports() {
                                 {/* New Attachments List */}
                                 {editAttachments.length > 0 && (
                                     <div className="mt-3">
-                                        <h5 className="text-sm font-medium text-gray-700 mb-2">New Attachments ({editAttachments.length})</h5>
+                                        <h5 className="text-sm font-medium text-[var(--text-secondary)] mb-2">{t("MyReports.New_Attachments")} ({editAttachments.length})</h5>
                                         <div className="grid grid-cols-1 gap-2">
                                             {editAttachments.map((file, index) => (
                                                 <div key={index} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                                         {getFileIcon(file)}
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                                                            <p className="text-sm font-medium text-[var(--text-color)] truncate" title={file.name}>
                                                                 {file.name}
                                                             </p>
-                                                            <p className="text-xs text-gray-500">
+                                                            <p className="text-xs text-[var(--text-secondary)]">
                                                                 {formatFileSize(file.size)} • {file.type.split('/')[1].toUpperCase()}
                                                             </p>
                                                         </div>
@@ -851,12 +853,12 @@ export default function MyReports() {
                             </div>
                         </div>
 
-                        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
+                        <div className="px-4 sm:px-6 py-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setEditingReport(null)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 text-sm font-medium"
                             >
-                                Cancel
+                                {t("MyReports.Cancel")}
                             </button>
                             <button
                                 onClick={handleEditSubmit}
@@ -866,12 +868,12 @@ export default function MyReports() {
                                 {isUpdating ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        Updating...
+                                        {t("MyReports.Updating")}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="w-4 h-4" />
-                                        Update Report
+                                        {t("MyReports.Update_Report")}
                                     </>
                                 )}
                             </button>
@@ -882,28 +884,28 @@ export default function MyReports() {
 
             {/* Delete Confirmation Modal */}
             {deletingReport && (
-                <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">Delete Report</h3>
+                <div className="fixed inset-0 bg-[var(--bg-card)]/10 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="px-4 sm:px-6 py-4 border-b border-[var(--border-color)]">
+                            <h3 className="text-lg font-medium text-[var(--text-color)]">{t("MyReports.Delete_Report")}</h3>
                         </div>
 
                         <div className="px-4 sm:px-6 py-4">
-                            <p className="text-sm text-gray-600">
-                                Are you sure you want to delete this report for{" "}
+                            <p className="text-sm text-[var(--text-secondary)]">
+                                {t("MyReports.Delete_confirm")}{" "}
                                 <span className="font-medium">
                                     {deletingReport.voter_first_name} {deletingReport.voter_last_name}
                                 </span>
-                                ? This action cannot be undone.
+                                ? {t("MyReports.This_action_cannot_be_undone")}
                             </p>
                         </div>
 
-                        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
+                        <div className="px-4 sm:px-6 py-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setDeletingReport(null)}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 text-sm font-medium"
                             >
-                                Cancel
+                                {t("MyReports.Cancel")}
                             </button>
                             <button
                                 onClick={handleDeleteConfirm}
@@ -913,12 +915,12 @@ export default function MyReports() {
                                 {isDeleting ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        Deleting...
+                                        {t("MyReports.Deleting")}
                                     </>
                                 ) : (
                                     <>
                                         <Trash2 className="w-4 h-4" />
-                                        Delete Report
+                                        {t("MyReports.Delete_Report")}
                                     </>
                                 )}
                             </button>
@@ -930,19 +932,19 @@ export default function MyReports() {
             {/* File Preview Modal */}
             {previewFile && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)] bg-[var(--bg-main)]">
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900">
+                                <h3 className="text-lg font-semibold text-[var(--text-color)]">
                                     {'name' in previewFile ? previewFile.name : (previewFile as File).name}
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="text-sm text-[var(--text-secondary)] mt-1">
                                     {'type' in previewFile ? previewFile.type : (previewFile as File).type}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setPreviewFile(null)}
-                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-lg transition-colors"
                             >
                                 <X className="w-6 h-6" />
                             </button>
@@ -963,7 +965,7 @@ export default function MyReports() {
                             ) : (
                                 <div className="text-center py-12">
                                     <FileText className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-600 text-lg">Preview not available for this file type</p>
+                                    <p className="text-[var(--text-secondary)] text-lg">{t("MyReports.Preview_not_available")}</p>
                                 </div>
                             )}
                         </div>
@@ -973,3 +975,6 @@ export default function MyReports() {
         </div>
     );
 }
+
+
+

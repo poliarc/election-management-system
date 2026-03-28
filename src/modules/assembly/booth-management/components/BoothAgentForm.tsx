@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import type {
@@ -11,6 +11,7 @@ import type {
 } from "../types";
 import { boothAgentApi } from "../services/boothAgentApi";
 import { useAppSelector } from "../../../../store/hooks";
+import { useTranslation } from "react-i18next";
 
 interface BoothAgentFormProps {
   initialData?: Partial<BoothAgent & BoothAgentFormData>;
@@ -33,6 +34,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const {t} = useTranslation();
   const isEditMode = !!initialData?.agent_id;
   const [loading, setLoading] = useState(false);
   const [loadingAgentData, setLoadingAgentData] = useState(false);
@@ -131,33 +133,22 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     }
   }, [assemblyId]);
 
-  // Update available booths when polling center changes
+  // Update available booths from already-fetched polling centers data
   useEffect(() => {
     if (pollingCenterId) {
       const pcId = Number(pollingCenterId);
-      
-      // Fetch booths from BLA API
-      boothAgentApi
-        .getBoothsByPollingCenter(pcId)
-        .then((res) => {
-          setAvailableBooths(res.data);
+      const selectedPc = pollingCenters.find((pc) => pc.id === pcId);
+      const booths = selectedPc?.booths || [];
+      setAvailableBooths(booths);
 
-          // Only reset selectedBoothId if not in edit mode or if booth doesn't exist in new polling center
-          if (!isEditMode) {
-            setSelectedBoothId(null);
-          } else if (agentData?.booth_id) {
-            const boothExists = res.data.some(
-              (booth) => booth.id === agentData.booth_id
-            );
-            if (!boothExists) {
-              setSelectedBoothId(null);
-            }
-          }
-        })
-        .catch(() => {
-          setAvailableBooths([]);
-          toast.error("Failed to load booths");
-        });
+      if (!isEditMode) {
+        setSelectedBoothId(null);
+      } else if (agentData?.booth_id) {
+        const boothExists = booths.some((booth) => booth.id === agentData.booth_id);
+        if (!boothExists) {
+          setSelectedBoothId(null);
+        }
+      }
     } else {
       setAvailableBooths([]);
       if (!isEditMode) {
@@ -260,146 +251,54 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
   const onSubmit = async (data: Record<string, unknown>) => {
     setLoading(true);
-
-    // Show loading toast
     const loadingToast = toast.loading(
       isEditMode ? "Updating booth agent..." : "Creating booth agent..."
     );
 
     try {
-      // Check if we have any files to upload
-      const hasFiles = photoFile || aadharFile || voterIdFile;
+      // Always use multipart/form-data — API only accepts this format
+      const formData = new FormData();
 
-      if (hasFiles) {
-        // Use FormData for file uploads
-        const formData = new FormData();
+      if (assemblyId) formData.append("assembly_id", assemblyId.toString());
+      if (partyId) formData.append("party_id", partyId.toString());
 
-        // Add required fields - assembly_id and party_id
-        if (assemblyId) formData.append("assembly_id", assemblyId.toString());
-        if (partyId) formData.append("party_id", partyId.toString());
+      formData.append("category", data.category as string);
+      formData.append("role", data.role as string);
+      formData.append("name", data.name as string);
+      formData.append("phone", data.phone as string);
 
-        // Add text fields
-        formData.append("category", data.category as string);
-        formData.append("role", data.role as string);
-        formData.append("name", data.name as string);
-        formData.append("phone", data.phone as string);
+      if (data.father_name) formData.append("father_name", data.father_name as string);
+      if (data.alternate_no) formData.append("alternate_no", data.alternate_no as string);
+      if (data.email) formData.append("email", data.email as string);
+      if (data.address) formData.append("address", data.address as string);
+      if (data.android_phone) formData.append("android_phone", data.android_phone as string);
+      if (data.laptop) formData.append("laptop", data.laptop as string);
+      if (data.twoWheeler) formData.append("twoWheeler", data.twoWheeler as string);
+      if (data.fourWheeler) formData.append("fourWheeler", data.fourWheeler as string);
 
-        // Add optional string fields
-        if (data.father_name)
-          formData.append("father_name", data.father_name as string);
-        if (data.alternate_no)
-          formData.append("alternate_no", data.alternate_no as string);
-        if (data.email) formData.append("email", data.email as string);
-        if (data.address) formData.append("address", data.address as string);
-        if (data.password) formData.append("password", data.password as string);
-
-        // Add optional enum fields
-        if (data.android_phone)
-          formData.append("android_phone", data.android_phone as string);
-        if (data.laptop) formData.append("laptop", data.laptop as string);
-        if (data.twoWheeler)
-          formData.append("twoWheeler", data.twoWheeler as string);
-        if (data.fourWheeler)
-          formData.append("fourWheeler", data.fourWheeler as string);
-
-        // Add polling_center_id if valid - ensure it's a clean integer string
-        if (
-          data.polling_center_id &&
-          data.polling_center_id !== "" &&
-          data.polling_center_id !== "0"
-        ) {
-          const pcId = parseInt(String(data.polling_center_id), 10);
-          if (!isNaN(pcId) && pcId > 0) {
-            formData.append("polling_center_id", pcId.toString());
-          }
-        }
-
-        // Add booth_id if valid - ensure it's a clean integer string
-        if (selectedBoothId !== null && selectedBoothId > 0) {
-          const boothId = parseInt(String(selectedBoothId), 10);
-          if (!isNaN(boothId) && boothId > 0) {
-            formData.append("booth_id", boothId.toString());
-          }
-        }
-
-        // Add files
-        if (photoFile) {
-          formData.append("photo", photoFile);
-        }
-        if (aadharFile) {
-          formData.append("aadhar_card", aadharFile);
-        }
-        if (voterIdFile) {
-          formData.append("voter_id_file", voterIdFile);
-        }
-
-        if (isEditMode && agentData?.agent_id) {
-          await boothAgentApi.updateAgentWithFiles(
-            agentData.agent_id,
-            formData
-          );
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent updated successfully!");
-        } else {
-          await boothAgentApi.createAgentWithFiles(formData);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent created successfully!");
-        }
-      } else {
-        // No files - use JSON payload
-        const payload: Partial<BoothAgentFormData> = {
-          category: data.category as BoothAgentCategory,
-          role: data.role as BoothAgentRole,
-          name: data.name as string,
-          phone: data.phone as string,
-        };
-
-        // Add required fields - assembly_id and party_id
-        if (assemblyId) payload.assembly_id = assemblyId;
-        if (partyId) payload.party_id = partyId;
-
-        // Add optional string fields
-        if (data.father_name) payload.father_name = data.father_name as string;
-        if (data.alternate_no)
-          payload.alternate_no = data.alternate_no as string;
-        if (data.email) payload.email = data.email as string;
-        if (data.address) payload.address = data.address as string;
-        if (data.password) payload.password = data.password as string;
-
-        // Add optional enum fields
-        if (data.android_phone)
-          payload.android_phone = data.android_phone as "Yes" | "No";
-        if (data.laptop) payload.laptop = data.laptop as "Yes" | "No";
-        if (data.twoWheeler)
-          payload.twoWheeler = data.twoWheeler as "Yes" | "No";
-        if (data.fourWheeler)
-          payload.fourWheeler = data.fourWheeler as "Yes" | "No";
-
-        // Only add polling_center_id if it's a valid number
-        if (data.polling_center_id && data.polling_center_id !== "") {
-          const pcId = Number(data.polling_center_id);
-          if (!isNaN(pcId) && pcId > 0) {
-            payload.polling_center_id = pcId;
-          }
-        }
-
-        // Only add booth_id if it's a valid number
-        if (selectedBoothId !== null && selectedBoothId > 0) {
-          payload.booth_id = selectedBoothId;
-        }
-
-        if (isEditMode && agentData?.agent_id) {
-          await boothAgentApi.updateAgent(agentData.agent_id, payload);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent updated successfully!");
-        } else {
-          await boothAgentApi.createAgent(payload as BoothAgentFormData);
-          toast.dismiss(loadingToast);
-          toast.success("Booth agent created successfully!");
-        }
+      if (data.polling_center_id && data.polling_center_id !== "" && data.polling_center_id !== "0") {
+        const pcId = parseInt(String(data.polling_center_id), 10);
+        if (!isNaN(pcId) && pcId > 0) formData.append("polling_center_id", pcId.toString());
       }
 
-      // Reset file states on success
+      if (selectedBoothId !== null && selectedBoothId > 0) {
+        formData.append("booth_id", selectedBoothId.toString());
+      }
+
+      if (photoFile) formData.append("photo", photoFile);
+      if (aadharFile) formData.append("aadhar_card", aadharFile);
+      if (voterIdFile) formData.append("voter_id_file", voterIdFile);
+
+      if (isEditMode && agentData?.agent_id) {
+        await boothAgentApi.updateAgentWithFiles(agentData.agent_id, formData);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent updated successfully!");
+      } else {
+        await boothAgentApi.createAgentWithFiles(formData);
+        toast.dismiss(loadingToast);
+        toast.success("Booth agent created successfully!");
+      }
+
       resetFileStates();
       onSuccess();
     } catch (error: unknown) {
@@ -536,7 +435,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading agent details...</p>
+          <p className="text-[var(--text-secondary)]">{t("BoothAgentForm.Loading_agent_details")}</p>
         </div>
       </div>
     );
@@ -547,16 +446,16 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium mb-1">Category *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Category")}</label>
           <select
             {...register("category", { required: "Category is required" })}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="">Select Category</option>
-            <option value="Booth Inside Team">Booth Inside Team</option>
-            <option value="Booth Outside Team">Booth Outside Team</option>
+            <option value="">{t("BoothAgentForm.Select_Category")}</option>
+            <option value="Booth Inside Team">{t("BoothAgentForm.Booth_Inside_Team")}</option>
+            <option value="Booth Outside Team">{t("BoothAgentForm.Booth_Outside_Team")}</option>
             <option value="Polling Center Support Team">
-              Polling Center Support Team
+              {t("BoothAgentForm.Desc")}
             </option>
           </select>
           {errors.category && (
@@ -568,13 +467,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Role */}
         <div>
-          <label className="block text-sm font-medium mb-1">Role *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Role")}</label>
           <select
             {...register("role", { required: "Role is required" })}
             disabled={!category}
             className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100"
           >
-            <option value="">Select Role</option>
+            <option value="">{t("BoothAgentForm.Select_Role")}</option>
             {category &&
               rolesByCategory[category as BoothAgentCategory]?.map((role) => (
                 <option key={role} value={role}>
@@ -592,13 +491,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {/* Polling Center */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Polling Center (Optional)
+            {t("BoothAgentForm.Polling_Center_Optional")}
           </label>
           <select
             {...register("polling_center_id")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="">Select Polling Center</option>
+            <option value="">{t("BoothAgentForm.Select_Polling_Center")}</option>
             {pollingCenters.map((pc) => (
               <option key={pc.id} value={String(pc.id)}>
                 {pc.displayName}
@@ -611,7 +510,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {category !== "Polling Center Support Team" && (
           <div>
             <label className="block text-sm font-medium mb-1">
-              Booth No (Optional)
+              {t("BoothAgentForm.Booth_No_Optional")}
             </label>
             <select
               value={selectedBoothId || ""}
@@ -620,7 +519,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 setSelectedBoothId(value ? Number(value) : null);
               }}
               disabled={!pollingCenterId || availableBooths.length === 0}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
             >
               <option value="">
                 {pollingCenterId
@@ -640,7 +539,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Name *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Name")}</label>
           <input
             {...register("name", { required: "Name is required" })}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -655,7 +554,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Father Name */}
         <div>
-          <label className="block text-sm font-medium mb-1">Father Name</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Father_Name")}</label>
           <input
             {...register("father_name")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -665,7 +564,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium mb-1">Phone *</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Phone")}</label>
           <input
             {...register("phone", {
               required: "Phone is required",
@@ -688,7 +587,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
         {/* Alternate Phone */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Alternate Phone
+            {t("BoothAgentForm.Alternate_Phone")}
           </label>
           <input
             {...register("alternate_no", {
@@ -710,7 +609,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Email")}</label>
           <input
             {...register("email", {
               pattern: {
@@ -729,10 +628,10 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
           )}
         </div>
 
-        {/* Password */}
+        {/* Password - commented out, not needed
         <div>
           <label className="block text-sm font-medium mb-1">
-            Password {!isEditMode && "*"}
+            {t("BoothAgentForm.Password")} {!isEditMode && "*"}
           </label>
           <input
             {...register("password", {
@@ -742,48 +641,37 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 message: "Password must be at least 8 characters",
               },
               validate: (value) => {
-                if (!value && isEditMode) return true; // Skip validation in edit mode if empty
+                if (!value && isEditMode) return true;
                 if (!value) return "Password is required";
-
                 const hasUpperCase = /[A-Z]/.test(value);
                 const hasLowerCase = /[a-z]/.test(value);
                 const hasNumber = /[0-9]/.test(value);
                 const hasSpecialChar = /[@$_\-*#]/.test(value);
-
-                if (!hasUpperCase)
-                  return "Password must contain at least one uppercase letter";
-                if (!hasLowerCase)
-                  return "Password must contain at least one lowercase letter";
-                if (!hasNumber)
-                  return "Password must contain at least one number";
-                if (!hasSpecialChar)
-                  return "Password must contain at least one special character (@$_-*#)";
-
+                if (!hasUpperCase) return "Password must contain at least one uppercase letter";
+                if (!hasLowerCase) return "Password must contain at least one lowercase letter";
+                if (!hasNumber) return "Password must contain at least one number";
+                if (!hasSpecialChar) return "Password must contain at least one special character (@$_-*#)";
                 return true;
               },
             })}
             type="password"
             className="w-full border border-gray-300 rounded-md px-3 py-2"
-            placeholder={
-              isEditMode ? "Leave blank to keep current" : "Enter password"
-            }
+            placeholder={isEditMode ? "Leave blank to keep current" : "Enter password"}
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
-              {getErrorMessage(errors.password)}
-            </p>
+            <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors.password)}</p>
           )}
           {!isEditMode && (
             <p className="text-xs text-gray-500 mt-1">
-              Must contain uppercase, lowercase, number, and special character
-              (@$_-*#)
+              Must contain uppercase, lowercase, number, and special character (@$_-*#)
             </p>
           )}
         </div>
+        */}
 
         {/* Address */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Address</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Address")}</label>
           <textarea
             {...register("address")}
             rows={2}
@@ -794,7 +682,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Photo</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Photo")}</label>
           <input
             type="file"
             accept="image/*"
@@ -825,22 +713,22 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {photoFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {photoFile.name}
+                    {t("BoothAgentForm.New")} {photoFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current photo</p>
+                  <p className="text-xs text-blue-600">Current photo {t("BoothAgentForm.Current_photo")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Aadhar Card Upload */}
         <div>
-          <label className="block text-sm font-medium mb-1">Aadhar Card</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Aadhar_Card")}</label>
           <input
             type="file"
             accept="image/*,.pdf"
@@ -853,7 +741,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 {aadharFile?.type === "application/pdf" ||
                 aadharPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
-                    <span className="text-xs text-gray-600">PDF</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{t("BoothAgentForm.PDF")}</span>
                   </div>
                 ) : (
                   <img
@@ -877,23 +765,23 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {aadharFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {aadharFile.name}
+                    {t("BoothAgentForm.New")} {aadharFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current aadhar card</p>
+                  <p className="text-xs text-blue-600">{t("BoothAgentForm.Current_aadhar_card")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF, PDF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Voter ID Card Upload */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Voter ID Card
+            {t("BoothAgentForm.Voter_ID_Card")}
           </label>
           <input
             type="file"
@@ -907,7 +795,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
                 {voterIdFile?.type === "application/pdf" ||
                 voterIdPreview.includes(".pdf") ? (
                   <div className="w-20 h-20 bg-gray-100 border rounded flex items-center justify-center">
-                    <span className="text-xs text-gray-600">PDF</span>
+                    <span className="text-xs text-[var(--text-secondary)]">{t("BoothAgentForm.PDF")}</span>
                   </div>
                 ) : (
                   <img
@@ -931,36 +819,36 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
               <div className="mt-1">
                 {voterIdFile ? (
                   <p className="text-xs text-green-600 truncate max-w-32">
-                    New: {voterIdFile.name}
+                    {t("BoothAgentForm.New")} {voterIdFile.name}
                   </p>
                 ) : (
-                  <p className="text-xs text-blue-600">Current voter ID card</p>
+                  <p className="text-xs text-blue-600">{t("BoothAgentForm.Current_voter_ID_card")}</p>
                 )}
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Max 5MB. Supported: JPG, PNG, GIF, PDF
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {t("BoothAgentForm.Desc2")}
           </p>
         </div>
 
         {/* Android Phone */}
         <div>
           <label className="block text-sm font-medium mb-1">
-            Android Phone
+            {t("BoothAgentForm.Android_Phone")}
           </label>
           <select
             {...register("android_phone")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
+            <option value="No">{t("BoothAgentForm.No")}</option>
+            <option value="Yes">{t("BoothAgentForm.Yes")}</option>
           </select>
         </div>
 
         {/* Laptop */}
         <div>
-          <label className="block text-sm font-medium mb-1">Laptop</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Laptop")}</label>
           <select
             {...register("laptop")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -972,7 +860,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Two Wheeler */}
         <div>
-          <label className="block text-sm font-medium mb-1">Two Wheeler</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Two_Wheeler")}</label>
           <select
             {...register("twoWheeler")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
@@ -984,13 +872,13 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
 
         {/* Four Wheeler */}
         <div>
-          <label className="block text-sm font-medium mb-1">Four Wheeler</label>
+          <label className="block text-sm font-medium mb-1">{t("BoothAgentForm.Four_Wheeler")}</label>
           <select
             {...register("fourWheeler")}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
+            <option value="No">{t("BoothAgentForm.No")}</option>
+            <option value="Yes">{t("BoothAgentForm.Yes")}</option>
           </select>
         </div>
       </div>
@@ -1006,7 +894,7 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
             });
             onCancel();
           }}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-[var(--bg-color)]"
         >
           Cancel
         </button>
@@ -1021,3 +909,5 @@ export const BoothAgentForm: React.FC<BoothAgentFormProps> = ({
     </form>
   );
 };
+
+

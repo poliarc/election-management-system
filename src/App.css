@@ -144,6 +144,20 @@ div#goog-gt-,
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
+.dark .goog-te-combo {
+  background-color: #111827 !important;
+  color: #f3f4f6 !important;
+}
+
+.dark .goog-te-combo:hover {
+  background-color: #1f2937 !important;
+}
+
+.dark .goog-te-combo:focus {
+  background-color: #1f2937 !important;
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.3) !important;
+}
+
 /* Fix body top margin added by Google Translate */
 body {
   top: 0 !important;
@@ -188,4 +202,65 @@ body {
 .VIpgJd-ZVi9od-SmfZ,
 .VIpgJd-ZVi9od-xl07Ob-OEVmcd {
   display: none !important;
+}
+
+
+/* @import "tailwindcss"; */
+
+/* 1. Define the Variable Mappings for Tailwind */
+/* @theme {
+    --color-brand-primary: var(--primary, #646cff);
+    --color-brand-bg: var(--bg, #ffffff);
+    --color-brand-text: var(--text, #213547);
+    --color-brand-accent: var(--accent, #646cffaa);
+  }
+*/
+
+/* 2. Theme Definitions */
+:root, :root[data-theme="modern-blue"] {
+  --primary: #3b82f6;
+  --bg: #ffffff;
+  --text: #1e293b;
+  --accent: rgba(59, 130, 246, 0.5);
+}
+
+:root[data-theme="forest-dark"] {
+  --primary: #22c55e;
+  --bg: #064e3b;
+  --text: #f0fdf4;
+  --accent: rgba(34, 197, 94, 0.4);
+}
+
+:root[data-theme="sunset-rose"] {
+  --primary: #f43f5e;
+  --bg: #fff1f2;
+  --text: #881337;
+  --accent: rgba(244, 63, 94, 0.4);
+}
+
+:root[data-theme="midnight-gold"] {
+  --primary: #fbbf24;
+  --bg: #111827;
+  --text: #f3f4f6;
+  --accent: rgba(251, 191, 36, 0.4);
+}
+
+:root[data-theme="cyberpunk"] {
+  --primary: #d946ef;
+  --bg: #0f172a;
+  --text: #22d3ee;
+  --accent: rgba(217, 70, 239, 0.6);
+}
+
+/* 3. Apply variables to your existing root */
+#root {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
+  min-height: 100vh;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Update your logo hover to use the dynamic accent */
+.logo:hover {
+  filter: drop-shadow(0 0 2em var(--brand-accent));
 }

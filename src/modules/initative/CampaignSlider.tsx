@@ -75,9 +75,9 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
 
   if (notifications.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
+      <div className="bg-[var(--bg-color)] rounded-2xl shadow-lg border border-gray-100 p-8 text-center">
         <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500">No events to display</p>
+        <p className="text-[var(--text-secondary)]">No events to display</p>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
   })();
 
   return (
-    <div className="relative bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="relative bg-[var(--bg-color)] rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
       {/* Main Slider */}
       <div className="relative h-80 sm:h-96 md:h-[28rem] overflow-hidden">
         <div
@@ -124,7 +124,7 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
                   {/* Date Range */}
                   <div className="flex items-center gap-2 mb-3 sm:mb-4">
                     <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="text-sm sm:text-base bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                    <span className="text-sm sm:text-base bg-[var(--bg-color)]/20 backdrop-blur-sm px-3 py-1 rounded-full">
                       {dateRange.from} to {dateRange.to}
                     </span>
                   </div>
@@ -173,13 +173,13 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-2 sm:p-3 transition-all duration-200"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-[var(--bg-color)]/20 backdrop-blur-sm hover:bg-[var(--bg-color)]/30 rounded-full p-2 sm:p-3 transition-all duration-200"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full p-2 sm:p-3 transition-all duration-200"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-[var(--bg-color)]/20 backdrop-blur-sm hover:bg-[var(--bg-color)]/30 rounded-full p-2 sm:p-3 transition-all duration-200"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
@@ -195,8 +195,8 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
               key={index}
               onClick={() => goToSlide(index)}
               className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${index === currentIndex
-                ? "bg-white"
-                : "bg-white/50 hover:bg-white/75"
+                ? "bg-[var(--bg-color)]"
+                : "bg-[var(--bg-color)]/50 hover:bg-[var(--bg-color)]/75"
                 }`}
             />
           ))}
@@ -227,7 +227,7 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
             </button>
           ))}
           {notifications.length > 4 && (
-            <div className="w-16 h-12 rounded-lg bg-white/20 backdrop-blur-sm border-2 border-white/50 flex items-center justify-center">
+            <div className="w-16 h-12 rounded-lg bg-[var(--bg-color)]/20 backdrop-blur-sm border-2 border-white/50 flex items-center justify-center">
               <span className="text-white text-xs font-semibold">
                 +{notifications.length - 4}
               </span>
@@ -238,3 +238,5 @@ export const CampaignSlider: React.FC<CampaignSliderProps> = ({
     </div>
   );
 };
+
+

@@ -267,8 +267,8 @@ export function ModuleAccessPage() {
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Module Access Management</h1>
-                <p className="text-gray-600">Manage module access for different parties and levels</p>
+                <h1 className="text-2xl font-bold text-[var(--text-color)]">Module Access Management</h1>
+                <p className="text-[var(--text-secondary)]">Manage module access for different parties and levels</p>
             </div>
 
             {/* Filters and Actions */}
@@ -314,69 +314,69 @@ export function ModuleAccessPage() {
             </div>
 
             {/* Module Access Table */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-[var(--bg-card)] shadow rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--bg-main)]">
                             <tr>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Module
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     State
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Party
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Level
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Display
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Toggle Status
                                 </th>
-                                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-3 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={7} className="px-6 py-4 text-center text-[var(--text-secondary)]">
                                         Loading...
                                     </td>
                                 </tr>
                             ) : moduleAccess.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={7} className="px-6 py-4 text-center text-[var(--text-secondary)]">
                                         No module access found
                                     </td>
                                 </tr>
                             ) : (
                                 moduleAccess.map((access) => (
                                     <tr key={access.id}>
-                                        <td className="px-3 py-4 text-sm font-medium text-gray-900">
+                                        <td className="px-3 py-4 text-sm font-medium text-[var(--text-color)]">
                                             <div className="truncate max-w-[120px]" title={access.moduleDisplayName || access.moduleName}>
                                                 {access.moduleDisplayName || access.moduleName}
                                             </div>
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-500">
+                                        <td className="px-3 py-4 text-sm text-[var(--text-secondary)]">
                                             <div className="truncate max-w-[100px]" title={access.state_name}>
                                                 {access.state_name}
                                             </div>
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-500">
+                                        <td className="px-3 py-4 text-sm text-[var(--text-secondary)]">
                                             <div className="truncate max-w-[100px]" title={access.partyName}>
                                                 {access.partyName}
                                             </div>
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-500">
+                                        <td className="px-3 py-4 text-sm text-[var(--text-secondary)]">
                                             <div className="truncate max-w-[100px]" title={access.display_level_name || access.level_name}>
                                                 {access.display_level_name || access.level_name}
                                             </div>
@@ -428,7 +428,7 @@ export function ModuleAccessPage() {
             {/* Pagination */}
             {pagination.totalPages > 1 && (
                 <div className="mt-6 flex justify-between items-center">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                         Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
                         {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                         {pagination.total} results
@@ -458,13 +458,13 @@ export function ModuleAccessPage() {
             {/* Create/Edit Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div className="bg-[var(--bg-card)] rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <h2 className="text-lg font-semibold mb-4">
                             {editingAccess ? 'Edit Module Access' : 'Create Module Access'}
                         </h2>
                         <form onSubmit={editingAccess ? handleUpdateAccess : handleCreateAccess}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Module
                                 </label>
                                 <select
@@ -483,7 +483,7 @@ export function ModuleAccessPage() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     State
                                 </label>
                                 <select
@@ -502,7 +502,7 @@ export function ModuleAccessPage() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Party
                                 </label>
                                 <div className="relative">
@@ -533,7 +533,7 @@ export function ModuleAccessPage() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Party Level
                                 </label>
                                 <select
@@ -564,7 +564,7 @@ export function ModuleAccessPage() {
                                         onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                                         className="mr-2"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">Active</span>
+                                    <span className="text-sm font-medium text-[var(--text-secondary)]">Active</span>
                                 </label>
                             </div>
 
@@ -572,7 +572,7 @@ export function ModuleAccessPage() {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                                    className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5"
                                 >
                                     Cancel
                                 </button>
@@ -605,3 +605,4 @@ export function ModuleAccessPage() {
         </div>
     );
 }
+

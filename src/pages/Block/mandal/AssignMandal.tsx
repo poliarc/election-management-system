@@ -104,12 +104,12 @@ export default function AssignMandal() {
 
     if (!mandalId || !mandalName) {
         return (
-            <div className="p-6 bg-gray-50 min-h-screen">
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <div className="p-6 bg-[var(--bg-main)] min-h-screen">
+                <div className="max-w-4xl mx-auto bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <p className="text-red-600">Invalid mandal information</p>
                     <button
                         onClick={() => navigate("/block/mandal")}
-                        className="mt-4 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                        className="mt-4 bg-gray-200 text-[var(--text-secondary)] py-2 px-4 rounded-lg hover:bg-gray-300"
                     >
                         Back to Mandal List
                     </button>
@@ -121,12 +121,12 @@ export default function AssignMandal() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
             <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-[var(--text-color)]">
                             Assign Users to Mandal
                         </h1>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-[var(--text-secondary)] mt-2">
                             Mandal: <span className="font-medium">{mandalName}</span>
                         </p>
                     </div>
@@ -144,17 +144,17 @@ export default function AssignMandal() {
                     {loadingUsers ? (
                         <div className="text-center py-8">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="mt-2 text-gray-600">Loading users...</p>
+                            <p className="mt-2 text-[var(--text-secondary)]">Loading users...</p>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-4 text-sm text-gray-600">
+                            <div className="mb-4 text-sm text-[var(--text-secondary)]">
                                 {selectedUsers.length} user(s) selected
                             </div>
 
-                            <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                            <div className="border border-[var(--border-color)] rounded-lg max-h-96 overflow-y-auto">
                                 {filteredUsers.length === 0 ? (
-                                    <div className="p-4 text-center text-gray-500">
+                                    <div className="p-4 text-center text-[var(--text-secondary)]">
                                         No users found
                                     </div>
                                 ) : (
@@ -179,7 +179,7 @@ export default function AssignMandal() {
                                                             <div className="flex items-center justify-between">
                                                                 <div>
                                                                     <div className="flex items-center gap-2">
-                                                                        <p className="font-medium text-gray-900">
+                                                                        <p className="font-medium text-[var(--text-color)]">
                                                                             {user.first_name} {user.last_name}
                                                                         </p>
                                                                         {isAlreadyAssigned && (
@@ -188,10 +188,10 @@ export default function AssignMandal() {
                                                                             </span>
                                                                         )}
                                                                     </div>
-                                                                    <p className="text-sm text-gray-600">
+                                                                    <p className="text-sm text-[var(--text-secondary)]">
                                                                         {user.email}
                                                                     </p>
-                                                                    <p className="text-xs text-gray-500">
+                                                                    <p className="text-xs text-[var(--text-secondary)]">
                                                                         {user.role} | {user.contact_no}
                                                                     </p>
                                                                 </div>
@@ -215,7 +215,7 @@ export default function AssignMandal() {
                                 </button>
                                 <button
                                     onClick={() => navigate("/block/mandal")}
-                                    className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                                    className="flex-1 bg-gray-200 text-[var(--text-secondary)] py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                                 >
                                     Cancel
                                 </button>
@@ -227,3 +227,4 @@ export default function AssignMandal() {
         </div>
     );
 }
+

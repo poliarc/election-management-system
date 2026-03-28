@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const DeadAliveListPage: React.FC = () => {
+    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -17,17 +19,16 @@ const DeadAliveListPage: React.FC = () => {
     const [expiredAliveStatus, setExpiredAliveStatus] = useState<string>("");
     const [partFrom, setPartFrom] = useState<number | undefined>();
     const [partTo, setPartTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
@@ -44,7 +45,6 @@ const DeadAliveListPage: React.FC = () => {
         setExpiredAliveStatus("");
         setPartFrom(undefined);
         setPartTo(undefined);
-        setPage(1);
         setCurrentPage(1);
     };
 
@@ -82,31 +82,31 @@ const DeadAliveListPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Dead/Alive List
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
+                        {t("DeadAliveListPage.Title")}
                     </h1>
-                    <p className="text-gray-600 mt-1">
-                        View voters filtered by alive/deceased status
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("DeadAliveListPage.Desc")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("DeadAliveListPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("DeadAliveListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -119,11 +119,11 @@ const DeadAliveListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Status
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("DeadAliveListPage.Status")}
                                 </label>
                                 <select
                                     value={expiredAliveStatus}
@@ -133,14 +133,14 @@ const DeadAliveListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">All Voters</option>
-                                    <option value="Expired">Expired</option>
-                                    <option value="Alive">Alive</option>
+                                    <option value="">{t("DeadAliveListPage.All_Voters")}</option>
+                                    <option value="Expired">{t("DeadAliveListPage.Expired")}</option>
+                                    <option value="Alive">{t("DeadAliveListPage.Alive")}</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("DeadAliveListPage.Part_No_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -153,8 +153,8 @@ const DeadAliveListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("DeadAliveListPage.Part_No_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -167,37 +167,37 @@ const DeadAliveListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("DeadAliveListPage.Reset")}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
-                            <div className="text-gray-600">Loading...</div>
+                            <div className="text-[var(--text-secondary)]">{t("DeadAliveListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className={`mb-1 text-sm text-gray-600 p-3 rounded-lg border ${expiredAliveStatus === "Expired"
+                            <div className={`mb-1 text-sm text-[var(--text-secondary)] p-3 rounded-lg border ${expiredAliveStatus === "Expired"
                                 ? "bg-red-50 border-red-200"
                                 : expiredAliveStatus === "Alive"
                                     ? "bg-green-50 border-green-200"
-                                    : "bg-gray-50 border-gray-200"
+                                    : "bg-[var(--bg-main)] border-[var(--border-color)]"
                                 }`}>
-                                Found {voters.length} voters
+                                {t("DeadAliveListPage.Found")} {voters.length} {t("DeadAliveListPage.voters")}
                                 {expiredAliveStatus && (
-                                    <span> • Status: {expiredAliveStatus}</span>
+                                    <span> • {t("DeadAliveListPage.Status:")} {expiredAliveStatus}</span>
                                 )}
                                 {(partFrom || partTo) && (
-                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • {t("DeadAliveListPage.Part_No:")} {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
@@ -207,9 +207,9 @@ const DeadAliveListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("DeadAliveListPage.Showing_page")} {currentPage} {t("DeadAliveListPage.of")} {totalPages} • {totalVoters} {t("DeadAliveListPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -217,14 +217,14 @@ const DeadAliveListPage: React.FC = () => {
                                             disabled={currentPage === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Previous
+                                            {t("DeadAliveListPage.Previous")}
                                         </button>
                                         <button
                                             onClick={() => setCurrentPage(currentPage + 1)}
                                             disabled={currentPage === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Next
+                                            {t("DeadAliveListPage.Next")}
                                         </button>
                                     </div>
                                 </div>
@@ -238,3 +238,5 @@ const DeadAliveListPage: React.FC = () => {
 };
 
 export default DeadAliveListPage;
+
+

@@ -109,28 +109,28 @@ export const ElectionSetup: React.FC = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
                         <Vote className="w-6 h-6 text-indigo-600" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Election Setup</h1>
+                    <h1 className="text-3xl font-bold text-[var(--text-color)]">Election Setup</h1>
                 </div>
-                <p className="text-gray-600">
+                <p className="text-[var(--text-secondary)]">
                     Configure election details including state, district, assembly, party, and candidate information
                 </p>
             </div>
 
             {/* Form Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 max-w-4xl">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* State Name */}
                     <div>
                         <label
                             htmlFor="state_name"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             State Name <span className="text-red-500">*</span>
                         </label>
@@ -149,7 +149,7 @@ export const ElectionSetup: React.FC = () => {
                     <div>
                         <label
                             htmlFor="district_name"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             District Name <span className="text-red-500">*</span>
                         </label>
@@ -168,7 +168,7 @@ export const ElectionSetup: React.FC = () => {
                     <div>
                         <label
                             htmlFor="assembly_name"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             Assembly Name <span className="text-red-500">*</span>
                         </label>
@@ -187,7 +187,7 @@ export const ElectionSetup: React.FC = () => {
                     <div>
                         <label
                             htmlFor="party_id"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             Party ID <span className="text-red-500">*</span>
                         </label>
@@ -206,7 +206,7 @@ export const ElectionSetup: React.FC = () => {
                     <div>
                         <label
                             htmlFor="candidate_name"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             Candidate Name <span className="text-red-500">*</span>
                         </label>
@@ -225,7 +225,7 @@ export const ElectionSetup: React.FC = () => {
                     <div>
                         <label
                             htmlFor="election_level"
-                            className="block text-sm font-medium text-gray-700 mb-2"
+                            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
                         >
                             Election Level <span className="text-red-500">*</span>
                         </label>
@@ -241,7 +241,7 @@ export const ElectionSetup: React.FC = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-4 pt-4 border-t border-[var(--border-color)]">
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -264,7 +264,7 @@ export const ElectionSetup: React.FC = () => {
                             type="button"
                             onClick={handleReset}
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                         >
                             <RefreshCw className="w-4 h-4" />
                             <span>Reset Form</span>
@@ -292,3 +292,5 @@ export const ElectionSetup: React.FC = () => {
         </div>
     );
 };
+
+

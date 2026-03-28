@@ -261,13 +261,13 @@ export const PartyMasterPage: React.FC = () => {
     };
 
     return (
-      <div className="bg-white p-1 rounded-lg shadow-md">
+      <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow-md">
         <form
           onSubmit={onSubmit}
           className="grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
           <div className="col-span-1 sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
               Party Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -280,13 +280,13 @@ export const PartyMasterPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
               Party Type <span className="text-red-500">*</span>
             </label>
             <select
               value={partyTypeId}
               onChange={(e) => setPartyTypeId(Number(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md bg-[var(--bg-card)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={submitting}
             >
               <option value={0}>Select party type</option>
@@ -300,7 +300,7 @@ export const PartyMasterPage: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
               Party Code <span className="text-red-500">*</span>
             </label>
             <input
@@ -312,7 +312,7 @@ export const PartyMasterPage: React.FC = () => {
               placeholder="Enter party code (e.g., BJP, INC)"
               disabled={submitting}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
               Maximum 10 characters, uppercase letters and numbers only
             </p>
           </div>
@@ -323,7 +323,7 @@ export const PartyMasterPage: React.FC = () => {
                 setShowForm(false);
                 setEditing(null);
               }}
-              className="px-5 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              className="px-5 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5"
               disabled={submitting}
             >
               Cancel
@@ -349,7 +349,7 @@ export const PartyMasterPage: React.FC = () => {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <div className="flex items-center gap-2 text-indigo-700 font-semibold">
               <Users className="w-5 h-5" /> Select Admin for{" "}
@@ -362,16 +362,16 @@ export const PartyMasterPage: React.FC = () => {
                 setUserSearch("");
                 dispatch(clearPartyUsers());
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Search Bar */}
-          <div className="px-5 py-3 border-b bg-gray-50">
+          <div className="px-5 py-3 border-b bg-[var(--bg-main)]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] w-4 h-4" />
               <input
                 type="text"
                 value={userSearch}
@@ -380,19 +380,19 @@ export const PartyMasterPage: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-xs text-[var(--text-secondary)]">
               Showing {partyUsers.filter((user) => user.isSuperAdmin !== 1).length} of {usersPagination.total} users
             </div>
           </div>
 
           <div className="p-5 overflow-y-auto flex-1">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-[var(--text-secondary)]">
                 Loading users...
               </div>
             ) : partyUsers.filter((user) => user.isSuperAdmin !== 1).length ===
               0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-[var(--text-secondary)]">
                 {userSearch ? "No users found matching your search" : "No users found for this party"}
               </div>
             ) : (
@@ -404,7 +404,7 @@ export const PartyMasterPage: React.FC = () => {
                       key={user.user_id}
                       className={`p-4 border rounded-lg hover:bg-blue-50 cursor-pointer transition-colors ${selectedPartyForAdmin.adminId === user.user_id
                         ? "bg-blue-100 border-blue-500"
-                        : "border-gray-200"
+                        : "border-[var(--border-color)]"
                         }`}
                       onClick={() => handleSelectAdmin(user.user_id)}
                     >
@@ -414,17 +414,17 @@ export const PartyMasterPage: React.FC = () => {
                             <UserCheck className="w-5 h-5 text-purple-600" />
                           </div>
                           <div className="flex-1">
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-[var(--text-color)]">
                               {user.first_name} {user.last_name}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-[var(--text-secondary)]">
                               {user.email}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-[var(--text-secondary)]">
                               {user.role} • {user.contact_no}
                             </div>
                             {(user.stateName || user.partyName) && (
-                              <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
+                              <div className="text-xs text-[var(--text-secondary)] mt-1 flex flex-wrap gap-2">
                                 {user.stateName && (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-700">
                                     📍 {user.stateName}
@@ -453,15 +453,15 @@ export const PartyMasterPage: React.FC = () => {
 
           {/* Pagination */}
           {usersPagination.totalPages > 1 && (
-            <div className="px-5 py-3 border-t bg-gray-50 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+            <div className="px-5 py-3 border-t bg-[var(--bg-main)] flex items-center justify-between">
+              <div className="text-sm text-[var(--text-secondary)]">
                 Page {usersPagination.page} of {usersPagination.totalPages}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleUsersPageChange(usersPagination.page - 1)}
                   disabled={usersPagination.page === 1 || loading}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -484,7 +484,7 @@ export const PartyMasterPage: React.FC = () => {
                         disabled={loading}
                         className={`px-3 py-1 border rounded-md text-sm ${usersPagination.page === pageNum
                           ? "bg-blue-600 text-white border-blue-600"
-                          : "border-gray-300 hover:bg-gray-100"
+                          : "border-gray-300 hover:bg-[var(--text-color)]/5"
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {pageNum}
@@ -495,7 +495,7 @@ export const PartyMasterPage: React.FC = () => {
                 <button
                   onClick={() => handleUsersPageChange(usersPagination.page + 1)}
                   disabled={usersPagination.page === usersPagination.totalPages || loading}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -513,43 +513,43 @@ export const PartyMasterPage: React.FC = () => {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-lg">
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <div className="flex items-center gap-2 text-indigo-700 font-semibold">
               <Info className="w-5 h-5" /> Party Details
             </div>
             <button
               onClick={() => setViewing(null)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
           <div className="p-5 space-y-3 text-sm">
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <Tag className="w-4 h-4" />{" "}
               <span className="font-medium">Name:</span> {viewing.partyName}
             </div>
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <Tag className="w-4 h-4" />{" "}
               <span className="font-medium">Code:</span> {viewing.partyCode}
             </div>
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <Database className="w-4 h-4" />{" "}
               <span className="font-medium">Type:</span>{" "}
               {viewing.party_type_name}
             </div>
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <UserCheck className="w-4 h-4" />{" "}
               <span className="font-medium">Admin:</span>{" "}
               {viewing.admin_name || "Not assigned"}
             </div>
             {viewing.admin_email && (
-              <div className="flex items-center gap-2 text-gray-800 text-xs">
+              <div className="flex items-center gap-2 text-[var(--text-color)] text-xs">
                 <span className="ml-6">{viewing.admin_email}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               {viewing.isActive === 1 ? (
                 <>
                   <ToggleRight className="w-4 h-4 text-green-600" />{" "}
@@ -557,17 +557,17 @@ export const PartyMasterPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <ToggleLeft className="w-4 h-4 text-gray-500" />{" "}
+                  <ToggleLeft className="w-4 h-4 text-[var(--text-secondary)]" />{" "}
                   <span className="font-medium">Status:</span> Inactive
                 </>
               )}
             </div>
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <Clock className="w-4 h-4" />{" "}
               <span className="font-medium">Created:</span>{" "}
               {new Date(viewing.created_at).toLocaleString()}
             </div>
-            <div className="flex items-center gap-2 text-gray-800">
+            <div className="flex items-center gap-2 text-[var(--text-color)]">
               <Clock className="w-4 h-4" />{" "}
               <span className="font-medium">Updated:</span>{" "}
               {new Date(viewing.updated_at).toLocaleString()}
@@ -576,7 +576,7 @@ export const PartyMasterPage: React.FC = () => {
           <div className="px-5 py-3 border-t flex justify-end">
             <button
               onClick={() => setViewing(null)}
-              className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
+              className="px-4 py-2 rounded-md border border-gray-300 hover:bg-[var(--text-color)]/5"
             >
               Close
             </button>
@@ -592,14 +592,14 @@ export const PartyMasterPage: React.FC = () => {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl w-full max-w-md">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-color)]">
             <div className="flex items-center gap-2 text-red-700 font-semibold">
               <Trash2 className="w-5 h-5" /> Confirm Delete
             </div>
             <button
               onClick={handleCancelDelete}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -610,12 +610,12 @@ export const PartyMasterPage: React.FC = () => {
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
                   Delete Party?
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
                   Are you sure you want to delete{" "}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-[var(--text-color)]">
                     {partyToDelete.partyName}
                   </span>{" "}
                   ({partyToDelete.partyCode})? This action cannot be undone.
@@ -633,10 +633,10 @@ export const PartyMasterPage: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-xl">
+          <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] flex justify-end gap-3 rounded-b-xl">
             <button
               onClick={handleCancelDelete}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
+              className="px-4 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
             >
               Cancel
             </button>
@@ -655,7 +655,7 @@ export const PartyMasterPage: React.FC = () => {
   };
 
   return (
-    <div className="p-1 sm:p-1 bg-gray-50 rounded-2xl shadow-md w-full">
+    <div className="p-1 sm:p-1 bg-[var(--bg-main)] rounded-2xl shadow-md w-full">
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-center justify-between">
           <span>{error}</span>
@@ -672,7 +672,7 @@ export const PartyMasterPage: React.FC = () => {
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-3 mb-1 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+            <div className="bg-[var(--bg-card)] bg-opacity-20 p-3 rounded-lg">
               <Database className="w-8 h-8 text-amber-900" />
             </div>
             <div>
@@ -684,7 +684,7 @@ export const PartyMasterPage: React.FC = () => {
           </div>
           <button
             onClick={handleAddClick}
-            className="bg-white text-purple-600 hover:bg-purple-50 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-md transition-colors flex items-center space-x-2"
+            className="bg-[var(--bg-card)] text-purple-600 hover:bg-purple-50 font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-md transition-colors flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
             <span>Add Party</span>
@@ -695,7 +695,7 @@ export const PartyMasterPage: React.FC = () => {
         <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
-              <Tag className="w-6 h-6 text-purple-700 bg-white rounded-full p-1 shadow" />
+              <Tag className="w-6 h-6 text-purple-700 bg-[var(--bg-card)] rounded-full p-1 shadow" />
               <span className="text-sm font-semibold text-purple-800">
                 Total Parties
               </span>
@@ -706,7 +706,7 @@ export const PartyMasterPage: React.FC = () => {
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-green-100 via-green-200 to-green-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
-              <ToggleRight className="w-6 h-6 text-green-700 bg-white rounded-full p-1 shadow" />
+              <ToggleRight className="w-6 h-6 text-green-700 bg-[var(--bg-card)] rounded-full p-1 shadow" />
               <span className="text-sm font-semibold text-green-800">
                 Active Parties
               </span>
@@ -717,7 +717,7 @@ export const PartyMasterPage: React.FC = () => {
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-red-100 via-red-200 to-red-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
-              <ToggleLeft className="w-6 h-6 text-red-700 bg-white rounded-full p-1 shadow" />
+              <ToggleLeft className="w-6 h-6 text-red-700 bg-[var(--bg-card)] rounded-full p-1 shadow" />
               <span className="text-sm font-semibold text-red-800">
                 Inactive Parties
               </span>
@@ -728,7 +728,7 @@ export const PartyMasterPage: React.FC = () => {
           </div>
           <div className="rounded-xl p-5 flex flex-col items-start bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300 shadow-md">
             <div className="flex items-center gap-3 mb-1">
-              <Database className="w-6 h-6 text-indigo-700 bg-white rounded-full p-1 shadow" />
+              <Database className="w-6 h-6 text-indigo-700 bg-[var(--bg-card)] rounded-full p-1 shadow" />
               <span className="text-sm font-semibold text-indigo-800">
                 Party Types
               </span>
@@ -743,7 +743,7 @@ export const PartyMasterPage: React.FC = () => {
       {showForm && (
         <div ref={formRef} className="mb-1">
           <div className="mb-3">
-            <h2 className="text-xl font-semibold text-gray-800">
+            <h2 className="text-xl font-semibold text-[var(--text-color)]">
               {editing ? "Edit Party" : "Create New Party"}
             </h2>
             <div className="w-20 h-1 bg-blue-500 mt-2 rounded" />
@@ -753,10 +753,10 @@ export const PartyMasterPage: React.FC = () => {
       )}
 
       {/* Search & Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-1">
+      <div className="bg-[var(--bg-card)] p-4 rounded-lg shadow-md mb-1">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] w-4 h-4" />
             <input
               type="text"
               value={localSearch}
@@ -770,7 +770,7 @@ export const PartyMasterPage: React.FC = () => {
               onClick={() => setShowFilters((v) => !v)}
               className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
                 ? "bg-blue-50 border-blue-300 text-blue-700"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                : "border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                 }`}
             >
               <Filter className="w-4 h-4" /> Filters
@@ -787,7 +787,7 @@ export const PartyMasterPage: React.FC = () => {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-800"
+                className="flex items-center gap-1 px-3 py-2 text-[var(--text-secondary)] hover:text-[var(--text-color)]"
                 title="Clear all filters"
               >
                 <X className="w-4 h-4" /> Clear
@@ -797,10 +797,10 @@ export const PartyMasterPage: React.FC = () => {
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Status
                 </label>
                 <select
@@ -823,7 +823,7 @@ export const PartyMasterPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Results per page
                 </label>
                 <select
@@ -843,7 +843,7 @@ export const PartyMasterPage: React.FC = () => {
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <div className="mt-4 flex items-center justify-between text-sm text-[var(--text-secondary)]">
           <div>
             <span className="flex items-center gap-1">
               <Database className="w-4 h-4" /> Showing {parties.length} of{" "}
@@ -865,50 +865,50 @@ export const PartyMasterPage: React.FC = () => {
       </div>
 
       {/* Listing */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-purple-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Parties</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-color)]">Parties</h3>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[var(--text-secondary)]">
             {parties.length} result{parties.length !== 1 ? "s" : ""}
           </div>
         </div>
         {loading ? (
-          <div className="p-10 text-center text-gray-500">
+          <div className="p-10 text-center text-[var(--text-secondary)]">
             Loading parties...
           </div>
         ) : parties.length === 0 ? (
-          <div className="p-10 text-center text-gray-500">
+          <div className="p-10 text-center text-[var(--text-secondary)]">
             No parties found. Click "Add Party" to create one.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--bg-main)]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Party Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Party Code
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Party Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Admin
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                 {parties.map((p) => (
                   <tr key={p.party_id} className="hover:bg-purple-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -920,24 +920,24 @@ export const PartyMasterPage: React.FC = () => {
                           <Database
                             className={`w-5 h-5 ${p.isActive === 1
                               ? "text-purple-600"
-                              : "text-gray-400"
+                              : "text-[var(--text-secondary)]"
                               }`}
                           />
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">
+                          <div className="text-sm font-semibold text-[var(--text-color)]">
                             {p.partyName}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[var(--text-secondary)]">
                             ID: {p.party_id}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                       {p.partyCode}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                       {p.party_type_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -960,8 +960,8 @@ export const PartyMasterPage: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <ToggleLeft className="w-5 h-5 text-gray-400" />
-                            <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">
+                            <ToggleLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                            <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-[var(--text-color)]">
                               Inactive
                             </span>
                           </>
@@ -1004,16 +1004,16 @@ export const PartyMasterPage: React.FC = () => {
       {/* Pagination */}
       {pagination.total > (queryParams.limit || 10) && (
         <div className="mt-6 flex justify-center">
-          <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
             <button
               onClick={() => handleFilterChange("page", pagination.page - 1)}
               disabled={pagination.page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               Previous
             </button>
 
-            <span className="px-4 py-2 text-sm text-gray-600 font-medium">
+            <span className="px-4 py-2 text-sm text-[var(--text-secondary)] font-medium">
               Page {pagination.page} of {pagination.totalPages} (
               {pagination.total} total)
             </span>
@@ -1021,7 +1021,7 @@ export const PartyMasterPage: React.FC = () => {
             <button
               onClick={() => handleFilterChange("page", pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               Next
             </button>
@@ -1037,3 +1037,7 @@ export const PartyMasterPage: React.FC = () => {
 };
 
 export default PartyMasterPage;
+
+
+
+

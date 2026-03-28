@@ -123,7 +123,7 @@ export default function BannerImagesModal({
 
   return (
     <div className="fixed inset-0 bg-blur bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white">
           <div className="flex items-center justify-between">
@@ -148,14 +148,14 @@ export default function BannerImagesModal({
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-[var(--border-color)]">
           <nav className="flex">
             <button
               onClick={() => setActiveTab("view")}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "view"
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
               }`}
             >
               View Images
@@ -165,7 +165,7 @@ export default function BannerImagesModal({
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "upload"
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
               }`}
             >
               Upload New
@@ -180,12 +180,12 @@ export default function BannerImagesModal({
               {isLoading ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                  <p className="mt-4 text-gray-600">Loading banner images...</p>
+                  <p className="mt-4 text-[var(--text-secondary)]">Loading banner images...</p>
                 </div>
               ) : bannerImages.length === 0 ? (
                 <div className="text-center py-12">
                   <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
+                    className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -197,7 +197,7 @@ export default function BannerImagesModal({
                       d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="mt-2 text-gray-500 font-medium">
+                  <p className="mt-2 text-[var(--text-secondary)] font-medium">
                     No banner images found for this user
                   </p>
                   <button
@@ -213,8 +213,8 @@ export default function BannerImagesModal({
                     <div key={image.id} className="space-y-4">
                       {/* Web Banner */}
                       {image.webBannerImage && (
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <h3 className="font-semibold text-gray-900 mb-2">Web Banner</h3>
+                        <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
+                          <h3 className="font-semibold text-[var(--text-color)] mb-2">Web Banner</h3>
                           <div className="relative">
                             <img
                               src={image.webBannerImage}
@@ -225,7 +225,7 @@ export default function BannerImagesModal({
                               href={image.webBannerImage}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="absolute top-2 right-2 bg-white bg-opacity-90 text-gray-800 p-2 rounded-full hover:bg-opacity-100 transition-all duration-200 shadow-lg"
+                              className="absolute top-2 right-2 bg-[var(--bg-card)] bg-opacity-90 text-[var(--text-color)] p-2 rounded-full hover:bg-opacity-100 transition-all duration-200 shadow-lg"
                               title="Open in new tab"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,7 +238,7 @@ export default function BannerImagesModal({
                               </svg>
                             </a>
                           </div>
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="text-xs text-[var(--text-secondary)] mt-2">
                             Uploaded: {new Date(image.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -246,8 +246,8 @@ export default function BannerImagesModal({
 
                       {/* App Banner */}
                       {image.appBannerImage && (
-                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <h3 className="font-semibold text-gray-900 mb-2">App Banner</h3>
+                        <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
+                          <h3 className="font-semibold text-[var(--text-color)] mb-2">App Banner</h3>
                           <div className="relative">
                             <img
                               src={image.appBannerImage}
@@ -258,7 +258,7 @@ export default function BannerImagesModal({
                               href={image.appBannerImage}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="absolute top-2 right-2 bg-white bg-opacity-90 text-gray-800 p-2 rounded-full hover:bg-opacity-100 transition-all duration-200 shadow-lg"
+                              className="absolute top-2 right-2 bg-[var(--bg-card)] bg-opacity-90 text-[var(--text-color)] p-2 rounded-full hover:bg-opacity-100 transition-all duration-200 shadow-lg"
                               title="Open in new tab"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@ export default function BannerImagesModal({
                               </svg>
                             </a>
                           </div>
-                          <p className="text-xs text-gray-500 mt-2">
+                          <p className="text-xs text-[var(--text-secondary)] mt-2">
                             Uploaded: {new Date(image.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -288,7 +288,7 @@ export default function BannerImagesModal({
               {/* Upload Form */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Image Type
                   </label>
                   <select
@@ -302,7 +302,7 @@ export default function BannerImagesModal({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Select Image File
                   </label>
                   <input
@@ -311,7 +311,7 @@ export default function BannerImagesModal({
                     onChange={handleFileSelect}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
                     Supported formats: JPEG, PNG, GIF, WebP (Max: 50MB)
                   </p>
                 </div>
@@ -328,7 +328,7 @@ export default function BannerImagesModal({
                   {selectedFile && (
                     <button
                       onClick={clearSelection}
-                      className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                      className="px-6 py-2 bg-[var(--bg-color)]0 text-white rounded-lg hover:bg-gray-600 transition-colors"
                     >
                       Clear
                     </button>
@@ -339,7 +339,7 @@ export default function BannerImagesModal({
               {/* Preview */}
               {previewUrl && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Preview
                   </label>
                   <div className="border border-gray-300 rounded-lg p-4">
@@ -348,7 +348,7 @@ export default function BannerImagesModal({
                       alt="Preview"
                       className="max-w-full h-auto max-h-64 rounded-lg"
                     />
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-[var(--text-secondary)] mt-2">
                       File: {selectedFile?.name} ({Math.round((selectedFile?.size || 0) / 1024)} KB)
                     </p>
                   </div>
@@ -359,11 +359,11 @@ export default function BannerImagesModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+        <div className="border-t border-[var(--border-color)] px-6 py-4 bg-[var(--bg-main)]">
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-6 py-2 bg-[var(--bg-color)]0 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
               Close
             </button>
@@ -373,3 +373,5 @@ export default function BannerImagesModal({
     </div>
   );
 }
+
+

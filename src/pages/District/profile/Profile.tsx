@@ -104,7 +104,7 @@ const InputField = ({
   maxLength,
 }: InputFieldProps) => (
   <div className="min-w-0 mb-2">
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
       {label}
     </label>
     <input
@@ -112,17 +112,17 @@ const InputField = ({
       disabled={disabled}
       placeholder={placeholder}
       maxLength={maxLength}
-      style={{
-        width: "100%",
-        minWidth: 0,
-        maxWidth: "100%",
-        height: "38px",
-        border: "1px solid #CBD5E1",
-        fontSize: "15px",
-        background: disabled ? "#F1F5F9" : "#F8FAFC",
-        cursor: disabled ? "not-allowed" : "text",
-      }}
-      className="rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-150 shadow-sm"
+      className={`
+          w-full min-w-0 max-w-full h-[38px] text-[15px]
+          rounded-lg px-4 py-2
+          bg-[var(--input-bg)]
+          text-[var(--text-primary)]
+          border border-[var(--border-color)]
+          cursor-text disabled:cursor-not-allowed
+          disabled:bg-[var(--input-disabled)]
+          focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+          outline-none transition-all duration-150 shadow-sm
+          rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-150 shadow-sm`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />
@@ -612,7 +612,7 @@ export const DistrictProfile = () => {
   return (
     <div className="w-full m-0 animate-fadeIn">
       {/* Header */}
-      <div className="w-full bg-gradient-to-br from-white via-blue-50/30 to-white shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 sm:p-8 border border-blue-100/50 backdrop-blur-sm transform hover:scale-[1.01]">
+      <div className="w-full bg-transparent text-[var(--text-secondary)] shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 sm:p-8 border border-blue-100/50 backdrop-blur-sm transform hover:scale-[1.01]">
         <div
           className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 p-1 shadow-xl animate-gradient-rotate group cursor-pointer"
           onClick={handleSelectImageClick}
@@ -682,8 +682,8 @@ export const DistrictProfile = () => {
           />
         </div>
 
-        <div className="text-center sm:text-left flex-1 space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-900 to-gray-800 bg-clip-text text-transparent leading-tight animate-slideInLeft">
+        <div className="text-center sm:text-left flex-1 space-y-2 ">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-800 via-blue-900 to-gray-800 bg-clip-text  leading-tight animate-slideInLeft">
             {currentUser?.first_name} {currentUser?.last_name}
           </h1>
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
@@ -731,15 +731,15 @@ export const DistrictProfile = () => {
       </div>
 
       {/* Main Section */}
-      <div className="mt-8 flex flex-col lg:flex-row gap-6">
+      <div className="mt-8 flex flex-col lg:flex-row gap-6 ">
         {/* Left: Form */}
         <div
-          className="flex-1 bg-gradient-to-br from-white to-blue-50/20 rounded-3xl p-6 sm:p-8 border border-blue-100/50 shadow-xl backdrop-blur-sm animate-fadeIn"
+          className="flex-1 bg-transparent rounded-3xl p-6 sm:p-8 border border-[var(--border-color)] shadow-xl backdrop-blur-sm animate-fadeIn"
           style={{ animationDelay: "0.2s", animationFillMode: "both" }}
         >
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Edit/Save Buttons */}
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-8">
+            <div className="flex  flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-8">
               {isEditing ? (
                 <>
                   <button
@@ -845,7 +845,7 @@ export const DistrictProfile = () => {
 
             {/* Basic Information */}
             <section>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border-color)]  shadow-lg hover:shadow-xl transition-all duration-300">
                 <Controller
                   name="firstName"
                   control={control}
@@ -949,7 +949,7 @@ export const DistrictProfile = () => {
 
             {/* Dates Section */}
             <section className="mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3  bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border-color)] shadow-sm">
                 <Controller
                   name="dob"
                   control={control}
@@ -1053,7 +1053,7 @@ export const DistrictProfile = () => {
 
             {/* Boolean Fields */}
             <section className="mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border-color)] shadow-sm">
                 {(
                   [
                     { name: "is_youth", label: "Youth" },
@@ -1075,7 +1075,7 @@ export const DistrictProfile = () => {
                     control={control}
                     render={({ field }) => (
                       <div className="flex items-center gap-4">
-                        <span className="text-gray-700 text-sm font-medium w-32">
+                        <span className="text-[var(--text-secondary)] text-sm font-medium w-32">
                           {item.label}:
                         </span>
                         <label className="flex items-center gap-1">
@@ -1113,9 +1113,9 @@ export const DistrictProfile = () => {
 
             {/* Education Section */}
             <section className="mb-8">
-              <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+              <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                 {/* Education */}
-                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">Education</h2>
                     {isEditing && (
@@ -1222,7 +1222,7 @@ export const DistrictProfile = () => {
                 </div>
 
                 {/* Professional Experience */}
-                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">
                       Professional Experience
@@ -1348,7 +1348,7 @@ export const DistrictProfile = () => {
                 </div>
 
                 {/* Children */}
-                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">Children</h2>
                     {isEditing && (
@@ -1467,7 +1467,7 @@ export const DistrictProfile = () => {
                 </div>
 
                 {/* Political Position Details */}
-                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">
                       Political Position Details
@@ -1758,7 +1758,7 @@ export const DistrictProfile = () => {
                 </div> */}
 
                 {/* Vehicles */}
-                <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="font-semibold text-lg">Vehicles</h2>
                     {isEditing && (
@@ -1828,7 +1828,7 @@ export const DistrictProfile = () => {
         </div>
 
         {/* Right: Profile Card */}
-        <div className="w-full lg:w-[32%] xl:w-[28%] h-fit bg-white rounded-2xl border border-blue-100 p-8 flex flex-col items-center shadow-xl transition-shadow duration-300">
+        <div className="w-full lg:w-[32%] xl:w-[28%] h-fit bg-[var(--bg-card)] rounded-2xl p-6 border border-[var(--border-color)] flex flex-col items-center shadow-xl transition-shadow duration-300">
           <div className="relative w-full flex flex-col items-center mb-4">
             <div className="absolute left-1/2 top-0 -translate-x-1/2 z-0 w-40 h-20 rounded-b-3xl overflow-hidden">
               <img

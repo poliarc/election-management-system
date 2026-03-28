@@ -15,8 +15,10 @@ import {
 } from "../../../services/afterAssemblyApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useTranslation } from "react-i18next";
 
 export default function SubLevelManagement() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -367,7 +369,7 @@ export default function SubLevelManagement() {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-                    <p className="text-red-700">Level admin panel not found</p>
+                    <p className="text-red-700">{t("SubLevelManagement.Desc")}</p>
                 </div>
             </div>
         );
@@ -384,20 +386,20 @@ export default function SubLevelManagement() {
     );
 
     return (
-        <div className="p-1 bg-gradient-to-br from-gray-50 to-teal-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-color)] min-h-screen">
             <div className="mb-1">
-                <div className="bg-white rounded-xl shadow-lg p-3 sm:p-3 border-l-4 border-teal-500">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-3 sm:p-3 border-l-4 border-teal-500">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex-1">
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Sub-Level Management</h1>
-                            <p className="text-gray-600 mt-2 text-sm sm:text-base">
-                                Create hierarchical sub-levels for assemblies in {currentPanel.metadata?.stateName}
+                            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">{t("SubLevelManagement.Title")}</h1>
+                            <p className="text-[var(--text-secondary)] mt-2 text-sm sm:text-base">
+                                {t("SubLevelManagement.Desc1")} {currentPanel.metadata?.stateName}
                             </p>
                         </div>
                         <div className="w-full lg:w-96">
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="h-5 w-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -406,7 +408,7 @@ export default function SubLevelManagement() {
                                     placeholder="Search..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
+                                    className="w-full pl-11 pr-4 py-3 bg-[var(--bg-card)] border-2 border-[var(--border-color)] rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
                                 />
                             </div>
                         </div>
@@ -415,12 +417,12 @@ export default function SubLevelManagement() {
             </div>
 
             {/* Dynamic Select Dropdowns */}
-            <div className="mb-1 bg-white rounded-xl shadow-lg p-3">
+            <div className="mb-1 bg-[var(--bg-card)] rounded-xl shadow-lg p-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* District Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Select District
+                        <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-1">
+                             {t("SubLevelManagement.Select_District")}
                         </label>
                         <select
                             value={selectedDistrict?.location_id || ""}
@@ -431,10 +433,10 @@ export default function SubLevelManagement() {
                                 setHierarchyPath([]);
                                 setLevelOptions([]);
                             }}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-[var(--bg-card)]"
                             disabled={loading}
                         >
-                            <option value="">-- Select District --</option>
+                            <option value="">-- {t("SubLevelManagement.Select_District")} --</option>
                             {(districts || []).map((district) => (
                                 <option key={district.location_id} value={district.location_id}>
                                     {district.location_name}
@@ -445,8 +447,8 @@ export default function SubLevelManagement() {
 
                     {/* Assembly Select */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Select Assembly
+                        <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-1">
+                            {t("SubLevelManagement.Select_Assembly")}
                         </label>
                         <select
                             value={selectedAssembly?.location_id || ""}
@@ -456,10 +458,10 @@ export default function SubLevelManagement() {
                                 setHierarchyPath([]);
                                 setLevelOptions([]);
                             }}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+                            className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-[var(--bg-card)]"
                             disabled={!selectedDistrict || assembliesLoading}
                         >
-                            <option value="">-- Select Assembly --</option>
+                            <option value="">-- {t("SubLevelManagement.Select_Assembly")} --</option>
                             {(assemblies || []).map((assembly) => (
                                 <option key={assembly.location_id} value={assembly.location_id}>
                                     {assembly.location_name}
@@ -471,7 +473,7 @@ export default function SubLevelManagement() {
                     {/* Dynamic Parent Level Selects - Only show if parent is NOT Assembly */}
                     {!isParentAssembly && levelOptions.map((options, index) => (
                         <div key={index}>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">
                                 {options.length > 0 ? `${options[0].levelName}` : `Level ${index + 1}`}
                             </label>
                             <select
@@ -480,10 +482,10 @@ export default function SubLevelManagement() {
                                     const level = options.find(l => l.id === Number(e.target.value));
                                     handleLevelSelect(index, level || null);
                                 }}
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-white"
+                                className="w-full px-4 py-3 border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all bg-[var(--bg-card)]"
                                 disabled={!selectedAssembly || dataLoading}
                             >
-                                <option value="">-- Select Level --</option>
+                                <option value="">-- {t("SubLevelManagement.Select_Level")} --</option>
                                 {options.map((level) => (
                                     <option key={level.id} value={level.id}>
                                         {level.displayName} ({level.levelName})
@@ -496,9 +498,9 @@ export default function SubLevelManagement() {
 
                 {/* Loading State */}
                 {(loading || assembliesLoading || dataLoading) && (
-                    <div className="mt-4 flex items-center justify-center text-gray-500">
+                    <div className="mt-4 flex items-center justify-center text-[var(--text-secondary)]">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-teal-600 mr-2"></div>
-                        <span className="text-sm">Loading...</span>
+                        <span className="text-sm">{t("SubLevelManagement.Loading")}</span>
                     </div>
                 )}
             </div>
@@ -506,19 +508,19 @@ export default function SubLevelManagement() {
             {/* Level Data Table */}
             <div>
                 {!selectedAssembly ? (
-                    <div className="bg-white rounded-xl shadow-lg p-16 text-center border border-gray-100">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-16 text-center border border-gray-100">
                         <div className="max-w-md mx-auto">
                             <div className="bg-gradient-to-br from-teal-100 to-cyan-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
                                 <svg className="w-12 h-12 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-2">Select an Assembly</h3>
-                            <p className="text-gray-500">Choose a district and assembly to manage sub-levels</p>
+                            <h3 className="text-xl font-bold text-[var(--text-color)] mb-2">{t("SubLevelManagement.Select_Assembly")}</h3>
+                            <p className="text-[var(--text-secondary)]">{t("SubLevelManagement.Desc4")}</p>
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="bg-gradient-to-r from-teal-500 to-cyan-600 p-6">
                             <div className="flex justify-between items-center">
                                 <div className="text-white">
@@ -532,12 +534,12 @@ export default function SubLevelManagement() {
                                         setFormData({ levelName: currentPanel?.name || "", displayName: "", parentId: currentParent?.id || null });
                                         setShowCreateModal(true);
                                     }}
-                                    className="flex items-center px-5 py-2.5 bg-white text-teal-600 rounded-lg hover:bg-teal-50 transition-all font-semibold shadow-md"
+                                    className="flex items-center px-5 py-2.5 bg-[var(--bg-card)] text-teal-600 rounded-lg hover:bg-teal-50 transition-all font-semibold shadow-md"
                                 >
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    Create Level
+                                    {t("SubLevelManagement.Create_Level")}
                                 </button>
                             </div>
                         </div>
@@ -549,27 +551,27 @@ export default function SubLevelManagement() {
                                 </div>
                             ) : filteredLevelData.length === 0 ? (
                                 <div className="p-12 text-center">
-                                    <p className="text-gray-500">No levels found. Create one to get started.</p>
+                                    <p className="text-[var(--text-secondary)]">{t("SubLevelManagement.Desc5")}</p>
                                 </div>
                             ) : (
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-[var(--bg-main)]">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Level Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Display Name</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Parent</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("SubLevelManagement.Level_Name")}</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("SubLevelManagement.Display_Name")}</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("SubLevelManagement.Parent")}</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("SubLevelManagement.Status")}</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">{t("SubLevelManagement.Actions")}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                         {filteredLevelData.map((data) => {
                                             const parent = levelData.find(l => l.id === data.parentId);
                                             return (
-                                                <tr key={data.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{data.levelName}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-600">{data.displayName}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                                <tr key={data.id} className="hover:bg-[var(--text-color)]/5">
+                                                    <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">{data.levelName}</td>
+                                                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{data.displayName}</td>
+                                                    <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                                                         {parent ? parent.displayName : "Root"}
                                                     </td>
                                                     <td className="px-6 py-4 text-sm">
@@ -586,7 +588,7 @@ export default function SubLevelManagement() {
                                                                 onClick={() => openEditModal(data)}
                                                                 className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                                             >
-                                                                Edit
+                                                                {t("SubLevelManagement.Edit")}
                                                             </button>
                                                             <button
                                                                 onClick={() => handleToggleActive(data.id, data.isActive)}
@@ -601,7 +603,7 @@ export default function SubLevelManagement() {
                                                                 onClick={() => openDeleteModal(data.id, data.displayName)}
                                                                 className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                                                             >
-                                                                Delete
+                                                                {t("SubLevelManagement.Delete")}
                                                             </button>
                                                         </div>
                                                     </td>
@@ -618,18 +620,18 @@ export default function SubLevelManagement() {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Create Sub-Level</h3>
+                <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("SubLevelManagement.Create_Sub_Level")}</h3>
                         {formData?.parentId && (() => {
                             const parent = levelData.find(l => l.id === formData.parentId);
                             return parent ? (
                                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                     <p className="text-sm text-blue-600 mt-1">
-                                        <span className="font-semibold">Assembly:</span> {parent?.assemblyName || selectedAssembly?.location_name || "Inherited"}
+                                        <span className="font-semibold">{t("SubLevelManagement.Assembly")}</span> {parent?.assemblyName || selectedAssembly?.location_name || "Inherited"}
                                     </p>
                                     <p className="text-sm text-blue-800">
-                                        <span className="font-semibold">Parent:</span> {parent?.displayName}
+                                        <span className="font-semibold">{t("SubLevelManagement.Parent")}</span> {parent?.displayName}
                                     </p>
                                 </div>
                             ) : null;
@@ -637,24 +639,24 @@ export default function SubLevelManagement() {
                         {!formData.parentId && selectedAssembly && (
                             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                                 <p className="text-sm text-green-800">
-                                    <span className="font-semibold">Creating root level for:</span> {selectedAssembly?.location_name}
+                                    <span className="font-semibold">{t("SubLevelManagement.Desc6")}</span> {selectedAssembly?.location_name}
                                 </p>
                             </div>
                         )}
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Level Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Level_Name")}</label>
                                 <input
                                     type="text"
                                     value={formData.levelName}
                                     readOnly
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                     placeholder="e.g., Mandal, Booth"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Display_Name")}</label>
                                 <input
                                     type="text"
                                     value={formData.displayName}
@@ -664,13 +666,13 @@ export default function SubLevelManagement() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Parent_Level")} </label>
                                 <select
                                     value={formData.parentId || ""}
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed appearance-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed appearance-none"
                                 >
-                                    <option value="">-- Root Level (No Parent) --</option>
+                                    <option value="">-- {t("SubLevelManagement.Desc7")} --</option>
                                     {levelData.map((level) => (
                                         <option key={level.id} value={level.id}>
                                             {level.displayName} ({level.levelName})
@@ -685,15 +687,15 @@ export default function SubLevelManagement() {
                                     setShowCreateModal(false);
                                     setFormData({ levelName: currentPanel?.name || "", displayName: "", parentId: null });
                                 }}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors"
                             >
-                                Cancel
+                                {t("SubLevelManagement.Cancel")}
                             </button>
                             <button
                                 onClick={handleCreate}
                                 className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
                             >
-                                Create
+                                {t("SubLevelManagement.Create")}
                             </button>
                         </div>
                     </div>
@@ -702,22 +704,22 @@ export default function SubLevelManagement() {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Edit Sub-Level</h3>
+                <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50">
+                    <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("SubLevelManagement.Edit_Sub_Level")}</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Level Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Level_Name")}</label>
                                 <input
                                     type="text"
                                     value={formData.levelName}
                                     readOnly
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Display_Name")}</label>
                                 <input
                                     type="text"
                                     value={formData.displayName}
@@ -726,13 +728,13 @@ export default function SubLevelManagement() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Parent Level</label>
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t("SubLevelManagement.Parent_Level")}</label>
                                 <select
                                     value={formData.parentId || ""}
                                     disabled
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed appearance-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed appearance-none"
                                 >
-                                    <option value="">-- Root Level (No Parent) --</option>
+                                    <option value="">-- {t("SubLevelManagement.Desc7")} --</option>
                                     {levelData.filter(l => l.id !== editingData?.id).map((level) => (
                                         <option key={level.id} value={level.id}>
                                             {level.displayName} ({level.levelName})
@@ -748,15 +750,15 @@ export default function SubLevelManagement() {
                                     setEditingData(null);
                                     setFormData({ levelName: "", displayName: "", parentId: null });
                                 }}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors"
                             >
-                                Cancel
+                                {t("SubLevelManagement.Cancel")}
                             </button>
                             <button
                                 onClick={handleUpdate}
                                 className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
                             >
-                                Update
+                                {t("SubLevelManagement.Update")}
                             </button>
                         </div>
                     </div>
@@ -776,3 +778,7 @@ export default function SubLevelManagement() {
         </div>
     );
 }
+
+
+
+

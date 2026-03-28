@@ -19,6 +19,7 @@ import {
 } from "../data/staticCampaignData";
 import campaignApi from "../../../services/campaignApi";
 import type { CampaignFormData } from "../../../schemas/campaignSchema";
+import { useTranslation } from "react-i18next";
 
 const toCampaignIdString = (campaign?: Campaign | null) => {
   if (!campaign) {
@@ -124,6 +125,7 @@ interface ModalState {
 
 export const CampaignsStatePage = () => {
   // Local state
+  const {t}=useTranslation();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
@@ -672,7 +674,7 @@ export const CampaignsStatePage = () => {
         <>
           {isLoadingCampaigns && (
             <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-              Loading your campaigns...
+              {t("stateCampaign.Loading_campaigns")}
             </div>
           )}
           {campaignsError && (
@@ -682,7 +684,7 @@ export const CampaignsStatePage = () => {
                 onClick={loadCampaigns}
                 className="rounded-lg border border-yellow-300 px-3 py-1 text-xs font-medium text-yellow-800 hover:bg-yellow-100"
               >
-                Retry
+                {t("stateCampaign.Retry")}
               </button>
             </div>
           )}
@@ -700,7 +702,7 @@ export const CampaignsStatePage = () => {
         <div className="space-y-4">
           {isPrefillingForm && (
             <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-              Fetching the latest campaign details...
+              {t("stateCampaign.Fetching_latest_campaign")}
             </div>
           )}
           {formPrefillError && (
@@ -712,7 +714,7 @@ export const CampaignsStatePage = () => {
                   onClick={() => handleEditCampaign(editingCampaign)}
                   className="rounded-md border border-yellow-400 px-3 py-1 text-xs font-medium text-yellow-900 hover:bg-yellow-100"
                 >
-                  Retry fetch
+                  {t("stateCampaign.Retry_fetch")}
                 </button>
               )}
             </div>

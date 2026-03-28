@@ -7,9 +7,11 @@ import toast from "react-hot-toast";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
+import { useTranslation } from "react-i18next";
 
 interface LabeledInputProps {
     label: string;
+    t: (key: string, options?: any) => string;
     field: keyof VoterListCandidate;
     register: UseFormRegister<VoterListCandidate>;
     type?: string;
@@ -20,6 +22,7 @@ interface LabeledInputProps {
 
 const LabeledInput: React.FC<LabeledInputProps> = ({
     label,
+    t,
     field,
     register,
     type = "text",
@@ -28,20 +31,20 @@ const LabeledInput: React.FC<LabeledInputProps> = ({
     pattern,
 }) => (
     <div className="flex flex-col">
-        <label className="text-sm font-medium mb-1.5 text-gray-700">
+        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">
             {label}
         </label>
         <input
             type={type}
             {...register(field)}
-            placeholder={`Enter ${label}`}
+            placeholder={t("voterEditForm.placeholderEnter", { field: label })}
             disabled={disabled}
             maxLength={maxLength}
             pattern={pattern}
             className={`
-        bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm
+        bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm
         focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
-        ${disabled ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}
+        ${disabled ? 'bg-gray-100 cursor-not-allowed text-[var(--text-secondary)]' : ''}
       `}
         />
     </div>
@@ -54,50 +57,56 @@ interface DisplayFieldProps {
 
 const DisplayField: React.FC<DisplayFieldProps> = ({ label, value }) => (
     <div className="flex items-start gap-3">
-        <div className="text-sm font-medium text-gray-600 w-1/3 min-w-[120px] pt-1">
+        <div className="text-sm font-medium text-[var(--text-secondary)] w-1/3 min-w-[120px] pt-1">
             {label}:
         </div>
-        <div className="text-sm text-gray-900 w-2/3 pt-1">
+        <div className="text-sm text-[var(--text-color)] w-2/3 pt-1">
             {value || '-'}
         </div>
     </div>
 );
 
 const EditButton = ({
-    onEdit
+    onEdit,
+    label,
 }: {
     onEdit: () => void;
+    label: string;
 }) => (
     <button
         type="button"
         onClick={onEdit}
         className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition"
     >
-        Edit
+        {label}
     </button>
 );
 
 const SaveCancelButtons = ({
     onSave,
-    onCancel
+    onCancel,
+    btnCancel,
+    btnSaveChanges,
 }: {
     onSave: () => void;
     onCancel: () => void;
+    btnCancel: string;
+    btnSaveChanges: string;
 }) => (
     <div className="flex justify-end gap-3 mt-6">
         <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+            className="bg-gray-200 text-[var(--text-secondary)] px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
         >
-            Cancel
+            {btnCancel}
         </button>
         <button
             type="button"
             onClick={onSave}
             className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
         >
-            Save Changes
+            {btnSaveChanges}
         </button>
     </div>
 );
@@ -115,6 +124,7 @@ export const VoterEditForm: React.FC<Props> = ({
     onCancel,
     language
 }) => {
+    const { t } = useTranslation();
     const [editingSection, setEditingSection] = useState<string | null>(null);
 
     // Get user's state from Redux store
@@ -263,371 +273,373 @@ export const VoterEditForm: React.FC<Props> = ({
     const handleCancel = () => {
         reset(initialValues);
         setEditingSection(null);
-        toast("Changes discarded", { icon: "ℹ️" });
+        toast(t("voterEditForm.toastChangesDiscarded"), { icon: "ℹ️" });
     };
 
     return (
-        <div className="min-h-screen p-1 bg-gray-50">
+        <div className="min-h-screen p-1 bg-[var(--bg-main)]">
             <div className="flex items-center mb-1">
                 <button
                     onClick={onCancel}
-                    className="p-2 mr-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+                    className="p-2 mr-3 text-[var(--text-secondary)] hover:text-[var(--text-color)] hover:bg-[var(--text-color)]/5 rounded-lg transition"
+                    aria-label={t("voterEditForm.btnBack")}
+                    title={t("voterEditForm.btnBack")}
                 >
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="text-2xl font-bold text-gray-900">Edit Voter Details</h1>
+                <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("voterEditForm.titleEditVoterDetails")}</h1>
             </div>
 
             <form onSubmit={handleSubmit(handleSave)}>
                 {/* Personal Details - Read Only */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
-                    <h2 className="text-lg font-semibold mb-1 text-gray-900">Personal Details</h2>
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
+                    <h2 className="text-lg font-semibold mb-1 text-[var(--text-color)]">{t("voterEditForm.sectionPersonalDetails")}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DisplayField label="Voter Name" value={language === 'en' ? initialValues?.voter_full_name_en : initialValues?.voter_full_name_hi} />
-                        <DisplayField label="Relative Name" value={language === 'en' ? initialValues?.relative_full_name_en : initialValues?.relative_full_name_hi} />
-                        <DisplayField label="Voter ID" value={initialValues?.voter_id_epic_no} />
-                        <DisplayField label="Gender" value={initialValues?.gender} />
-                        <DisplayField label="Age" value={initialValues?.age} />
-                        <DisplayField label="Date of Birth" value={initialValues?.voter_dob} />
-                        <DisplayField label="Relation" value={initialValues?.relation} />
-                        <DisplayField label="Part No" value={initialValues?.part_no} />
-                        <DisplayField label="Serial No" value={initialValues?.sl_no_in_part} />
-                        <DisplayField label="PS Location" value={initialValues?.ps_loc_hin} />
-                        <DisplayField label="AC No" value={initialValues?.ac_no} />
-                        <DisplayField label="AC Name" value={initialValues?.ac_name_en} />
+                        <DisplayField label={t("voterEditForm.lblVoterName")} value={language === 'en' ? initialValues?.voter_full_name_en : initialValues?.voter_full_name_hi} />
+                        <DisplayField label={t("voterEditForm.lblRelativeName")} value={language === 'en' ? initialValues?.relative_full_name_en : initialValues?.relative_full_name_hi} />
+                        <DisplayField label={t("voterEditForm.lblVoterId")} value={initialValues?.voter_id_epic_no} />
+                        <DisplayField label={t("voterEditForm.lblGender")} value={initialValues?.gender} />
+                        <DisplayField label={t("voterEditForm.lblAge")} value={initialValues?.age} />
+                        <DisplayField label={t("voterEditForm.lblDateOfBirth")} value={initialValues?.voter_dob} />
+                        <DisplayField label={t("voterEditForm.lblRelation")} value={initialValues?.relation} />
+                        <DisplayField label={t("voterEditForm.lblPartNo")} value={initialValues?.part_no} />
+                        <DisplayField label={t("voterEditForm.lblSerialNo")} value={initialValues?.sl_no_in_part} />
+                        <DisplayField label={t("voterEditForm.lblPsLocation")} value={initialValues?.ps_loc_hin} />
+                        <DisplayField label={t("voterEditForm.lblAcNo")} value={initialValues?.ac_no} />
+                        <DisplayField label={t("voterEditForm.lblAcName")} value={initialValues?.ac_name_en} />
                     </div>
                 </div>
 
                 {/* Contact Details - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                     <div className="flex justify-between items-center mb-1">
-                        <h2 className="text-lg font-semibold text-gray-900">Contact Details</h2>
+                        <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionContactDetails")}</h2>
                         {editingSection !== 'contact' && (
-                            <EditButton onEdit={() => handleEdit('contact')} />
+                            <EditButton onEdit={() => handleEdit('contact')} label={t("voterEditForm.btnEdit")} />
                         )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <LabeledInput label="Contact Number 1" field="contact_number1" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
-                        <LabeledInput label="Contact Number 2" field="contact_number2" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
-                        <LabeledInput label="Contact Number 3" field="contact_number3" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
-                        <LabeledInput label="Contact Number 4" field="contact_number4" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput t={t} label={t("voterEditForm.lblContactNumber1")} field="contact_number1" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput t={t} label={t("voterEditForm.lblContactNumber2")} field="contact_number2" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput t={t} label={t("voterEditForm.lblContactNumber3")} field="contact_number3" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
+                        <LabeledInput t={t} label={t("voterEditForm.lblContactNumber4")} field="contact_number4" register={register} disabled={editingSection !== 'contact'} maxLength={10} pattern="[0-9]{10}" />
                     </div>
                     {editingSection === 'contact' && (
-                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                     )}
                 </div>
 
                 {/* Voter Information - Editable */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                     <div className="flex justify-between items-center mb-1">
-                        <h2 className="text-lg font-semibold text-gray-900">Voter Information</h2>
+                        <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionVoterInformation")}</h2>
                         {editingSection !== 'voter_info' && (
-                            <EditButton onEdit={() => handleEdit('voter_info')} />
+                            <EditButton onEdit={() => handleEdit('voter_info')} label={t("voterEditForm.btnEdit")} />
                         )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="flex flex-col">
-                            <label className="text-sm font-medium mb-1.5 text-gray-700">Expired/Alive</label>
+                            <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblExpiredAlive")}</label>
                             <select
                                 {...register("expired_alive")}
                                 disabled={editingSection !== 'voter_info'}
-                                className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'voter_info' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'voter_info' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                             >
-                                <option value="">Select...</option>
-                                <option value="Alive">Alive</option>
-                                <option value="Expired">Expired</option>
+                                <option value="">{t("voterEditForm.optSelect")}</option>
+                                <option value="Alive">{t("voterEditForm.optAlive")}</option>
+                                <option value="Expired">{t("voterEditForm.optExpired")}</option>
                             </select>
                         </div>
                         {!isExpired && (
                             <>
-                                <LabeledInput label="Date of Birth" field="voter_dob" register={register} type="date" disabled={editingSection !== 'voter_info'} />
+                                <LabeledInput t={t} label={t("voterEditForm.lblDateOfBirth")} field="voter_dob" register={register} type="date" disabled={editingSection !== 'voter_info'} />
                                 <div className="flex flex-col">
-                                    <label className="text-sm font-medium mb-1.5 text-gray-700">Marital Status</label>
+                                    <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblMaritalStatus")}</label>
                                     <select
                                         {...register("married")}
                                         disabled={editingSection !== 'voter_info'}
-                                        className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'voter_info' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'voter_info' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                     >
-                                        <option value="">Select...</option>
-                                        <option value="Single">Single</option>
-                                        <option value="Married">Married</option>
-                                        <option value="Widow">Widow</option>
-                                        <option value="War Widow">War Widow</option>
-                                        <option value="Separated">Separated</option>
+                                        <option value="">{t("voterEditForm.optSelect")}</option>
+                                        <option value="Single">{t("voterEditForm.optSingle")}</option>
+                                        <option value="Married">{t("voterEditForm.optMarried")}</option>
+                                        <option value="Widow">{t("voterEditForm.optWidow")}</option>
+                                        <option value="War Widow">{t("voterEditForm.optWarWidow")}</option>
+                                        <option value="Separated">{t("voterEditForm.optSeparated")}</option>
                                     </select>
                                 </div>
-                                <LabeledInput label="House No" field="house_no_eng" register={register} disabled={editingSection !== 'voter_info'} />
-                                <LabeledInput label="Aadhar" field="aadhar" register={register} disabled={editingSection !== 'voter_info'} />
-                                <LabeledInput label="Family ID" field="family_id" register={register} disabled={editingSection !== 'voter_info'} />
+                                <LabeledInput t={t} label={t("voterEditForm.lblHouseNo")} field="house_no_eng" register={register} disabled={editingSection !== 'voter_info'} />
+                                <LabeledInput t={t} label={t("voterEditForm.lblAadhar")} field="aadhar" register={register} disabled={editingSection !== 'voter_info'} />
+                                <LabeledInput t={t} label={t("voterEditForm.lblFamilyId")} field="family_id" register={register} disabled={editingSection !== 'voter_info'} />
                             </>
                         )}
                     </div>
                     {editingSection === 'voter_info' && (
-                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                        <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                     )}
                 </div>
 
                 {/* Political Profiling - Editable */}
                 {!isExpired && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-lg font-semibold text-gray-900">Voter Profiling</h2>
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionVoterProfiling")}</h2>
                             {editingSection !== 'political' && (
-                                <EditButton onEdit={() => handleEdit('political')} />
+                                <EditButton onEdit={() => handleEdit('political')} label={t("voterEditForm.btnEdit")} />
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Religion</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblReligion")}</label>
                                 <select
                                     {...register("religion")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="Hindu">Hindu</option>
-                                    <option value="Muslim">Muslim</option>
-                                    <option value="Christian">Christian</option>
-                                    <option value="Sikh">Sikh</option>
-                                    <option value="Buddhist">Buddhist</option>
-                                    <option value="Jain">Jain</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="Hindu">{t("voterEditForm.optReligionHindu")}</option>
+                                    <option value="Muslim">{t("voterEditForm.optReligionMuslim")}</option>
+                                    <option value="Christian">{t("voterEditForm.optReligionChristian")}</option>
+                                    <option value="Sikh">{t("voterEditForm.optReligionSikh")}</option>
+                                    <option value="Buddhist">{t("voterEditForm.optReligionBuddhist")}</option>
+                                    <option value="Jain">{t("voterEditForm.optReligionJain")}</option>
+                                    <option value="Other">{t("voterEditForm.optOther")}</option>
                                 </select>
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Caste</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblCaste")}</label>
                                 <select
                                     {...register("caste")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="General">General</option>
-                                    <option value="OBC">OBC</option>
-                                    <option value="SC">SC</option>
-                                    <option value="ST">ST</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="General">{t("voterEditForm.optCasteGeneral")}</option>
+                                    <option value="OBC">{t("voterEditForm.optCasteObc")}</option>
+                                    <option value="SC">{t("voterEditForm.optCasteSc")}</option>
+                                    <option value="ST">{t("voterEditForm.optCasteSt")}</option>
+                                    <option value="Other">{t("voterEditForm.optOther")}</option>
                                 </select>
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Profession Type</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblProfessionType")}</label>
                                 <select
                                     {...register("profession_type")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="Government Employee">Government Employee</option>
-                                    <option value="Private Employee">Private Employee</option>
-                                    <option value="Business">Business</option>
-                                    <option value="Farmer">Farmer</option>
-                                    <option value="Student">Student</option>
-                                    <option value="Housewife">Housewife</option>
-                                    <option value="Retired">Retired</option>
-                                    <option value="Unemployed">Unemployed</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="Government Employee">{t("voterEditForm.optProfessionGovernmentEmployee")}</option>
+                                    <option value="Private Employee">{t("voterEditForm.optProfessionPrivateEmployee")}</option>
+                                    <option value="Business">{t("voterEditForm.optProfessionBusiness")}</option>
+                                    <option value="Farmer">{t("voterEditForm.optProfessionFarmer")}</option>
+                                    <option value="Student">{t("voterEditForm.optProfessionStudent")}</option>
+                                    <option value="Housewife">{t("voterEditForm.optProfessionHousewife")}</option>
+                                    <option value="Retired">{t("voterEditForm.optProfessionRetired")}</option>
+                                    <option value="Unemployed">{t("voterEditForm.optProfessionUnemployed")}</option>
+                                    <option value="Other">{t("voterEditForm.optOther")}</option>
                                 </select>
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Profession Sub Category</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblProfessionSubCategory")}</label>
                                 <select
                                     {...register("profession_sub_catg")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="Teacher">Teacher</option>
-                                    <option value="Doctor">Doctor</option>
-                                    <option value="Engineer">Engineer</option>
-                                    <option value="Lawyer">Lawyer</option>
-                                    <option value="Police">Police</option>
-                                    <option value="Army">Army</option>
-                                    <option value="Shopkeeper">Shopkeeper</option>
-                                    <option value="Driver">Driver</option>
-                                    <option value="Labor">Labor</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="Teacher">{t("voterEditForm.optProfessionSubTeacher")}</option>
+                                    <option value="Doctor">{t("voterEditForm.optProfessionSubDoctor")}</option>
+                                    <option value="Engineer">{t("voterEditForm.optProfessionSubEngineer")}</option>
+                                    <option value="Lawyer">{t("voterEditForm.optProfessionSubLawyer")}</option>
+                                    <option value="Police">{t("voterEditForm.optProfessionSubPolice")}</option>
+                                    <option value="Army">{t("voterEditForm.optProfessionSubArmy")}</option>
+                                    <option value="Shopkeeper">{t("voterEditForm.optProfessionSubShopkeeper")}</option>
+                                    <option value="Driver">{t("voterEditForm.optProfessionSubDriver")}</option>
+                                    <option value="Labor">{t("voterEditForm.optProfessionSubLabor")}</option>
+                                    <option value="Other">{t("voterEditForm.optOther")}</option>
                                 </select>
                             </div>
 
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Political Party</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblPoliticalParty")}</label>
                                 <select
                                     {...register("politcal_party")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="Bharatiya Janata Party">Bharatiya Janata Party</option>
-                                    <option value="Communist Party of India">Communist Party of India</option>
-                                    <option value="Communist Party of India (Marxist)">Communist Party of India (Marxist)</option>
-                                    <option value="Indian National Congress">Indian National Congress</option>
-                                    <option value="Nationalist Congress Party">Nationalist Congress Party</option>
-                                    <option value="Asom Gana Parishad">Asom Gana Parishad</option>
-                                    <option value="All India United Democratic Front">All India United Democratic Front</option>
-                                    <option value="Bodoland Peoples Front">Bodoland Peoples Front</option>
-                                    <option value="Aam Aadmi Party">Aam Aadmi Party</option>
-                                    <option value="Bahujan Samaj Party">Bahujan Samaj Party</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="Bharatiya Janata Party">{t("voterEditForm.optPartyBjp")}</option>
+                                    <option value="Communist Party of India">{t("voterEditForm.optPartyCpi")}</option>
+                                    <option value="Communist Party of India (Marxist)">{t("voterEditForm.optPartyCpiMarxist")}</option>
+                                    <option value="Indian National Congress">{t("voterEditForm.optPartyInc")}</option>
+                                    <option value="Nationalist Congress Party">{t("voterEditForm.optPartyNcp")}</option>
+                                    <option value="Asom Gana Parishad">{t("voterEditForm.optPartyAgp")}</option>
+                                    <option value="All India United Democratic Front">{t("voterEditForm.optPartyAiudf")}</option>
+                                    <option value="Bodoland Peoples Front">{t("voterEditForm.optPartyBpf")}</option>
+                                    <option value="Aam Aadmi Party">{t("voterEditForm.optPartyAap")}</option>
+                                    <option value="Bahujan Samaj Party">{t("voterEditForm.optPartyBsp")}</option>
                                 </select>
                             </div>
 
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Voter Preference Rank</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblVoterPreferenceRank")}</label>
                                 <select
                                     {...register("voter_preference_rank")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="Anti">Anti</option>
-                                    <option value="Neutral">Neutral</option>
-                                    <option value="Favour">Favour</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="Anti">{t("voterEditForm.optPreferenceAnti")}</option>
+                                    <option value="Neutral">{t("voterEditForm.optPreferenceNeutral")}</option>
+                                    <option value="Favour">{t("voterEditForm.optPreferenceFavour")}</option>
                                 </select>
                             </div>
 
-                            <LabeledInput label="Education" field="education" register={register} disabled={editingSection !== 'political'} />
+                            <LabeledInput t={t} label={t("voterEditForm.lblEducation")} field="education" register={register} disabled={editingSection !== 'political'} />
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Physical Verified</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblPhysicalVerified")}</label>
                                 <select
                                     {...register("physical_verified")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="yes">{t("voterEditForm.optYes")}</option>
+                                    <option value="no">{t("voterEditForm.optNo")}</option>
                                 </select>
                             </div>
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">EU/SSR Form Submitted</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblEuSsrFormSubmitted")}</label>
                                 <select
                                     {...register("eu_ssr_form_submitted")}
                                     disabled={editingSection !== 'political'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'political' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="yes">{t("voterEditForm.optYes")}</option>
+                                    <option value="no">{t("voterEditForm.optNo")}</option>
                                 </select>
                             </div>
                         </div>
                         {editingSection === 'political' && (
-                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                         )}
                     </div>
                 )}
 
                 {/* Influencer - Editable */}
                 {!isExpired && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-lg font-semibold text-gray-900">Influencer</h2>
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionInfluencer")}</h2>
                             {editingSection !== 'influencer' && (
-                                <EditButton onEdit={() => handleEdit('influencer')} />
+                                <EditButton onEdit={() => handleEdit('influencer')} label={t("voterEditForm.btnEdit")} />
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="flex flex-col">
-                                <label className="text-sm font-medium mb-1.5 text-gray-700">Influencer</label>
+                                <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblInfluencer")}</label>
                                 <select
                                     {...register("influencer")}
                                     disabled={editingSection !== 'influencer'}
-                                    className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                    className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Select...</option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
+                                    <option value="">{t("voterEditForm.optSelect")}</option>
+                                    <option value="yes">{t("voterEditForm.optYes")}</option>
+                                    <option value="no">{t("voterEditForm.optNo")}</option>
                                 </select>
                             </div>
                             {influencerValue === "yes" && (
                                 <>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Influential Type</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblInfluentialType")}</label>
                                         <select
                                             {...register("influecial_type")}
                                             disabled={editingSection !== 'influencer'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select...</option>
-                                            <option value="Political Leader">Political Leader</option>
-                                            <option value="Religious Leader">Religious Leader</option>
-                                            <option value="Community Leader">Community Leader</option>
-                                            <option value="Business Leader">Business Leader</option>
-                                            <option value="Social Worker">Social Worker</option>
-                                            <option value="Youth Leader">Youth Leader</option>
-                                            <option value="Other">Other</option>
+                                            <option value="">{t("voterEditForm.optSelect")}</option>
+                                            <option value="Political Leader">{t("voterEditForm.optInfluentialTypePoliticalLeader")}</option>
+                                            <option value="Religious Leader">{t("voterEditForm.optInfluentialTypeReligiousLeader")}</option>
+                                            <option value="Community Leader">{t("voterEditForm.optInfluentialTypeCommunityLeader")}</option>
+                                            <option value="Business Leader">{t("voterEditForm.optInfluentialTypeBusinessLeader")}</option>
+                                            <option value="Social Worker">{t("voterEditForm.optInfluentialTypeSocialWorker")}</option>
+                                            <option value="Youth Leader">{t("voterEditForm.optInfluentialTypeYouthLeader")}</option>
+                                            <option value="Other">{t("voterEditForm.optOther")}</option>
                                         </select>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Influential Category</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblInfluentialCategory")}</label>
                                         <select
                                             {...register("influencial_catg")}
                                             disabled={editingSection !== 'influencer'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'influencer' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select...</option>
-                                            <option value="High">High</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="Low">Low</option>
+                                            <option value="">{t("voterEditForm.optSelect")}</option>
+                                            <option value="High">{t("voterEditForm.optInfluentialCategoryHigh")}</option>
+                                            <option value="Medium">{t("voterEditForm.optInfluentialCategoryMedium")}</option>
+                                            <option value="Low">{t("voterEditForm.optInfluentialCategoryLow")}</option>
                                         </select>
                                     </div>
-                                    <LabeledInput label="Voter Mobilization Capacity" field="voter_mobilization_capacity" register={register} type="number" disabled={editingSection !== 'influencer'} />
+                                    <LabeledInput t={t} label={t("voterEditForm.lblVoterMobilizationCapacity")} field="voter_mobilization_capacity" register={register} type="number" disabled={editingSection !== 'influencer'} />
                                 </>
                             )}
                         </div>
                         {editingSection === 'influencer' && (
-                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                         )}
                     </div>
                 )}
 
                 {/* Labarthi - Editable */}
                 {!isExpired && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-lg font-semibold text-gray-900">Labarthi</h2>
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionLabarthi")}</h2>
                             {editingSection !== 'labarthi' && (
-                                <EditButton onEdit={() => handleEdit('labarthi')} />
+                                <EditButton onEdit={() => handleEdit('labarthi')} label={t("voterEditForm.btnEdit")} />
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" {...register("labarthi_in_person")} id="labarthi_in_person" disabled={editingSection !== 'labarthi'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="labarthi_in_person" className="text-sm font-medium text-gray-700">Labarthi in Person</label>
+                                <label htmlFor="labarthi_in_person" className="text-sm font-medium text-[var(--text-secondary)]">{t("voterEditForm.lblLabarthiInPerson")}</label>
                             </div>
                             {labarthiInPersonValue && (
                                 <>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Labarthi Center</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblLabarthiCenter")}</label>
                                         <select
                                             {...register("labarthi_center")}
                                             disabled={editingSection !== 'labarthi'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select...</option>
-                                            <option value="yes">Yes</option>
-                                            <option value="no">No</option>
+                                            <option value="">{t("voterEditForm.optSelect")}</option>
+                                            <option value="yes">{t("voterEditForm.optYes")}</option>
+                                            <option value="no">{t("voterEditForm.optNo")}</option>
                                         </select>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Labarthi State</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblLabarthiState")}</label>
                                         <select
                                             {...register("labarthi_state")}
                                             disabled={editingSection !== 'labarthi'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select...</option>
-                                            <option value="yes">Yes</option>
-                                            <option value="no">No</option>
+                                            <option value="">{t("voterEditForm.optSelect")}</option>
+                                            <option value="yes">{t("voterEditForm.optYes")}</option>
+                                            <option value="no">{t("voterEditForm.optNo")}</option>
                                         </select>
                                     </div>
                                     {(labarthiCenterValue === "yes" || labarthiStateValue === "yes") && (
                                         <div className="flex flex-col">
-                                            <label className="text-sm font-medium mb-1.5 text-gray-700">
+                                            <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">
                                                 {labarthiCenterValue === "yes" && labarthiStateValue === "yes"
-                                                    ? "Labarthi Center/State Scheme"
+                                                    ? t("voterEditForm.lblLabarthiCenterStateScheme")
                                                     : labarthiCenterValue === "yes"
-                                                        ? "Labarthi Center Scheme"
-                                                        : "Labarthi State Scheme"
+                                                        ? t("voterEditForm.lblLabarthiCenterScheme")
+                                                        : t("voterEditForm.lblLabarthiStateScheme")
                                                 }
                                             </label>
                                             <input
@@ -635,16 +647,16 @@ export const VoterEditForm: React.FC<Props> = ({
                                                 {...register("labarthi_scheme")}
                                                 placeholder={
                                                     labarthiCenterValue === "yes" && labarthiStateValue === "yes"
-                                                        ? "Enter Labarthi Center/State Scheme"
+                                                        ? t("voterEditForm.phEnterLabarthiCenterStateScheme")
                                                         : labarthiCenterValue === "yes"
-                                                            ? "Enter Labarthi Center Scheme"
-                                                            : "Enter Labarthi State Scheme"
+                                                            ? t("voterEditForm.phEnterLabarthiCenterScheme")
+                                                            : t("voterEditForm.phEnterLabarthiStateScheme")
                                                 }
                                                 disabled={editingSection !== 'labarthi'}
                                                 className={`
-                                                    bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm
+                                                    bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm
                                                     focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
-                                                    ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}
+                                                    ${editingSection !== 'labarthi' ? 'bg-gray-100 cursor-not-allowed text-[var(--text-secondary)]' : ''}
                                                 `}
                                             />
                                         </div>
@@ -653,37 +665,37 @@ export const VoterEditForm: React.FC<Props> = ({
                             )}
                         </div>
                         {editingSection === 'labarthi' && (
-                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                         )}
                     </div>
                 )}
 
                 {/* Approach - Editable */}
                 {!isExpired && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-lg font-semibold text-gray-900">Approach</h2>
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionApproach")}</h2>
                             {editingSection !== 'approach' && (
-                                <EditButton onEdit={() => handleEdit('approach')} />
+                                <EditButton onEdit={() => handleEdit('approach')} label={t("voterEditForm.btnEdit")} />
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <LabeledInput label="Approach Count" field="approch_count" register={register} type="number" disabled={editingSection !== 'approach'} />
-                            <LabeledInput label="Approach Reason" field="approach_reason" register={register} disabled={editingSection !== 'approach'} />
+                            <LabeledInput t={t} label={t("voterEditForm.lblApproachCount")} field="approch_count" register={register} type="number" disabled={editingSection !== 'approach'} />
+                            <LabeledInput t={t} label={t("voterEditForm.lblApproachReason")} field="approach_reason" register={register} disabled={editingSection !== 'approach'} />
                         </div>
                         {editingSection === 'approach' && (
-                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                         )}
                     </div>
                 )}
 
                 {/* Voter Location - Editable */}
                 {!isExpired && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-1">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-3 mb-1">
                         <div className="flex justify-between items-center mb-1">
-                            <h2 className="text-lg font-semibold text-gray-900">Voter Location</h2>
+                            <h2 className="text-lg font-semibold text-[var(--text-color)]">{t("voterEditForm.sectionVoterLocation")}</h2>
                             {editingSection !== 'location' && (
-                                <EditButton onEdit={() => handleEdit('location')} />
+                                <EditButton onEdit={() => handleEdit('location')} label={t("voterEditForm.btnEdit")} />
                             )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -691,20 +703,20 @@ export const VoterEditForm: React.FC<Props> = ({
                             {/* Staying Within Checkbox */}
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" {...register("staying_within")} id="staying_within" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="staying_within" className="text-sm font-medium text-gray-700">Within State</label>
+                                <label htmlFor="staying_within" className="text-sm font-medium text-[var(--text-secondary)]">{t("voterEditForm.lblWithinState")}</label>
                             </div>
 
                             {/* Staying Within Fields - Show when staying_within is checked */}
                             {stayingWithinValue && (
                                 <>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying State</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblStayingState")}</label>
                                         <select
                                             {...register("staying_state")}
                                             disabled={true}
-                                            className="bg-gray-100 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm cursor-not-allowed appearance-none"
+                                            className="bg-gray-100 border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm cursor-not-allowed appearance-none"
                                         >
-                                            <option value="">Select State...</option>
+                                            <option value="">{t("voterEditForm.optSelectState")}</option>
                                             {states.map((state) => (
                                                 <option key={state.id} value={state.levelName}>
                                                     {state.levelName}
@@ -713,13 +725,13 @@ export const VoterEditForm: React.FC<Props> = ({
                                         </select>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying District</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblStayingDistrict")}</label>
                                         <select
                                             {...register("staying_city")}
                                             disabled={editingSection !== 'location' || !watchStayingStateId}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchStayingStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchStayingStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select District...</option>
+                                            <option value="">{t("voterEditForm.optSelectDistrict")}</option>
                                             {stayingDistricts.map((district) => (
                                                 <option key={district.id} value={district.levelName}>
                                                     {district.levelName}
@@ -728,13 +740,13 @@ export const VoterEditForm: React.FC<Props> = ({
                                         </select>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Staying Assembly</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblStayingAssembly")}</label>
                                         <select
                                             {...register("staying_address")}
                                             disabled={editingSection !== 'location' || !watch("staying_city")}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watch("staying_city") ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watch("staying_city") ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select Assembly...</option>
+                                            <option value="">{t("voterEditForm.optSelectAssembly")}</option>
                                             {assemblies.map((assembly) => (
                                                 <option key={assembly.id} value={assembly.levelName}>
                                                     {assembly.levelName}
@@ -749,20 +761,20 @@ export const VoterEditForm: React.FC<Props> = ({
                             {/* Shifted Checkbox */}
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" {...register("shifted")} id="shifted" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="shifted" className="text-sm font-medium text-gray-700">Shifted</label>
+                                <label htmlFor="shifted" className="text-sm font-medium text-[var(--text-secondary)]">{t("voterEditForm.lblShifted")}</label>
                             </div>
 
                             {/* Shifted Fields - Show when shifted is checked */}
                             {shiftedValue && (
                                 <>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Shifted State</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblShiftedState")}</label>
                                         <select
                                             {...register("shifted_state")}
                                             disabled={editingSection !== 'location'}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select State...</option>
+                                            <option value="">{t("voterEditForm.optSelectState")}</option>
                                             {states.map((state) => (
                                                 <option key={state.id} value={state.levelName}>
                                                     {state.levelName}
@@ -771,13 +783,13 @@ export const VoterEditForm: React.FC<Props> = ({
                                         </select>
                                     </div>
                                     <div className="flex flex-col">
-                                        <label className="text-sm font-medium mb-1.5 text-gray-700">Shifted District</label>
+                                        <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblShiftedDistrict")}</label>
                                         <select
                                             {...register("shifted_city")}
                                             disabled={editingSection !== 'location' || !watchShiftedStateId}
-                                            className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchShiftedStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                            className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' || !watchShiftedStateId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                         >
-                                            <option value="">Select District...</option>
+                                            <option value="">{t("voterEditForm.optSelectDistrict")}</option>
                                             {shiftedDistricts.map((district) => (
                                                 <option key={district.id} value={district.levelName}>
                                                     {district.levelName}
@@ -792,19 +804,19 @@ export const VoterEditForm: React.FC<Props> = ({
                             {/* Staying Outside Checkbox */}
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" {...register("staying_outside")} id="staying_outside" disabled={editingSection !== 'location'} className="form-checkbox h-4 w-4 text-indigo-600 rounded" />
-                                <label htmlFor="staying_outside" className="text-sm font-medium text-gray-700">Staying Outside Country</label>
+                                <label htmlFor="staying_outside" className="text-sm font-medium text-[var(--text-secondary)]">{t("voterEditForm.lblStayingOutsideCountry")}</label>
                             </div>
 
                             {/* Outside Country Field - Show when staying_outside is checked */}
                             {stayingOutsideValue && (
                                 <div className="flex flex-col">
-                                    <label className="text-sm font-medium mb-1.5 text-gray-700">Outside Country</label>
+                                    <label className="text-sm font-medium mb-1.5 text-[var(--text-secondary)]">{t("voterEditForm.lblOutsideCountry")}</label>
                                     <select
                                         {...register("outside_country")}
                                         disabled={editingSection !== 'location'}
-                                        className={`bg-white border border-gray-300 text-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                                        className={`bg-[var(--bg-card)] border border-gray-300 text-[var(--text-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${editingSection !== 'location' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                                     >
-                                        <option value="">Select Country...</option>
+                                        <option value="">{t("voterEditForm.optSelectCountry")}</option>
                                         {countries.map((country) => (
                                             <option key={country} value={country}>
                                                 {country}
@@ -816,7 +828,7 @@ export const VoterEditForm: React.FC<Props> = ({
 
                         </div>
                         {editingSection === 'location' && (
-                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} />
+                            <SaveCancelButtons onSave={handleSave} onCancel={handleCancel} btnCancel={t("voterEditForm.btnCancel")} btnSaveChanges={t("voterEditForm.btnSaveChanges")} />
                         )}
                     </div>
                 )}
@@ -824,3 +836,5 @@ export const VoterEditForm: React.FC<Props> = ({
         </div>
     );
 };
+
+

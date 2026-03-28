@@ -32,10 +32,10 @@ export default function DynamicLevelPage() {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-blue-50 p-1">
                 <div className="text-center py-12">
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
                         Level not specified
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         Please select a valid level from the sidebar.
                     </p>
                 </div>
@@ -52,10 +52,10 @@ export default function DynamicLevelPage() {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-blue-50 p-1">
                 <div className="text-center py-12">
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
                         Level not found
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         The requested level "{levelName}" is not configured for this party and state.
                     </p>
                 </div>

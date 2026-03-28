@@ -265,9 +265,9 @@ export default function MandalList() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                             {/* Total Mandals Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Mandals</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Mandals</p>
                                     <p className="text-xl sm:text-2xl font-semibold mt-1">{mandals.length}</p>
                                 </div>
                                 <div className="bg-blue-50 rounded-full p-1.5">
@@ -278,9 +278,9 @@ export default function MandalList() {
                             </div>
 
                             {/* Total Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                         {mandals.reduce((sum, mandal) => sum + (mandal.user_count || 0), 0)}
                                     </p>
@@ -295,7 +295,7 @@ export default function MandalList() {
                             {/* Mandals Without Users Card - Clickable */}
                             <div 
                                 onClick={handleMandalsWithoutUsersClick}
-                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                                     mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0
                                         ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
                                         : 'cursor-default'
@@ -307,23 +307,23 @@ export default function MandalList() {
                                 title={mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? "Click to view mandals without users" : "No mandals without users"}
                             >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">
                                         Mandals Without Users
                                         {showMandalsWithoutUsers && (
                                             <span className="ml-2 text-red-600 font-semibold"></span>
                                         )}
                                     </p>
-                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                                         {mandals.filter(mandal => (mandal.user_count || 0) === 0).length}
                                     </p>
                                 </div>
-                                <div className={`rounded-full p-1.5 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                <div className={`rounded-full p-1.5 ${mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-[var(--bg-main)]'}`}>
                                     {mandals.filter(mandal => (mandal.user_count || 0) === 0).length > 0 ? (
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
                                     ) : (
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     )}
@@ -334,21 +334,21 @@ export default function MandalList() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Assembly
                             </label>
                             <input
                                 type="text"
                                 value={assemblyInfo.assemblyName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Select Block
                             </label>
                             <select
@@ -369,7 +369,7 @@ export default function MandalList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Filter by Mandal
                             </label>
                             <select
@@ -389,12 +389,12 @@ export default function MandalList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Search Mandals
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -414,18 +414,18 @@ export default function MandalList() {
                 </div>
 
                 {/* Mandal List */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                     {isLoadingAllMandals ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600">Loading mandals...</p>
+                            <p className="mt-4 text-[var(--text-secondary)]">Loading mandals...</p>
                         </div>
                     ) : filteredMandals.length === 0 ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No mandals found</p>
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium">No mandals found</p>
                         </div>
                     ) : (
                         <>
@@ -433,32 +433,32 @@ export default function MandalList() {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 S.No
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Block
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Level Type
                                             </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Display Name
                                             </th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                Total Users
                                             </th>
                                             
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                 Assigned Booth
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                         {paginatedMandals.map((mandal, index) => (
                                             <>
                                                 <tr key={mandal.id} className="hover:bg-blue-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -479,8 +479,8 @@ export default function MandalList() {
                                                             </svg>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-semibold text-gray-900">{mandal.displayName}</p>
-                                                            <p className="text-xs text-gray-500">{mandal.partyLevelDisplayName}</p>
+                                                            <p className="text-sm font-semibold text-[var(--text-color)]">{mandal.displayName}</p>
+                                                            <p className="text-xs text-[var(--text-secondary)]">{mandal.partyLevelDisplayName}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -500,7 +500,7 @@ export default function MandalList() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                             </svg>
                                                         </button>
-                                                        <span className="text-sm font-medium text-gray-900">
+                                                        <span className="text-sm font-medium text-[var(--text-color)]">
                                                             {mandal.user_count || 0}
                                                         </span>
                                                     </div>
@@ -553,9 +553,9 @@ export default function MandalList() {
 
                             {/* Pagination */}
                             {filteredMandals.length > 0 && (
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 mt-4">
+                                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)] mt-4">
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                        <div className="text-sm text-gray-700">
+                                        <div className="text-sm text-[var(--text-secondary)]">
                                             <span>
                                                 Showing{" "}
                                                 <span className="font-semibold">
@@ -573,7 +573,7 @@ export default function MandalList() {
                                                 <button
                                                     onClick={() => setCurrentPage(currentPage - 1)}
                                                     disabled={currentPage === 1}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Previous
                                                 </button>
@@ -595,7 +595,7 @@ export default function MandalList() {
                                                                 onClick={() => setCurrentPage(pageNum)}
                                                                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                                                     ? "bg-blue-600 text-white"
-                                                                    : "text-gray-700 hover:bg-gray-100"
+                                                                    : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                                     }`}
                                                             >
                                                                 {pageNum}
@@ -606,7 +606,7 @@ export default function MandalList() {
                                                 <button
                                                     onClick={() => setCurrentPage(currentPage + 1)}
                                                     disabled={currentPage === totalPages}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     Next
                                                 </button>
@@ -663,3 +663,6 @@ export default function MandalList() {
         </div>
     );
 }
+
+
+

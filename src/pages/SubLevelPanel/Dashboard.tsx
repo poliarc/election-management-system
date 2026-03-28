@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { fetchAssignedUsersForLevel, fetchAfterAssemblyChildrenByParent } from "../../services/afterAssemblyApi";
 import { useAppSelector } from "../../store/hooks";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function SubLevelPanelDashboard() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { user } = useAppSelector((s) => s.auth);
     const [stats, setStats] = useState({
@@ -100,13 +102,13 @@ export default function SubLevelPanelDashboard() {
     }, [levelId]);
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             {/* Header with Stats Cards */}
             <div className="bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
                         <h1 className="text-xl sm:text-2xl font-bold">
-                            {levelInfo?.displayName || levelInfo?.levelName || "Sub Level"} Dashboard
+                            {levelInfo?.displayName || levelInfo?.levelName || "Sub Level"} {t("SubLevelPanelDashboard.Dashboard")}
                         </h1>
                         <p className="text-teal-100 mt-1 text-xs sm:text-sm">
                             {levelInfo?.levelType || "Level"}
@@ -119,9 +121,9 @@ export default function SubLevelPanelDashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Total_Users")}</p>
                                 <p className="text-xl sm:text-2xl font-semibold mt-1">
                                     {loading ? "..." : stats.totalUsers}
                                 </p>
@@ -133,9 +135,9 @@ export default function SubLevelPanelDashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Active_Users")}</p>
                                 <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                     {loading ? "..." : stats.activeUsers}
                                 </p>
@@ -147,9 +149,9 @@ export default function SubLevelPanelDashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Inactive Users</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]"> {t("SubLevelPanelDashboard.Inactive_Users")}</p>
                                 <p className="text-xl sm:text-2xl font-semibold text-red-600 mt-1">
                                     {loading ? "..." : stats.inactiveUsers}
                                 </p>
@@ -161,9 +163,9 @@ export default function SubLevelPanelDashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Sub Levels</p>
+                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Sub_Levels")}</p>
                                 <p className="text-xl sm:text-2xl font-semibold text-teal-600 mt-1">
                                     {loading ? "..." : stats.childLevels}
                                 </p>
@@ -179,26 +181,26 @@ export default function SubLevelPanelDashboard() {
             </div>
 
             {/* Level Information */}
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Level Information</h2>
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-bold text-[var(--text-color)] mb-4">{t("SubLevelPanelDashboard.Level_Information")}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Level Name</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900">{levelInfo?.levelName || levelInfo?.displayName || "N/A"}</p>
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Level_Name")}</p>
+                        <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">{levelInfo?.levelName || levelInfo?.displayName || "N/A"}</p>
                     </div>
                     <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Level Type</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900">{levelInfo?.levelType || "N/A"}</p>
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Level_Type")}</p>
+                        <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">{levelInfo?.levelType || "N/A"}</p>
                     </div>
                     <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Party Name</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900">
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Party_Name")}</p>
+                        <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
                             {user?.partyName || "N/A"}
                         </p>
                     </div>
                     <div>
-                        <p className="text-xs sm:text-sm text-gray-600">Parent Type</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900">
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Parent_Type")}</p>
+                        <p className="text-base sm:text-lg font-semibold text-[var(--text-color)]">
                             {levelInfo?.parentId === null
                                 ? "Assembly"
                                 : (levelInfo?.parentLevelType && levelInfo.parentLevelType !== 'Unknown'
@@ -211,3 +213,5 @@ export default function SubLevelPanelDashboard() {
         </div>
     );
 }
+
+

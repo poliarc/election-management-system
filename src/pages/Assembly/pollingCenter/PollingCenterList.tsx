@@ -336,9 +336,9 @@ export default function PollingCenterList() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                             {/* Total Polling Centers Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Polling Centers</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Polling Centers</p>
                                     <p className="text-xl sm:text-2xl font-semibold mt-1">{pollingCenters.length}</p>
                                 </div>
                                 <div className="bg-green-50 rounded-full p-1.5">
@@ -349,9 +349,9 @@ export default function PollingCenterList() {
                             </div>
 
                             {/* Total Users Card */}
-                            <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                            <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">Total Users</p>
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">Total Users</p>
                                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                                         {pollingCenters.reduce((sum, pc) => sum + (pc.user_count || 0), 0)}
                                     </p>
@@ -366,7 +366,7 @@ export default function PollingCenterList() {
                             {/* Polling Centers Without Users Card - Clickable */}
                             <div 
                                 onClick={handlePollingCentersWithoutUsersClick}
-                                className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                                className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                                     pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0
                                         ? 'cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50' 
                                         : 'cursor-default'
@@ -378,23 +378,23 @@ export default function PollingCenterList() {
                                 title={pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? "Click to view polling centers without users" : "No polling centers without users"}
                             >
                                 <div>
-                                    <p className="text-xs font-medium text-gray-600">
+                                    <p className="text-xs font-medium text-[var(--text-secondary)]">
                                         Polling Centers Without Users
                                         {showPollingCentersWithoutUsers && (
                                             <span className="ml-2 text-red-600 font-semibold"></span>
                                         )}
                                     </p>
-                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                    <p className={`text-xl sm:text-2xl font-semibold mt-1 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                                         {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length}
                                     </p>
                                 </div>
-                                <div className={`rounded-full p-1.5 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                <div className={`rounded-full p-1.5 ${pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? 'bg-red-50' : 'bg-[var(--bg-main)]'}`}>
                                     {pollingCenters.filter(pc => (pc.user_count || 0) === 0).length > 0 ? (
                                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
                                     ) : (
-                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     )}
@@ -405,21 +405,21 @@ export default function PollingCenterList() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Assembly
                             </label>
                             <input
                                 type="text"
                                 value={assemblyInfo.assemblyName}
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Select Block
                             </label>
                             <select
@@ -441,7 +441,7 @@ export default function PollingCenterList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Select Mandal <span className="text-red-500">*</span>
                             </label>
                             <select
@@ -463,7 +463,7 @@ export default function PollingCenterList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Filter by Polling Center
                             </label>
                             <select
@@ -484,12 +484,12 @@ export default function PollingCenterList() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 Search Polling Centers
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -510,33 +510,33 @@ export default function PollingCenterList() {
                 </div>
 
                 {/* Polling Center List */}
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                     {isLoadingAllPollingCenters ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-4 text-gray-600">Loading polling centers...</p>
+                            <p className="mt-4 text-[var(--text-secondary)]">Loading polling centers...</p>
                         </div>
                     ) : filteredPollingCenters.length === 0 ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">Please select a mandal to view polling centers</p>
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium">Please select a mandal to view polling centers</p>
                         </div>
                     ) : isLoadingAllPollingCenters ? (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-                            <p className="mt-4 text-gray-600">Loading polling centers...</p>
+                            <p className="mt-4 text-[var(--text-secondary)]">Loading polling centers...</p>
                         </div>
                     ) : filteredPollingCenters.length === 0 ? (
                         <div className="text-center py-12">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
-                            <p className="mt-2 text-gray-500 font-medium">No polling centers found in this mandal</p>
-                            <p className="mt-1 text-xs text-gray-400">
+                            <p className="mt-2 text-[var(--text-secondary)] font-medium">No polling centers found in this mandal</p>
+                            <p className="mt-1 text-xs text-[var(--text-secondary)]">
                                 This mandal may contain only direct booths. 
                                 <br />
                                 Please check the <span className="font-semibold">Booth</span> section to view booths.
@@ -548,20 +548,20 @@ export default function PollingCenterList() {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gradient-to-r from-green-50 to-green-100 sticky top-0">
                                         <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">S.No</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Mandal</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level Type</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Display Name</th>
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Total Users</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">S.No</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Mandal</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Level Type</th>
+                                            <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Display Name</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Total Users</th>
                                             
-                                            <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Booth</th>
+                                            <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Assigned Booth</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                         {paginatedPollingCenters.map((pc, index) => (
                                             <>
                                                 <tr key={pc.id} className="hover:bg-green-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                                                     {(currentPage - 1) * itemsPerPage + index + 1}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -582,8 +582,8 @@ export default function PollingCenterList() {
                                                             </svg>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-semibold text-gray-900">{pc.displayName}</p>
-                                                            <p className="text-xs text-gray-500">{pc.partyLevelDisplayName}</p>
+                                                            <p className="text-sm font-semibold text-[var(--text-color)]">{pc.displayName}</p>
+                                                            <p className="text-xs text-[var(--text-secondary)]">{pc.partyLevelDisplayName}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -603,7 +603,7 @@ export default function PollingCenterList() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                             </svg>
                                                         </button>
-                                                        <span className="text-sm font-medium text-gray-900">
+                                                        <span className="text-sm font-medium text-[var(--text-color)]">
                                                             {pc.user_count || 0}
                                                         </span>
                                                     </div>
@@ -656,9 +656,9 @@ export default function PollingCenterList() {
 
                             {/* Pagination */}
                             {filteredPollingCenters.length > 0 && (
-                                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 mt-4">
+                                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)] mt-4">
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                        <div className="text-sm text-gray-700">
+                                        <div className="text-sm text-[var(--text-secondary)]">
                                             <span>
                                                 Showing <span className="font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-semibold">{Math.min(currentPage * itemsPerPage, filteredPollingCenters.length)}</span> of <span className="font-semibold">{filteredPollingCenters.length}</span> results
                                             </span>
@@ -667,14 +667,14 @@ export default function PollingCenterList() {
                                             <button
                                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                                 disabled={currentPage === 1}
-                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 Previous
                                             </button>
                                             <button
                                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                                 disabled={currentPage === totalPages}
-                                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 Next
                                             </button>
@@ -732,3 +732,6 @@ export default function PollingCenterList() {
         </div>
     );
 }
+
+
+

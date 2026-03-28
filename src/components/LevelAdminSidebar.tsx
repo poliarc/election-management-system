@@ -107,14 +107,14 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
     ];
 
     return (
-        <aside className="bg-white border-r border-gray-200 h-full flex flex-col">
+        <aside className="bg-[var(--bg-card)] border-r border-[var(--border-color)] h-full flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800">{selectedPanel.displayName}</h2>
-                <p className="text-sm text-gray-600 mt-1">
+            <div className="p-6 border-b border-[var(--border-color)]">
+                <h2 className="text-xl font-bold text-[var(--text-color)]">{selectedPanel.displayName}</h2>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
                     {selectedPanel.metadata?.stateName || "Level Admin"}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
                     {selectedPanel.metadata?.partyName || ""}
                 </p>
             </div>
@@ -128,8 +128,8 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
                         onClick={onNavigate}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                ? "bg-blue-50 text-blue-700 font-semibold shadow-sm"
-                                : "text-gray-700 hover:bg-gray-100"
+                                ? "bg-[var(--bg-color)] text-blue-700 font-semibold shadow-sm"
+                                : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`
                         }
                     >
@@ -140,11 +140,13 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="text-xs text-gray-500 text-center">
+            <div className="p-4 border-t border-[var(--border-color)]">
+                <div className="text-xs text-[var(--text-secondary)] text-center">
                     Level Admin Panel
                 </div>
             </div>
         </aside>
     );
 }
+
+

@@ -263,17 +263,17 @@ export const RegistrationLinksManager: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
+        <div className="min-h-screen bg-[var(--bg-main)] p-2 sm:p-4">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-4 sm:mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                                 <Link className="text-blue-600" />
                                 Registration Links
                             </h1>
-                            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                            <p className="text-[var(--text-secondary)] mt-1 text-sm sm:text-base">
                                 Manage registration links for {currentParty?.partyName || "your party"}
                             </p>
                         </div>
@@ -304,16 +304,16 @@ export const RegistrationLinksManager: React.FC = () => {
 
                 {/* Tabs and Search */}
                 {!showForm && (
-                    <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-md mb-4 sm:mb-6">
                         {/* Tabs */}
-                        <div className="border-b border-gray-200">
+                        <div className="border-b border-[var(--border-color)]">
                             <nav className="flex space-x-8 px-4 sm:px-6" aria-label="Tabs">
                                 <button
                                     onClick={() => handleTabChange('all')}
                                     disabled={isLoadingLinks}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'all'
                                         ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
                                     All Links
@@ -328,7 +328,7 @@ export const RegistrationLinksManager: React.FC = () => {
                                     disabled={isLoadingLinks}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'active'
                                         ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
                                     Active Links
@@ -343,12 +343,12 @@ export const RegistrationLinksManager: React.FC = () => {
                                     disabled={isLoadingLinks}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors disabled:opacity-50 ${activeTab === 'inactive'
                                         ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300'
                                         }`}
                                 >
                                     Inactive Links
                                     {activeTab === 'inactive' && !isLoadingLinks && (
-                                        <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
+                                        <span className="ml-2 bg-gray-100 text-[var(--text-secondary)] py-0.5 px-2 rounded-full text-xs">
                                             {pagination.total}
                                         </span>
                                     )}
@@ -362,7 +362,7 @@ export const RegistrationLinksManager: React.FC = () => {
                                 {/* Search */}
                                 <div className="flex-1">
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] w-4 h-4" />
                                         <input
                                             type="text"
                                             placeholder="Search by party, state, or district name..."
@@ -376,7 +376,7 @@ export const RegistrationLinksManager: React.FC = () => {
 
                             {/* Results count and quick actions */}
                             <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-[var(--text-secondary)]">
                                     Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} {
                                         activeTab === 'all' ? 'registration links' :
                                             activeTab === 'active' ? 'active links' : 'inactive links'
@@ -387,7 +387,7 @@ export const RegistrationLinksManager: React.FC = () => {
                                 <div className="flex flex-wrap items-center gap-2">
                                     <button
                                         onClick={() => refetch()}
-                                        className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                                        className="px-3 py-1 text-sm bg-gray-100 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 transition-colors"
                                     >
                                         Refresh
                                     </button>
@@ -424,14 +424,14 @@ export const RegistrationLinksManager: React.FC = () => {
                 {/* Enhanced Pagination */}
                 {!showForm && pagination.totalPages > 1 && (
                     <div className="mt-6 flex justify-center">
-                        <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-lg shadow-md">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
                             {/* Pagination Controls */}
                             <div className="flex items-center gap-2">
                                 {/* Previous Button */}
                                 <button
                                     onClick={() => handleSearchChange({ page: pagination.page - 1 })}
                                     disabled={pagination.page === 1}
-                                    className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                    className="px-3 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
                                 >
                                     Prev
                                 </button>
@@ -443,12 +443,12 @@ export const RegistrationLinksManager: React.FC = () => {
                                         <>
                                             <button
                                                 onClick={() => handleSearchChange({ page: 1 })}
-                                                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                                className="px-3 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors text-sm"
                                             >
                                                 1
                                             </button>
                                             {pagination.page > 4 && (
-                                                <span className="px-2 text-gray-500 text-sm">...</span>
+                                                <span className="px-2 text-[var(--text-secondary)] text-sm">...</span>
                                             )}
                                         </>
                                     )}
@@ -474,7 +474,7 @@ export const RegistrationLinksManager: React.FC = () => {
                                                 onClick={() => handleSearchChange({ page: pageNum })}
                                                 className={`px-3 py-2 border rounded-md transition-colors text-sm ${pageNum === pagination.page
                                                     ? "bg-blue-600 text-white border-blue-600"
-                                                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                                                    : "border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                                                     }`}
                                             >
                                                 {pageNum}
@@ -486,11 +486,11 @@ export const RegistrationLinksManager: React.FC = () => {
                                     {pagination.page < pagination.totalPages - 2 && (
                                         <>
                                             {pagination.page < pagination.totalPages - 3 && (
-                                                <span className="px-2 text-gray-500 text-sm">...</span>
+                                                <span className="px-2 text-[var(--text-secondary)] text-sm">...</span>
                                             )}
                                             <button
                                                 onClick={() => handleSearchChange({ page: pagination.totalPages })}
-                                                className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                                className="px-3 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors text-sm"
                                             >
                                                 {pagination.totalPages}
                                             </button>
@@ -502,14 +502,14 @@ export const RegistrationLinksManager: React.FC = () => {
                                 <button
                                     onClick={() => handleSearchChange({ page: pagination.page + 1 })}
                                     disabled={pagination.page >= pagination.totalPages}
-                                    className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                    className="px-3 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
                                 >
                                     Next
                                 </button>
                             </div>
 
                             {/* Page Info */}
-                            <div className="text-sm text-gray-600 font-medium">
+                            <div className="text-sm text-[var(--text-secondary)] font-medium">
                                 Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
                             </div>
                         </div>
@@ -519,10 +519,10 @@ export const RegistrationLinksManager: React.FC = () => {
                 {/* Loading Overlay */}
                 {!showForm && isLoadingLinks && searchParams.page === 1 && (
                     <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-40">
-                        <div className="bg-white rounded-lg p-6 shadow-xl">
+                        <div className="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl">
                             <div className="flex items-center gap-3">
                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                <span className="text-gray-700">Loading registration links...</span>
+                                <span className="text-[var(--text-secondary)]">Loading registration links...</span>
                             </div>
                         </div>
                     </div>
@@ -548,3 +548,5 @@ export const RegistrationLinksManager: React.FC = () => {
         </div>
     );
 };
+
+

@@ -52,7 +52,7 @@ export default function Form20() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-            <p className="mt-4 text-gray-600">Loading Form 20 data...</p>
+            <p className="mt-4 text-[var(--text-secondary)]">Loading Form 20 data...</p>
           </div>
         </div>
       </div>
@@ -109,10 +109,10 @@ export default function Form20() {
 
         {/* Results Content */}
         {resultData.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-8">
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-16 w-16 text-gray-400"
+                className="mx-auto h-16 w-16 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -124,11 +124,11 @@ export default function Form20() {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">No Form 20 Data Available</h3>
-              <p className="mt-2 text-gray-500">
+              <h3 className="mt-4 text-lg font-semibold text-[var(--text-color)]">No Form 20 Data Available</h3>
+              <p className="mt-2 text-[var(--text-secondary)]">
                 No result analysis data has been uploaded for this booth yet.
               </p>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 Data is uploaded from the Assembly level booth management system.
               </p>
             </div>
@@ -136,19 +136,19 @@ export default function Form20() {
         ) : (
           <div className="space-y-6">
             {resultData.map((result, index) => (
-              <div key={result.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div key={result.id} className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
                 {/* Result Header */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-[var(--text-color)]">
                         Result Entry {index + 1}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">
                         Party: {result.partyName || "Unknown"} | Booth: {result.boothNo}
                       </p>
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       Uploaded: {new Date(result.uploadedAt).toLocaleString()}
                     </div>
                   </div>
@@ -186,29 +186,29 @@ export default function Form20() {
                   {/* Candidate Results */}
                   {result.candidateDetails && result.candidateDetails.length > 0 && (
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Candidate Results</h4>
+                      <h4 className="text-lg font-semibold text-[var(--text-color)] mb-4">Candidate Results</h4>
                       <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-[var(--bg-main)]">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 Position
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 Candidate Name
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 Party
                               </th>
-                              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 Votes
                               </th>
-                              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 Percentage
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {(result.candidateDetails || [])
                               .slice()
                               .sort((a, b) => (b.candidateVotes || 0) - (a.candidateVotes || 0))
@@ -230,13 +230,13 @@ export default function Form20() {
                                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                           </svg>
                                         )} */}
-                                        <span className="text-sm font-medium text-gray-900">
+                                        <span className="text-sm font-medium text-[var(--text-color)]">
                                           {candidateIndex + 1}
                                         </span>
                                       </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                      <div className="text-sm font-medium text-gray-900">
+                                      <div className="text-sm font-medium text-[var(--text-color)]">
                                         {candidate.candidateName || "Unknown"}
                                       </div>
                                     </td>
@@ -246,12 +246,12 @@ export default function Form20() {
                                       </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                                      <div className="text-sm font-semibold text-gray-900">
+                                      <div className="text-sm font-semibold text-[var(--text-color)]">
                                         {(candidate.candidateVotes || 0).toLocaleString()}
                                       </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                                      <div className="text-sm font-medium text-gray-900">
+                                      <div className="text-sm font-medium text-[var(--text-color)]">
                                         {percentage}%
                                       </div>
                                     </td>
@@ -266,8 +266,8 @@ export default function Form20() {
 
                   {/* File Info */}
                   {result.fileName && (
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="mt-6 pt-4 border-t border-[var(--border-color)]">
+                      <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -294,3 +294,4 @@ export default function Form20() {
     </div>
   );
 }
+

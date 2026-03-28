@@ -12,8 +12,10 @@ import {
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 
 import type { HierarchyChild } from "../../../types/hierarchy";
+import { useTranslation } from "react-i18next";
 
 export default function DistrictUserManagement() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -302,18 +304,18 @@ export default function DistrictUserManagement() {
     return (
       <div className="p-1">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("DistrictUserManagement.Desc")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       <div className="bg-linear-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 text-white mb-1">
-        <h1 className="text-3xl font-bold">District User Management</h1>
+        <h1 className="text-3xl font-bold">{t("DistrictUserManagement.Title")}</h1>
         <p className="text-purple-100 mt-2">
-          Manage users for districts in {currentPanel.metadata?.stateName} -{" "}
+          {t("DistrictUserManagement.Desc1")} {currentPanel.metadata?.stateName} -{" "}
           {currentPanel.metadata?.partyName}
         </p>
       </div>
@@ -321,10 +323,10 @@ export default function DistrictUserManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Districts List */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-3">
-                Districts
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
+            <div className="p-4 border-b border-[var(--border-color)]">
+              <h2 className="text-lg font-bold text-[var(--text-color)] mb-3">
+                {t("DistrictUserManagement.Districts")}
               </h2>
               {/* District Search */}
               <input
@@ -341,8 +343,8 @@ export default function DistrictUserManagement() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-4 border-purple-600 mx-auto"></div>
                 </div>
               ) : filteredDistricts.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">
-                  No districts found
+                <div className="p-6 text-center text-[var(--text-secondary)]">
+                  {t("DistrictUserManagement.No_districts_found")}
                 </div>
               ) : (
                 filteredDistricts.map((district) => (
@@ -352,19 +354,19 @@ export default function DistrictUserManagement() {
                       setSelectedDistrict(district);
                       setShowAssignModal(false);
                     }}
-                    className={`w-full p-4 text-left border-b border-gray-200 hover:bg-gray-50 transition-colors ${selectedDistrict?.location_id === district.location_id
+                    className={`w-full p-4 text-left border-b border-[var(--border-color)] hover:bg-[var(--text-color)]/5 transition-colors ${selectedDistrict?.location_id === district.location_id
                       ? "bg-purple-50 border-l-4 border-l-purple-500"
                       : ""
                       }`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-[var(--text-color)]">
                           {district.location_name}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {district.total_users} users ({district.active_users}{" "}
-                          active)
+                        <p className="text-sm text-[var(--text-secondary)] mt-1">
+                          {district.total_users} {t("DistrictUserManagement.users")} ({district.active_users}{" "}
+                          {t("DistrictUserManagement.active")})
                         </p>
                       </div>
                     </div>
@@ -378,9 +380,9 @@ export default function DistrictUserManagement() {
         {/* Users Management */}
         <div className="lg:col-span-2">
           {!selectedDistrict ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-12 text-center">
               <svg
-                className="w-16 h-16 text-gray-400 mx-auto mb-4"
+                className="w-16 h-16 text-[var(--text-secondary)] mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -398,13 +400,13 @@ export default function DistrictUserManagement() {
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <p className="text-gray-500">Select a district to manage users</p>
+              <p className="text-[var(--text-secondary)]">{t("DistrictUserManagement.Desc2")}</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-md">
-              <div className="p-4 border-b border-gray-200">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md">
+              <div className="p-4 border-b border-[var(--border-color)]">
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-lg font-bold text-gray-800">
+                  <h2 className="text-lg font-bold text-[var(--text-color)]">
                     {selectedDistrict.location_name}
                   </h2>
                   <button
@@ -428,34 +430,34 @@ export default function DistrictUserManagement() {
                 // Assigned Users
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-[var(--bg-main)]">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          S.No
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.S_No")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Name
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Name")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Email
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Email")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          User Id
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.User_Id")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Status
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Status")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Actions
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                       {filteredDistrictUsers.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
-                            <p className="text-gray-500">
-                              No users assigned to this district
+                            <p className="text-[var(--text-secondary)]">
+                              {t("DistrictUserManagement.Desc2")}
                             </p>
                           </td>
                         </tr>
@@ -463,18 +465,18 @@ export default function DistrictUserManagement() {
                         paginatedDistrictUsers.map((user, index) => (
                           <tr
                             key={user.assignment_id}
-                            className="hover:bg-gray-50"
+                            className="hover:bg-[var(--text-color)]/5"
                           >
-                            <td className="px-6 py-4 text-sm text-gray-900">
+                            <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                               {(assignedPage - 1) * usersPerPage + index + 1}
                             </td>
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                            <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                               {user.first_name} {user.last_name}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">
+                            <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                               {user.email}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">
+                            <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                               {user.user_id}
                             </td>
                             <td className="px-6 py-4 text-sm">
@@ -512,19 +514,19 @@ export default function DistrictUserManagement() {
 
                   {/* Pagination for Assigned Users */}
                   {totalPagesAssigned > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
                       <button
                         onClick={() =>
                           setAssignedPage((p) => Math.max(1, p - 1))
                         }
                         disabled={assignedPage === 1}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("DistrictUserManagement.Previous")}
                       </button>
-                      <span className="text-sm text-gray-600">
-                        Page {assignedPage} of {totalPagesAssigned} (
-                        {totalUsersAssigned} users)
+                      <span className="text-sm text-[var(--text-secondary)]">
+                        {t("DistrictUserManagement.Page")} {assignedPage} {t("DistrictUserManagement.of")} {totalPagesAssigned} (
+                        {totalUsersAssigned} {t("DistrictUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -533,9 +535,9 @@ export default function DistrictUserManagement() {
                           )
                         }
                         disabled={assignedPage === totalPagesAssigned}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("DistrictUserManagement.Next")}
                       </button>
                     </div>
                   )}
@@ -544,29 +546,29 @@ export default function DistrictUserManagement() {
                 // Available Users
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-[var(--bg-main)]">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          S.No
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.S_No")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Name
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Name")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Email
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Email")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          User Id
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.User_Id")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Status
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Status")}
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                          Actions
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                          {t("DistrictUserManagement.Actions")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                       {usersLoading ? (
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
@@ -576,24 +578,24 @@ export default function DistrictUserManagement() {
                       ) : filteredUnassignedUsers.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-6 py-12 text-center">
-                            <p className="text-gray-500">
-                              No available users found
+                            <p className="text-[var(--text-secondary)]">
+                              {t("DistrictUserManagement.Desc3")}
                             </p>
                           </td>
                         </tr>
                       ) : (
                         paginatedUnassignedUsers.map((user, index) => (
-                          <tr key={user.user_id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm text-gray-900">
+                          <tr key={user.user_id} className="hover:bg-[var(--text-color)]/5">
+                            <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                               {(availablePage - 1) * usersPerPage + index + 1}
                             </td>
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                            <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                               {user.first_name} {user.last_name}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">
+                            <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                               {user.email}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600">
+                            <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                               {user.user_id}
                             </td>
                             <td className="px-6 py-4 text-sm">
@@ -625,19 +627,19 @@ export default function DistrictUserManagement() {
 
                   {/* Pagination for Available Users */}
                   {totalPagesUnassigned > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
                       <button
                         onClick={() =>
                           setAvailablePage((p) => Math.max(1, p - 1))
                         }
                         disabled={availablePage === 1}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Previous
+                        {t("DistrictUserManagement.Previous")}
                       </button>
-                      <span className="text-sm text-gray-600">
-                        Page {availablePage} of {totalPagesUnassigned} (
-                        {totalUsersUnassigned} users)
+                      <span className="text-sm text-[var(--text-secondary)]">
+                        {t("DistrictUserManagement.Page")} {availablePage} {t("DistrictUserManagement.of")} {totalPagesUnassigned} (
+                        {totalUsersUnassigned} {t("DistrictUserManagement.users")})
                       </span>
                       <button
                         onClick={() =>
@@ -646,9 +648,9 @@ export default function DistrictUserManagement() {
                           )
                         }
                         disabled={availablePage === totalPagesUnassigned}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Next
+                        {t("DistrictUserManagement.Next")}
                       </button>
                     </div>
                   )}
@@ -672,3 +674,7 @@ export default function DistrictUserManagement() {
     </div>
   );
 }
+
+
+
+

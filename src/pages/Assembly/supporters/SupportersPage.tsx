@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { SupporterList, SupporterStats } from './index';
 import type { Supporter } from '../../../types/supporter';
 import { useAppSelector } from '../../../store/hooks';
+import { useTranslation } from 'react-i18next';
 
 export default function SupportersPage() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function SupportersPage() {
   const [booths, setBooths] = useState<any[]>([]);
   const [loadingBlocks, setLoadingBlocks] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
+  const { t } = useTranslation();
 
   const handleCreate = () => {
     navigate('/assembly/supporters/add');
@@ -236,19 +238,19 @@ export default function SupportersPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Supporters</h1>
-          <p className="text-gray-600">Manage your supporters database</p>
+          <h1 className="text-2xl font-bold text-[var(--text-color)]">{t('SupportersPage.Supporters')}</h1>
+          <p className="text-[var(--text-secondary)]">{t('SupportersPage.Manage_your_supporters_database')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleGenerateLink}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-            title="Generate a public link to share for supporter registration"
+            title={t('SupportersPage.Generate_Public_Link')}
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Generate Public Link
+            {t('SupportersPage.Generate_Public_Link')}
           </button>
           <button
             onClick={handleCreate}
@@ -257,7 +259,7 @@ export default function SupportersPage() {
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 5v14m-7-7h14" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Add Supporter
+            {t('SupportersPage.Add_Supporter')}
           </button>
         </div>
       </div>
@@ -273,11 +275,11 @@ export default function SupportersPage() {
       {/* Block Selection Modal */}
       {showBlockSelectionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Select Location for Registration Link</h3>
-                <p className="text-sm text-gray-600 mt-1">Choose hierarchy levels for the registration link</p>
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">{t('SupportersPage.Select_Location_for_Registration_Link')}</h3>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{t('SupportersPage.Choose_hierarchy_levels_for_the_registration_link')}</p>
               </div>
               <button
                 onClick={() => {
@@ -286,7 +288,7 @@ export default function SupportersPage() {
                   setSelectedMandalForLink(0);
                   setSelectedBoothForLink(0);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
               >
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M18 6L6 18M6 6l12 12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -298,39 +300,39 @@ export default function SupportersPage() {
               {loadingBlocks ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
-                  <p className="mt-2 text-sm text-gray-500">Loading hierarchy...</p>
+                  <p className="mt-2 text-sm text-[var(--text-secondary)]">Loading hierarchy...</p>
                 </div>
               ) : (
                 <>
                   {/* Pre-filled Location (Disabled) */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Pre-filled Location</h4>
+                  <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
+                    <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">{t('SupportersPage.Pre_filled_Location')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.State')}</label>
                         <input
                           type="text"
                           value={user?.stateName || selectedAssignment?.stateName || 'State'}
                           disabled
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">District</label>
+                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.District')}</label>
                         <input
                           type="text"
                           value={selectedAssignment?.parentLevelName || selectedAssignment?.districtName || 'District'}
                           disabled
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Assembly</label>
+                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Assembly')}</label>
                         <input
                           type="text"
                           value={selectedAssignment?.levelName || selectedAssignment?.displayName || 'Assembly'}
                           disabled
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                         />
                       </div>
                     </div>
@@ -338,11 +340,11 @@ export default function SupportersPage() {
 
                   {/* Hierarchy Selection */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Hierarchy Levels</h4>
+                    <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">{t('SupportersPage.Hierarchy_Levels')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Block Dropdown - Required */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                           Block <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -361,14 +363,14 @@ export default function SupportersPage() {
 
                       {/* Mandal Dropdown */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Mandal <span className="text-gray-400">(Optional)</span>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                          Mandal <span className="text-[var(--text-secondary)]">(Optional)</span>
                         </label>
                         <select
                           value={selectedMandalForLink}
                           onChange={(e) => handleMandalChange(parseInt(e.target.value))}
                           disabled={mandals.length === 0}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
                         >
                           <option value={0}>Select Mandal</option>
                           {mandals.map((mandal) => (
@@ -378,20 +380,20 @@ export default function SupportersPage() {
                           ))}
                         </select>
                         {mandals.length === 0 && (
-                          <p className="text-xs text-gray-500 mt-1">No mandals available</p>
+                          <p className="text-xs text-[var(--text-secondary)] mt-1">No mandals available</p>
                         )}
                       </div>
 
                       {/* Booth Dropdown */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Booth <span className="text-gray-400">(Optional)</span>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                          Booth <span className="text-[var(--text-secondary)]">(Optional)</span>
                         </label>
                         <select
                           value={selectedBoothForLink}
                           onChange={(e) => setSelectedBoothForLink(parseInt(e.target.value))}
                           disabled={booths.length === 0}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
                         >
                           <option value={0}>Select Booth</option>
                           {booths.map((booth) => (
@@ -401,10 +403,10 @@ export default function SupportersPage() {
                           ))}
                         </select>
                         {booths.length === 0 && selectedMandalForLink === 0 && (
-                          <p className="text-xs text-gray-500 mt-1">Select a mandal first</p>
+                          <p className="text-xs text-[var(--text-secondary)] mt-1">Select a mandal first</p>
                         )}
                         {booths.length === 0 && selectedMandalForLink > 0 && (
-                          <p className="text-xs text-gray-500 mt-1">No booths available</p>
+                          <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available</p>
                         )}
                       </div>
                     </div>
@@ -417,7 +419,7 @@ export default function SupportersPage() {
                         <path d="M12 16v-4M12 8h.01" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       <p className="text-sm text-blue-800">
-                        Block selection is required. Mandal and Booth are optional. Supporters registered through this link will be pre-filled with the selected levels.
+                        {t('SupportersPage.Block_selection_is_required')}
                       </p>
                     </div>
                   </div>
@@ -430,16 +432,16 @@ export default function SupportersPage() {
                         setSelectedMandalForLink(0);
                         setSelectedBoothForLink(0);
                       }}
-                      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                     >
-                      Cancel
+                      {t('SupportersPage.Cancel')}
                     </button>
                     <button
                       onClick={handleConfirmBlockAndGenerateLink}
                       disabled={selectedBlockForLink === 0}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      Generate Link
+                      {t('SupportersPage.Generate_Link')}
                     </button>
                   </div>
                 </>
@@ -452,15 +454,15 @@ export default function SupportersPage() {
       {/* Link Generation Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Public Supporter Registration Link</h3>
-                <p className="text-sm text-gray-600 mt-1">Share this link to allow others to register supporters on your behalf</p>
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">{t('SupportersPage.Public_Supporter_Registration_Link')}</h3>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{t('SupportersPage.Share_this_link_to_allow_others_to_register_supporters_on_your_behalf')}</p>
               </div>
               <button
                 onClick={handleCloseLinkModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
               >
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M18 6L6 18M6 6l12 12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -469,14 +471,14 @@ export default function SupportersPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Generated Link:</label>
+              <div className="bg-[var(--bg-main)] rounded-lg p-4 border border-[var(--border-color)]">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">{t('SupportersPage.Generated_Link')}:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={generatedLink}
                     readOnly
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-mono"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-sm font-mono"
                   />
                   <button
                     onClick={handleCopyLink}
@@ -486,7 +488,7 @@ export default function SupportersPage() {
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Copy
+                    {t('SupportersPage.Copy')}
                   </button>
                 </div>
               </div>
@@ -498,12 +500,12 @@ export default function SupportersPage() {
                     <path d="M12 16v-4M12 8h.01" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">How it works:</p>
+                    <p className="font-medium mb-1">{t('SupportersPage.How_it_works')}:</p>
                     <ul className="list-disc list-inside space-y-1 text-blue-700">
-                      <li>Share this link via WhatsApp, SMS, or social media</li>
-                      <li>Anyone with the link can register supporters</li>
-                      <li>All supporters registered through this link will be credited to you</li>
-                      <li>The link contains your assembly and user information</li>
+                      <li>{t('SupportersPage.Share_this_link_via_WhatsApp_SMS_or_social_media')}</li>
+                      <li>{t('SupportersPage.Anyone_with_the_link_can_register_supporters')}</li>
+                      <li>{t('SupportersPage.All_supporters_registered_through_this_link_will_be_credited_to_you')}</li>
+                      <li>{t('SupportersPage.The_link_contains_your_assembly_and_user_information')}</li>
                     </ul>
                   </div>
                 </div>
@@ -512,9 +514,9 @@ export default function SupportersPage() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={handleCloseLinkModal}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                 >
-                  Close
+                  {t('SupportersPage.Close')}
                 </button>
               </div>
             </div>
@@ -524,19 +526,19 @@ export default function SupportersPage() {
 
       {viewingSupporter && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  {/* <div className="bg-white bg-opacity-20 rounded-full p-2">
+                  {/* <div className="bg-[var(--bg-card)] bg-opacity-20 rounded-full p-2">
                     <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div> */}
                   <div>
-                    <h2 className="text-xl font-bold text-white">Supporter Details</h2>
-                    <p className="text-indigo-100 text-sm">Complete profile information</p>
+                    <h2 className="text-xl font-bold text-white">{t('SupportersPage.Supporter_Details')}</h2>
+                    <p className="text-indigo-100 text-sm">{t('SupportersPage.Complete_profile_information')}</p>
                   </div>
                 </div>
                 <button
@@ -553,92 +555,92 @@ export default function SupportersPage() {
             {/* Content */}
             <div className="p-6 space-y-6">
               {/* Personal Information */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-[var(--bg-main)] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center">
                   <svg className="h-5 w-5 text-indigo-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Personal Information
+                  {t('SupportersPage.Personal_Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <p className="text-gray-900 font-medium">{viewingSupporter.initials} {viewingSupporter.first_name} {viewingSupporter.last_name}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Full_Name')}</label>
+                    <p className="text-[var(--text-color)] font-medium">{viewingSupporter.initials} {viewingSupporter.first_name} {viewingSupporter.last_name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
-                    <p className="text-gray-900">{viewingSupporter.father_name}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Fathers_Name')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.father_name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                    <p className="text-gray-900">{viewingSupporter.date_of_birth ? new Date(viewingSupporter.date_of_birth).toLocaleDateString() : 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Date_of_Birth')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.date_of_birth ? new Date(viewingSupporter.date_of_birth).toLocaleDateString() : 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                    <p className="text-gray-900">{viewingSupporter.age || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Age')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.age || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                    <p className="text-gray-900">{viewingSupporter.gender || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Gender')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.gender || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">EPIC ID</label>
-                    <p className="text-gray-900">{viewingSupporter.voter_epic_id || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.EPIC_ID')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.voter_epic_id || 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Cultural Information */}
-              <div className="bg-green-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-[var(--bg-color)] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center">
                   <svg className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Cultural Information
+                  {t('SupportersPage.Cultural_Information')}
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Languages</label>
-                    <p className="text-gray-900">{formatLanguages(viewingSupporter.language)}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Languages')}</label>
+                    <p className="text-[var(--text-color)]">{formatLanguages(viewingSupporter.language)}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Religion</label>
-                    <p className="text-gray-900">{viewingSupporter.religion || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Religion')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.religion || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <p className="text-gray-900">{viewingSupporter.category || 'N/A'}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Category')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.category || 'N/A'}</p>
                   </div>
                   {viewingSupporter.caste && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Caste</label>
-                      <p className="text-gray-900">{viewingSupporter.caste}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Caste')}</label>
+                      <p className="text-[var(--text-color)]">{viewingSupporter.caste}</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Address */}
-              <div className="bg-yellow-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <div className="bg-[var(--bg-color)] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center">
                   <svg className="h-5 w-5 text-yellow-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     <circle cx="12" cy="10" r="3" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Address & Location
+                  {t('SupportersPage.Address_Location')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <p className="text-gray-900">{viewingSupporter.address}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Address')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.address}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Assembly</label>
-                    <p className="text-gray-900">{viewingSupporter.assembly_name}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Assembly')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.assembly_name}</p>
                     {viewingSupporter.block_name && (
                       <>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 mt-2">Block</label>
-                        <p className="text-gray-900">{viewingSupporter.block_name}</p>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 mt-2">{t('SupportersPage.Block')}</label>
+                        <p className="text-[var(--text-color)]">{viewingSupporter.block_name}</p>
                       </>
                     )}
                   </div>
@@ -646,21 +648,21 @@ export default function SupportersPage() {
               </div>
 
               {/* Record Information */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <svg className="h-5 w-5 text-gray-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <div className="bg-[var(--bg-main)] rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center">
+                  <svg className="h-5 w-5 text-[var(--text-secondary)] mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  Record Information
+                  {t('SupportersPage.Record_Information')}
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Created By</label>
-                    <p className="text-gray-900">{viewingSupporter.created_by_name}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Created_By')}</label>
+                    <p className="text-[var(--text-color)]">{viewingSupporter.created_by_name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Created At</label>
-                    <p className="text-gray-900">{new Date(viewingSupporter.created_at).toLocaleDateString()}</p>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{t('SupportersPage.Created_At')}</label>
+                    <p className="text-[var(--text-color)]">{new Date(viewingSupporter.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
@@ -668,13 +670,13 @@ export default function SupportersPage() {
               {/* Remarks */}
               {viewingSupporter.remarks && (
                 <div className="bg-orange-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center">
                     <svg className="h-5 w-5 text-orange-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Remarks
+                    {t('SupportersPage.Remarks')}
                   </h3>
-                  <p className="text-gray-900">{viewingSupporter.remarks}</p>
+                  <p className="text-[var(--text-color)]">{viewingSupporter.remarks}</p>
                 </div>
               )}
             </div>
@@ -685,12 +687,12 @@ export default function SupportersPage() {
       {/* Phone Modal */}
       {showPhoneModal && phoneModalSupporter && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-[var(--bg-card)] rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+              <h3 className="text-lg font-semibold text-[var(--text-color)]">{t('SupportersPage.Contact_Information')}</h3>
               <button
                 onClick={handleClosePhoneModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
               >
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M18 6L6 18M6 6l12 12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -699,31 +701,31 @@ export default function SupportersPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="bg-blue-50 rounded-lg p-4">
+              <div className="bg-[var(--bg-color)] rounded-lg p-4">
                 <div className="flex items-center mb-2">
                   <svg className="h-5 w-5 text-blue-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <label className="text-sm font-medium text-gray-700">Phone Number</label>
+                  <label className="text-sm font-medium text-[var(--text-secondary)]">{t('SupportersPage.Phone_Number')}</label>
                 </div>
-                <p className="text-lg font-semibold text-gray-900 ml-7">{phoneModalSupporter.phone_no}</p>
+                <p className="text-lg font-semibold text-[var(--text-color)] ml-7">{phoneModalSupporter.phone_no}</p>
               </div>
 
               {phoneModalSupporter.whatsapp_no && (
-                <div className="bg-green-50 rounded-lg p-4">
+                <div className="bg-[var(--bg-color)] rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <svg className="h-5 w-5 text-green-600 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <label className="text-sm font-medium text-gray-700">WhatsApp Number</label>
+                    <label className="text-sm font-medium text-[var(--text-secondary)]">{t('SupportersPage.WhatsApp_Number')}</label>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900 ml-7">{phoneModalSupporter.whatsapp_no}</p>
+                  <p className="text-lg font-semibold text-[var(--text-color)] ml-7">{phoneModalSupporter.whatsapp_no}</p>
                 </div>
               )}
 
               <div className="text-center">
-                <p className="text-sm text-gray-500">
-                  For {phoneModalSupporter.initials} {phoneModalSupporter.first_name} {phoneModalSupporter.last_name}
+                <p className="text-sm text-[var(--text-secondary)]">
+                  {t('SupportersPage.For')} {phoneModalSupporter.initials} {phoneModalSupporter.first_name} {phoneModalSupporter.last_name}
                 </p>
               </div>
             </div>
@@ -733,3 +735,5 @@ export default function SupportersPage() {
     </div>
   );
 }
+
+

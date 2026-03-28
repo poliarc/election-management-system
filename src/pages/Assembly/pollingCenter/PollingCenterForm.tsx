@@ -295,7 +295,7 @@
 
 //       <div>
 //         <label className="block text-sm">
-//           State <span className="text-gray-500">(Auto-filled)</span>
+//           State <span className="text-[var(--text-secondary)]">(Auto-filled)</span>
 //         </label>
 //         <input
 //           {...register("state")}
@@ -309,7 +309,7 @@
 
 //       <div>
 //         <label className="block text-sm">
-//           District <span className="text-gray-500">(Auto-filled)</span>
+//           District <span className="text-[var(--text-secondary)]">(Auto-filled)</span>
 //         </label>
 //         <input
 //           {...register("district")}
@@ -333,7 +333,7 @@
 
 //       <div>
 //         <label className="block text-sm">
-//           Assembly <span className="text-gray-500">(Auto-filled)</span>
+//           Assembly <span className="text-[var(--text-secondary)]">(Auto-filled)</span>
 //         </label>
 //         <input
 //           {...register("assembly")}
@@ -456,7 +456,7 @@
 //           <span className="text-red-500 text-xs">{errors.password.message}</span>
 //         )}
 //         {!isEditMode && (
-//           <div className="text-xs text-gray-500 mt-1">
+//           <div className="text-xs text-[var(--text-secondary)] mt-1">
 //             Password must contain: uppercase letter, lowercase letter, number, and special character (min 8 characters)
 //           </div>
 //         )}
@@ -472,7 +472,7 @@
 //         <button
 //           type="button"
 //           onClick={onCancel}
-//           className="bg-gray-400 text-white px-6 py-2 rounded w-full sm:w-[100%] hover:bg-gray-500 transition"
+//           className="bg-gray-400 text-white px-6 py-2 rounded w-full sm:w-[100%] hover:bg-[var(--bg-color)]0 transition"
 //         >
 //           Back
 //         </button>
@@ -480,3 +480,5 @@
 //     </form>
 //   );
 // };
+
+

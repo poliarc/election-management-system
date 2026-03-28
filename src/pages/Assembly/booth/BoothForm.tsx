@@ -354,7 +354,7 @@
 //           <span className="text-red-500 text-xs">{errors.password.message}</span>
 //         )}
 //         {!initialValues && (
-//           <div className="text-xs text-gray-500 mt-1">
+//           <div className="text-xs text-[var(--text-secondary)] mt-1">
 //             Password must contain: uppercase, lowercase, digit, and special character
 //           </div>
 //         )}
@@ -379,5 +379,6 @@
 //     </form>
 //   );
 // };
+
 
 

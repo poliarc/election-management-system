@@ -74,13 +74,13 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
         <>
           <button
             onClick={prevImage}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-[var(--text-color)]/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
           >
             <ChevronLeft className="w-4 h-4 text-white" />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-[var(--text-color)]/50 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
           >
             <ChevronRight className="w-4 h-4 text-white" />
           </button>
@@ -101,8 +101,8 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
                 }}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
                   index === currentImageIndex
-                    ? "bg-white"
-                    : "bg-white/50 hover:bg-white/75"
+                    ? "bg-[var(--bg-color)]"
+                    : "bg-[var(--bg-color)]/50 hover:bg-[var(--bg-color)]/75"
                 }`}
               />
             ))}
@@ -112,3 +112,6 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
     </div>
   );
 };
+
+
+

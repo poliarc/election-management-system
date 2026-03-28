@@ -10,6 +10,7 @@ import {
   unassignUserFromState,
   type User,
 } from "../../../services/levelAdminApi";
+import { useTranslation } from "react-i18next";
 
 interface AssignedUser {
   assignment_id?: number;
@@ -31,6 +32,7 @@ interface AssignedUser {
 }
 
 export default function UserManagement() {
+  const {t} = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   const { levelAdminPanels } = useAppSelector((state) => state.auth);
 
@@ -300,14 +302,14 @@ export default function UserManagement() {
     return (
       <div className="p-6">
         <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
-          <p className="text-red-700">Level admin panel not found</p>
+          <p className="text-red-700">{t("UserManagement.Desc")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-1 bg-gray-50 min-h-screen">
+    <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards and Search */}
       <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
         <div className="flex flex-col gap-10">
@@ -315,9 +317,9 @@ export default function UserManagement() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
               <div className="shrink-0">
-                <h1 className="text-xl sm:text-2xl font-bold">User Management</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">{t("UserManagement.Title")}</h1>
                 <p className="text-purple-100 mt-1 text-xs sm:text-sm">
-                  Assign users to {currentPanel.metadata?.stateName} -{" "}
+                  {t("UserManagement.Desc1")} {currentPanel.metadata?.stateName} -{" "}
                   {currentPanel.metadata?.partyName}
                 </p>
               </div>
@@ -325,7 +327,7 @@ export default function UserManagement() {
               {/* Search Bar - Compact */}
               <div className="relative w-full sm:w-64">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -334,16 +336,16 @@ export default function UserManagement() {
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white text-gray-900 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition-all shadow-sm text-sm"
+                  className="w-full pl-9 pr-3 py-2 bg-[var(--bg-card)] text-[var(--text-color)] border-2 border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-300 transition-all shadow-sm text-sm"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    Assigned Users
+                  <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                    {t("UserManagement.Assigned_Users")}
                   </p>
                   <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
                     {assignedLoading ? "..." : assignedTotalCount}
@@ -366,10 +368,10 @@ export default function UserManagement() {
                 </div>
               </div>
 
-              <div className="bg-white text-gray-900 rounded-md shadow-md p-4 flex items-center justify-between">
+              <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    Available Users
+                  <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                    {t("UserManagement.Available_Users")}
                   </p>
                   <p className="text-2xl sm:text-3xl font-semibold text-blue-600 mt-1">
                     {loading ? "..." : unassignedUsers.length}
@@ -397,26 +399,26 @@ export default function UserManagement() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-md mb-1">
-        <div className="border-b border-gray-200">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-md mb-1">
+        <div className="border-b border-[var(--border-color)]">
           <nav className="flex">
             <button
               onClick={() => setShowAssignModal(false)}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${!showAssignModal
                 ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
             >
-              Assigned Users ({assignedTotalCount})
+              {t("UserManagement.Assigned_Users")} ({assignedTotalCount})
             </button>
             <button
               onClick={() => setShowAssignModal(true)}
               className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${showAssignModal
                 ? "border-purple-500 text-purple-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                 }`}
             >
-              Available Users ({unassignedUsers.length})
+              {t("UserManagement.Available_Users")} ({unassignedUsers.length})
             </button>
           </nav>
         </div>
@@ -425,38 +427,38 @@ export default function UserManagement() {
       {/* Content */}
       {!showAssignModal ? (
         // Assigned Users Table
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--bg-main)]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    S.No
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.S_No")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Name
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Name")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Email
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Email")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    User Id
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.User_Id")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Assigned Level
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Assigned_Level")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Status
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Status")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Assigned Date
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Assigned_Date")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Actions
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                 {assignedLoading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
@@ -466,28 +468,28 @@ export default function UserManagement() {
                 ) : assignedUsers.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <p className="text-gray-500">No assigned users found</p>
+                      <p className="text-[var(--text-secondary)]">{t("UserManagement.Desc2")}</p>
                     </td>
                   </tr>
                 ) : (
                   assignedUsers.map((user, index) => (
                     <tr
                       key={user.assignment_id || user.user_id}
-                      className="hover:bg-gray-50"
+                      className="hover:bg-[var(--text-color)]/5"
                     >
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                         {(assignedPage - 1) * 10 + index + 1}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                         {user.first_name} {user.last_name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.email}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.user_id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                           {user.districtName ||
                             currentPanel.metadata?.stateName ||
@@ -506,7 +508,7 @@ export default function UserManagement() {
                             : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.assigned_at
                           ? new Date(user.assigned_at).toLocaleDateString()
                           : user.created_on
@@ -538,60 +540,60 @@ export default function UserManagement() {
 
           {/* Pagination for Assigned Users */}
           {assignedTotalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
               <button
                 onClick={() => setAssignedPage((p) => Math.max(1, p - 1))}
                 disabled={assignedPage === 1}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("UserManagement.Previous")}
               </button>
-              <span className="text-sm text-gray-600">
-                Page {assignedPage} of {assignedTotalPages}
+              <span className="text-sm text-[var(--text-secondary)]">
+                {t("UserManagement.Page")} {assignedPage} {t("UserManagement.of")} {assignedTotalPages}
               </span>
               <button
                 onClick={() =>
                   setAssignedPage((p) => Math.min(assignedTotalPages, p + 1))
                 }
                 disabled={assignedPage === assignedTotalPages}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("UserManagement.Next")}
               </button>
             </div>
           )}
         </div>
       ) : (
         // Available Users Table
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--bg-main)]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    S.No
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.S_No")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Name
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Name")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Email
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Email")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    User Id
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.User_Id")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    District
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.District")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Status
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Status")}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">
-                    Actions
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">
+                    {t("UserManagement.Actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
@@ -601,25 +603,25 @@ export default function UserManagement() {
                 ) : unassignedUsers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
-                      <p className="text-gray-500">No available users found</p>
+                      <p className="text-[var(--text-secondary)]">{t("UserManagement.Desc3")}</p>
                     </td>
                   </tr>
                 ) : (
                   unassignedUsers.map((user, index) => (
-                    <tr key={user.user_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                    <tr key={user.user_id} className="hover:bg-[var(--text-color)]/5">
+                      <td className="px-6 py-4 text-sm text-[var(--text-color)]">
                         {index + 1}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                         {user.first_name} {user.last_name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.email}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.user_id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {user.districtName || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm">
@@ -650,25 +652,25 @@ export default function UserManagement() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("UserManagement.Previous")}
               </button>
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
+              <span className="text-sm text-[var(--text-secondary)]">
+                {t("UserManagement.Page")} {currentPage} {t("UserManagement.of")} {totalPages}
               </span>
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("UserManagement.Next")}
               </button>
             </div>
           )}
@@ -689,3 +691,6 @@ export default function UserManagement() {
     </div>
   );
 }
+
+
+

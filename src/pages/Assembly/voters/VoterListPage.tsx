@@ -169,8 +169,8 @@ export default function VoterListPage() {
         <div className="p-1">
             <div className="mb-1 flex justify-between items-start">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className="text-2xl font-bold text-[var(--text-main)]">{t.title}</h1>
+                    <p className="text-[var(--text-muted)] mt-1">
                         {t.subtitle} • {totalVoters.toLocaleString()} {t.totalVoters}
                     </p>
                 </div>
@@ -191,7 +191,7 @@ export default function VoterListPage() {
                             : "text-gray-600 hover:text-gray-900"
                             }`}
                     >
-                        Regional
+                        Native
                     </button>
                 </div>
             </div>
@@ -201,10 +201,10 @@ export default function VoterListPage() {
             ) : (
                 <>
                     {/* Search and Filters */}
-                    <div className="mb-1 bg-white p-1 rounded-lg border border-gray-200">
+                    <div className="mb-1 bg-[var(--bg-color)] p-1 rounded-lg border border-gray-200">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-[var(--text-color)] mb-1">
                                     {t.searchVoters}
                                 </label>
                                 <input
@@ -216,7 +216,7 @@ export default function VoterListPage() {
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-[var(--text-color)] mb-1">
                                     {t.fatherHusbandName}
                                 </label>
                                 <input
@@ -233,7 +233,7 @@ export default function VoterListPage() {
                                     refetch()
                                 }}
                                 disabled={isLoading || isFetching}
-                                className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
+                                className="px-4 py-2 bg-[var(--bg-card)] text-[var(--text-color)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"
                             >
                                {isFetching ? (
                                 <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
@@ -241,7 +241,7 @@ export default function VoterListPage() {
                             </button>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className="px-4 py-2 bg-green-200 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer"
+                                className="px-4 py-2 bg-[var(--bg-card)] text-[var(--text-color)] rounded-lg hover:bg-[var(--text-color)]/5 transition cursor-pointer"
                             >
                                 {showFilters ? t.hideFilters : t.showFilters}
                             </button>
@@ -258,7 +258,7 @@ export default function VoterListPage() {
                         {showFilters && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
                                         {t.address}
                                     </label>
                                     <input
@@ -270,7 +270,7 @@ export default function VoterListPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
                                         {t.partFrom}
                                     </label>
                                     <input
@@ -282,7 +282,7 @@ export default function VoterListPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
                                         {t.partTo}
                                     </label>
                                     <input

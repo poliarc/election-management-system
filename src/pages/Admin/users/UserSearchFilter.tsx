@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, X, Users } from "lucide-react";
 import type { UserSearchParams, Party, Role } from "../../../types/user";
 
+
 interface UserSearchFilterProps {
   searchParams: UserSearchParams;
   onSearchChange: (params: UserSearchParams) => void;
@@ -77,11 +78,11 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
   const activeRoles = roles.filter((role) => role.isActive === 1);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-1">
+    <div className="bg-[var(--bg-card)] p-4 rounded-lg shadow-md mb-1">
       {/* Search Bar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] w-4 h-4" />
           <input
             type="text"
             value={localSearch}
@@ -96,7 +97,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 border rounded-md transition-colors ${showFilters || hasActiveFilters
                 ? "bg-blue-50 border-blue-300 text-blue-700"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                : "border-gray-300 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
               }`}
           >
             <Filter className="w-4 h-4" />
@@ -118,7 +119,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-[var(--text-secondary)] hover:text-[var(--text-color)] transition-colors"
               title="Clear all filters"
             >
               <X className="w-4 h-4" />
@@ -130,11 +131,11 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
 
       {/* Advanced Filters */}
       {showFilters && (
-        <div className="mt-1 pt-4 border-t border-gray-200">
+        <div className="mt-1 pt-4 border-t border-[var(--border-color)]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Status
               </label>
               <select
@@ -163,7 +164,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
 
             {/* Party Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Party
               </label>
               <select
@@ -187,7 +188,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
 
             {/* Role Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Role
               </label>
               <select
@@ -211,7 +212,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
 
             {/* Results per page */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Results per page
               </label>
               <select
@@ -232,7 +233,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
       )}
 
       {/* Results Summary */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-[var(--text-secondary)]">
         <div>
           {totalResults > 0 ? (
             <span className="flex items-center gap-1">
@@ -241,7 +242,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
               {hasActiveFilters && " (filtered)"}
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-gray-500">
+            <span className="flex items-center gap-1 text-[var(--text-secondary)]">
               <Users className="w-4 h-4" />
               No users found
             </span>
@@ -263,3 +264,7 @@ export const UserSearchFilter: React.FC<UserSearchFilterProps> = ({
     </div>
   );
 };
+
+
+
+

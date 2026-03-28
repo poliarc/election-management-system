@@ -9,6 +9,7 @@ import {
     type AssemblyHierarchy,
 } from '../../../services/afterAssemblyApi';
 import SearchableSelect from '../../../components/SearchableSelect';
+import { useTranslation } from 'react-i18next';
 
 interface EditingNode {
     id: number;
@@ -21,6 +22,7 @@ interface EditingNode {
 }
 
 export default function SimpleHierarchyManager() {
+    const {t} = useTranslation();
     const { user } = useAppSelector((state) => state.auth);
     const [hierarchyData, setHierarchyData] = useState<AssemblyHierarchy[]>([]);
     const [loading, setLoading] = useState(true);
@@ -266,19 +268,19 @@ export default function SimpleHierarchyManager() {
         return (
             <div key={node.id} className="space-y-2">
                 <div
-                    className={`bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-all ${level > 0 ? 'ml-3 sm:ml-6' : ''}`}
+                    className={`bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-3 sm:p-4 hover:shadow-md transition-all ${level > 0 ? 'ml-3 sm:ml-6' : ''}`}
                     style={{ marginLeft: level > 0 ? `${level * 12}px` : '0' }}
                 >
                     <div className="flex items-start sm:items-center gap-2 sm:gap-3">
                         {hasChildren && (
                             <button
                                 onClick={() => toggleNodeExpansion(node.id)}
-                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded hover:bg-gray-100 transition-colors flex-shrink-0 mt-0.5 sm:mt-0"
+                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded hover:bg-[var(--text-color)]/5 transition-colors flex-shrink-0 mt-0.5 sm:mt-0"
                             >
                                 {isExpanded ? (
-                                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--text-secondary)]" />
                                 ) : (
-                                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--text-secondary)]" />
                                 )}
                             </button>
                         )}
@@ -291,16 +293,16 @@ export default function SimpleHierarchyManager() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{node.displayName}</h4>
-                            <p className="text-xs sm:text-sm text-gray-500 truncate">{node.levelName} • ID: {node.id}</p>
+                            <h4 className="font-semibold text-[var(--text-color)] text-sm sm:text-base truncate">{node.displayName}</h4>
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">{node.levelName} • {t("SimpleHierarchyManager.ID")}: {node.id}</p>
                             {node.parentId && (
                                 <p className="text-xs text-blue-600 truncate">
-                                    Child of: {getAllNodes().find(n => n.id === node.parentId)?.displayName}
+                                    {t("SimpleHierarchyManager.Child_of")}: {getAllNodes().find(n => n.id === node.parentId)?.displayName}
                                 </p>
                             )}
                             {node.parentAssemblyId && (
                                 <p className="text-xs text-green-600 truncate">
-                                    Assembly: {hierarchyData.find(a => a.assembly.id === node.parentAssemblyId)?.assembly.levelName}
+                                    {t("SimpleHierarchyManager.Assembly")}: {hierarchyData.find(a => a.assembly.id === node.parentAssemblyId)?.assembly.levelName}
                                 </p>
                             )}
                         </div>
@@ -318,21 +320,21 @@ export default function SimpleHierarchyManager() {
                                 className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
                             >
                                 <Edit2 className="w-3 h-3" />
-                                <span className="hidden sm:inline">Edit</span>
+                                <span className="hidden sm:inline">{t("SimpleHierarchyManager.Edit")}</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Edit Form */}
                     {isEditing && (
-                        <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg border">
-                            <h5 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Change Hierarchy for: {node.displayName}</h5>
+                        <div className="mt-4 p-3 sm:p-4 bg-[var(--bg-main)] rounded-lg border">
+                            <h5 className="font-medium text-[var(--text-color)] mb-3 text-sm sm:text-base">{t("SimpleHierarchyManager.Change_Hierarchy")} {node.displayName}</h5>
 
                             <div className="space-y-4">
                                 {/* Target Type Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Move to:
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                        {t("SimpleHierarchyManager.Move_to")}
                                     </label>
                                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                                         <label className="flex items-center">
@@ -351,7 +353,7 @@ export default function SimpleHierarchyManager() {
                                                 })}
                                                 className="mr-2"
                                             />
-                                            <span className="text-sm">Assembly Level</span>
+                                            <span className="text-sm">{t("SimpleHierarchyManager.Assembly_Level")}</span>
                                         </label>
                                         <label className="flex items-center">
                                             <input
@@ -369,14 +371,14 @@ export default function SimpleHierarchyManager() {
                                                 })}
                                                 className="mr-2"
                                             />
-                                            <span className="text-sm">Under Another Node</span>
+                                            <span className="text-sm">{t("SimpleHierarchyManager.Under_Another")}</span>
                                         </label>
                                     </div>
                                 </div>
 
                                 {/* Target Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                         {editingNode.targetType === 'assembly' ? 'Select Assembly:' : 'Select Parent Node:'}
                                     </label>
 
@@ -400,8 +402,8 @@ export default function SimpleHierarchyManager() {
                                         <div className="space-y-3">
                                             {/* Level Selection */}
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                    Select Level:
+                                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                                    {t("SimpleHierarchyManager.Select_Level")}:
                                                 </label>
                                                 <SearchableSelect
                                                     options={editingNode.availableLevels.map(level => ({
@@ -424,8 +426,8 @@ export default function SimpleHierarchyManager() {
                                             {/* Node Selection - Only show if level is selected */}
                                             {editingNode.selectedLevel && (
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                        Select {editingNode.selectedLevel}:
+                                                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                                        {t("SimpleHierarchyManager.Select")} {editingNode.selectedLevel}:
                                                     </label>
                                                     <SearchableSelect
                                                         options={getNodesByLevel(editingNode.selectedLevel, node.id).map(targetNode => {
@@ -460,7 +462,7 @@ export default function SimpleHierarchyManager() {
                                     (editingNode.targetType === 'node' && editingNode.newParentId) ? (
                                     <div className="space-y-3">
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                                            <span className="text-sm text-gray-600 flex-shrink-0">Will move to:</span>
+                                            <span className="text-sm text-[var(--text-secondary)] flex-shrink-0">{t("SimpleHierarchyManager.Will_move")}:</span>
                                             <ArrowRight className="w-4 h-4 text-blue-500 hidden sm:block flex-shrink-0" />
                                             <span className="font-medium text-blue-700 break-words">
                                                 {(() => {
@@ -479,7 +481,7 @@ export default function SimpleHierarchyManager() {
                                         {/* Show parent hierarchy of selected target */}
                                         {editingNode.targetType === 'node' && editingNode.newParentId && (
                                             <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                                <div className="text-sm font-medium text-purple-700 mb-2">Target Node Hierarchy:</div>
+                                                <div className="text-sm font-medium text-purple-700 mb-2">{t("SimpleHierarchyManager.Target_Hierarchy")}</div>
                                                 {(() => {
                                                     const selectedNode = getAllNodes().find(n => n.id === editingNode.newParentId);
                                                     if (selectedNode) {
@@ -505,8 +507,8 @@ export default function SimpleHierarchyManager() {
                                                                         {selectedNode.displayName}
                                                                     </span>
                                                                     <ArrowRight className="w-3 h-3 text-purple-400" />
-                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                                                                        {node.displayName} (will be moved here)
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-[var(--text-secondary)]">
+                                                                        {node.displayName} {t("SimpleHierarchyManager.Desc")}
                                                                     </span>
                                                                 </div>
                                                             );
@@ -514,24 +516,24 @@ export default function SimpleHierarchyManager() {
                                                             return (
                                                                 <div className="flex items-center gap-1 text-xs">
                                                                     <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700">
-                                                                        {selectedNode.displayName} (Root Level)
+                                                                        {selectedNode.displayName} {t("SimpleHierarchyManager.Desc1")}
                                                                     </span>
                                                                     <ArrowRight className="w-3 h-3 text-purple-400" />
-                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                                                                        {node.displayName} (will be moved here)
+                                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-[var(--text-secondary)]">
+                                                                        {node.displayName} {t("SimpleHierarchyManager.Desc")}
                                                                     </span>
                                                                 </div>
                                                             );
                                                         }
                                                     }
-                                                    return <span className="text-xs text-purple-600">Loading target hierarchy...</span>;
+                                                    return <span className="text-xs text-purple-600">{t("SimpleHierarchyManager.Loading")}</span>;
                                                 })()}
                                             </div>
                                         )}
                                     </div>
                                 ) : (editingNode.targetType === 'node' && editingNode.selectedLevel && !editingNode.newParentId) ? (
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                                        <span className="text-sm text-gray-600 flex-shrink-0">Will move to:</span>
+                                        <span className="text-sm text-[var(--text-secondary)] flex-shrink-0">{t("SimpleHierarchyManager.Will_move")}:</span>
                                         <ArrowRight className="w-4 h-4 text-blue-500 hidden sm:block flex-shrink-0" />
                                         <span className="font-medium text-blue-700 break-words">
                                             {`${editingNode.selectedLevel} Level (Select specific ${editingNode.selectedLevel.toLowerCase()})`}
@@ -556,10 +558,10 @@ export default function SimpleHierarchyManager() {
                                     <button
                                         onClick={handleCancelEdit}
                                         disabled={isUpdating}
-                                        className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-50 transition-colors"
+                                        className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-gray-200 hover:bg-gray-300 rounded-lg disabled:opacity-50 transition-colors"
                                     >
                                         <X className="w-4 h-4" />
-                                        Cancel
+                                        {t("SimpleHierarchyManager.Cancel")}
                                     </button>
                                 </div>
                             </div>
@@ -580,37 +582,37 @@ export default function SimpleHierarchyManager() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl p-6 sm:p-8 shadow-lg flex flex-col sm:flex-row items-center gap-4 max-w-sm w-full">
+                <div className="bg-[var(--bg-card)] rounded-xl p-6 sm:p-8 shadow-lg flex flex-col sm:flex-row items-center gap-4 max-w-sm w-full">
                     <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-2 border-blue-600 border-t-transparent"></div>
-                    <span className="text-gray-900 font-medium text-sm sm:text-base text-center">Loading hierarchy...</span>
+                    <span className="text-[var(--text-color)] font-medium text-sm sm:text-base text-center">{t("SimpleHierarchyManager.Loading1")}</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="min-h-screen bg-[var(--bg-color)]">
             {/* Global loading overlay for updates */}
             {isUpdating && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-4 sm:p-6 shadow-2xl flex items-center gap-3 border mx-4">
+                    <div className="bg-[var(--bg-card)] rounded-xl p-4 sm:p-6 shadow-2xl flex items-center gap-3 border mx-4">
                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-                        <span className="text-gray-900 font-medium text-sm sm:text-base">Updating hierarchy...</span>
+                        <span className="text-[var(--text-color)] font-medium text-sm sm:text-base">{t("SimpleHierarchyManager.Loading2")}</span>
                     </div>
                 </div>
             )}
 
             {/* Header */}
-            <div className="bg-white/80 backdrop-blur-md border-b border-white/20">
+            <div className="bg-[var(--bg-card)]/80 backdrop-blur-md border-b border-white/20">
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-0 sm:h-16">
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[var(--bg-card)] rounded-lg flex items-center justify-center flex-shrink-0">
                                 <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                             </div>
                             <div className="min-w-0">
-                                <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">Simple Hierarchy Manager</h1>
-                                <p className="text-xs text-gray-500 hidden sm:block">Select and change hierarchy easily</p>
+                                <h1 className="text-base sm:text-lg font-bold text-[var(--text-color)] truncate">{t("SimpleHierarchyManager.Desc2")}</h1>
+                                <p className="text-xs text-[var(--text-secondary)] hidden sm:block">{t("SimpleHierarchyManager.Desc3")}</p>
                             </div>
                         </div>
 
@@ -622,10 +624,10 @@ export default function SimpleHierarchyManager() {
                                     placeholder="Search assembly..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full sm:w-48 lg:w-64 pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                                    className="w-full sm:w-48 lg:w-64 pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 text-sm border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[var(--bg-card)]/50 backdrop-blur-sm"
                                 />
                                 <div className="absolute left-2.5 sm:left-3 top-2.5">
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -637,7 +639,7 @@ export default function SimpleHierarchyManager() {
                                 className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex-shrink-0"
                             >
                                 <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
-                                <span className="hidden sm:inline">Refresh</span>
+                                <span className="hidden sm:inline">{t("SimpleHierarchyManager.Refresh")}</span>
                             </button>
                         </div>
                     </div>
@@ -645,19 +647,19 @@ export default function SimpleHierarchyManager() {
             </div>
 
             {/* Assembly Selector */}
-            <div className="bg-white/60 backdrop-blur-sm border-b border-gray-200">
+            <div className="bg-[var(--bg-card)]/60 backdrop-blur-sm border-b border-[var(--border-color)]">
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                        <span className="text-sm font-medium text-gray-700 flex-shrink-0">Assemblies:</span>
+                        <span className="text-sm font-medium text-[var(--text-secondary)] flex-shrink-0">{t("SimpleHierarchyManager.Assemblies")}</span>
                         <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 assembly-selector">
                             <button
                                 onClick={() => setSelectedAssembly(null)}
                                 className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${selectedAssembly === null
                                     ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                    : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-[var(--border-color)]'
                                     }`}
                             >
-                                All ({hierarchyData.length})
+                                {t("SimpleHierarchyManager.All")} ({hierarchyData.length})
                             </button>
                             {hierarchyData.map((assembly) => (
                                 <button
@@ -665,7 +667,7 @@ export default function SimpleHierarchyManager() {
                                     onClick={() => setSelectedAssembly(assembly.assembly.id)}
                                     className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${selectedAssembly === assembly.assembly.id
                                         ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                        : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-[var(--border-color)]'
                                         }`}
                                 >
                                     <span className="hidden sm:inline">{assembly.assembly.levelName}</span>
@@ -686,30 +688,30 @@ export default function SimpleHierarchyManager() {
 
                         if (filteredAssemblies.length === 0 && searchTerm) {
                             return (
-                                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm p-8 sm:p-12 text-center">
+                                <div className="bg-[var(--bg-card)] backdrop-blur-sm rounded-xl border border-white/20 shadow-sm p-8 sm:p-12 text-center">
                                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <span className="text-xl sm:text-2xl">🔍</span>
                                     </div>
-                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Assembly Found</h3>
-                                    <p className="text-gray-600 text-sm sm:text-base">No assembly matches "{searchTerm}"</p>
+                                    <h3 className="text-base sm:text-lg font-semibold text-[var(--text-color)] mb-2">{t("SimpleHierarchyManager.No_Assembly_Found")}</h3>
+                                    <p className="text-[var(--text-secondary)] text-sm sm:text-base">{t("SimpleHierarchyManager.No_assembly_matchs")} "{searchTerm}"</p>
                                 </div>
                             );
                         }
 
                         return filteredAssemblies.map((assembly) => (
-                            <div key={assembly.assembly.id} className="bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                            <div key={assembly.assembly.id} className="bg-[var(--bg-card)]/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
                                 <div className="p-4 sm:p-6">
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                                         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                             <span className="text-white font-bold text-lg sm:text-xl">🏛️</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{assembly.assembly.levelName}</h2>
-                                            <p className="text-gray-500 text-sm sm:text-base">
-                                                Assembly ID: {assembly.assembly.id} • {assembly.afterAssemblyHierarchy.length} items
+                                            <h2 className="text-lg sm:text-xl font-bold text-[var(--text-color)] truncate">{assembly.assembly.levelName}</h2>
+                                            <p className="text-[var(--text-secondary)] text-sm sm:text-base">
+                                                {t("SimpleHierarchyManager.Assembly_ID")} {assembly.assembly.id} • {assembly.afterAssemblyHierarchy.length} items
                                                 {searchTerm && (
                                                     <span className="block sm:inline sm:ml-2 text-blue-600 font-medium">
-                                                        • Found matching assembly
+                                                        • {t("SimpleHierarchyManager.Found_matching_assembly")}
                                                     </span>
                                                 )}
                                             </p>
@@ -721,11 +723,11 @@ export default function SimpleHierarchyManager() {
                                     </div>
 
                                     {assembly.afterAssemblyHierarchy.length === 0 && (
-                                        <div className="text-center py-8 sm:py-12 text-gray-500">
-                                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <div className="text-center py-8 sm:py-12 text-[var(--text-secondary)]">
+                                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[var(--bg-card)] rounded-full flex items-center justify-center mx-auto mb-4">
                                                 <span className="text-xl sm:text-2xl">📭</span>
                                             </div>
-                                            <p className="text-sm sm:text-base">No items in this assembly</p>
+                                            <p className="text-sm sm:text-base">{t("SimpleHierarchyManager.Desc4")}</p>
                                         </div>
                                     )}
                                 </div>
@@ -734,12 +736,12 @@ export default function SimpleHierarchyManager() {
                     })()}
 
                     {hierarchyData.length === 0 && !searchTerm && (
-                        <div className="text-center py-8 sm:py-12 bg-white/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="text-center py-8 sm:py-12 bg-[var(--bg-card)]/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
+                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[var(--bg-card)] rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-xl sm:text-2xl">🏛️</span>
                             </div>
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Assemblies Found</h3>
-                            <p className="text-gray-500 text-sm sm:text-base">No assembly hierarchy data found for the selected state and party.</p>
+                            <h3 className="text-base sm:text-lg font-medium text-[var(--text-color)] mb-2">{t("SimpleHierarchyManager.Desc5")}</h3>
+                            <p className="text-[var(--text-secondary)] text-sm sm:text-base">{t("SimpleHierarchyManager.Desc6")}</p>
                         </div>
                     )}
                 </div>
@@ -747,3 +749,5 @@ export default function SimpleHierarchyManager() {
         </div>
     );
 }
+
+

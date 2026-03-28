@@ -8,13 +8,15 @@ import {
   useGetDraftCompareModifiedQuery,
   useGetDraftCompareMatchedQuery,
 } from "../../../store/api/votersApi";
+import { useTranslation } from "react-i18next";
 
 const cardClasses =
-  "rounded-xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col gap-1";
-const labelClasses = "text-xs uppercase tracking-wide text-gray-500";
-const valueClasses = "text-2xl font-semibold text-gray-900";
+  "rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm flex flex-col gap-1";
+const labelClasses = "text-xs uppercase tracking-wide text-[var(--text-secondary)]";
+const valueClasses = "text-2xl font-semibold text-[var(--text-color)]";
 
 export default function VoterComparePage() {
+  const {t} = useTranslation();
   const { selectedAssignment, user } = useSelector((s: RootState) => s.auth);
   const assemblyId = selectedAssignment?.stateMasterData_id;
   const partyId = user?.partyId;
@@ -101,12 +103,12 @@ export default function VoterComparePage() {
   }
 
   const renderTableHeader = (columns: string[]) => (
-    <thead className="bg-gray-50">
+    <thead className="bg-[var(--bg-main)]">
       <tr>
         {columns.map((col) => (
           <th
             key={col}
-            className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"
+            className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]"
           >
             {col}
           </th>
@@ -120,9 +122,9 @@ export default function VoterComparePage() {
     totalPages: number,
     onChange: (page: number) => void
   ) => (
-    <div className="flex items-center justify-between border-t border-gray-200 px-2 py-3 text-sm text-gray-700">
+    <div className="flex items-center justify-between border-t border-[var(--border-color)] px-2 py-3 text-sm text-[var(--text-secondary)]">
       <span>
-        Page {current} of {Math.max(totalPages, 1)}
+        {t("Compare_Voters.Page")} {current} {t("Compare_Voters.of")} {Math.max(totalPages, 1)}
       </span>
       <div className="flex gap-2">
         <button
@@ -130,14 +132,14 @@ export default function VoterComparePage() {
           disabled={current <= 1}
           className="rounded border px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Previous
+          {t("Compare_Voters.Previous")}
         </button>
         <button
           onClick={() => onChange(Math.min(totalPages || 1, current + 1))}
           disabled={current >= (totalPages || 1)}
           className="rounded border px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Next
+          {t("Compare_Voters.Next")}
         </button>
       </div>
     </div>
@@ -147,15 +149,15 @@ export default function VoterComparePage() {
     if (activeTab === "new") {
       const { data, isLoading, isError } = newQuery;
       if (isLoading)
-        return <div className="p-4 text-gray-600">Loading new voters…</div>;
+        return <div className="p-4 text-[var(--text-secondary)]">{t("Compare_Voters.Loading_new_voters")}</div>;
       if (isError)
         return (
-          <div className="p-4 text-red-600">Failed to load new voters.</div>
+          <div className="p-4 text-red-600">{t("Compare_Voters.Failed_load_new_voters")}</div>
         );
       const rows = data?.data ?? [];
       const pagination = data?.pagination;
       return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             {renderTableHeader([
               "EPIC",
@@ -165,7 +167,7 @@ export default function VoterComparePage() {
               "Part",
               "Uploaded At",
             ])}
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-800">
+            <tbody className="divide-y divide-gray-200 text-sm text-[var(--text-color)]">
               {rows.map((item) => (
                 <tr key={item.draft_id}>
                   <td className="px-4 py-2 font-medium">
@@ -186,9 +188,9 @@ export default function VoterComparePage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-4 text-center text-gray-500"
+                    className="px-4 py-4 text-center text-[var(--text-secondary)]"
                   >
-                    No new voters found in draft.
+                    {t("Compare_Voters.Desc2")}
                   </td>
                 </tr>
               )}
@@ -206,15 +208,15 @@ export default function VoterComparePage() {
     if (activeTab === "missing") {
       const { data, isLoading, isError } = missingQuery;
       if (isLoading)
-        return <div className="p-4 text-gray-600">Loading missing voters…</div>;
+        return <div className="p-4 text-[var(--text-secondary)]">{t("Compare_Voters.Desc3")}</div>;
       if (isError)
         return (
-          <div className="p-4 text-red-600">Failed to load missing voters.</div>
+          <div className="p-4 text-red-600">{t("Compare_Voters.Desc4")}</div>
         );
       const rows = data?.data ?? [];
       const pagination = data?.pagination;
       return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             {renderTableHeader([
               "EPIC",
@@ -224,7 +226,7 @@ export default function VoterComparePage() {
               "Part",
               "Last Updated",
             ])}
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-800">
+            <tbody className="divide-y divide-gray-200 text-sm text-[var(--text-color)]">
               {rows.map((item) => (
                 <tr key={item.master_id}>
                   <td className="px-4 py-2 font-medium">
@@ -245,9 +247,9 @@ export default function VoterComparePage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-4 text-center text-gray-500"
+                    className="px-4 py-4 text-center text-[var(--text-secondary)]"
                   >
-                    No missing voters detected.
+                    {t("Compare_Voters.Desc5")}
                   </td>
                 </tr>
               )}
@@ -266,18 +268,18 @@ export default function VoterComparePage() {
       const { data, isLoading, isError } = modifiedQuery;
       if (isLoading)
         return (
-          <div className="p-4 text-gray-600">Loading modified voters…</div>
+          <div className="p-4 text-[var(--text-secondary)]">{t("Compare_Voters.Desc6")}</div>
         );
       if (isError)
         return (
           <div className="p-4 text-red-600">
-            Failed to load modified voters.
+            {t("Compare_Voters.Desc7")}
           </div>
         );
       const rows = data?.data ?? [];
       const pagination = data?.pagination;
       return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             {renderTableHeader([
               "EPIC",
@@ -287,7 +289,7 @@ export default function VoterComparePage() {
               "Draft Contact",
               "Differences",
             ])}
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-800">
+            <tbody className="divide-y divide-gray-200 text-sm text-[var(--text-color)]">
               {rows.map((item) => (
                 <tr key={`${item.master_id}-${item.draft_id}`}>
                   <td className="px-4 py-2 font-medium">
@@ -308,9 +310,9 @@ export default function VoterComparePage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-4 text-center text-gray-500"
+                    className="px-4 py-4 text-center text-[var(--text-secondary)]"
                   >
-                    No modified voters detected.
+                    {t("Compare_Voters.Desc8")}
                   </td>
                 </tr>
               )}
@@ -327,15 +329,15 @@ export default function VoterComparePage() {
 
     const { data, isLoading, isError } = matchedQuery;
     if (isLoading)
-      return <div className="p-4 text-gray-600">Loading matched voters…</div>;
+      return <div className="p-4 text-[var(--text-secondary)]">{t("Compare_Voters.Loading_matched_voters")}</div>;
     if (isError)
       return (
-        <div className="p-4 text-red-600">Failed to load matched voters.</div>
+        <div className="p-4 text-red-600">{t("Compare_Voters.Desc9")}</div>
       );
     const rows = data?.data ?? [];
     const pagination = data?.pagination;
     return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
         <table className="min-w-full divide-y divide-gray-200">
           {renderTableHeader([
             "EPIC",
@@ -345,7 +347,7 @@ export default function VoterComparePage() {
             "Part",
             "Match Type",
           ])}
-          <tbody className="divide-y divide-gray-200 text-sm text-gray-800">
+          <tbody className="divide-y divide-gray-200 text-sm text-[var(--text-color)]">
             {rows.map((item) => (
               <tr key={`${item.master_id}-${item.draft_id}`}>
                 <td className="px-4 py-2 font-medium">
@@ -360,8 +362,8 @@ export default function VoterComparePage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-4 text-center text-gray-500">
-                  No matched voters found.
+                <td colSpan={6} className="px-4 py-4 text-center text-[var(--text-secondary)]">
+                  {t("Compare_Voters.No_matched_voters_found")}
                 </td>
               </tr>
             )}
@@ -380,15 +382,15 @@ export default function VoterComparePage() {
     <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Compare Voters
+          <h1 className="text-2xl font-semibold text-[var(--text-color)]">
+            {t("Compare_Voters.Title")}
           </h1>
-          <p className="text-sm text-gray-600">
-            Draft vs Master for selected assembly
+          <p className="text-sm text-[var(--text-secondary)]">
+            {t("Compare_Voters.Desc")}
           </p>
         </div>
         {summaryQuery.isFetching && (
-          <span className="text-sm text-gray-500">Refreshing…</span>
+          <span className="text-sm text-[var(--text-secondary)]">{t("Compare_Voters.Refreshing")}</span>
         )}
       </div>
 
@@ -402,18 +404,18 @@ export default function VoterComparePage() {
       </div>
 
       {summaryQuery.isLoading && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 text-gray-700">
-          Loading summary…
+        <div className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-4 text-[var(--text-secondary)]">
+          {t("Compare_Voters.Loading_summary")}
         </div>
       )}
       {summaryQuery.isError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          Failed to load comparison summary.
+          {t("Compare_Voters.Desc1")}
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
-        <div className="flex gap-2 border-b border-gray-200 pb-2">
+      <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 shadow-sm">
+        <div className="flex gap-2 border-b border-[var(--border-color)] pb-2">
           {(
             [
               { key: "new", label: "New in Draft" },
@@ -428,7 +430,7 @@ export default function VoterComparePage() {
               className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                 activeTab === tab.key
                   ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"
-                  : "text-gray-700 hover:bg-gray-50"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
               }`}
             >
               {tab.label}
@@ -440,3 +442,6 @@ export default function VoterComparePage() {
     </div>
   );
 }
+
+
+
