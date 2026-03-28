@@ -6,7 +6,6 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
 
 // Custom hook for responsive design
 const useResponsive = () => {
@@ -28,7 +27,6 @@ const useResponsive = () => {
 };
 
 const ApproachListPage: React.FC = () => {
-    const {t} = useTranslation();
     const { isMobile, isTablet } = useResponsive();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -161,31 +159,31 @@ const ApproachListPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                        {t("ApproachListPage.Title")}
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Approach List
                     </h1>
-                    <p className="text-[var(--text-secondary)] mt-1">
-                        {t("ApproachListPage.Desc")}
+                    <p className="text-gray-600 mt-1">
+                        View voters filtered by approach count and reason
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("ApproachListPage.English")}
+                        English
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("ApproachListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -198,11 +196,11 @@ const ApproachListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+                    <div className="bg-white p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("ApproachListPage.Approach_Count")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Approach Count
                                 </label>
                                 <select
                                     value={selectedCount}
@@ -212,7 +210,7 @@ const ApproachListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">{t("ApproachListPage.All_Counts")}</option>
+                                    <option value="">All Counts</option>
                                     {uniqueCounts.map((count) => (
                                         <option key={count} value={count}>
                                             {count}
@@ -221,8 +219,8 @@ const ApproachListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("ApproachListPage.Approach_Reason")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Approach Reason
                                 </label>
                                 <select
                                     value={selectedReason}
@@ -232,7 +230,7 @@ const ApproachListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">{t("ApproachListPage.All_Reasons")}</option>
+                                    <option value="">All Reasons</option>
                                     {uniqueReasons.map((reason) => (
                                         <option key={reason} value={reason}>
                                             {reason}
@@ -241,8 +239,8 @@ const ApproachListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("ApproachListPage.Part_No_From")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Part No From
                                 </label>
                                 <input
                                     type="number"
@@ -255,8 +253,8 @@ const ApproachListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("ApproachListPage.Part_No_To")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Part No To
                                 </label>
                                 <input
                                     type="number"
@@ -269,14 +267,14 @@ const ApproachListPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    {t("ApproachListPage.Reset")}
+                                    Reset
                                 </button>
                             </div>
                         </div>
@@ -284,16 +282,16 @@ const ApproachListPage: React.FC = () => {
 
                     {isLoading ? (
                         <div className="text-center py-8">
-                            <div className="text-[var(--text-secondary)]">{t("ApproachListPage.Loading")}</div>
+                            <div className="text-gray-600">Loading...</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-4 text-sm text-[var(--text-secondary)] bg-sky-50 p-3 rounded-lg border border-sky-200">
-                                {t("ApproachListPage.Found")} {totalVoters} {t("ApproachListPage.voters")}
-                                {selectedCount && <span> • {t("ApproachListPage.Count")} {selectedCount}</span>}
-                                {selectedReason && <span> • {t("ApproachListPage.Reason")} {selectedReason}</span>}
+                            <div className="mb-4 text-sm text-gray-600 bg-sky-50 p-3 rounded-lg border border-sky-200">
+                                Found {totalVoters} voters
+                                {selectedCount && <span> • Count: {selectedCount}</span>}
+                                {selectedReason && <span> • Reason: {selectedReason}</span>}
                                 {(partFrom || partTo) && (
-                                    <span> • {t("ApproachListPage.Part_No")} {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
@@ -303,11 +301,11 @@ const ApproachListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
                                     {/* Mobile Layout */}
                                     <div className="block sm:hidden">
-                                        <div className="text-center text-sm text-[var(--text-secondary)] mb-3">
-                                            {t("ApproachListPage.Page")} {currentPage} {t("ApproachListPage.of")} {totalPages}
+                                        <div className="text-center text-sm text-gray-600 mb-3">
+                                            Page {currentPage} of {totalPages}
                                         </div>
                                         <div className="flex justify-center gap-2">
                                             <button
@@ -315,9 +313,9 @@ const ApproachListPage: React.FC = () => {
                                                 disabled={currentPage === 1}
                                                 className="px-3 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-sm"
                                             >
-                                                {t("ApproachListPage.Prev")}
+                                                Prev
                                             </button>
-                                            <span className="px-3 py-2 text-[var(--text-secondary)] bg-gray-100 rounded-lg text-sm min-w-[60px] text-center">
+                                            <span className="px-3 py-2 text-gray-700 bg-gray-100 rounded-lg text-sm min-w-[60px] text-center">
                                                 {currentPage}/{totalPages}
                                             </span>
                                             <button
@@ -325,18 +323,18 @@ const ApproachListPage: React.FC = () => {
                                                 disabled={currentPage === totalPages}
                                                 className="px-3 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-sm"
                                             >
-                                                {t("ApproachListPage.Next")}
+                                                Next
                                             </button>
                                         </div>
-                                        <div className="text-center text-xs text-[var(--text-secondary)] mt-2">
-                                            {totalVoters} {t("ApproachListPage.total_voters")}
+                                        <div className="text-center text-xs text-gray-500 mt-2">
+                                            {totalVoters} total voters
                                         </div>
                                     </div>
 
                                     {/* Desktop Layout */}
                                     <div className="hidden sm:flex items-center justify-between">
-                                        <div className="text-sm text-[var(--text-secondary)]">
-                                            {t("ApproachListPage.Showing_page")} {currentPage} {t("ApproachListPage.of")} {totalPages} • {totalVoters} {t("ApproachListPage.total_voters")}
+                                        <div className="text-sm text-gray-600">
+                                            Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                         </div>
                                         <div className="flex gap-2">
                                             <button
@@ -344,9 +342,9 @@ const ApproachListPage: React.FC = () => {
                                                 disabled={currentPage === 1}
                                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                             >
-                                                {t("ApproachListPage.Previous")}
+                                                Previous
                                             </button>
-                                            <span className="px-4 py-2 text-[var(--text-secondary)] bg-gray-100 rounded-lg">
+                                            <span className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg">
                                                 {currentPage} / {totalPages}
                                             </span>
                                             <button
@@ -354,7 +352,7 @@ const ApproachListPage: React.FC = () => {
                                                 disabled={currentPage === totalPages}
                                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                             >
-                                                {t("ApproachListPage.Next")}
+                                                Next
                                             </button>
                                         </div>
                                     </div>
@@ -369,5 +367,3 @@ const ApproachListPage: React.FC = () => {
 };
 
 export default ApproachListPage;
-
-

@@ -6,10 +6,8 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
 
 const MarriedWomenReportPage: React.FC = () => {
-    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -20,23 +18,22 @@ const MarriedWomenReportPage: React.FC = () => {
     const [partTo, setPartTo] = useState<number | undefined>();
     const [ageFrom, setAgeFrom] = useState<number | undefined>();
     const [ageTo, setAgeTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
             ageTo,
             ageFrom,
-            relation: "husband"
+            marriedRelation: "husband"
         },
         { skip: !assembly_id }
     );
@@ -85,7 +82,7 @@ const MarriedWomenReportPage: React.FC = () => {
         setPartTo(undefined);
         setAgeFrom(undefined);
         setAgeTo(undefined);
-        setPage(1);
+        setCurrentPage(1);
     };
 
     const handleEdit = (voter: VoterList) => {
@@ -112,7 +109,7 @@ const MarriedWomenReportPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    {t("MarriedWomenReportPage.No_assembly_selected")}
+                    No assembly selected. Please select an assembly first.
                 </div>
             </div>
         );
@@ -122,31 +119,31 @@ const MarriedWomenReportPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                        {t("MarriedWomenReportPage.Title")}
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Married Women Report
                     </h1>
-                    <p className="text-[var(--text-secondary)] mt-1">
-                        {t("MarriedWomenReportPage.Desc")}
+                    <p className="text-gray-600 mt-1">
+                        View female voters with relation as Husband/पति
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("MarriedWomenReportPage.English")}
+                        English
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("MarriedWomenReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -159,11 +156,11 @@ const MarriedWomenReportPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+                    <div className="bg-white p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("MarriedWomenReportPage.Part_No_From")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Part No From
                                 </label>
                                 <input
                                     type="number"
@@ -176,8 +173,8 @@ const MarriedWomenReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("MarriedWomenReportPage.Part_No_To")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Part No To
                                 </label>
                                 <input
                                     type="number"
@@ -190,8 +187,8 @@ const MarriedWomenReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("MarriedWomenReportPage.Age_From")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Age From
                                 </label>
                                 <input
                                     type="number"
@@ -204,8 +201,8 @@ const MarriedWomenReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("MarriedWomenReportPage.Age_To")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Age To
                                 </label>
                                 <input
                                     type="number"
@@ -218,32 +215,32 @@ const MarriedWomenReportPage: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)]white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    {t("MarriedWomenReportPage.Reset")}
+                                    Reset
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
-                            <div className="text-[var(--text-secondary)]">{t("MarriedWomenReportPage.Loading")}</div>
+                            <div className="text-gray-600">Loading...</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-pink-50 p-3 rounded-lg border border-pink-200">
-                                {t("MarriedWomenReportPage.Found")} {marriedWomen.length} {t("MarriedWomenReportPage.married_women_voters")}
+                            <div className="mb-1 text-sm text-gray-600 bg-pink-50 p-3 rounded-lg border border-pink-200">
+                                Found {marriedWomen.length} married women voters
                                 {(partFrom || partTo) && (
-                                    <span> • {t("MarriedWomenReportPage.Part_No")}: {partFrom || "any"} - {partTo || "any"}</span>
+                                    <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}
                                 {(ageFrom || ageTo) && (
-                                    <span> • {t("MarriedWomenReportPage.Age")}: {ageFrom || "any"} - {ageTo || "any"}</span>
+                                    <span> • Age: {ageFrom || "any"} - {ageTo || "any"}</span>
                                 )}
                             </div>
                             <VoterListTable
@@ -286,5 +283,3 @@ const MarriedWomenReportPage: React.FC = () => {
 };
 
 export default MarriedWomenReportPage;
-
-

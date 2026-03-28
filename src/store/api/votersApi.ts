@@ -51,7 +51,8 @@ interface GetVotersByAssemblyParams {
   politicalParty?: string;
   stayingOutside?: string;
   address?: string;
-  relation?: string;
+  marriedRelation?: string;
+  headRelation?: string;
   caste?: string;
   ageTo?: number;
   ageFrom?: number;
@@ -291,7 +292,8 @@ export const votersApi = createApi({
         townVillage,
         caste,
         shifted,
-        relation,
+        marriedRelation,
+        headRelation,
         voterDOB,
         shiftedState,
         shiftedCity,
@@ -318,7 +320,8 @@ export const votersApi = createApi({
         if (townVillage) params.append("townVillage", townVillage);
         if (education) params.append("education", education);
         if (married) params.append("married", married);
-        if (relation) params.append("relation", relation);
+        if (marriedRelation) params.append("marriedRelation", marriedRelation);
+        if (headRelation) params.append("headRelation", headRelation);
         if (caste) params.append("caste", caste);
         if (fatherName) params.append("fatherName", fatherName);
         if (shifted) params.append("shifted", shifted.toString());

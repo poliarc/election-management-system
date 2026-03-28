@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
-import { useTranslation } from "react-i18next";
 // import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface SurnameData {
@@ -14,7 +13,6 @@ interface SurnameData {
 }
 
 const SurnameReportPage: React.FC = () => {
-    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -28,7 +26,7 @@ const SurnameReportPage: React.FC = () => {
     const [limit] = useState(50);
     
 
-    const { data: votersData, isLoading } =
+    const { data: votersData, isLoading, isFetching } =
             useGetVotersByAssemblyPaginatedQuery(
               {
                 assembly_id: assembly_id!,
@@ -123,7 +121,7 @@ const SurnameReportPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                    {t("SurnameReportPage.No_assembly_selected")}
+                    No assembly selected. Please select an assembly first.
                 </div>
             </div>
         );
@@ -133,40 +131,40 @@ const SurnameReportPage: React.FC = () => {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                        {t("SurnameReportPage.Title")}
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Surname Report
                     </h1>
-                    <p className="text-[var(--text-secondary)] mt-1">
-                        {t("SurnameReportPage.Desc")}
+                    <p className="text-gray-600 mt-1">
+                        View voter statistics grouped by surname
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("SurnameReportPage.English")}
+                        English
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                            : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
-                        {t("SurnameReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
 
-            <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+            <div className="bg-white p-1 rounded-lg shadow mb-1">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("SurnameReportPage.Search_Surname")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Search Surname
                         </label>
                         <input
                             type="text"
@@ -177,8 +175,8 @@ const SurnameReportPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("SurnameReportPage.Part_No_From")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Part No From
                         </label>
                         <input
                             type="number"
@@ -191,8 +189,8 @@ const SurnameReportPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("SurnameReportPage.Part_No_To")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Part No To
                         </label>
                         <input
                             type="number"
@@ -205,69 +203,69 @@ const SurnameReportPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             &nbsp;
                         </label>
                         <button
                             onClick={handleReset}
-                            className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                         >
-                            {t("SurnameReportPage.Reset")}
+                            Reset
                         </button>
                     </div>
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
-                    <div className="text-[var(--text-secondary)]">{t("SurnameReportPage.Loading")}</div>
+                    <div className="text-gray-600">Loading...</div>
                 </div>
             ) : (
                 <>
-                    <div className="mb-1 text-sm text-[var(--text-secondary)] bg-green-50 p-3 rounded-lg border border-green-200">
-                        {t("SurnameReportPage.Found")} {surnameData.length} {t("SurnameReportPage.unique_surnames")}
-                        {searchSurname && <span> • {t("SurnameReportPage.Surname")}: "{searchSurname}"</span>}
+                    <div className="mb-1 text-sm text-gray-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                        Found {surnameData.length} unique surnames
+                        {searchSurname && <span> • Surname: "{searchSurname}"</span>}
                         {(partFrom || partTo) && (
-                            <span> • {t("SurnameReportPage.Part_No")}: {partFrom || "any"} - {partTo || "any"}</span>
+                            <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
                         )}
                     </div>
 
-                    <div className="bg-[var(--bg-card)] rounded-lg shadow overflow-hidden">
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-[var(--bg-main)]">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("SurnameReportPage.Part_No")}
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Part No
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("SurnameReportPage.Last_Name")}
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Last Name
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("SurnameReportPage.Total_Male")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total Male
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("SurnameReportPage.Total_Female")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total Female
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("SurnameReportPage.Total_Voters")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total Voters
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {surnameData.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-secondary)]">
-                                                {t("SurnameReportPage.No_surname_date_found")}
+                                            <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                                No surname data found
                                             </td>
                                         </tr>
                                     ) : (
                                         surnameData.map((item, index) => (
-                                            <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-[var(--text-color)]/5">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
+                                            <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                                                     {item.lastName}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold">
@@ -276,7 +274,7 @@ const SurnameReportPage: React.FC = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-pink-600 font-semibold">
                                                     {item.totalFemale}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-[var(--text-color)] font-bold">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 font-bold">
                                                     {item.totalVoters}
                                                 </td>
                                             </tr>
@@ -288,9 +286,9 @@ const SurnameReportPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                            <div className="text-sm text-[var(--text-secondary)]">
-                                {t("SurnameReportPage.Showing_page")} {currentPage} {t("SurnameReportPage.of")} {totalPages} • {totalVoters} {t("SurnameReportPage.total_surnames")}
+                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total surnames
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -298,14 +296,14 @@ const SurnameReportPage: React.FC = () => {
                                     disabled={currentPage === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {t("SurnameReportPage.Previous")}
+                                    Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {t("SurnameReportPage.Next")}
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -317,6 +315,3 @@ const SurnameReportPage: React.FC = () => {
 };
 
 export default SurnameReportPage;
-
-
-

@@ -2,8 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
-import { useTranslation } from "react-i18next";
-// import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 interface FamilyLabelData {
     houseNo: string;
@@ -15,7 +13,6 @@ interface FamilyLabelData {
 }
 
 const FamilyLabelsPage: React.FC = () => {
-    const {t} = useTranslation();
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
     );
@@ -27,7 +24,7 @@ const FamilyLabelsPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(50);
     
-    const { data: votersData, isLoading } =
+    const { data: votersData, isLoading, isFetching } =
           useGetVotersByAssemblyPaginatedQuery(
             {
               assembly_id: assembly_id!,
@@ -135,19 +132,19 @@ const FamilyLabelsPage: React.FC = () => {
     return (
         <div className="p-1">
             <div className="mb-1">
-                <h1 className="text-2xl font-bold text-[var(--text-color)]">
-                    {t("FamilyLabelsPage.Title")}
+                <h1 className="text-2xl font-bold text-gray-900">
+                    Family Labels Report
                 </h1>
-                <p className="text-[var(--text-secondary)] mt-1">
-                    {t("FamilyLabelsPage.Desc")}
+                <p className="text-gray-600 mt-1">
+                    View family statistics grouped by house number
                 </p>
             </div>
 
-            <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+            <div className="bg-white p-1 rounded-lg shadow mb-1">
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("FamilyLabelsPage.Desc1")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Select House Number
                         </label>
                         <select
                             value={selectedHouseNo}
@@ -157,7 +154,7 @@ const FamilyLabelsPage: React.FC = () => {
                             }}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                         >
-                            <option value="">{t("FamilyLabelsPage.Desc2")}</option>
+                            <option value="">All House Numbers</option>
                             {uniqueHouseNumbers.map((houseNo) => (
                                 <option key={houseNo} value={houseNo}>
                                     {houseNo}
@@ -166,8 +163,8 @@ const FamilyLabelsPage: React.FC = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("FamilyLabelsPage.Part_No_From")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Part No From
                         </label>
                         <input
                             type="number"
@@ -180,8 +177,8 @@ const FamilyLabelsPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                            {t("FamilyLabelsPage.Part_No_To")}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Part No To
                         </label>
                         <input
                             type="number"
@@ -194,75 +191,75 @@ const FamilyLabelsPage: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             &nbsp;
                         </label>
                         <button
                             onClick={handleReset}
-                            className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                         >
-                            {t("FamilyLabelsPage.Reset")}
+                            Reset
                         </button>
                     </div>
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
-                    <div className="text-[var(--text-secondary)]">{t("FamilyLabelsPage.Loading")}</div>
+                    <div className="text-gray-600">Loading...</div>
                 </div>
             ) : (
                 <>
-                    <div className="mb-1 text-sm text-[var(--text-secondary)] bg-violet-50 p-3 rounded-lg border border-violet-200">
+                    <div className="mb-1 text-sm text-gray-600 bg-violet-50 p-3 rounded-lg border border-violet-200">
                         Found {familyLabelsData.length} families
-                        {selectedHouseNo && <span> • {t("FamilyLabelsPage.House_No:")} {selectedHouseNo}</span>}
+                        {selectedHouseNo && <span> • House No: {selectedHouseNo}</span>}
                         {(partFrom || partTo) && (
-                            <span> • {t("FamilyLabelsPage.Part_No:")} {partFrom || "any"} - {partTo || "any"}</span>
+                            <span> • Part No: {partFrom || "any"} - {partTo || "any"}</span>
                         )}
                     </div>
 
-                    <div className="bg-[var(--bg-card)] rounded-lg shadow overflow-hidden">
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-[var(--bg-main)]">
+                                <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.Part_No")}
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Part No
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.House_No")}
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            House No
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.Total_Members")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Total Members
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.Male_Count")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Male Count
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.Female_Count")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Female Count
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                            {t("FamilyLabelsPage.Other_Count")}
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Other Count
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {familyLabelsData.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center text-[var(--text-secondary)]">
-                                                {t("FamilyLabelsPage.Desc3")}
+                                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                                No family data found
                                             </td>
                                         </tr>
                                     ) : (
                                         familyLabelsData.map((item, index) => (
-                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-[var(--text-color)]/5">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
+                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                                                     {item.houseNo}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-[var(--text-color)] font-bold">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 font-bold">
                                                     {item.totalMembers}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-blue-600 font-semibold">
@@ -271,7 +268,7 @@ const FamilyLabelsPage: React.FC = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-pink-600 font-semibold">
                                                     {item.femaleCount}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-[var(--text-secondary)] font-semibold">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-600 font-semibold">
                                                     {item.otherCount}
                                                 </td>
                                             </tr>
@@ -283,9 +280,9 @@ const FamilyLabelsPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                            <div className="text-sm text-[var(--text-secondary)]">
-                                {t("FamilyLabelsPage.Showing_page")} {currentPage} {t("FamilyLabelsPage.of")} {totalPages} • {totalVoters} {t("FamilyLabelsPage.total_families")}
+                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total families
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -293,14 +290,14 @@ const FamilyLabelsPage: React.FC = () => {
                                     disabled={currentPage === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {t("FamilyLabelsPage.Previous")}
+                                    Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    {t("FamilyLabelsPage.Next")}
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -312,6 +309,3 @@ const FamilyLabelsPage: React.FC = () => {
 };
 
 export default FamilyLabelsPage;
-
-
-
