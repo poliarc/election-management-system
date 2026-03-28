@@ -146,7 +146,7 @@ export default function AgeWiseListPage() {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("AgeWiseListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>

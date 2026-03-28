@@ -34,7 +34,7 @@ const OutsideLocationListPage: React.FC = () => {
         "Turkey", "United Arab Emirates", "United Kingdom", "United States", "Vietnam"
     ];
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -134,7 +134,7 @@ const OutsideLocationListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("OutsideLocationListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -147,11 +147,11 @@ const OutsideLocationListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+                    <div className="bg-white p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("OutsideLocationListPage.Outside_Country")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Outside Country
                                 </label>
                                 <select
                                     value={outsideCountry}
@@ -161,7 +161,7 @@ const OutsideLocationListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">{t("OutsideLocationListPage.All_Countries")}</option>
+                                    <option value="">All Countries</option>
                                     {countries.map((country) => (
                                         <option key={country} value={country}>
                                             {country}
@@ -170,12 +170,12 @@ const OutsideLocationListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     &nbsp;
                                 </label>
                                 <button
                                     onClick={handleReset}
-                                    className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                                    className="w-50 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                 >
                                     {t("OutsideLocationListPage.Reset")}
                                 </button>
@@ -183,16 +183,16 @@ const OutsideLocationListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("OutsideLocationListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-[var(--text-secondary)] p-3 rounded-lg border bg-purple-50 border-purple-200">
-                                {t("OutsideLocationListPage.Found")} {outsideCountryVoters.length} {t("OutsideLocationListPage.voters_staying_outside")}
+                            <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-purple-50 border-purple-200">
+                                Found {outsideCountryVoters.length} voters staying outside
                                 {outsideCountry && (
-                                    <span> • {t("OutsideLocationListPage.Country")}: {outsideCountry}</span>
+                                    <span> • Country: {outsideCountry}</span>
                                 )}
                             </div>
                             <VoterListTable

@@ -112,7 +112,7 @@ const EducationWiseListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("EducationWiseListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -195,9 +195,9 @@ const EducationWiseListPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-teal-50 p-3 rounded-lg border border-teal-200">
-                                {t("EducationWiseListPage.Found")} {voters.length} {t("EducationWiseListPage.voters")}
-                                {selectedEducation && <span> • {t("EducationWiseListPage.Education:")} {selectedEducation}</span>}
+                            <div className="mb-1 text-sm text-gray-600 bg-teal-50 p-3 rounded-lg border border-teal-200">
+                                Found {voters.length} voters
+                                {selectedEducation && <span> • Education: {selectedEducation}</span>}
                                 {(partFrom || partTo) && (
                                     <span> • {t("EducationWiseListPage.Part_No:")} {partFrom || "any"} - {partTo || "any"}</span>
                                 )}

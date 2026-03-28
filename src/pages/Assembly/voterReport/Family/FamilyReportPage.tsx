@@ -25,7 +25,7 @@ const FamilyReportPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -46,7 +46,8 @@ const FamilyReportPage: React.FC = () => {
 
         const grouped = new Map<string, any[]>();
         votersData.data.forEach((voter) => {
-            const key = `${voter.part_no}_${voter.house_no_eng}`;
+            const houseNo = voter.house_no_eng || "UNKNOWN";
+            const key = `${voter.part_no}_${houseNo}`;
             if (!grouped.has(key)) {
                 grouped.set(key, []);
             }
@@ -65,7 +66,10 @@ const FamilyReportPage: React.FC = () => {
             if (a.part_no !== b.part_no) {
                 return Number(a.part_no) - Number(b.part_no);
             }
-            return a.house_no_eng.localeCompare(b.house_no_eng);
+
+            const houseA = a.house_no_eng || "";
+            const houseB = b.house_no_eng || "";
+            return houseA.localeCompare(houseB);
         });
     }, [votersData]);
 
@@ -132,7 +136,7 @@ const FamilyReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("FamilyReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -199,7 +203,7 @@ const FamilyReportPage: React.FC = () => {
                     onSubmit={handleSave}
                     onCancel={handleCancel}
                 />
-            ) : isLoading ? (
+            ) : isLoading || isFetching ? (
                 <div className="text-center py-8">
                     <div className="text-[var(--text-secondary)]">{t("FamilyReportPage.Loading")}</div>
                 </div>

@@ -30,7 +30,7 @@ const ProfessionWiseListPage: React.FC = () => {
 
     const allDistinctProfession = professionData?.data || []
     
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -128,7 +128,7 @@ const ProfessionWiseListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("ProfessionWiseListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -155,7 +155,7 @@ const ProfessionWiseListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">{t("ProfessionWiseListPage.All_Professions")}</option>
+                                    <option value="">All Professions</option>
                                     {allDistinctProfession.map((profession) => (
                                         <option key={profession.value} value={profession.value}>
                                             {profession.value}
@@ -205,15 +205,15 @@ const ProfessionWiseListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("ProfessionWiseListPage.Loading")}</div>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-[var(--text-secondary)] bg-lime-50 p-3 rounded-lg border border-lime-200">
-                                {t("ProfessionWiseListPage.Found")} {voters.length} {t("ProfessionWiseListPage.voters")}
-                                {selectedProfession && <span> • {t("ProfessionWiseListPage.Profession")}: {selectedProfession}</span>}
+                            <div className="mb-1 text-sm text-gray-600 bg-lime-50 p-3 rounded-lg border border-lime-200">
+                                Found {voters.length} voters
+                                {selectedProfession && <span> • Profession: {selectedProfession}</span>}
                                 {(partFrom || partTo) && (
                                     <span> • {t("ProfessionWiseListPage.Part_No")}: {partFrom || "any"} - {partTo || "any"}</span>
                                 )}

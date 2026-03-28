@@ -164,7 +164,7 @@ const HomeShiftedListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("HomeShiftedListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -177,11 +177,11 @@ const HomeShiftedListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
+                    <div className="bg-white p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("HomeShiftedListPage.Shifted_State")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Shifted State
                                 </label>
                                 <select
                                     value={shiftedState}
@@ -191,7 +191,7 @@ const HomeShiftedListPage: React.FC = () => {
                                     }}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
                                 >
-                                    <option value="">{t("HomeShiftedListPage.All_States")}</option>
+                                    <option value="">All States</option>
                                     {states.map((state) => (
                                         <option key={state.id} value={state.levelName}>
                                             {state.levelName}
@@ -200,8 +200,8 @@ const HomeShiftedListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("HomeShiftedListPage.Shifted_District")}
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Shifted District
                                 </label>
                                 <select
                                     value={shiftedCity}
@@ -212,7 +212,7 @@ const HomeShiftedListPage: React.FC = () => {
                                     disabled={!shiftedState}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                 >
-                                    <option value="">{t("HomeShiftedListPage.All_Districts")}</option>
+                                    <option value="">All Districts</option>
                                     {districts.map((district) => (
                                         <option key={district.id} value={district.levelName}>
                                             {district.levelName}
@@ -221,7 +221,7 @@ const HomeShiftedListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     &nbsp;
                                 </label>
                                 <button
@@ -240,13 +240,13 @@ const HomeShiftedListPage: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <div className="mb-1 text-sm text-[var(--text-secondary)] p-3 rounded-lg border bg-amber-50 border-amber-200">
-                                {t("HomeShiftedListPage.Found")} {voters.length} {t("HomeShiftedListPage.shifted_voters")}
+                            <div className="mb-1 text-sm text-gray-600 p-3 rounded-lg border bg-amber-50 border-amber-200">
+                                Found {voters.length} shifted voters
                                 {shiftedState && (
-                                    <span> • {t("HomeShiftedListPage.State:")} {shiftedState}</span>
+                                    <span> • State: {shiftedState}</span>
                                 )}
                                 {shiftedCity && (
-                                    <span> • {t("HomeShiftedListPage.District:")} {shiftedCity}</span>
+                                    <span> • District: {shiftedCity}</span>
                                 )}
                             </div>
                             <VoterListTable

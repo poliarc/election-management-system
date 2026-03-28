@@ -185,7 +185,7 @@ const ApproachListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("ApproachListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
