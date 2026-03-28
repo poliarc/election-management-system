@@ -27,7 +27,7 @@ const FamilyLabelsPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(50);
     
-    const { data: votersData, isLoading } =
+    const { data: votersData, isLoading, isFetching } =
           useGetVotersByAssemblyPaginatedQuery(
             {
               assembly_id: assembly_id!,
@@ -207,7 +207,7 @@ const FamilyLabelsPage: React.FC = () => {
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
                     <div className="text-[var(--text-secondary)]">{t("FamilyLabelsPage.Loading")}</div>
                 </div>
@@ -246,7 +246,7 @@ const FamilyLabelsPage: React.FC = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-200">
                                     {familyLabelsData.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-[var(--text-secondary)]">
@@ -255,8 +255,8 @@ const FamilyLabelsPage: React.FC = () => {
                                         </tr>
                                     ) : (
                                         familyLabelsData.map((item, index) => (
-                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-[var(--text-color)]/5">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
+                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">
@@ -283,9 +283,9 @@ const FamilyLabelsPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                            <div className="text-sm text-[var(--text-secondary)]">
-                                {t("FamilyLabelsPage.Showing_page")} {currentPage} {t("FamilyLabelsPage.of")} {totalPages} • {totalVoters} {t("FamilyLabelsPage.total_families")}
+                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total families
                             </div>
                             <div className="flex gap-2">
                                 <button

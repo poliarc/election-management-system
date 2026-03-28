@@ -58,8 +58,8 @@ export default function StateUserWiseSupportersPage() {
         {/* Header + Stats in one row */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t("userWise.Title")}</h1>
-            <p className="text-gray-600 text-sm">{t("userWise.Desc")}</p>
+            <h1 className="text-2xl font-bold text-[var(--text-main)]">{t("userWise.Title")}</h1>
+            <p className="text-[var(--text-muted)] text-sm">{t("userWise.Disc")}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             {/* Total Supporters */}

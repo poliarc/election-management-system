@@ -137,7 +137,7 @@ const SingleVoterReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("SingleVoterReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>

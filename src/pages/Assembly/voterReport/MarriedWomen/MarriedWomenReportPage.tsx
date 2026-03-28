@@ -20,23 +20,22 @@ const MarriedWomenReportPage: React.FC = () => {
     const [partTo, setPartTo] = useState<number | undefined>();
     const [ageFrom, setAgeFrom] = useState<number | undefined>();
     const [ageTo, setAgeTo] = useState<number | undefined>();
-    const [page, setPage] = useState(1);
     const [language, setLanguage] = useState<"en" | "hi">("en");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
-            page,
+            page: currentPage,
             limit: itemsPerPage,
             partFrom,
             partTo,
             ageTo,
             ageFrom,
-            relation: "husband"
+            marriedRelation: "husband"
         },
         { skip: !assembly_id }
     );
@@ -85,7 +84,7 @@ const MarriedWomenReportPage: React.FC = () => {
         setPartTo(undefined);
         setAgeFrom(undefined);
         setAgeTo(undefined);
-        setPage(1);
+        setCurrentPage(1);
     };
 
     const handleEdit = (voter: VoterList) => {
@@ -146,7 +145,7 @@ const MarriedWomenReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("MarriedWomenReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -231,7 +230,7 @@ const MarriedWomenReportPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("MarriedWomenReportPage.Loading")}</div>
                         </div>

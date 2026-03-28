@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../../store";
 import { useGetVotersByAssemblyPaginatedQuery, useUpdateVoterMutation } from "../../../../store/api/votersApi";
@@ -26,7 +26,7 @@ const FamilyHeadReportPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } =
+    const { data: votersData, isLoading, isFetching } =
       useGetVotersByAssemblyPaginatedQuery(
         {
           assembly_id: assembly_id!,
@@ -34,27 +34,29 @@ const FamilyHeadReportPage: React.FC = () => {
           limit,
           partFrom,
           partTo,
+          headRelation: 'father',
         },
         { skip: !assembly_id },
       );
 
     const totalPages = votersData?.pagination?.totalPages || 1;
     const totalVoters = votersData?.pagination?.total || 0;
+    const familyHeads = votersData?.data || []
 
-    const familyHeads = useMemo(() => {
-        if (!votersData?.data) return [];
+    // const familyHeads = useMemo(() => {
+    //     if (!votersData?.data) return [];
 
-        return votersData.data.filter((voter) => {
-            const relation = voter.relation?.toLowerCase() || "";
-            return (
-                relation === "पिता" ||
-                relation === "father" ||
-                relation === "" ||
-                relation === "self" ||
-                (!relation.includes("पति") && !relation.includes("माता"))
-            );
-        });
-    }, [votersData]);
+    //     return votersData.data.filter((voter) => {
+    //         const relation = voter.relation?.toLowerCase() || "";
+    //         return (
+    //             relation === "पिता" ||
+    //             relation === "father" ||
+    //             relation === "" ||
+    //             relation === "self" ||
+    //             (!relation.includes("पति") && !relation.includes("माता"))
+    //         );
+    //     });
+    // }, [votersData]);
 
     // const { paginatedVoters, totalPages } = usePartFilterPagination({
     //     data: familyHeads,
@@ -128,7 +130,7 @@ const FamilyHeadReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("FamilyHeadReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -185,7 +187,7 @@ const FamilyHeadReportPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("FamilyHeadReportPage.Loading")}</div>
                         </div>
@@ -201,9 +203,9 @@ const FamilyHeadReportPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                                    <div className="text-sm text-[var(--text-secondary)]">
-                                        {t("FamilyHeadReportPage.Showing_page")} {page} {t("FamilyHeadReportPage.of")} {totalPages} • {totalVoters} {t("FamilyHeadReportPage.total_voters")}
+                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {page} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button

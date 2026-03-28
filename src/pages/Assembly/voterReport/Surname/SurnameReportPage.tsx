@@ -28,7 +28,7 @@ const SurnameReportPage: React.FC = () => {
     const [limit] = useState(50);
     
 
-    const { data: votersData, isLoading } =
+    const { data: votersData, isLoading, isFetching } =
             useGetVotersByAssemblyPaginatedQuery(
               {
                 assembly_id: assembly_id!,
@@ -157,7 +157,7 @@ const SurnameReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("SurnameReportPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -218,7 +218,7 @@ const SurnameReportPage: React.FC = () => {
                 </div>
             </div>
 
-            {isLoading ? (
+            {isLoading || isFetching ? (
                 <div className="text-center py-8">
                     <div className="text-[var(--text-secondary)]">{t("SurnameReportPage.Loading")}</div>
                 </div>
@@ -263,8 +263,8 @@ const SurnameReportPage: React.FC = () => {
                                         </tr>
                                     ) : (
                                         surnameData.map((item, index) => (
-                                            <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-[var(--text-color)]/5">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-color)]">
+                                            <tr key={`${item.partNo}-${item.lastName}-${index}`} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     {item.partNo}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">
@@ -288,9 +288,9 @@ const SurnameReportPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                            <div className="text-sm text-[var(--text-secondary)]">
-                                {t("SurnameReportPage.Showing_page")} {currentPage} {t("SurnameReportPage.of")} {totalPages} • {totalVoters} {t("SurnameReportPage.total_surnames")}
+                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-gray-600">
+                                Showing page {currentPage} of {totalPages} • {totalVoters} total surnames
                             </div>
                             <div className="flex gap-2">
                                 <button

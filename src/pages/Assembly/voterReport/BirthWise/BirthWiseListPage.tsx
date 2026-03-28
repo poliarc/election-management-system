@@ -26,7 +26,7 @@ const BirthWiseListPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -68,14 +68,6 @@ const BirthWiseListPage: React.FC = () => {
         });
     }, [votersData, selectedDOB]);
 
-    // Paginate the filtered data
-    // const paginatedVoters = useMemo(() => {
-    //     const startIndex = (currentPage - 1) * itemsPerPage;
-    //     const endIndex = startIndex + itemsPerPage;
-    //     return filteredVoters.slice(startIndex, endIndex);
-    // }, [filteredVoters, currentPage]);
-
-    // const totalPages = Math.ceil(filteredVoters.length / itemsPerPage);
 
     const handleReset = () => {
         setSelectedDOB("");
@@ -143,7 +135,7 @@ const BirthWiseListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("BirthWiseListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -220,7 +212,7 @@ const BirthWiseListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("BirthWiseListPage.Loading")}</div>
                         </div>
@@ -241,9 +233,9 @@ const BirthWiseListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                                    <div className="text-sm text-[var(--text-secondary)]">
-                                        {t("BirthWiseListPage.Showing_page")} {currentPage} {t("BirthWiseListPage.of")} {totalPages} • {totalVoters} {t("BirthWiseListPage.total_voters")}
+                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button

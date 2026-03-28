@@ -106,7 +106,7 @@ const DeadAliveListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("DeadAliveListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -192,7 +192,7 @@ const DeadAliveListPage: React.FC = () => {
                                     ? "bg-green-50 border-green-200"
                                     : "bg-[var(--bg-main)] border-[var(--border-color)]"
                                 }`}>
-                                {t("DeadAliveListPage.Found")} {voters.length} {t("DeadAliveListPage.voters")}
+                                Found {voters.length} voters
                                 {expiredAliveStatus && (
                                     <span> • {t("DeadAliveListPage.Status:")} {expiredAliveStatus}</span>
                                 )}
@@ -207,9 +207,9 @@ const DeadAliveListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
-                                    <div className="text-sm text-[var(--text-secondary)]">
-                                        {t("DeadAliveListPage.Showing_page")} {currentPage} {t("DeadAliveListPage.of")} {totalPages} • {totalVoters} {t("DeadAliveListPage.total_voters")}
+                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
                                         <button

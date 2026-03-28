@@ -55,7 +55,7 @@ const SSRFormReportPage: React.FC = () => {
         }
     }, [isMobile, isTablet, itemsPerPage, currentPage]);
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page: currentPage,
@@ -219,12 +219,12 @@ const SSRFormReportPage: React.FC = () => {
                                     : "bg-gray-200 text-[var(--text-secondary)] hover:bg-gray-300"
                                     }`}
                             >
-                                {t("SSRFormReportPage.Regional")}
+                                Regional
                             </button>
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8 sm:py-12">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
                             <p className="mt-4 text-[var(--text-secondary)] text-sm sm:text-base">{t("SSRFormReportPage.Loading_voters")}</p>

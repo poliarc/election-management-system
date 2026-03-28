@@ -27,7 +27,7 @@ const LabharthiListPage: React.FC = () => {
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    const { data: votersData, isLoading } = useGetVotersByAssemblyPaginatedQuery(
+    const { data: votersData, isLoading, isFetching } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -159,7 +159,7 @@ const LabharthiListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        {t("LabharthiListPage.Regional")}
+                        Regional
                     </button>
                 </div>
             </div>
@@ -273,7 +273,7 @@ const LabharthiListPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isLoading ? (
+                    {isLoading || isFetching ? (
                         <div className="text-center py-8">
                             <div className="text-[var(--text-secondary)]">{t("LabharthiListPage.Loading")}</div>
                         </div>

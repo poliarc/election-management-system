@@ -226,18 +226,6 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
     );
   }
 
-  if (!assemblyId || !partyId) {
-    return (
-      <div className="bg-white rounded-lg border p-6">
-        <div className="text-center text-red-600">
-          {!assemblyId
-            ? "No assembly selected. Please select an assembly first."
-            : "Party information not found. Please login again."}
-        </div>
-      </div>
-    );
-  }
-
   if (showForm) {
     return (
       <div className="bg-[var(--bg-color)] rounded-lg border p-6">
