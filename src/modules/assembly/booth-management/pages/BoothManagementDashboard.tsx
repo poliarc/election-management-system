@@ -142,9 +142,9 @@ export const BoothManagementDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Category Breakdown */}
-        <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-800 mb-1">Category Breakdown <span className="text-indigo-600 font-bold">({stats.total})</span></h2>
-          <p className="text-sm text-slate-400 mb-5">Distribution across teams</p>
+        <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-1">Category Breakdown <span className="text-indigo-500 font-bold">({stats.total})</span></h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-5">Distribution across teams</p>
           <div className="space-y-4">
             {[
               { label: "Booth Inside Team", value: stats.boothInside, bar: "from-blue-500 to-cyan-400", dot: "bg-blue-500", link: "/assembly/booth-management/inside" },
@@ -155,14 +155,14 @@ export const BoothManagementDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${item.dot}`} />
-                    <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">{item.label}</span>
+                    <span className="text-sm font-medium text-[var(--text-color)] group-hover:text-indigo-500 transition-colors">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-800">{item.value}<span className="text-slate-400 font-normal">/{stats.total}</span></span>
-                    <span className="text-xs text-slate-400">({stats.total > 0 ? Math.round((item.value / stats.total) * 100) : 0}%)</span>
+                    <span className="text-sm font-bold text-[var(--text-color)]">{item.value}<span className="text-[var(--text-secondary)] font-normal">/{stats.total}</span></span>
+                    <span className="text-xs text-[var(--text-secondary)]">({stats.total > 0 ? Math.round((item.value / stats.total) * 100) : 0}%)</span>
                   </div>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                <div className="w-full bg-[var(--bg-hover)] rounded-full h-2.5 overflow-hidden">
                   <div
                     className={`bg-gradient-to-r ${item.bar} h-2.5 rounded-full transition-all duration-700`}
                     style={{ width: stats.total > 0 ? `${(item.value / stats.total) * 100}%` : "0%" }}
@@ -174,11 +174,11 @@ export const BoothManagementDashboard: React.FC = () => {
         </div>
 
         {/* Team Strength - Pie Chart */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white">
-          <h2 className="text-lg font-semibold mb-1">Team Graph</h2>
-          <p className="text-sm text-slate-400 mb-4">Total <span className="text-white font-bold">{stats.total}</span> agents across 3 teams</p>
+        <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-1">Team Graph</h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-4">Total <span className="text-[var(--text-color)] font-bold">{stats.total}</span> agents across 3 teams</p>
           {stats.total === 0 ? (
-            <div className="flex items-center justify-center h-32 text-slate-500 text-sm">No data yet</div>
+            <div className="flex items-center justify-center h-32 text-[var(--text-secondary)] text-sm">No data yet</div>
           ) : (() => {
             const teams = [
               { label: "Inside", value: stats.boothInside, color: "#60a5fa" },
@@ -204,9 +204,9 @@ export const BoothManagementDashboard: React.FC = () => {
                   {slices.map((s) => s.value > 0 && (
                     <path key={s.label} d={s.d} fill={s.color} opacity="0.9" />
                   ))}
-                  <circle cx={cx} cy={cy} r="28" fill="#1e293b" />
-                  <text x={cx} y={cy - 4} textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">{stats.total}</text>
-                  <text x={cx} y={cy + 12} textAnchor="middle" fill="#94a3b8" fontSize="8">total</text>
+                  <circle cx={cx} cy={cy} r="28" fill="var(--bg-card)" />
+                  <text x={cx} y={cy - 4} textAnchor="middle" fill="var(--text-color)" fontSize="14" fontWeight="bold">{stats.total}</text>
+                  <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--text-secondary)" fontSize="8">total</text>
                 </svg>
                 <div className="space-y-2.5 flex-1">
                   {teams.map((t) => (
