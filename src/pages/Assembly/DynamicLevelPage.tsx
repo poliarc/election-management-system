@@ -47,7 +47,7 @@ export default function DynamicLevelPage() {
     if (isLoading) {
         return (
             <div className="p-6">
-                <div className="text-center text-gray-600">
+                <div className="text-center text-[var(--text-secondary)]">
                     <p>Loading level configuration...</p>
                 </div>
             </div>
@@ -67,7 +67,7 @@ export default function DynamicLevelPage() {
     if (!levelConfig) {
         return (
             <div className="p-6">
-                <div className="text-center text-gray-600">
+                <div className="text-center text-[var(--text-secondary)]">
                     <p>Level configuration not found for "{levelName}"</p>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { DragEvent, ChangeEvent } from "react";
 import { useUploadDraftVotersMutation } from "../store/api/votersApi";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface UploadDraftVotersModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export default function UploadDraftVotersModal({
   districtName,
   partyId,
 }: UploadDraftVotersModalProps) {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,12 +115,12 @@ export default function UploadDraftVotersModal({
   };
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm bg-[var(--bg-card)]/30 flex items-center justify-center z-50">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 rounded-t-lg">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">
-              Upload Draft Voters
+              {t("uploadDraftVoter.Upload_Draft")}
             </h2>
             <button
               onClick={handleClose}
@@ -142,20 +144,20 @@ export default function UploadDraftVotersModal({
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Target</h3>
+        <div className="p-6 ">
+          <div className="mb-6 p-4 bg-[var(--bg-color)] rounded-lg">
+            <h3 className="text-sm font-semibold text-[var(--text-secondary)]  mb-2">{t("uploadDraftVoter.Target")}</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-gray-600">State ID:</span>
-                <span className="ml-2 font-medium text-gray-900">
+                <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.State_ID")}:</span>
+                <span className="ml-2 font-medium text-[var(--text-color)]">
                   {stateId}
                 </span>
               </div>
               {districtId ? (
                 <div>
-                  <span className="text-gray-600">District:</span>
-                  <span className="ml-2 font-medium text-gray-900">
+                  <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.District_ID")}:</span>
+                  <span className="ml-2 font-medium text-[var(--text-color)]">
                     {districtName
                       ? `${districtName} (${districtId})`
                       : districtId}
@@ -163,35 +165,34 @@ export default function UploadDraftVotersModal({
                 </div>
               ) : (
                 <div>
-                  <span className="text-gray-600">District:</span>
-                  <span className="ml-2 font-medium text-gray-400">
+                  <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.District_ID")}:</span>
+                  <span className="ml-2 font-medium text-[var(--text-secondary)]">
                     Not set
                   </span>
                 </div>
               )}
               <div>
-                <span className="text-gray-600">Assembly:</span>
-                <span className="ml-2 font-medium text-gray-900">
+                <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.Assembly_ID")}:</span>
+                <span className="ml-2 font-medium text-[var(--text-color)]">
                   {assemblyName} ({assemblyId})
                 </span>
               </div>
               <div>
-                <span className="text-gray-600">Party ID:</span>
-                <span className="ml-2 font-medium text-gray-900">
+                <span className="text-[var(--text-secondary)]">{t("uploadDraftVoter.Party_ID")}:</span>
+                <span className="ml-2 font-medium text-[var(--text-color)]">
                   {partyId}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Upload CSV, or Excel files to the draft voter table for this
-              assembly.
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              {t("uploadDraftVoter.Note")}
             </p>
           </div>
 
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
               ? "border-indigo-500 bg-indigo-50"
-              : "border-gray-300 bg-gray-50"
+              : "border-gray-300 bg-[var(--bg-main)]"
               }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -209,7 +210,7 @@ export default function UploadDraftVotersModal({
             {!selectedFile ? (
               <>
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -221,15 +222,15 @@ export default function UploadDraftVotersModal({
                     d="M4 17h16M12 7v8m0 0l-4-4m4 4l4-4"
                   />
                 </svg>
-                <p className="mt-2 text-sm text-gray-600">Drag and drop, or</p>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">{t("uploadDraftVoter.Drag_And_Drop")}</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  Browse Files
+                  {t("uploadDraftVoter.Browse_Files")}
                 </button>
-                <p className="mt-2 text-xs text-gray-500">
-                  CSV, XLSX, XLS
+                <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                  {t("uploadDraftVoter.Accepted_Formats")}
                 </p>
               </>
             ) : (
@@ -248,10 +249,10 @@ export default function UploadDraftVotersModal({
                   />
                 </svg>
                 <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-[var(--text-color)]">
                     {selectedFile.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     {(selectedFile.size / 1024).toFixed(2)} KB
                   </p>
                 </div>
@@ -295,7 +296,7 @@ export default function UploadDraftVotersModal({
                   />
                 </svg>
                 <p className="text-sm text-green-800 font-medium">
-                  Draft voters uploaded successfully.
+                  {t("uploadDraftVoter.Draft_Success")}
                 </p>
               </div>
             </div>
@@ -326,11 +327,11 @@ export default function UploadDraftVotersModal({
           )}
         </div>
 
-        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+        <div className="bg-[var(--bg-main)] px-6 py-4 rounded-b-lg flex justify-end space-x-3">
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -360,7 +361,7 @@ export default function UploadDraftVotersModal({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Uploading...
+                {t("uploadDraftVoter.Uploading")}
               </>
             ) : (
               "Upload"
@@ -371,3 +372,5 @@ export default function UploadDraftVotersModal({
     </div>
   );
 }
+
+

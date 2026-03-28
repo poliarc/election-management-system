@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 // Validation schema not used in this placeholder; using basic required rule
 import type { RoleForm as RoleFormType } from "../../../types/role";
+import { useTranslation } from "react-i18next";
 
 interface RoleFormProps {
   initialValues?: RoleFormType;
@@ -16,6 +17,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({
   onCancel,
   isLoading,
 }) => {
+  const {t} = useTranslation();
   const {
     register,
     handleSubmit,
@@ -39,15 +41,15 @@ export const RoleForm: React.FC<RoleFormProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-[var(--bg-card)] p-6 rounded-lg shadow-md">
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Role Name Field */}
         <div>
           <label
             htmlFor="roleName"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
           >
-            Role Name <span className="text-red-500">*</span>
+            {t("RoleForm.Role_Name")} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -75,10 +77,10 @@ export const RoleForm: React.FC<RoleFormProps> = ({
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               disabled={isLoading || isSubmitting}
             />
-            <span className="text-sm font-medium text-gray-700">Active</span>
+            <span className="text-sm font-medium text-[var(--text-secondary)]">{t("RoleForm.Active")}</span>
           </label>
-          <p className="mt-1 text-xs text-gray-500">
-            Uncheck to make this role inactive
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">
+            {t("RoleForm.Desc")}
           </p>
         </div>
 
@@ -87,10 +89,10 @@ export const RoleForm: React.FC<RoleFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            className="px-6 py-2 border border-gray-300 text-[var(--text-secondary)] rounded-md hover:bg-[var(--text-color)]/5 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
             disabled={isLoading || isSubmitting}
           >
-            Cancel
+            {t("RoleForm.Cancel")}
           </button>
           <button
             type="submit"
@@ -107,3 +109,5 @@ export const RoleForm: React.FC<RoleFormProps> = ({
     </div>
   );
 };
+
+

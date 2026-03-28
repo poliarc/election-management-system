@@ -61,20 +61,20 @@ export const CampaignReportsPage = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 rounded-xl shadow-md bg-gray-50">
+    <div className="space-y-6 p-4 rounded-xl shadow-md bg-[var(--bg-color)]">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Campaign Reports</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--text-color)]">Campaign Reports</h1>
+        <p className="text-[var(--text-secondary)] mt-1">
           View and analyze campaign activity reports from all levels
         </p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-[var(--bg-color)] rounded-lg shadow-sm border p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Select Campaign
             </label>
             <select
@@ -92,7 +92,7 @@ export const CampaignReportsPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Search Reports
             </label>
             <input
@@ -117,25 +117,25 @@ export const CampaignReportsPage = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-[var(--bg-color)] p-6 rounded-lg shadow-sm border">
           <div>
-            <p className="text-sm text-gray-600">Total Reports</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-sm text-[var(--text-secondary)]">Total Reports</p>
+            <p className="text-2xl font-bold text-[var(--text-color)]">
               {stats.totalReports}
             </p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-[var(--bg-color)] p-6 rounded-lg shadow-sm border">
           <div>
-            <p className="text-sm text-gray-600">Total Attendees</p>
+            <p className="text-sm text-[var(--text-secondary)]">Total Attendees</p>
             <p className="text-2xl font-bold text-green-600">
               {stats.totalAttendees}
             </p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-[var(--bg-color)] p-6 rounded-lg shadow-sm border">
           <div>
-            <p className="text-sm text-gray-600">Avg Attendees/Report</p>
+            <p className="text-sm text-[var(--text-secondary)]">Avg Attendees/Report</p>
             <p className="text-2xl font-bold text-blue-600">
               {stats.avgAttendees}
             </p>
@@ -144,38 +144,38 @@ export const CampaignReportsPage = () => {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-[var(--bg-color)] rounded-lg shadow-sm border">
         <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-[var(--text-color)]">
             Activity Reports ({searchedReports.length})
           </h2>
         </div>
         <div className="p-6">
           {searchedReports.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">No reports found</p>
+              <p className="text-[var(--text-secondary)]">No reports found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full table-auto border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 border-b">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                  <tr className="bg-[var(--bg-color)] border-b">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Campaign
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Reporter
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Level
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Location
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Attendees
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-color)]">
                       Date
                     </th>
                   </tr>
@@ -186,16 +186,16 @@ export const CampaignReportsPage = () => {
                       (c) => c.id === String(report.campaign_id)
                     );
                     return (
-                      <tr key={report.id} className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                      <tr key={report.id} className="border-b hover:bg-[var(--bg-color)]">
+                        <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           {campaign?.name || "Unknown Campaign"}
                         </td>
                         <td className="px-4 py-3">
                           <div>
-                            <p className="font-semibold text-gray-900 text-sm">
+                            <p className="font-semibold text-[var(--text-color)] text-sm">
                               {report.personName}
                             </p>
-                            <p className="text-gray-600 text-xs">
+                            <p className="text-[var(--text-secondary)] text-xs">
                               {report.personPhone}
                             </p>
                           </div>
@@ -205,13 +205,13 @@ export const CampaignReportsPage = () => {
                             {report.reporter_level || "N/A"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                           {report.location}
                         </td>
-                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                        <td className="px-4 py-3 text-sm font-semibold text-[var(--text-color)]">
                           {report.attendees}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                           {report.date
                             ? new Date(report.date).toLocaleDateString()
                             : "N/A"}
@@ -228,3 +228,6 @@ export const CampaignReportsPage = () => {
     </div>
   );
 };
+
+
+

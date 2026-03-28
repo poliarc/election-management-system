@@ -55,7 +55,7 @@ export default function BlockTeam() {
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 font-medium">Loading block team...</p>
+                    <p className="mt-4 text-[var(--text-secondary)] font-medium">Loading block team...</p>
                 </div>
             </div>
         );
@@ -82,8 +82,8 @@ export default function BlockTeam() {
     if (!blockTeamData) {
         return (
             <div className="p-6">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                    <p className="text-gray-600">No block data available</p>
+                <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-6 text-center">
+                    <p className="text-[var(--text-secondary)]">No block data available</p>
                 </div>
             </div>
         );
@@ -93,7 +93,7 @@ export default function BlockTeam() {
     const inactiveUsers = blockTeamData.total_users - activeUsers;
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-6">
                 <h1 className="text-3xl font-bold">{blockTeamData.level.displayName}</h1>
@@ -104,11 +104,11 @@ export default function BlockTeam() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm font-medium">Total Users</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">{blockTeamData.total_users}</p>
+                            <p className="text-[var(--text-secondary)] text-sm font-medium">Total Users</p>
+                            <p className="text-3xl font-bold text-[var(--text-color)] mt-2">{blockTeamData.total_users}</p>
                         </div>
                         <div className="bg-blue-100 rounded-full p-3">
                             <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,10 +118,10 @@ export default function BlockTeam() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm font-medium">Active Users</p>
+                            <p className="text-[var(--text-secondary)] text-sm font-medium">Active Users</p>
                             <p className="text-3xl font-bold text-green-600 mt-2">{activeUsers}</p>
                         </div>
                         <div className="bg-green-100 rounded-full p-3">
@@ -132,10 +132,10 @@ export default function BlockTeam() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600 text-sm font-medium">Inactive Users</p>
+                            <p className="text-[var(--text-secondary)] text-sm font-medium">Inactive Users</p>
                             <p className="text-3xl font-bold text-red-600 mt-2">{inactiveUsers}</p>
                         </div>
                         <div className="bg-red-100 rounded-full p-3">
@@ -148,7 +148,7 @@ export default function BlockTeam() {
             </div>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-6 mb-6">
                 <div className="flex gap-4 mb-4">
                     <div className="flex-1">
                         <input
@@ -169,46 +169,46 @@ export default function BlockTeam() {
                         <option value="inactive">Inactive Only</option>
                     </select>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[var(--text-secondary)]">
                     Showing {filteredUsers.length} of {blockTeamData.users.length} users
                 </p>
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[var(--bg-main)]">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">S.No</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Name</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Email</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Mobile</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Party</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase">Assigned Date</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">S.No</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Name</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Email</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Mobile</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Party</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Assigned Date</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                             {filteredUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-12 text-center">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p className="mt-2 text-gray-500 font-medium">No users found</p>
+                                        <p className="mt-2 text-[var(--text-secondary)] font-medium">No users found</p>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredUsers.map((user, index) => (
-                                    <tr key={user.assignment_id || index} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm text-gray-900">{index + 1}</td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                                    <tr key={user.assignment_id || index} className="hover:bg-[var(--text-color)]/5">
+                                        <td className="px-6 py-4 text-sm text-[var(--text-color)]">{index + 1}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-[var(--text-color)]">
                                             {user.first_name} {user.last_name}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.contact_no}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{user.partyName || 'N/A'}</td>
+                                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{user.contact_no}</td>
+                                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{user.partyName || 'N/A'}</td>
                                         <td className="px-6 py-4 text-sm">
                                             <span
                                                 className={`px-2 py-1 text-xs font-medium rounded-full ${user.user_active === 1
@@ -219,7 +219,7 @@ export default function BlockTeam() {
                                                 {user.user_active === 1 ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                                             {new Date(user.assigned_at).toLocaleDateString()}
                                         </td>
                                     </tr>
@@ -232,3 +232,6 @@ export default function BlockTeam() {
         </div>
     );
 }
+
+
+

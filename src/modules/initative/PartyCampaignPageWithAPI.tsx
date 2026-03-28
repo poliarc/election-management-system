@@ -268,19 +268,19 @@ export const PartyCampaignPage: React.FC = () => {
   // No loading or error states needed with static data
 
   return (
-    <div className="min-h-screen bg-gray-50 rounded-2xl shadow-md p-2 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-[var(--bg-color)] rounded-2xl shadow-md p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-color)] flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <div className="p-2 sm:p-3 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl w-fit">
                   <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 <span>Party Campaigns</span>
               </h1>
-              <p className="text-gray-600 mt-2 text-sm sm:text-base">
+              <p className="text-[var(--text-secondary)] mt-2 text-sm sm:text-base">
                 View your Campaigns and invitations
               </p>
             </div>
@@ -313,64 +313,64 @@ export const PartyCampaignPage: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">
                     Total Campaigns
                   </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-[var(--text-color)]">
                     {notifications.length}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">
                     Pending
                   </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-[var(--text-color)]">
                     {pendingCount}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">
                     Accepted
                   </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-[var(--text-color)]">
                     {acceptedCount}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 col-span-2 lg:col-span-1">
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
                   <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-gray-600 truncate">
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">
                     Declined
                   </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-[var(--text-color)]">
                     {declinedCount}
                   </p>
                 </div>
@@ -379,23 +379,23 @@ export const PartyCampaignPage: React.FC = () => {
           </div>
 
           {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4 sm:mt-6">
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
 
-              <p className="text-xs sm:text-sm text-gray-600">Total Campaigns</p>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Total Campaigns</p>
               <p className="text-lg font-bold">{notifications.length}</p>
             </div>
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
-              <p className="text-xs sm:text-sm text-gray-600">Pending</p>
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Pending</p>
               <p className="text-lg font-bold">{pendingCount}</p>
             </div>
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
-              <p className="text-xs sm:text-sm text-gray-600">Accepted</p>
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Accepted</p>
               <p className="text-lg font-bold">
                 {notifications.filter((n) => n.acceptance_status === "accepted").length}
               </p>
             </div>
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
-              <p className="text-xs sm:text-sm text-gray-600">Declined</p>
+            <div className="bg-[var(--bg-color)] rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Declined</p>
               <p className="text-lg font-bold">
                 {notifications.filter((n) => n.acceptance_status === "declined").length}
               </p>
@@ -406,7 +406,7 @@ export const PartyCampaignPage: React.FC = () => {
         {/* Filter Tabs - integrate if you have UI for setFilter */}
         {/* Filter Tabs */}
         <div className="mb-4 sm:mb-6">
-          <div className="bg-white rounded-2xl p-1.5 sm:p-2 shadow-sm border border-gray-100">
+          <div className="bg-[var(--bg-color)] rounded-2xl p-1.5 sm:p-2 shadow-sm border border-gray-100">
             <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
               {[
                 {
@@ -436,7 +436,7 @@ export const PartyCampaignPage: React.FC = () => {
                   className={`flex-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base ${
                     filter === tab.key
                       ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-600 hover:bg-gray-50"
+                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-color)]"
                   }`}
                 >
                   <span className="truncate">{tab.label}</span>
@@ -444,8 +444,8 @@ export const PartyCampaignPage: React.FC = () => {
                     <span
                       className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
                         filter === tab.key
-                          ? "bg-white bg-opacity-25 text-white"
-                          : "bg-gray-200 text-gray-600"
+                          ? "bg-[var(--bg-color)] bg-opacity-25 text-white"
+                          : "bg-gray-200 text-[var(--text-secondary)]"
                       }`}
                     >
                       {tab.count}
@@ -465,10 +465,10 @@ export const PartyCampaignPage: React.FC = () => {
 
         {/* Event List Header */}
         <div className="mb-4 sm:mb-6 mt-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-color)] mb-2">
             All Events
           </h2>
-          <p className="text-gray-600 text-sm sm:text-base">
+          <p className="text-[var(--text-secondary)] text-sm sm:text-base">
             Click on any event to view complete details
           </p>
         </div>
@@ -482,8 +482,8 @@ export const PartyCampaignPage: React.FC = () => {
 
         {filteredNotifications.length === 0 && (
           <div className="text-center py-12">
-            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600">
+            <Calendar className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-[var(--text-secondary)]">
               No Campaigns Found
             </h3>
           </div>
@@ -503,3 +503,6 @@ export const PartyCampaignPage: React.FC = () => {
     </div>
   );
 };
+
+
+

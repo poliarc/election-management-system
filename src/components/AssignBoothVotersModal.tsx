@@ -7,6 +7,7 @@ import {
     deletePartNoAssignment,
     type PartNoAssignment,
 } from "../services/partNoAssignmentApi";
+import { useTranslation } from "react-i18next";
 
 interface AssignBoothVotersModalProps {
     isOpen: boolean;
@@ -29,6 +30,7 @@ export default function AssignBoothVotersModal({
     stateId,
     districtId,
 }: AssignBoothVotersModalProps) {
+    const {t} = useTranslation();
     const [availablePartNos, setAvailablePartNos] = useState<string[]>([]);
     const [selectedPartNos, setSelectedPartNos] = useState<Set<string>>(new Set());
     const [partNoFrom, setPartNoFrom] = useState("");
@@ -269,17 +271,17 @@ export default function AssignBoothVotersModal({
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold">Assign Booth Voters</h2>
+                            <h2 className="text-2xl font-bold">{t("AssignBoothVotersModal.Title")}</h2>
                             <p className="text-indigo-100 mt-1">{levelName}</p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
+                            className="bg-[var(--bg-card)]/20 hover:bg-[var(--bg-card)]/30 p-2 rounded-lg transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -291,12 +293,12 @@ export default function AssignBoothVotersModal({
                 {/* Body */}
                 <div className="p-6 overflow-y-auto flex-1">
                     {/* Assign by Range */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Assign Part No Range</h3>
+                    <div className="bg-[var(--bg-color)] rounded-lg p-6 mb-6">
+                        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("AssignBoothVotersModal.Desc")}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("AssignBoothVotersModal.Desc1")}
                                 </label>
                                 <input
                                     type="number"
@@ -307,8 +309,8 @@ export default function AssignBoothVotersModal({
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Part No To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                                    {t("AssignBoothVotersModal.Desc2")}
                                 </label>
                                 <input
                                     type="number"
@@ -333,13 +335,13 @@ export default function AssignBoothVotersModal({
                     {/* Available Part Numbers */}
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-800">
-                                Available Part Numbers ({availablePartNos.length})
+                            <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                                {t("AssignBoothVotersModal.Desc3")} ({availablePartNos.length})
                             </h3>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleSelectAll}
-                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                                    className="px-4 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
                                 >
                                     {selectedPartNos.size === availablePartNos.length ? "Deselect All" : "Select All"}
                                 </button>
@@ -348,7 +350,7 @@ export default function AssignBoothVotersModal({
                                     disabled={loading || selectedPartNos.size === 0}
                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Assign Selected ({selectedPartNos.size})
+                                    {t("AssignBoothVotersModal.Assign_Selected")} ({selectedPartNos.size})
                                 </button>
                             </div>
                         </div>
@@ -364,7 +366,7 @@ export default function AssignBoothVotersModal({
                                     className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                                 <svg
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -374,7 +376,7 @@ export default function AssignBoothVotersModal({
                                 {searchPartNo && (
                                     <button
                                         onClick={() => setSearchPartNo("")}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -383,8 +385,8 @@ export default function AssignBoothVotersModal({
                                 )}
                             </div>
                             {searchPartNo && (
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Showing {filteredPartNos.length} of {availablePartNos.length} part numbers
+                                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                                    {t("AssignBoothVotersModal.Showing")} {filteredPartNos.length} {t("AssignBoothVotersModal.of")} {availablePartNos.length} {t("AssignBoothVotersModal.part_numbers")}
                                 </p>
                             )}
                         </div>
@@ -392,25 +394,25 @@ export default function AssignBoothVotersModal({
                         {loading ? (
                             <div className="text-center py-8">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                                <p className="mt-2 text-gray-600">Loading part numbers...</p>
+                                <p className="mt-2 text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Loading")}</p>
                             </div>
                         ) : availablePartNos.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 rounded-lg">
-                                <p className="text-gray-500">No available part numbers found</p>
+                            <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Desc4")}</p>
                             </div>
                         ) : filteredPartNos.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 rounded-lg">
-                                <p className="text-gray-500">No part numbers match your search</p>
+                            <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.Desc5")}</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 max-h-60 overflow-y-auto p-4 bg-gray-50 rounded-lg">
+                            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 max-h-60 overflow-y-auto p-4 bg-[var(--bg-main)] rounded-lg">
                                 {filteredPartNos.map((partNo) => (
                                     <button
                                         key={partNo}
                                         onClick={() => handlePartNoToggle(partNo)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedPartNos.has(partNo)
                                             ? "bg-indigo-600 text-white shadow-md"
-                                            : "bg-white text-gray-700 border border-gray-300 hover:border-indigo-500"
+                                            : "bg-[var(--bg-card)] text-[var(--text-secondary)] border border-gray-300 hover:border-indigo-500"
                                             }`}
                                     >
                                         {partNo}
@@ -422,23 +424,23 @@ export default function AssignBoothVotersModal({
 
                     {/* Existing Assignments */}
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                            Current Assignments ({assignments.length})
+                        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
+                            {t("AssignBoothVotersModal.Current_Assignments")} ({assignments.length})
                         </h3>
                         {loadingAssignments ? (
                             <div className="text-center py-8">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                             </div>
                         ) : assignments.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 rounded-lg">
-                                <p className="text-gray-500">No assignments yet</p>
+                            <div className="text-center py-8 bg-[var(--bg-main)] rounded-lg">
+                                <p className="text-[var(--text-secondary)]">{t("AssignBoothVotersModal.No_assignments_yet")}</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 {assignments.map((assignment) => (
                                     <div
                                         key={assignment.id}
-                                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                                        className="flex items-center justify-between p-4 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg hover:shadow-md transition-shadow"
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="bg-indigo-100 p-2 rounded-lg">
@@ -447,11 +449,11 @@ export default function AssignBoothVotersModal({
                                                 </svg>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900">
-                                                    Part No: {assignment.part_no_from} - {assignment.part_no_to}
+                                                <p className="text-sm font-semibold text-[var(--text-color)]">
+                                                    {t("AssignBoothVotersModal.Part_No")} {assignment.part_no_from} - {assignment.part_no_to}
                                                 </p>
-                                                <p className="text-xs text-gray-500">
-                                                    Assigned on {new Date(assignment.created_at).toLocaleDateString()}
+                                                <p className="text-xs text-[var(--text-secondary)]">
+                                                    {t("AssignBoothVotersModal.Assigned_no")} {new Date(assignment.created_at).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -459,7 +461,7 @@ export default function AssignBoothVotersModal({
                                             onClick={() => handleDeleteAssignment(assignment.id)}
                                             className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
                                         >
-                                            Delete
+                                            {t("AssignBoothVotersModal.Delete")}
                                         </button>
                                     </div>
                                 ))}
@@ -469,15 +471,18 @@ export default function AssignBoothVotersModal({
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 flex-shrink-0">
+                <div className="bg-[var(--bg-main)] px-6 py-4 flex justify-end gap-3 flex-shrink-0">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                        className="px-6 py-2 bg-gray-200 text-[var(--text-secondary)] rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                     >
-                        Close
+                        {t("AssignBoothVotersModal.Close")}
                     </button>
                 </div>
             </div>
         </div>
     );
 }
+
+
+

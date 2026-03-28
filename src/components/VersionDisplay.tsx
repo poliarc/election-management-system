@@ -60,12 +60,12 @@ export default function VersionDisplay({
     const getVariantClasses = () => {
         switch (variant) {
             case "badge":
-                return "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800";
+                return "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-[var(--text-color)]";
             case "full":
-                return "text-sm text-gray-600";
+                return "text-sm text-[var(--text-secondary)]";
             case "short":
             default:
-                return "text-xs text-gray-500";
+                return "text-xs text-[var(--text-secondary)]";
         }
     };
 
@@ -75,3 +75,4 @@ export default function VersionDisplay({
         </span>
     );
 }
+

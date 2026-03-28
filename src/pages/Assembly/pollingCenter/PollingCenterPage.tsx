@@ -184,11 +184,11 @@
 //   };
 
 //   return (
-//     <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
+//     <div className="p-6 rounded-2xl shadow-md bg-[var(--bg-main)] w-full">
 //       {!showForm ? (
 //         <>
 //           <div className="flex items-center justify-between mb-6">
-//             <h1 className="text-xl font-bold text-gray-800">Polling Centers List</h1>
+//             <h1 className="text-xl font-bold text-[var(--text-color)]">Polling Centers List</h1>
 //             <div className="flex gap-3">
 //               <button
 //                 onClick={() => setShowBulkUpload(true)}
@@ -217,7 +217,7 @@
 //                   type="text"
 //                   value={loggedInUser?.state || ""}
 //                   disabled
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed"
 //                 />
 //               </div>
 //               <div>
@@ -226,7 +226,7 @@
 //                   type="text"
 //                   value={loggedInUser?.district || ""}
 //                   disabled
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed"
 //                 />
 //               </div>
 //               <div>
@@ -234,7 +234,7 @@
 //                 <input
 //                   value={loggedInUser?.assembly || ""}
 //                   disabled
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed appearance-none focus:outline-none"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed appearance-none focus:outline-none"
 //                 />
 //               </div>
 
@@ -284,7 +284,7 @@
 //               />
 
 //               <div className="flex items-center gap-2">
-//                 <label htmlFor="showCount" className="font-medium text-gray-700 whitespace-nowrap">
+//                 <label htmlFor="showCount" className="font-medium text-[var(--text-secondary)] whitespace-nowrap">
 //                   Show Result
 //                 </label>
 //                 <select
@@ -313,13 +313,13 @@
 //       ) : (
 //         <>
 //           <div className="mb-2 flex items-center justify-between">
-//             <h2 className="text-2xl font-bold text-gray-800">
+//             <h2 className="text-2xl font-bold text-[var(--text-color)]">
 //               {editingIndex !== null ? "Edit" : "Create New"} Polling Center
 //             </h2>
 //             <button
 //               type="button"
 //               onClick={handleCancel}
-//               className="flex items-center text-gray-600 hover:text-gray-900"
+//               className="flex items-center text-[var(--text-secondary)] hover:text-[var(--text-color)]"
 //             >
 //               <ArrowLeft className="w-5 h-5 mr-2" />
 //               Back
@@ -370,3 +370,5 @@ import PollingCenterList from "./PollingCenterList";
 export default function AssemblyPollingCenterPage() {
     return <PollingCenterList />;
 }
+
+

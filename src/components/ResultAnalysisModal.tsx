@@ -140,20 +140,20 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
 
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="bg-[var(--bg-card)] rounded-xl shadow-2xl max-w-md w-full p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-[var(--text-color)]">
                             Result Analysis
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-[var(--text-secondary)] mt-1">
                             {boothName}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -164,7 +164,7 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
                 {/* Options */}
                 <div className="space-y-4">
                     {/* Upload Excel Option */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="border border-[var(--border-color)] rounded-lg p-4">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-blue-100 p-2 rounded-lg">
                                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,8 +172,8 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Upload Excel File</h4>
-                                <p className="text-sm text-gray-500">Upload result analysis data from Excel</p>
+                                <h4 className="font-medium text-[var(--text-color)]">Upload Excel File</h4>
+                                <p className="text-sm text-[var(--text-secondary)]">Upload result analysis data from Excel</p>
                             </div>
                         </div>
                         
@@ -183,11 +183,11 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
                                 type="file"
                                 accept=".xlsx,.xls"
                                 onChange={handleFileSelect}
-                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                className="w-full text-sm text-[var(--text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                             />
                             
                             {selectedFile && (
-                                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                                <div className="text-sm text-[var(--text-secondary)] bg-[var(--bg-main)] p-2 rounded">
                                     Selected: {selectedFile.name}
                                 </div>
                             )}
@@ -203,7 +203,7 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
                     </div>
 
                     {/* Download Template Option */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="border border-[var(--border-color)] rounded-lg p-4">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="bg-green-100 p-2 rounded-lg">
                                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,8 +211,8 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Download Template</h4>
-                                <p className="text-sm text-gray-500">Get Excel template with required columns</p>
+                                <h4 className="font-medium text-[var(--text-color)]">Download Template</h4>
+                                <p className="text-sm text-[var(--text-secondary)]">Get Excel template with required columns</p>
                             </div>
                         </div>
                         
@@ -245,3 +245,4 @@ const ResultAnalysisModal: React.FC<ResultAnalysisModalProps> = ({
 };
 
 export default ResultAnalysisModal;
+

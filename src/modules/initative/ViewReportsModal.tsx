@@ -86,7 +86,7 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-        <div className="bg-white rounded-2xl p-8">
+        <div className="bg-[var(--bg-color)] rounded-2xl p-8">
           <p>Loading reports...</p>
         </div>
       </div>
@@ -97,17 +97,17 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
   if (!campaign.campaign_id) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+        <div className="bg-[var(--bg-color)] rounded-2xl p-8 max-w-md w-full">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-red-600 mb-2">
               Invalid Campaign
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-[var(--text-secondary)] mb-4">
               Campaign ID is missing. Cannot load reports.
             </p>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              className="px-4 py-2 bg-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-gray-400"
             >
               Close
             </button>
@@ -120,17 +120,17 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
   if (error) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+        <div className="bg-[var(--bg-color)] rounded-2xl p-8 max-w-md w-full">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-red-600 mb-2">
               Campaign Not Found
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-[var(--text-secondary)] mb-4">
               The requested campaign could not be found.
             </p>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              className="px-4 py-2 bg-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-gray-400"
             >
               Close
             </button>
@@ -143,14 +143,14 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 lg:left-[258px]">
-        <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+        <div className="bg-[var(--bg-color)] rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
           {/* Header */}
-          <div className="bg-gray-800 text-white p-6 border-b border-gray-200">
+          <div className="bg-gray-800 text-white p-6 border-b border-[var(--text-color)]/10">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">My Campaign Reports</h2>
                 <p className="text-gray-300">{campaign.title}</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
                   My Reports: {reports.length} | Campaign ID:{" "}
                   {campaign.campaign_id}
                 </p>
@@ -172,53 +172,53 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
             {reports.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                <h3 className="text-lg font-semibold text-[var(--text-secondary)] mb-2">
                   No Reports Found
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-[var(--text-secondary)]">
                   You haven't submitted any reports for this campaign yet.
                 </p>
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-[var(--text-secondary)] mt-2">
                   Click the "Report" button to submit your first report.
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-[var(--bg-color)] border-b border-[var(--text-color)]/10">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                         Person Details
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                         Date
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                         Attendees
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                         Images
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-color)] divide-y divide-gray-200">
                     {reports.map((report) => (
-                      <tr key={report.id} className="hover:bg-gray-50">
+                      <tr key={report.id} className="hover:bg-[var(--bg-color)]">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div>
                               <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-600" />
-                                <div className="text-sm font-medium text-gray-900">
+                                <User className="w-4 h-4 text-[var(--text-secondary)]" />
+                                <div className="text-sm font-medium text-[var(--text-color)]">
                                   {report.personName}
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 mt-1">
-                                <Phone className="w-3 h-3 text-gray-400" />
-                                <div className="text-sm text-gray-500">
+                                <Phone className="w-3 h-3 text-[var(--text-secondary)]" />
+                                <div className="text-sm text-[var(--text-secondary)]">
                                   {report.personPhone}
                                 </div>
                               </div>
@@ -227,24 +227,24 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4 text-gray-600" />
-                            <div className="text-sm text-gray-900">
+                            <Calendar className="w-4 h-4 text-[var(--text-secondary)]" />
+                            <div className="text-sm text-[var(--text-color)]">
                               {formatDate(report.date)}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4 text-gray-600" />
-                            <span className="text-sm font-medium text-gray-900">
+                            <Users className="w-4 h-4 text-[var(--text-secondary)]" />
+                            <span className="text-sm font-medium text-[var(--text-color)]">
                               {report.attendees}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <ImageIcon className="w-4 h-4 text-gray-600" />
-                            <span className="text-sm text-gray-900">
+                            <ImageIcon className="w-4 h-4 text-[var(--text-secondary)]" />
+                            <span className="text-sm text-[var(--text-color)]">
                               {report.images?.length || 0}
                             </span>
                           </div>
@@ -253,14 +253,14 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewReport(report)}
-                              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-gray-100 rounded-lg transition-colors"
                               title="View Details"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditReport(report)}
-                              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:bg-gray-100 rounded-lg transition-colors"
                               title="Edit Report"
                             >
                               <Edit className="w-4 h-4" />
@@ -289,9 +289,9 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
       {/* Report Detail Modal */}
       {showDetailModal && selectedReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60] lg:left-[258px]">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-[var(--bg-color)] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             {/* Header */}
-            <div className="bg-gray-800 text-white p-6 border-b border-gray-200">
+            <div className="bg-gray-800 text-white p-6 border-b border-[var(--text-color)]/10">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">Report Details</h2>
@@ -313,25 +313,25 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
             >
               <div className="space-y-6">
                 {/* Person Information */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="border border-[var(--text-color)]/10 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
                     Contact Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-gray-600" />
+                      <User className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
-                        <p className="text-sm text-gray-500">Name</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-[var(--text-secondary)]">Name</p>
+                        <p className="font-medium text-[var(--text-color)]">
                           {selectedReport.personName}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Phone className="w-5 h-5 text-gray-600" />
+                      <Phone className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
-                        <p className="text-sm text-gray-500">Phone</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-[var(--text-secondary)]">Phone</p>
+                        <p className="font-medium text-[var(--text-color)]">
                           {selectedReport.personPhone}
                         </p>
                       </div>
@@ -340,25 +340,25 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                 </div>
 
                 {/* Event Details */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="border border-[var(--text-color)]/10 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
                     Event Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-gray-600" />
+                      <Calendar className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
-                        <p className="text-sm text-gray-500">Date</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-[var(--text-secondary)]">Date</p>
+                        <p className="font-medium text-[var(--text-color)]">
                           {formatDate(selectedReport.date)}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-gray-600" />
+                      <Users className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
-                        <p className="text-sm text-gray-500">Attendees</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-[var(--text-secondary)]">Attendees</p>
+                        <p className="font-medium text-[var(--text-color)]">
                           {selectedReport.attendees} people
                         </p>
                       </div>
@@ -370,13 +370,13 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                 {selectedReport.description && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-5 h-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <FileText className="w-5 h-5 text-[var(--text-secondary)]" />
+                      <h3 className="text-lg font-semibold text-[var(--text-color)]">
                         Description
                       </h3>
                     </div>
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <p className="text-gray-700 leading-relaxed">
+                    <div className="border border-[var(--text-color)]/10 rounded-lg p-4">
+                      <p className="text-[var(--text-secondary)] leading-relaxed">
                         {selectedReport.description}
                       </p>
                     </div>
@@ -387,8 +387,8 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                 {selectedReport.images && selectedReport.images.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <ImageIcon className="w-5 h-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <ImageIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+                      <h3 className="text-lg font-semibold text-[var(--text-color)]">
                         Images ({selectedReport.images.length})
                       </h3>
                     </div>
@@ -396,7 +396,7 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                       {selectedReport.images.map((imageUrl, index) => (
                         <div
                           key={index}
-                          className="aspect-square rounded-lg overflow-hidden border border-gray-200"
+                          className="aspect-square rounded-lg overflow-hidden border border-[var(--text-color)]/10"
                         >
                           <img
                             src={imageUrl}
@@ -411,8 +411,8 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
                 )}
 
                 {/* Timestamps */}
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
+                <div className="border-t border-[var(--text-color)]/10 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-[var(--text-secondary)]">
                     <div>
                       <p className="font-medium">Created</p>
                       <p>{formatDate(selectedReport.created_at)}</p>
@@ -434,3 +434,7 @@ export const ViewReportsModal: React.FC<ViewReportsModalProps> = ({
     </>
   );
 };
+
+
+
+

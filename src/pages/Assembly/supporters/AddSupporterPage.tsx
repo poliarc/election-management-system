@@ -8,6 +8,7 @@ import {
 import { useGetProfileQuery, useUpdateWhatsAppUrlMutation } from '../../../store/api/profileApi';
 import { useAppSelector } from '../../../store/hooks';
 import type { CreateSupporterRequest } from '../../../types/supporter';
+import { useTranslation } from "react-i18next";
 
 // Constants for dropdown options
 const INITIALS_OPTIONS = ['Mr', 'Ms', 'Mrs', 'Dr'];
@@ -43,6 +44,7 @@ const RELIGION_CATEGORIES = {
 };
 
 export default function AddSupporterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
 
@@ -114,12 +116,12 @@ export default function AddSupporterPage() {
   const handleSaveWhatsAppUrl = async () => {
     const url = whatsappUrlInput.trim();
     if (url && url.length > 1000) {
-      setWhatsappUrlError('URL must be at most 1000 characters');
+      setWhatsappUrlError(t("addSupporter.whatsAppUrlMaxLength"));
       return;
     }
     setWhatsappUrlError('');
     if (!profile?.user_id) {
-      toast.error('User ID not found. Please refresh the page.');
+      toast.error(t("addSupporter.userIdNotFoundRefresh"));
       return;
     }
     try {
@@ -129,13 +131,13 @@ export default function AddSupporterPage() {
       setSavedWhatsAppUrl(url);
       setShowWhatsAppModal(false);
       if (url) {
-        toast.success('WhatsApp group URL saved successfully!');
+        toast.success(t("addSupporter.toastWhatsAppGroupUrlSaved"));
       } else {
-        toast.success('You can add supporters without WhatsApp URL.');
+        toast.success(t("addSupporter.toastCanAddWithoutWhatsAppUrl"));
       }
     } catch (err: any) {
       console.error('Failed to save WhatsApp URL:', err);
-      toast.error(err?.data?.error?.message || err?.data?.message || 'Failed to save WhatsApp URL.');
+      toast.error(err?.data?.error?.message || err?.data?.message || t("addSupporter.toastFailedToSaveWhatsAppUrl"));
     }
   };
 
@@ -256,57 +258,57 @@ export default function AddSupporterPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.initials.trim()) {
-      newErrors.initials = 'Initials is required';
+      newErrors.initials = t("addSupporter.errInitialsRequired");
     }
 
     if (!formData.first_name.trim()) {
-      newErrors.first_name = 'First name is required';
+      newErrors.first_name = t("addSupporter.errFirstNameRequired");
     }
 
     if (!formData.last_name.trim()) {
-      newErrors.last_name = 'Last name is required';
+      newErrors.last_name = t("addSupporter.errLastNameRequired");
     }
 
     if (!formData.father_name.trim()) {
-      newErrors.father_name = 'Father name is required';
+      newErrors.father_name = t("addSupporter.errFatherNameRequired");
     }
 
     if (!formData.date_of_birth.trim()) {
-      newErrors.date_of_birth = 'Date of birth is required';
+      newErrors.date_of_birth = t("addSupporter.errDateOfBirthRequired");
     }
 
     if (!formData.gender.trim()) {
-      newErrors.gender = 'Gender is required';
+      newErrors.gender = t("addSupporter.errGenderRequired");
     }
 
     if (!formData.phone_no.trim()) {
-      newErrors.phone_no = 'Phone number is required';
+      newErrors.phone_no = t("addSupporter.errPhoneRequired");
     } else if (!/^\d{10}$/.test(formData.phone_no)) {
-      newErrors.phone_no = 'Phone number must be exactly 10 digits';
+      newErrors.phone_no = t("addSupporter.errPhoneMustBe10Digits");
     }
 
     if (formData.whatsapp_no && !/^\d{10}$/.test(formData.whatsapp_no)) {
-      newErrors.whatsapp_no = 'WhatsApp number must be exactly 10 digits';
+      newErrors.whatsapp_no = t("addSupporter.errWhatsAppMustBe10Digits");
     }
 
     if (formData.voter_epic_id && !/^[A-Z0-9]{10}$/.test(formData.voter_epic_id)) {
-      newErrors.voter_epic_id = 'EPIC ID must be exactly 10 alphanumeric characters';
+      newErrors.voter_epic_id = t("addSupporter.errEpicIdMustBe10Chars");
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
+      newErrors.address = t("addSupporter.errAddressRequired");
     }
 
     if (formData.language.length === 0) {
-      newErrors.language = 'At least one language must be selected';
+      newErrors.language = t("addSupporter.errAtLeastOneLanguage");
     }
 
     if (!formData.religion.trim()) {
-      newErrors.religion = 'Religion is required';
+      newErrors.religion = t("addSupporter.errReligionRequired");
     }
 
     if (!formData.category.trim()) {
-      newErrors.category = 'Category is required';
+      newErrors.category = t("addSupporter.errCategoryRequired");
     }
 
     setErrors(newErrors);
@@ -346,7 +348,7 @@ export default function AddSupporterPage() {
         caste: formData.caste || undefined,
       };
       await createSupporter(createData).unwrap();
-      toast.success('Supporter created successfully!');
+      toast.success(t("addSupporter.toastSupporterCreated"));
       // Open WhatsApp with group link message if supporter has WhatsApp number and we have group URL
       const whatsappGroupUrl = savedWhatsAppUrl || profile?.WhatsAppUrl?.trim();
       if (formData.whatsapp_no && whatsappGroupUrl) {
@@ -382,11 +384,11 @@ export default function AddSupporterPage() {
         if (errorMessages.length === 1) {
           toast.error(error.data.errors[0].message);
         } else {
-          toast.error(`Validation failed: ${errorMessages.length} errors found`);
+          toast.error(t("addSupporter.toastValidationFailedCount", { count: errorMessages.length }));
         }
       } else {
         // Generic error message
-        toast.error('Failed to create supporter. Please try again.');
+        toast.error(t("addSupporter.toastFailedToCreateSupporter"));
       }
     }
   };
@@ -464,10 +466,10 @@ export default function AddSupporterPage() {
       {/* WhatsApp Group URL modal - optional, user can skip and add supporters without URL */}
       {showWhatsAppModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Group URL (Optional)</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Enter your WhatsApp group invite link. When you add a new supporter with a WhatsApp number, you will be redirected to WhatsApp to send them this group link. You can skip this and add supporters without a group URL.
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">{t("addSupporter.whatsAppGroupUrlOptionalTitle")}</h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              {t("addSupporter.whatsAppGroupUrlOptionalDesc")}
             </p>
             <input
               type="url"
@@ -476,18 +478,20 @@ export default function AddSupporterPage() {
                 setWhatsappUrlInput(e.target.value);
                 setWhatsappUrlError('');
               }}
-              placeholder="https://chat.whatsapp.com/..."
+              placeholder={t("addSupporter.phWhatsAppGroupUrl")}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${whatsappUrlError ? 'border-red-500' : 'border-gray-300'}`}
               maxLength={1000}
+              aria-label={t("addSupporter.phWhatsAppGroupUrl")}
+              title={t("addSupporter.phWhatsAppGroupUrl")}
             />
             {whatsappUrlError && <p className="text-red-500 text-xs mt-1">{whatsappUrlError}</p>}
             <div className="flex justify-end gap-2 mt-4">
               <button
                 type="button"
                 onClick={handleCancelWhatsAppModal}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5"
               >
-                Skip
+                {t("addSupporter.btnSkip")}
               </button>
               <button
                 type="button"
@@ -495,7 +499,11 @@ export default function AddSupporterPage() {
                 disabled={isSavingWhatsAppUrl}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
-                {isSavingWhatsAppUrl ? 'Saving...' : whatsappUrlInput.trim() ? 'Save & continue' : 'Continue without URL'}
+                {isSavingWhatsAppUrl
+                  ? t("addSupporter.saving")
+                  : whatsappUrlInput.trim()
+                  ? t("addSupporter.btnSaveAndContinue")
+                  : t("addSupporter.btnContinueWithoutUrl")}
               </button>
             </div>
           </div>
@@ -506,8 +514,8 @@ export default function AddSupporterPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Supporter</h1>
-            <p className="text-gray-600">Create a new supporter record</p>
+            <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("addSupporter.title")}</h1>
+            <p className="text-[var(--text-secondary)]">{t("addSupporter.subtitle")}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -518,42 +526,42 @@ export default function AddSupporterPage() {
                 setShowWhatsAppModal(true);
               }}
               className="inline-flex items-center gap-2 px-4 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-medium"
-              title="This URL is sent to new supporters when you add them. Update it here to use a different group link."
+              title={t("addSupporter.titleWhatsAppUrlButton")}
             >
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
               </svg>
-              {effectiveWhatsAppUrl ? 'Update WhatsApp group URL' : 'Set WhatsApp group URL'}
+              {effectiveWhatsAppUrl ? t("addSupporter.btnUpdateWhatsAppGroupUrl") : t("addSupporter.btnSetWhatsAppGroupUrl")}
             </button>
             <button
               onClick={() => navigate('/assembly/supporters')}
-              className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-color)] flex items-center gap-2"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M19 12H5m7-7-7 7 7 7" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Back to Supporters
+              {t("addSupporter.btnBackToSupporters")}
             </button>
           </div>
         </div>
         {effectiveWhatsAppUrl && (
-          <p className="text-sm text-gray-500 mb-4">
-            WhatsApp group URL is saved. When you add a supporter with a WhatsApp number, you will be redirected to WhatsApp to send them the group link. Click the button above to update the URL anytime.
+          <p className="text-sm text-[var(--text-secondary)] mb-4">
+            {t("addSupporter.whatsAppUrlSavedHint")}
           </p>
         )}
 
         {/* Form is always available - no need to set WhatsApp URL first */}
         <>
         {/* Form */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Initials */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Initials *
                   </label>
                   <select
@@ -562,6 +570,8 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.initials ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("addSupporter.lblInitialsRequired")}
+                    title={t("addSupporter.lblInitialsRequired")}
                   >
                     <option value="">Select Initials</option>
                     {INITIALS_OPTIONS.map((initial) => (
@@ -575,7 +585,7 @@ export default function AddSupporterPage() {
 
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     First Name *
                   </label>
                   <input
@@ -585,14 +595,16 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.first_name ? 'border-red-500' : 'border-gray-300'
                       }`}
-                    placeholder="Enter first name"
+                    placeholder={t("addSupporter.phEnterFirstName")}
+                    aria-label={t("addSupporter.phEnterFirstName")}
+                    title={t("addSupporter.phEnterFirstName")}
                   />
                   {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                 </div>
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Last Name *
                   </label>
                   <input
@@ -602,14 +614,16 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.last_name ? 'border-red-500' : 'border-gray-300'
                       }`}
-                    placeholder="Enter last name"
+                    placeholder={t("addSupporter.phEnterLastName")}
+                    aria-label={t("addSupporter.phEnterLastName")}
+                    title={t("addSupporter.phEnterLastName")}
                   />
                   {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                 </div>
 
                 {/* Father's Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Father's Name *
                   </label>
                   <input
@@ -619,14 +633,16 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.father_name ? 'border-red-500' : 'border-gray-300'
                       }`}
-                    placeholder="Enter father's name"
+                    placeholder={t("addSupporter.phEnterFatherName")}
+                    aria-label={t("addSupporter.phEnterFatherName")}
+                    title={t("addSupporter.phEnterFatherName")}
                   />
                   {errors.father_name && <p className="text-red-500 text-xs mt-1">{errors.father_name}</p>}
                 </div>
 
                 {/* Date of Birth */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Date of Birth *
                   </label>
                   <input
@@ -636,13 +652,15 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("addSupporter.lblDateOfBirthRequired")}
+                    title={t("addSupporter.lblDateOfBirthRequired")}
                   />
                   {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
                 </div>
 
                 {/* Age - Auto-calculated */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Age
                   </label>
                   <input
@@ -650,15 +668,15 @@ export default function AddSupporterPage() {
                     name="age"
                     value={formData.age}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     placeholder="Auto-calculated"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Automatically calculated from date of birth</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Automatically calculated from date of birth</p>
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Gender *
                   </label>
                   <select
@@ -667,6 +685,8 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.gender ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("addSupporter.lblGenderRequired")}
+                    title={t("addSupporter.lblGenderRequired")}
                   >
                     <option value="">Select Gender</option>
                     {GENDER_OPTIONS.map((gender) => (
@@ -680,7 +700,7 @@ export default function AddSupporterPage() {
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Phone Number *
                   </label>
                   <input
@@ -692,13 +712,15 @@ export default function AddSupporterPage() {
                       }`}
                     placeholder="10-digit phone number"
                     maxLength={10}
+                    aria-label={t("addSupporter.phPhone10Digits")}
+                    title={t("addSupporter.phPhone10Digits")}
                   />
                   {errors.phone_no && <p className="text-red-500 text-xs mt-1">{errors.phone_no}</p>}
                 </div>
 
                 {/* WhatsApp Number */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     WhatsApp Number
                   </label>
                   <input
@@ -710,13 +732,15 @@ export default function AddSupporterPage() {
                       }`}
                     placeholder="10-digit WhatsApp number"
                     maxLength={10}
+                    aria-label={t("addSupporter.phWhatsApp10Digits")}
+                    title={t("addSupporter.phWhatsApp10Digits")}
                   />
                   {errors.whatsapp_no && <p className="text-red-500 text-xs mt-1">{errors.whatsapp_no}</p>}
                 </div>
 
                 {/* EPIC ID */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     EPIC ID
                   </label>
                   <input
@@ -729,6 +753,8 @@ export default function AddSupporterPage() {
                     placeholder="10-character EPIC ID"
                     maxLength={10}
                     style={{ textTransform: 'uppercase' }}
+                    aria-label={t("addSupporter.phEpicId10Chars")}
+                    title={t("addSupporter.phEpicId10Chars")}
                   />
                   {errors.voter_epic_id && <p className="text-red-500 text-xs mt-1">{errors.voter_epic_id}</p>}
                 </div>
@@ -737,12 +763,12 @@ export default function AddSupporterPage() {
 
             {/* Language and Religion Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Language & Religion Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Language & Religion Information</h3>
 
               {/* Language Selection */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Languages * <span className="text-gray-500">(Select multiple)</span>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Languages * <span className="text-[var(--text-secondary)]">(Select multiple)</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 border border-gray-300 rounded-lg">
                   {LANGUAGE_OPTIONS.map((language) => (
@@ -753,7 +779,7 @@ export default function AddSupporterPage() {
                         onChange={() => handleLanguageChange(language)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">{language}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{language}</span>
                     </label>
                   ))}
                 </div>
@@ -763,7 +789,7 @@ export default function AddSupporterPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Religion */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Religion *
                   </label>
                   <select
@@ -772,6 +798,8 @@ export default function AddSupporterPage() {
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.religion ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("addSupporter.lblReligionRequired")}
+                    title={t("addSupporter.lblReligionRequired")}
                   >
                     <option value="">Select Religion</option>
                     {RELIGION_OPTIONS.map((religion) => (
@@ -785,7 +813,7 @@ export default function AddSupporterPage() {
 
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Category *
                   </label>
                   <select
@@ -793,8 +821,10 @@ export default function AddSupporterPage() {
                     value={formData.category}
                     onChange={handleInputChange}
                     disabled={!formData.religion}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600 ${errors.category ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)] ${errors.category ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    aria-label={t("addSupporter.lblCategoryRequired")}
+                    title={t("addSupporter.lblCategoryRequired")}
                   >
                     <option value="">Select Category</option>
                     {getAvailableCategories().map((category) => (
@@ -809,7 +839,7 @@ export default function AddSupporterPage() {
                 {/* Caste (only for Hindu religion) */}
                 {shouldShowCaste && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Caste
                     </label>
                     <select
@@ -817,6 +847,8 @@ export default function AddSupporterPage() {
                       value={formData.caste}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      aria-label={t("addSupporter.lblCaste")}
+                      title={t("addSupporter.lblCaste")}
                     >
                       <option value="">Select Caste</option>
                       {getAvailableCastes().map((caste) => (
@@ -831,7 +863,7 @@ export default function AddSupporterPage() {
                 {/* Custom Category Input for Others */}
                 {formData.religion === 'Others' && formData.category === 'Others' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                       Specify Category
                     </label>
                     <input
@@ -841,6 +873,8 @@ export default function AddSupporterPage() {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Enter category"
+                      aria-label={t("addSupporter.phEnterCategory")}
+                      title={t("addSupporter.phEnterCategory")}
                     />
                   </div>
                 )}
@@ -849,51 +883,51 @@ export default function AddSupporterPage() {
 
             {/* Location Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Location Information</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* State - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     State
                   </label>
                   <input
                     type="text"
                     value={getStateName()}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* District - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     District
                   </label>
                   <input
                     type="text"
                     value={getDistrictName()}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Assembly - Disabled */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Assembly
                   </label>
                   <input
                     type="text"
                     value={getAssemblyName()}
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                   />
                 </div>
 
                 {/* Block Dropdown */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Block
                   </label>
                   <select
@@ -901,7 +935,9 @@ export default function AddSupporterPage() {
                     value={formData.block_id}
                     onChange={handleInputChange}
                     disabled={!isBlockDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("addSupporter.lblBlock")}
+                    title={t("addSupporter.lblBlock")}
                   >
                     <option value={0}>Select Block</option>
                     {blocks.map((block) => (
@@ -910,21 +946,23 @@ export default function AddSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {hierarchyLoading && <p className="text-xs text-gray-500 mt-1">Loading blocks...</p>}
-                  {!hierarchyLoading && blocks.length === 0 && <p className="text-xs text-gray-500 mt-1">No blocks available</p>}
+                  {hierarchyLoading && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading blocks...</p>}
+                  {!hierarchyLoading && blocks.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No blocks available</p>}
                 </div>
 
                 {/* Mandal Dropdown - Optional */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mandal <span className="text-gray-400">(Optional)</span>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Mandal <span className="text-[var(--text-secondary)]">(Optional)</span>
                   </label>
                   <select
                     name="mandal_id"
                     value={formData.mandal_id}
                     onChange={handleInputChange}
                     disabled={!isMandalDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("addSupporter.lblMandalOptional")}
+                    title={t("addSupporter.lblMandalOptional")}
                   >
                     <option value={0}>Select Mandal</option>
                     {mandals.map((mandal) => (
@@ -933,21 +971,23 @@ export default function AddSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {!hierarchyLoading && !formData.block_id && <p className="text-xs text-gray-500 mt-1">Select a block first (or leave empty)</p>}
-                  {/* {!hierarchyLoading && formData.block_id && mandals.length === 0 && <p className="text-xs text-gray-500 mt-1">No mandals available for selected block</p>} */}
+                  {!hierarchyLoading && !formData.block_id && <p className="text-xs text-[var(--text-secondary)] mt-1">Select a block first (or leave empty)</p>}
+                  {/* {!hierarchyLoading && formData.block_id && mandals.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No mandals available for selected block</p>} */}
                 </div>
 
                 {/* Booth Dropdown - Optional */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Booth <span className="text-gray-400">(Optional)</span>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Booth <span className="text-[var(--text-secondary)]">(Optional)</span>
                   </label>
                   <select
                     name="booth_id"
                     value={formData.booth_id}
                     onChange={handleInputChange}
                     disabled={!isBoothDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-600"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                    aria-label={t("addSupporter.lblBoothOptional")}
+                    title={t("addSupporter.lblBoothOptional")}
                   >
                     <option value={0}>Select Booth</option>
                     {booths.map((booth) => (
@@ -956,18 +996,18 @@ export default function AddSupporterPage() {
                       </option>
                     ))}
                   </select>
-                  {!hierarchyLoading && !formData.mandal_id && <p className="text-xs text-gray-500 mt-1">Select a mandal first</p>}
-                  {/* {!hierarchyLoading && formData.mandal_id && booths.length === 0 && <p className="text-xs text-gray-500 mt-1">No booths available for selected mandal</p>} */}
+                  {!hierarchyLoading && !formData.mandal_id && <p className="text-xs text-[var(--text-secondary)] mt-1">Select a mandal first</p>}
+                  {/* {!hierarchyLoading && formData.mandal_id && booths.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available for selected mandal</p>} */}
                 </div>
               </div>
             </div>
 
             {/* Address and Remarks */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Additional Information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Address *
                   </label>
                   <textarea
@@ -983,7 +1023,7 @@ export default function AddSupporterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Remarks
                   </label>
                   <textarea
@@ -999,13 +1039,13 @@ export default function AddSupporterPage() {
             </div>
 
             {/* Form Actions */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--border-color)]">
               <button
                 type="button"
                 onClick={() => navigate('/assembly/supporters')}
-                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
               >
-                Cancel
+                {t("addSupporter.btnCancel")}
               </button>
               <button
                 type="submit"
@@ -1018,7 +1058,7 @@ export default function AddSupporterPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                 )}
-                {isCreating ? 'Creating...' : 'Submit'}
+                {isCreating ? t("addSupporter.creating") : t("addSupporter.btnSubmit")}
               </button>
             </div>
           </form>
@@ -1028,3 +1068,6 @@ export default function AddSupporterPage() {
     </div>
   );
 }
+
+
+

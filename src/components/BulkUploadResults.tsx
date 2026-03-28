@@ -27,7 +27,7 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
@@ -36,13 +36,13 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
             ) : (
               <XCircle className="w-8 h-8 text-red-600" />
             )}
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-[var(--text-color)]">
               {success ? "Upload Successful" : "Upload Failed"}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition"
           >
             <X className="w-6 h-6" />
           </button>
@@ -72,7 +72,7 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
             <div className="grid grid-cols-3 gap-4 mb-6">
               {data.total !== undefined && (
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">Total Records</p>
+                  <p className="text-sm text-[var(--text-secondary)] mb-1">Total Records</p>
                   <p className="text-2xl font-bold text-blue-600">
                     {data.total}
                   </p>
@@ -80,7 +80,7 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
               )}
               {data.successful !== undefined && (
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">Successful</p>
+                  <p className="text-sm text-[var(--text-secondary)] mb-1">Successful</p>
                   <p className="text-2xl font-bold text-green-600">
                     {data.successful}
                   </p>
@@ -88,7 +88,7 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
               )}
               {data.failed !== undefined && (
                 <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <p className="text-sm text-gray-600 mb-1">Failed</p>
+                  <p className="text-sm text-[var(--text-secondary)] mb-1">Failed</p>
                   <p className="text-2xl font-bold text-red-600">
                     {data.failed}
                   </p>
@@ -103,19 +103,19 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
               <div className="bg-yellow-50 px-4 py-3 border-b border-yellow-200">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-yellow-600" />
-                  <h3 className="font-semibold text-gray-800">
+                  <h3 className="font-semibold text-[var(--text-color)]">
                     Errors ({data.errors.length})
                   </h3>
                 </div>
               </div>
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 sticky top-0">
+                  <thead className="bg-[var(--bg-main)] sticky top-0">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--text-secondary)]">
                         Row
                       </th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-[var(--text-secondary)]">
                         Error
                       </th>
                     </tr>
@@ -125,10 +125,10 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
                       <tr
                         key={index}
                         className={
-                          index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          index % 2 === 0 ? "bg-[var(--bg-card)]" : "bg-[var(--bg-main)]"
                         }
                       >
-                        <td className="px-4 py-2 text-sm text-gray-800">
+                        <td className="px-4 py-2 text-sm text-[var(--text-color)]">
                           {error.row}
                         </td>
                         <td className="px-4 py-2 text-sm text-red-600">
@@ -144,7 +144,7 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-end gap-3 p-6 border-t bg-[var(--bg-main)]">
           <button
             onClick={onClose}
             className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
@@ -156,3 +156,6 @@ export const BulkUploadResults: React.FC<BulkUploadResultsProps> = ({
     </div>
   );
 };
+
+
+

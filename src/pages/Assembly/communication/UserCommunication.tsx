@@ -6,6 +6,7 @@ import {
 } from "../../../store/api/assemblyApi";
 import { useGetProfileQuery } from "../../../store/api/profileApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
+import { useTranslation } from "react-i18next";
 
 type MessageType = "SMS" | "WHATSAPP";
 type CommunicationStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -37,6 +38,7 @@ type CommunicationRecord = {
 };
 
 export default function UserCommunication() {
+  const { t } = useTranslation();
   const selectedAssignment = useAppSelector((s) => s.auth.selectedAssignment);
   const { user } = useAppSelector((s) => s.auth);
   const [activeTab, setActiveTab] = useState<"send" | "history">("send");
@@ -210,7 +212,7 @@ export default function UserCommunication() {
 
       const result = await response.json();
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to load communications");
+        throw new Error(result.message || t("userCommunication.failedToLoadCommunications"));
       }
 
       setCommunications(result.data || []);
@@ -219,7 +221,7 @@ export default function UserCommunication() {
       );
     } catch (err) {
       setCommunicationsError(
-        err instanceof Error ? err.message : "Failed to load communications",
+        err instanceof Error ? err.message : t("userCommunication.failedToLoadCommunications"),
       );
     } finally {
       setCommunicationsLoading(false);
@@ -323,7 +325,7 @@ const {
 
       const trimmed = message.trim();
       if (trimmed.length === 0 || trimmed.length > 1600) {
-        setError("Message must be between 1 and 1600 characters");
+        setError(t("userCommunication.messageLengthValidation"));
         setSending(false);
         return;
       }
@@ -354,7 +356,7 @@ const {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to send message");
+        throw new Error(t("userCommunication.failedToSendMessage"));
       }
 
       const result = await response.json();
@@ -364,12 +366,12 @@ const {
         setMessage("");
         setSelectedUsers(new Set());
         setMessageType(null);
-        alert("Message sent successfully!");
+        alert(t("userCommunication.messageSentSuccessfully"));
       } else {
-        setError(result.message || "Failed to send message");
+        setError(result.message || t("userCommunication.failedToSendMessage"));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : t("userCommunication.anErrorOccurred"));
     } finally {
       setSending(false);
     }
@@ -407,9 +409,9 @@ const {
       case "IN_PROGRESS":
         return "bg-yellow-100 text-yellow-800";
       case "PENDING":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-[var(--text-color)]";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-[var(--text-color)]";
     }
   };
 
@@ -420,8 +422,10 @@ const {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        <p className="ml-3 text-gray-600">
-          Loading {profileLoading ? "user profile" : "state data"}...
+        <p className="ml-3 text-[var(--text-secondary)]">
+          {t("userCommunication.loading", {
+            what: profileLoading ? t("userCommunication.loadingUserProfile") : t("userCommunication.loadingStateData"),
+          })}
         </p>
       </div>
     );
@@ -430,36 +434,35 @@ const {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">User Communication</h1>
-        <p className="text-gray-600 mt-1">
-          Send SMS or WhatsApp messages to users and view your communication
-          history
+        <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("userCommunication.title")}</h1>
+        <p className="text-[var(--text-secondary)] mt-1">
+          {t("userCommunication.subtitle")}
         </p>
       </div>
 
       {/* Tab Navigation */}
       <div className="mb-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-[var(--border-color)]">
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab("send")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "send"
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
               }`}
             >
-              Send Message
+              {t("userCommunication.tabSendMessage")}
             </button>
             <button
               onClick={() => setActiveTab("history")}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "history"
                   ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
               }`}
             >
-              My Communications
+              {t("userCommunication.tabMyCommunications")}
             </button>
           </nav>
         </div>
@@ -482,7 +485,7 @@ const {
             </svg>
             <div className="ml-3">
               <p className="text-sm text-yellow-800">
-                Party information not found. Some features may be limited.
+                {t("userCommunication.partyInfoNotFound")}
               </p>
             </div>
           </div>
@@ -513,7 +516,7 @@ const {
                   (activeTab === "send" && apiError && "data" in apiError
                     ? (apiError.data as { message?: string })?.message
                     : activeTab === "history" && communicationsError) ||
-                  "An error occurred"}
+                  t("userCommunication.anErrorOccurred")}
               </p>
             </div>
           </div>
@@ -522,16 +525,16 @@ const {
 
       {/* Send Message Tab */}
       {activeTab === "send" && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
           {/* Message Type Buttons */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-[var(--border-color)]">
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => setMessageType("SMS")}
                 className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
                   messageType === "SMS"
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -556,7 +559,7 @@ const {
                 className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
                   messageType === "WHATSAPP"
                     ? "bg-green-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -575,12 +578,12 @@ const {
 
           {/* Message Textarea */}
           {messageType && (
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-[var(--border-color)]">
               <label
                 htmlFor="message"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
               >
-                Message Content
+                {t("userCommunication.lblMessageContent")}
               </label>
               <textarea
                 id="message"
@@ -588,11 +591,11 @@ const {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                placeholder={`Type your ${messageType} message here...`}
+                placeholder={t("userCommunication.phTypeYourMessage", { messageType })}
                 maxLength={1600}
               />
-              <div className="mt-2 text-sm text-gray-500">
-                {message.length}/1600 characters
+              <div className="mt-2 text-sm text-[var(--text-secondary)]">
+                {t("userCommunication.characterCount", { count: message.length })}
               </div>
             </div>
           )}
@@ -603,7 +606,7 @@ const {
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Search users by name, email, or contact number..."
+                placeholder={t("userCommunication.phSearchUsers")}
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -612,8 +615,8 @@ const {
 
             {/* Users Header */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Select Users ({pagination.total} total)
+              <h3 className="text-lg font-medium text-[var(--text-color)]">
+                {t("userCommunication.selectUsersTotal", { total: pagination.total })}
               </h3>
               {users.length > 0 && (
                 <button
@@ -621,8 +624,8 @@ const {
                   className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
                 >
                   {selectedUsers.size === users.length
-                    ? "Deselect All"
-                    : "Select All"}
+                    ? t("userCommunication.btnDeselectAll")
+                    : t("userCommunication.btnSelectAll")}
                 </button>
               )}
             </div>
@@ -631,12 +634,12 @@ const {
             {isLoading || assemblyUsersLoading || assemblyDataFetch ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                <p className="mt-2 text-gray-600">Loading users...</p>
+                <p className="mt-2 text-[var(--text-secondary)]">{t("userCommunication.loadingUsers")}</p>
               </div>
             ) : users.length === 0 ? (
               <div className="text-center py-12">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -648,22 +651,22 @@ const {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  No users found
+                <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
+                  {t("userCommunication.emptyNoUsersFound")}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">
                   {searchTerm
-                    ? `No users match "${searchTerm}"`
-                    : "No users available."}
+                    ? t("userCommunication.emptyNoUsersMatch", { searchTerm })
+                    : t("userCommunication.emptyNoUsersAvailable")}
                 </p>
               </div>
             ) : (
               <>
                 {/* Users Table */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="border border-[var(--border-color)] rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-[var(--bg-main)]">
                         <tr>
                           <th className="px-4 py-3 text-left">
                             <input
@@ -674,32 +677,34 @@ const {
                               }
                               onChange={handleSelectAll}
                               className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                              aria-label={t("userCommunication.cbSelectAll")}
+                              title={t("userCommunication.cbSelectAll")}
                             />
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            State
+                          <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("userCommunication.thState")}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            District
+                          <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("userCommunication.thDistrict")}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
+                          <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("userCommunication.thName")}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Designation
+                          <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("userCommunication.thDesignation")}
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Phone Number
+                          <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            {t("userCommunication.thPhoneNumber")}
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                         {users.map((user) => (
                           <tr
                             key={user.user_id}
-                            className={`hover:bg-indigo-50 cursor-pointer transition-colors ${
+                            className={`hover:bg-[var(--text-color)]/5 text-[var(--text-secondary)] cursor-pointer transition-colors ${
                               selectedUsers.has(user.user_id)
-                                ? "bg-indigo-50"
+                                ? " text-[var(--text-secondary)]"
                                 : ""
                             }`}
                             onClick={() => handleUserSelect(user.user_id)}
@@ -710,6 +715,8 @@ const {
                                 checked={selectedUsers.has(user.user_id)}
                                 onChange={() => handleUserSelect(user.user_id)}
                                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                aria-label={t("userCommunication.cbSelectUser")}
+                                title={t("userCommunication.cbSelectUser")}
                               />
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
@@ -718,22 +725,22 @@ const {
                               </span>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-[var(--text-secondary)]">
                                 {user.districtName}
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-[var(--text-color)]">
                                 {user.first_name} {user.last_name}
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
-                                {user.userRole || `N/A`}
+                              <div className="text-sm text-[var(--text-secondary)]">
+                                {user.userRole || t("userCommunication.na")}
                               </div>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-[var(--text-secondary)]">
                                 {user.contact_no}
                               </div>
                             </td>
@@ -747,23 +754,25 @@ const {
                 {/* Responsive Pagination */}
                 {pagination.totalPages > 1 && (
                   <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="text-sm text-gray-700 order-2 sm:order-1">
-                      Showing {(currentPage - 1) * pageSize + 1} to{" "}
-                      {Math.min(currentPage * pageSize, pagination.total)} of{" "}
-                      {pagination.total} results
+                    <div className="text-sm text-[var(--text-secondary)] order-2 sm:order-1">
+                      {t("userCommunication.showingResultsRange", {
+                        from: (currentPage - 1) * pageSize + 1,
+                        to: Math.min(currentPage * pageSize, pagination.total),
+                        total: pagination.total,
+                      })}
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 order-1 sm:order-2">
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span className="hidden sm:inline">Previous</span>
+                        <span className="hidden sm:inline">{t("userCommunication.btnPrevious")}</span>
                         <span className="sm:hidden">‹</span>
                       </button>
 
                       {/* Mobile: Show only current page and total */}
-                      <div className="sm:hidden px-3 py-1 text-sm text-gray-600">
+                      <div className="sm:hidden px-3 py-1 text-sm text-[var(--text-secondary)]">
                         {currentPage} / {pagination.totalPages}
                       </div>
 
@@ -796,7 +805,7 @@ const {
                                 className={`px-3 py-1 text-sm border rounded-md ${
                                   currentPage === pageNum
                                     ? "bg-indigo-600 text-white border-indigo-600"
-                                    : "border-gray-300 hover:bg-gray-50"
+                                    : "border-gray-300 hover:bg-[var(--text-color)]/5"
                                 }`}
                               >
                                 {pageNum}
@@ -809,9 +818,9 @@ const {
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === pagination.totalPages}
-                        className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2 sm:px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span className="hidden sm:inline">Next</span>
+                        <span className="hidden sm:inline">{t("userCommunication.btnNext")}</span>
                         <span className="sm:hidden">›</span>
                       </button>
                     </div>
@@ -823,9 +832,9 @@ const {
 
           {/* Send Button */}
           {messageType && message.trim() && selectedUsers.size > 0 && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+            <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] rounded-b-lg">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-[var(--text-secondary)]">
                   {selectedUsers.size} user{selectedUsers.size !== 1 ? "s" : ""}{" "}
                   selected
                 </div>
@@ -841,10 +850,10 @@ const {
                   {sending ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Sending...
+                      {t("userCommunication.sending")}
                     </div>
                   ) : (
-                    `Send ${messageType}`
+                    t("userCommunication.btnSendMessageType", { messageType })
                   )}
                 </button>
               </div>
@@ -857,12 +866,12 @@ const {
       {activeTab === "history" && (
         <div className="space-y-6">
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Filters</h3>
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-4">
+            <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">{t("userCommunication.filtersTitle")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message Type
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  {t("userCommunication.filterMessageType")}
                 </label>
                 <select
                   value={historyFilters.message_type}
@@ -870,15 +879,17 @@ const {
                     handleHistoryFilterChange("message_type", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label={t("userCommunication.filterMessageType")}
+                  title={t("userCommunication.filterMessageType")}
                 >
-                  <option value="">All Types</option>
+                  <option value="">{t("userCommunication.optAllTypes")}</option>
                   <option value="SMS">SMS</option>
                   <option value="WHATSAPP">WhatsApp</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  {t("userCommunication.filterStatus")}
                 </label>
                 <select
                   value={historyFilters.status}
@@ -886,17 +897,19 @@ const {
                     handleHistoryFilterChange("status", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label={t("userCommunication.filterStatus")}
+                  title={t("userCommunication.filterStatus")}
                 >
-                  <option value="">All Status</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="FAILED">Failed</option>
+                  <option value="">{t("userCommunication.optAllStatus")}</option>
+                  <option value="PENDING">{t("userCommunication.statusPending")}</option>
+                  <option value="IN_PROGRESS">{t("userCommunication.statusInProgress")}</option>
+                  <option value="COMPLETED">{t("userCommunication.statusCompleted")}</option>
+                  <option value="FAILED">{t("userCommunication.statusFailed")}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  From Date
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  {t("userCommunication.filterFromDate")}
                 </label>
                 <input
                   type="date"
@@ -905,11 +918,13 @@ const {
                     handleHistoryFilterChange("date_from", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label={t("userCommunication.filterFromDate")}
+                  title={t("userCommunication.filterFromDate")}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  To Date
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  {t("userCommunication.filterToDate")}
                 </label>
                 <input
                   type="date"
@@ -918,6 +933,8 @@ const {
                     handleHistoryFilterChange("date_to", e.target.value)
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  aria-label={t("userCommunication.filterToDate")}
+                  title={t("userCommunication.filterToDate")}
                 />
               </div>
               <div className="flex items-end">
@@ -931,19 +948,19 @@ const {
                     });
                     setHistoryPage(1);
                   }}
-                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="w-full px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
                 >
-                  Clear Filters
+                  {t("userCommunication.btnClearFilters")}
                 </button>
               </div>
             </div>
           </div>
 
           {/* Communications List */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">
-                My Communications ({historyPagination.total || 0} total)
+          <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
+            <div className="p-4 border-b border-[var(--border-color)]">
+              <h3 className="text-lg font-medium text-[var(--text-color)]">
+                {t("userCommunication.myCommunicationsTotal", { total: historyPagination.total || 0 })}
               </h3>
             </div>
 
@@ -951,7 +968,7 @@ const {
             {communicationsLoading ? (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                <p className="mt-2 text-gray-600">Loading communications...</p>
+                <p className="mt-2 text-[var(--text-secondary)]">{t("userCommunication.loadingCommunications")}</p>
               </div>
             ) : communicationsError ? (
               <div className="text-center py-8">
@@ -962,7 +979,7 @@ const {
             ) : communications.length === 0 ? (
               <div className="text-center py-12">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -974,12 +991,11 @@ const {
                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  No communications found
+                <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">
+                  {t("userCommunication.emptyNoCommunicationsFound")}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  You haven't sent any messages yet, or no messages match your
-                  filters.
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                  {t("userCommunication.emptyNoCommunicationsDesc")}
                 </p>
               </div>
             ) : (
@@ -989,7 +1005,7 @@ const {
                   {communications.map((comm) => (
                     <div
                       key={comm.communication_id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      className="border border-[var(--border-color)] rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
                       {/* Header */}
                       <div className="flex items-start justify-between mb-3">
@@ -1012,19 +1028,21 @@ const {
                               {comm.status}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {comm.recipient_type} • {comm.total_recipients}{" "}
-                            recipient{comm.total_recipients !== 1 ? "s" : ""}
+                          <div className="text-sm text-[var(--text-secondary)]">
+                            {t("userCommunication.recipientSummary", {
+                              recipientType: comm.recipient_type,
+                              totalRecipients: comm.total_recipients,
+                            })}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-[var(--text-secondary)]">
                           {formatDate(comm.created_on)}
                         </div>
                       </div>
 
                       {/* Message Content */}
                       <div className="mb-3">
-                        <p className="text-gray-900 text-sm">
+                        <p className="text-[var(--text-color)] text-sm">
                           {comm.message_content}
                         </p>
                       </div>
@@ -1035,13 +1053,13 @@ const {
                           <span className="text-green-600 font-semibold">
                             {comm.successful_sends}
                           </span>
-                          <span className="text-gray-500">successful</span>
+                          <span className="text-[var(--text-secondary)]">successful</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <span className="text-red-600 font-semibold">
                             {comm.failed_sends}
                           </span>
-                          <span className="text-gray-500">failed</span>
+                          <span className="text-[var(--text-secondary)]">failed</span>
                         </div>
                       </div>
 
@@ -1050,7 +1068,7 @@ const {
                         comm.delivery_report.length > 0 && (
                           <div className="mt-3">
                             <details className="group">
-                              <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+                              <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-color)]">
                                 <svg
                                   className="h-4 w-4 transition-transform group-open:rotate-90"
                                   fill="none"
@@ -1072,14 +1090,14 @@ const {
                                   {comm.delivery_report.map((report, idx) => (
                                     <div
                                       key={idx}
-                                      className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs"
+                                      className="flex items-center justify-between p-2 bg-[var(--bg-main)] rounded text-xs"
                                     >
                                       <div className="flex items-center space-x-2">
                                         <span className="font-medium">
                                           {report.recipient}
                                         </span>
                                         {report.user_id && (
-                                          <span className="text-gray-500">
+                                          <span className="text-[var(--text-secondary)]">
                                             (ID: {report.user_id})
                                           </span>
                                         )}
@@ -1094,7 +1112,7 @@ const {
                                         >
                                           {report.status}
                                         </span>
-                                        <span className="text-gray-500">
+                                        <span className="text-[var(--text-secondary)]">
                                           {formatDate(report.timestamp)}
                                         </span>
                                       </div>
@@ -1109,7 +1127,7 @@ const {
                       {/* Error Details */}
                       {comm.error_details && (
                         <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm">
-                          <strong className="text-red-700">Error:</strong>{" "}
+                          <strong className="text-red-700">{t("userCommunication.errorLabel")}</strong>{" "}
                           <span className="text-red-600">
                             {comm.error_details}
                           </span>
@@ -1121,21 +1139,23 @@ const {
 
                 {/* Pagination */}
                 {historyPagination.totalPages > 1 && (
-                  <div className="p-4 border-t border-gray-200">
+                  <div className="p-4 border-t border-[var(--border-color)]">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700">
-                        Showing page {historyPagination.page} of{" "}
-                        {historyPagination.totalPages}
+                      <div className="text-sm text-[var(--text-secondary)]">
+                        {t("userCommunication.showingPageOf", {
+                          page: historyPagination.page,
+                          totalPages: historyPagination.totalPages,
+                        })}
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => setHistoryPage(historyPage - 1)}
                           disabled={historyPage === 1}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Previous
+                          {t("userCommunication.btnPrevious")}
                         </button>
-                        <span className="px-3 py-1 text-sm text-gray-600">
+                        <span className="px-3 py-1 text-sm text-[var(--text-secondary)]">
                           {historyPage} / {historyPagination.totalPages}
                         </span>
                         <button
@@ -1143,9 +1163,9 @@ const {
                           disabled={
                             historyPage === historyPagination.totalPages
                           }
-                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Next
+                          {t("userCommunication.btnNext")}
                         </button>
                       </div>
                     </div>
@@ -1159,3 +1179,7 @@ const {
     </div>
   );
 }
+
+
+
+

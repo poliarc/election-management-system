@@ -341,7 +341,7 @@ export default function AfterAssemblyPanelSidebar({
   // Auto-scroll to selected item when dropdown opens
   useEffect(() => {
     if (switchDropdownOpen && switchDropdownRef.current) {
-      const selectedButton = switchDropdownRef.current.querySelector('.bg-indigo-50');
+      const selectedButton = switchDropdownRef.current.querySelector('.bg-indigo-500/10');
       if (selectedButton) {
         selectedButton.scrollIntoView({
           behavior: 'smooth',
@@ -441,9 +441,9 @@ export default function AfterAssemblyPanelSidebar({
   ];
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
+    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
       {/* User header */}
-      <div className="px-5 py-6 border-b border-gray-200">
+      <div className="px-5 py-6 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-4">
           <img
             src={avatarUrl}
@@ -451,14 +451,14 @@ export default function AfterAssemblyPanelSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm"
           />
           <div className="min-w-0">
-            <p className="truncate font-semibold text-black text-sm">
+            <p className="truncate font-semibold text-[var(--text-color)] text-sm">
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
               {levelName} level
             </p>
             {currentBoothRange && (
-              <p className="text-xs font-medium text-gray-600 mt-0.5">
+              <p className="text-xs font-medium text-[var(--text-secondary)] mt-0.5">
                 Booth: {currentBoothRange}
               </p>
             )}
@@ -471,7 +471,7 @@ export default function AfterAssemblyPanelSidebar({
             <button
               type="button"
               onClick={() => setSwitchDropdownOpen(!switchDropdownOpen)}
-              className="w-full flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm hover:bg-gray-100 transition"
+              className="w-full flex items-center justify-between rounded-lg border  border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <svg
@@ -487,13 +487,13 @@ export default function AfterAssemblyPanelSidebar({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-medium text-gray-700 truncate">
+                <span className="font-medium text-[var(--text-secondary)] truncate">
                   {selectedAssignment.displayName ||
                     selectedAssignment.levelName}
                 </span>
               </div>
               <svg
-                className={`h-4 w-4 text-gray-500 transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"
+                className={`h-4 w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${switchDropdownOpen ? "rotate-180" : "rotate-0"
                   }`}
                 viewBox="0 0 20 20"
                 fill="none"
@@ -511,9 +511,9 @@ export default function AfterAssemblyPanelSidebar({
             {switchDropdownOpen && (
               <div
                 ref={switchDropdownRef}
-                className="mt-2 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-lg max-h-64 overflow-y-auto"
+                className="mt-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] p-2 text-sm shadow-lg max-h-64 overflow-y-auto"
               >
-                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <div className="px-2 py-1.5 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                   Switch{" "}
                   {selectedAssignment?.partyLevelDisplayName ||
                     selectedAssignment?.partyLevelName ||
@@ -527,8 +527,8 @@ export default function AfterAssemblyPanelSidebar({
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===
                         assignment.assignment_id
-                        ? "bg-indigo-50 text-indigo-900"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                        ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                     ].join(" ")}
                   >
                     <svg
@@ -549,7 +549,7 @@ export default function AfterAssemblyPanelSidebar({
                         {assignment.displayName || assignment.levelName}
                       </div>
                       {assignment.parentLevelName && (
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-[var(--text-secondary)] truncate">
                           {assignment.parentLevelName}
                         </div>
                       )}
@@ -589,10 +589,10 @@ export default function AfterAssemblyPanelSidebar({
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
@@ -612,15 +612,15 @@ export default function AfterAssemblyPanelSidebar({
             onClick={() => setVicDropdownOpen(!vicDropdownOpen)}
             className={[
               "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
               vicDropdownOpen
-                ? "bg-gray-50 ring-1 ring-indigo-200"
-                : "border border-transparent hover:border-gray-200",
+                ? "bg-[var(--bg-color)] ring-1 ring-indigo-400/40 "
+                : "border border-transparent hover:border-[var(--border-color)]",
             ].join(" ")}
           >
             <span className="flex items-center gap-3 text-indigo-600">
               {Icons.vic}
-              <span className="text-black">VIC</span>
+              <span className="text-[var(--text-color)]">VIC</span>
             </span>
             <svg
               className={[
@@ -640,7 +640,7 @@ export default function AfterAssemblyPanelSidebar({
             </svg>
           </button>
           {vicDropdownOpen && (
-            <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
               {vicMenuItems.map((item) => (
                 <NavLink
                   key={item.to}
@@ -653,10 +653,10 @@ export default function AfterAssemblyPanelSidebar({
                   className={({ isActive }) =>
                     [
                       "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                       isActive
-                        ? "bg-indigo-50 ring-1 ring-indigo-200"
-                        : "border border-transparent hover:border-gray-200",
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 "
+                        : "border border-transparent hover:border-[var(--border-color)]",
                     ].join(" ")
                   }
                 >
@@ -670,8 +670,8 @@ export default function AfterAssemblyPanelSidebar({
       </nav>
 
       {/* Account section */}
-      <div className="mt-auto pt-3 pb-5 border-t border-gray-200">
-        <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+      <div className="mt-auto pt-3 pb-5 border-t border-[var(--border-color)]">
+        <div className="px-5 mb-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
           Account
         </div>
         <div className="px-4 space-y-2">
@@ -684,10 +684,10 @@ export default function AfterAssemblyPanelSidebar({
             className={({ isActive }) =>
               [
                 "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition no-underline",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-indigo-50 ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-[var(--bg-color)] hover:border-[var(--border-color)] text-[var(--border-color)]"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >

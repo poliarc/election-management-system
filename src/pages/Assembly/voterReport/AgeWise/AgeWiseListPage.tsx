@@ -6,8 +6,10 @@ import { VoterListTable } from "../../voters/VoterListList";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
 import { useUpdateVoterMutation, useGetVotersByAssemblyPaginatedQuery } from "../../../../store/api/votersApi";
+import { useTranslation } from "react-i18next";
 
 export default function AgeWiseListPage() {
+    const {t} = useTranslation();
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(50);
@@ -26,7 +28,7 @@ export default function AgeWiseListPage() {
     );
     const assembly_id = selectedAssignment?.stateMasterData_id;
 
-    const { data, isLoading, error } = useGetVotersByAssemblyPaginatedQuery(
+    const { data, isLoading, isFetching, error } = useGetVotersByAssemblyPaginatedQuery(
         {
             assembly_id: assembly_id!,
             page,
@@ -79,10 +81,10 @@ export default function AgeWiseListPage() {
         );
     }
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[400px]">
-                <div className="text-gray-600">Loading age wise list...</div>
+                <div className="text-[var(--text-secondary)]">Loading age wise list...</div>
             </div>
         );
     }
@@ -122,29 +124,29 @@ export default function AgeWiseListPage() {
         <div className="p-1">
             <div className="mb-1 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Age Wise List</h1>
-                    <p className="text-gray-600 mt-1">
-                        Voters grouped by age • {filteredVoters.length.toLocaleString()} voters shown
+                    <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("AgeWiseListPage.Title")}</h1>
+                    <p className="text-[var(--text-secondary)] mt-1">
+                        {t("AgeWiseListPage.Desc")} {filteredVoters.length.toLocaleString()}{t("AgeWiseListPage.voters_shown")}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+                <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
                     <button
                         onClick={() => setLanguage("en")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "en"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        English
+                        {t("AgeWiseListPage.English")}
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition ${language === "hi"
                             ? "bg-indigo-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("AgeWiseListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -154,11 +156,11 @@ export default function AgeWiseListPage() {
             ) : (
                 <>
                     {/* Age and Part Range Filters */}
-                    <div className="mb-1 bg-white p-1 rounded-lg border border-gray-200">
+                    <div className="mb-1 bg-[var(--bg-card)] p-1 rounded-lg border border-[var(--border-color)]">
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Age From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                    {t("AgeWiseListPage.Age_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -169,8 +171,8 @@ export default function AgeWiseListPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Age To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                    {t("AgeWiseListPage.Age_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -181,8 +183,8 @@ export default function AgeWiseListPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Part From
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                    {t("AgeWiseListPage.Part_From")}
                                 </label>
                                 <input
                                     type="number"
@@ -193,8 +195,8 @@ export default function AgeWiseListPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Part To
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                    {t("AgeWiseListPage.Part_To")}
                                 </label>
                                 <input
                                     type="number"
@@ -205,26 +207,26 @@ export default function AgeWiseListPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Gender
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                                    {t("AgeWiseListPage.Gender")}
                                 </label>
                                 <select
                                     value={gender}
                                     onChange={(e) => { setGender(e.target.value); setPage(1); }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
-                                    <option value="">All</option>
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O">Other</option>
+                                    <option value="">{t("AgeWiseListPage.All")}</option>
+                                    <option value="M">{t("AgeWiseListPage.Male")}</option>
+                                    <option value="F">{t("AgeWiseListPage.Female")}</option>
+                                    <option value="O">{t("AgeWiseListPage.Other")}</option>
                                 </select>
                             </div>
                             <div>
                                 <button
                                     onClick={handleClearFilters}
-                                    className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+                                    className="w-full px-4 py-2 bg-[var(--bg-color)] text-[var(--text-secondary)] rounded-lg hover:bg-gray-600 transition"
                                 >
-                                    Reset
+                                    {t("AgeWiseListPage.Reset")}
                                 </button>
                             </div>
                         </div>
@@ -238,16 +240,16 @@ export default function AgeWiseListPage() {
                             language={language}
                         />
                     ) : (
-                        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                            <p className="text-gray-500">No voters found matching your filters.</p>
+                        <div className="bg-[var(--bg-card)] rounded-lg border border-[var(--border-color)] p-12 text-center">
+                            <p className="text-[var(--text-secondary)]">{t("AgeWiseListPage.Desc1")}</p>
                         </div>
                     )}
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="text-sm text-gray-600">
-                                Showing page {page} of {totalPages} • {totalVoters.toLocaleString()} total voters
+                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
+                            <div className="text-sm text-[var(--text-secondary)]">
+                                {t("AgeWiseListPage.Showing_page")} {page} {t("AgeWiseListPage.of")} {totalPages} • {totalVoters.toLocaleString()} {t("AgeWiseListPage.total_voters")}
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -255,14 +257,14 @@ export default function AgeWiseListPage() {
                                     disabled={page === 1}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Previous
+                                    {t("AgeWiseListPage.Previous")}
                                 </button>
                                 <button
                                     onClick={() => setPage(page + 1)}
                                     disabled={page === totalPages}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                 >
-                                    Next
+                                    {t("AgeWiseListPage.Next")}
                                 </button>
                             </div>
                         </div>
@@ -272,3 +274,5 @@ export default function AgeWiseListPage() {
         </div>
     );
 }
+
+

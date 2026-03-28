@@ -16,6 +16,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    const savedTheme = window.localStorage.getItem("theme");
+    if (savedTheme === "dark") return true;
+    if (savedTheme === "light") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   // const [assignmentMenuOpen, setAssignmentMenuOpen] = useState(false); // COMMENTED OUT - Switch dropdown moved to sidebar
   // split into three menus
   const [partyPanelsOpen, setPartyPanelsOpen] = useState(false);
@@ -32,6 +39,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     const allPanels = [...(levelAdminPanels || []), ...(partyAdminPanels || [])];
     return allPanels.find(p => p.redirectUrl && location.pathname.startsWith(p.redirectUrl));
   }, [location.pathname, levelAdminPanels, partyAdminPanels]);
+
+  useEffect(() => {
+    window.document.documentElement.classList.toggle("dark", darkMode);
+    window.localStorage.setItem("theme", darkMode ? "dark" : "light");
+    // Backward-compatibility key for any existing reads
+    window.localStorage.setItem("darkMode", String(darkMode));
+  }, [darkMode]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -309,18 +323,18 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-gray-200 bg-white text-gray-900">
+    <header className="topbar-surface sticky top-0 z-20 border-b border-[var(--border-color)]/50 bg-[var(--bg-card)] backdrop-blur-md text-[var(--text-color)] transition-all duration-300 ease-in-out [will-change:background-color,color]">
       <div className="container-page flex items-center justify-between py-2 sm:py-3 px-3 sm:px-4">
         <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           {/* Mobile hamburger to open sidebar */}
           <button
             type="button"
             onClick={() => onToggleSidebar?.()}
-            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition shrink-0"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0"
             aria-label="Open sidebar"
           >
             <svg
-              className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
+              className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--text-color)]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -338,12 +352,12 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <button
             type="button"
             onClick={() => navigate("/panels")}
-            className="group inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition shrink-0 relative"
+            className="group inline-flex items-center justify-center p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0 relative"
             aria-label="Go to assigned panels"
             title="Assigned Panels"
           >
             <svg
-              className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
+              className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--text-color)]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -375,10 +389,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   setLevelAdminPanelsOpen(false);
                   setLevelAccessOpen(false);
                 }}
-                className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition max-w-[200px]"
+                className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition max-w-[200px]"
               >
                 <svg
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 shrink-0"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)] shrink-0"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -390,11 +404,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-medium text-gray-700 truncate">
+                <span className="font-medium text-[var(--text-color)] truncate">
                   {selectedAssignment.displayName || selectedAssignment.levelName}
                 </span>
                 <svg
-                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${assignmentMenuOpen ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -410,8 +424,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               </button>
 
               {assignmentMenuOpen && (
-                <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <div className="absolute left-0 right-0 sm:right-auto mt-2 w-auto sm:w-64 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                  <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                     Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || currentLevelType}
                   </div>
                   {sameTypeAssignments.map((assignment) => (
@@ -419,11 +433,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       key={assignment.assignment_id}
                       onClick={() => handleAssignmentSwitch(assignment)}
                       className={[
-                        "flex w-full items-start gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors",
+                        "flex w-full items-start gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors duration-300 ease-in-out",
                         selectedAssignment.assignment_id ===
                           assignment.assignment_id
-                          ? "bg-indigo-50 text-indigo-900"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                          ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                          : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                       ].join(" ")}
                     >
                       <svg
@@ -440,11 +454,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         />
                       </svg>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate text-xs sm:text-sm">
+                        <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">
                           {assignment.displayName || assignment.levelName}
                         </div>
                         {assignment.parentLevelName && (
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-[var(--text-secondary)] truncate group-hover:text-[var(--text-color)]">
                             {assignment.parentLevelName}
                           </div>
                         )}
@@ -485,15 +499,15 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAdminPanelsOpen(false);
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
-                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    className="topbar-control flex items-center cursor-pointer gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="Team Levels"
                   >
-                    <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="hidden sm:inline text-xs text-gray-700">Team Levels</span>
+                    <span className="hidden sm:inline text-xs text-[var(--text-color)] ">Team Levels</span>
                     <svg
-                      className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAccessOpen ? "rotate-180" : "rotate-0"}`}
+                      className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${levelAccessOpen ? "rotate-180" : "rotate-0"}`}
                       viewBox="0 0 20 20"
                       fill="none"
                     >
@@ -502,8 +516,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   </button>
 
                   {levelAccessOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-55 sm:w-55 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Team Levels</div>
+                    <div className="topbar-menu-surface absolute left-0 right-0 sm:right-auto mt-2 w-55 sm:w-55 rounded-2xl border border-[var(--border-color)] p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-var(--text-secondary) uppercase tracking-wide">Team Levels</div>
 
                       {/* Fixed Level types (State/District/Assembly) */}
                       {allAssignments.length > 0 && (() => {
@@ -546,17 +560,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                     }
                                   }}
                                   className={[
-                                    "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
+                                    "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors duration-300 ease-in-out",
                                     selectedAssignment?.levelType === f.type
-                                      ? "bg-indigo-50 text-indigo-900"
-                                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                                      ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                                      : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                                   ].join(' ')}
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate text-xs sm:text-sm">{f.type}</div>
+                                    <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{f.type}</div>
                                   </div>
                                   {selectedAssignment?.levelType === f.type && (
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>
                                   )}
@@ -593,18 +607,18 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                 key={`dyn-${g.type}`}
                                 onClick={() => handleAssignmentSwitch(g.items[0])}
                                 className={[
-                                  "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors",
+                                  "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors duration-300 ease-in-out",
                                   selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type
-                                    ? "bg-indigo-50 text-indigo-900"
-                                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                                    ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                                    : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                                 ].join(' ')}
                               >
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium truncate text-xs sm:text-sm">{g.type}</div>
-                                  <div className="text-xs text-gray-500">{g.items.length} Assigned</div>
+                                  <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{g.type}</div>
+                                  <div className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">{g.items.length} Assigned</div>
                                 </div>
                                 {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
-                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
@@ -630,29 +644,29 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAccessOpen(false);
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
-                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    className="topbar-control flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="Role Assign"
                   >
-                    <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="hidden sm:inline text-xs text-gray-700">Role Assign</span>
-                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${levelAdminPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
+                    <span className="hidden sm:inline text-xs text-[var(--text-color)] ">Role Assign</span>
+                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${levelAdminPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
                       <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
                   {levelAdminPanelsOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role Assign</div>
+                    <div className="topbar-menu-surface absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-[var(--border-color)] p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Role Assign</div>
                       {levelAdminPanels.map((panel: PanelAssignment) => (
                         <button
                           key={`levelpanel-${panel.id}`}
                           onClick={() => { setLevelAdminPanelsOpen(false); handleAdminPanelNavigate(panel); }}
-                          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          className="topbar-menu-item group flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]"
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate text-xs sm:text-sm">{panel.displayName || panel.name}</div>
+                            <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{panel.displayName || panel.name}</div>
                           </div>
                           {currentAdminPanel?.id === panel.id && (
                             <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
@@ -678,31 +692,31 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAccessOpen(false);
                       // setAssignmentMenuOpen(false); // COMMENTED OUT - Switch dropdown moved to sidebar
                     }}
-                    className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-gray-100 transition"
+                    className="topbar-control flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="National Levels"
                   >
-                    <svg className="h-4 w-4 text-gray-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="hidden sm:inline text-xs text-gray-700">National Levels</span>
-                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform shrink-0 ${partyPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
+                    <span className="hidden sm:inline text-xs text-[var(--text-color)]">National Levels</span>
+                    <svg className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)] transition-transform shrink-0 ${partyPanelsOpen ? "rotate-180" : "rotate-0"}`} viewBox="0 0 20 20" fill="none">
                       <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
                   {partyPanelsOpen && (
-                    <div className="absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">National Levels</div>
+                    <div className="topbar-menu-surface absolute left-0 right-0 sm:right-auto mt-2 w-45 sm:w-45 rounded-2xl border border-[var(--border-color)] p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
+                      <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">National Levels</div>
                       {partyAdminPanels.map((panel: PanelAssignment) => (
                         <button
                           key={`party-${panel.id}`}
                           onClick={() => { setPartyPanelsOpen(false); handleAdminPanelNavigate(panel); }}
-                          className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          className="topbar-menu-item group flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]"
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate text-xs sm:text-sm">{panel.displayName || panel.name}</div>
+                            <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{panel.displayName || panel.name}</div>
                             {panel.metadata?.partyCode && (
-                              <div className="text-xs text-gray-500 truncate">Code: {panel.metadata.partyCode}</div>
+                              <div className="text-xs text-[var(--text-secondary)] truncate group-hover:text-[var(--text-color)]">Code: {panel.metadata.partyCode}</div>
                             )}
                           </div>
                           {currentAdminPanel?.id === panel.id && (
@@ -724,6 +738,25 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <div className="hidden md:block">
             <GoogleTranslate />
           </div>
+          
+          <button
+            type="button"
+            onClick={() => setDarkMode((prev) => !prev)}
+            className="topbar-control inline-flex items-center justify-center rounded-xl border border-[var(--border-color)] p-2 text-[var(--text-color)] hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            title={darkMode ? "Light Mode" : "Dark Mode"}
+          >
+            {darkMode ? (
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.88-9.88 1.42-1.42" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="4.5" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3c.12 0 .24 0 .36.01A7 7 0 0 0 21 12.79Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
 
           {user && (
             <div className="relative">
@@ -732,13 +765,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen((s) => !s)}
-                className="flex items-center gap-1.5 sm:gap-3 rounded-2xl border border-gray-200 bg-white px-2 sm:px-3 py-1.5 shadow-sm hover:shadow transition text-xs sm:text-sm"
+                className="topbar-control flex items-center gap-1.5 sm:gap-3 rounded-2xl border border-[var(--border-color)] px-2 sm:px-3 py-1.5 shadow-sm hover:bg-[var(--text-color)]/5 hover:shadow transition-colors duration-300 ease-in-out text-xs sm:text-sm"
               >
-                <span className="text-gray-700 hidden sm:inline">
+                <span className="text-[var(--text-color)] hidden sm:inline">
                   Hello, <span className="font-medium">{firstName}</span>
                 </span>
                 <svg
-                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500 transition-transform hidden sm:block ${open ? "rotate-180" : "rotate-0"
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-[var(--text-secondary)]  transition-transform hidden sm:block ${open ? "rotate-180" : "rotate-0"
                     }`}
                   viewBox="0 0 20 20"
                   fill="none"
@@ -754,13 +787,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 <img
                   src={avatarUrl}
                   alt="avatar"
-                  className="h-7 w-7 sm:h-9 sm:w-9 rounded-full ring-1 ring-gray-200 object-cover"
+                  className="h-7 w-7 sm:h-9 sm:w-9 rounded-full ring-1 ring-[var(--text-color)]/10 object-cover"
                 />
               </button>
               {open && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-64 sm:w-64 rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-xl z-50"
+                  className="topbar-menu-surface absolute right-0 mt-2 w-64 sm:w-64 rounded-2xl border border-[var(--border-color)] p-2 text-sm shadow-xl z-50"
                 >
                   {/* Only show profile link if not in admin panels */}
                   {!shouldHideProfile && (
@@ -769,15 +802,15 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       onClick={() => setOpen(false)}
                       className={({ isActive }) =>
                         [
-                          "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
+                          "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors duration-300 ease-in-out",
                           isActive
-                            ? "bg-gray-50 text-gray-900"
-                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                            ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                            : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                         ].join(" ")
                       }
                     >
                       <svg
-                        className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 shrink-0"
+                        className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--text-secondary)] shrink-0"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -789,7 +822,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span className="text-xs sm:text-sm">My Profile</span>
+                      <span className="text-xs sm:text-sm group-hover:text-[var(--text-color)]">My Profile</span>
                     </NavLink>
                   )}
 
@@ -797,8 +830,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   {/* COMMENTED OUT - Now using sidebar Switch dropdown instead */}
                   {/* {hasMultipleAssignments && selectedAssignment && (
                     <>
-                      <div className="my-2 border-t border-gray-200 md:hidden" />
-                      <div className="px-2 sm:px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide md:hidden">
+                      <div className="my-2 border-t border-[var(--border-color)] md:hidden" />
+                      <div className="px-2 sm:px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide md:hidden">
                         Switch {selectedAssignment?.partyLevelDisplayName || selectedAssignment?.partyLevelName || currentLevelType}
                       </div>
                       <div className="max-h-48 overflow-y-auto md:hidden">
@@ -810,19 +843,19 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                               setOpen(false);
                             }}
                             className={[
-                              "flex w-full items-start gap-2 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors",
+                              "flex w-full items-start gap-2 rounded-xl px-2 sm:px-3 py-2 text-left transition-colors duration-300 ease-in-out",
                               selectedAssignment.assignment_id === assignment.assignment_id
-                                ? "bg-emerald-50 text-emerald-900"
-                                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                                ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                                : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                             ].join(" ")}
                           >
                             <svg className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate text-xs sm:text-sm">{assignment.displayName || assignment.levelName}</div>
+                              <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{assignment.displayName || assignment.levelName}</div>
                               {assignment.parentLevelName && (
-                                <div className="text-xs text-gray-500 truncate">
+                                <div className="text-xs text-[var(--text-secondary)] truncate group-hover:text-[var(--text-color)]">
                                   {assignment.parentLevelName}
                                 </div>
                               )}
@@ -835,7 +868,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                           </button>
                         ))}
                       </div>
-                      <div className="my-2 border-t border-gray-200 md:hidden" />
+                      <div className="my-2 border-t border-[var(--border-color)] md:hidden" />
                     </>
                   )} */}
 
@@ -846,8 +879,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       [
                         "flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 transition-colors",
                         isActive
-                          ? "bg-gray-50 text-gray-900"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                          ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
+                          : "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                       ].join(" ")
                     }
                   >
@@ -867,7 +900,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     <span className="text-xs sm:text-sm">Update Password</span>
                   </NavLink>
                   {/* Divider before logout */}
-                  <div className="my-2 border-t border-gray-200" />
+                  <div className="my-2 border-t border-[var(--border-color)]" />
 
                   <button
                     onClick={() => {
@@ -907,8 +940,3 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     </header>
   );
 }
-
-
-
-
-

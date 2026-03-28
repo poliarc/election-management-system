@@ -4,8 +4,10 @@ import { fetchAfterAssemblyChildrenByParent, fetchAssignedUsersForLevel } from "
 import { useDeleteAssignedLevelsMutation } from "../../store/api/afterAssemblyApi";
 import toast from "react-hot-toast";
 import InlineUserDisplay from "../../components/InlineUserDisplay";
+import { useTranslation } from "react-i18next";
 
 export default function SubLevelChildHierarchy() {
+    const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const navigate = useNavigate();
     const [children, setChildren] = useState<any[]>([]);
@@ -167,13 +169,13 @@ export default function SubLevelChildHierarchy() {
     const totalPages = Math.ceil(filteredChildren.length / itemsPerPage);
 
     return (
-        <div className="p-1 bg-gray-50 min-h-screen">
+        <div className="p-1 bg-[var(--bg-main)] min-h-screen">
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-md p-3 mb-1">
+            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-3 mb-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Filter by Level
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("SubLevelChildHierarchy.Title")}
                         </label>
                         <select
                             value={selectedLevelFilter}
@@ -183,7 +185,7 @@ export default function SubLevelChildHierarchy() {
                             }}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         >
-                            <option value="">All Levels</option>
+                            <option value="">{t("SubLevelChildHierarchy.All_Levels")}</option>
                             {children.map((child) => (
                                 <option key={child.id} value={child.id}>
                                     {child.displayName}
@@ -192,12 +194,12 @@ export default function SubLevelChildHierarchy() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Search Levels
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {t("SubLevelChildHierarchy.Search_Levels")}
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-5 w-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
@@ -222,31 +224,31 @@ export default function SubLevelChildHierarchy() {
                 </div>
             ) : (
                 <>
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden overflow-x-auto">
+                    <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[var(--bg-main)]">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S.No</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.S_No")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.Level_Type")}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.Display_Name")}</th>
 
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
-                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assign</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.Status")}</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.Users")}</th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">{t("SubLevelChildHierarchy.Assign")}</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                 {currentItems.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
-                                            No child levels found
+                                        <td colSpan={8} className="px-6 py-12 text-center text-[var(--text-secondary)]">
+                                            {t("SubLevelChildHierarchy.Desc")}
                                         </td>
                                     </tr>
                                 ) : (
                                     currentItems.map((child, index) => (
                                         <>
-                                            <tr key={child.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <tr key={child.id} className="hover:bg-[var(--text-color)]/5">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)]">
                                                     {indexOfFirstItem + index + 1}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -255,7 +257,7 @@ export default function SubLevelChildHierarchy() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">{child.displayName}</div>
+                                                    <div className="text-sm font-medium text-[var(--text-color)]">{child.displayName}</div>
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -280,7 +282,7 @@ export default function SubLevelChildHierarchy() {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                             </svg>
                                                         </button>
-                                                        <span className="text-xs text-gray-600 font-medium">
+                                                        <span className="text-xs text-[var(--text-secondary)] font-medium">
                                                             ({userCounts[child.id] || 0})
                                                         </span>
                                                     </div>
@@ -330,19 +332,19 @@ export default function SubLevelChildHierarchy() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg mt-4">
-                            <div className="text-sm text-gray-700">
-                                Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
-                                <span className="font-medium">{Math.min(indexOfLastItem, filteredChildren.length)}</span> of{' '}
-                                <span className="font-medium">{filteredChildren.length}</span> results
+                        <div className="bg-[var(--bg-card)] px-4 py-3 flex items-center justify-between border-t border-[var(--border-color)] sm:px-6 rounded-b-lg mt-4">
+                            <div className="text-sm text-[var(--text-secondary)]">
+                                {t("SubLevelChildHierarchy.Showing")} <span className="font-medium">{indexOfFirstItem + 1}</span> {t("SubLevelChildHierarchy.to")}{' '}
+                                <span className="font-medium">{Math.min(indexOfLastItem, filteredChildren.length)}</span> {t("SubLevelChildHierarchy.of")}{' '}
+                                <span className="font-medium">{filteredChildren.length}</span> {t("SubLevelChildHierarchy.results")}
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                     disabled={currentPage === 1}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
-                                    Previous
+                                    {t("SubLevelChildHierarchy.Previous")}
                                 </button>
                                 {[...Array(totalPages)].map((_, i) => (
                                     <button
@@ -350,7 +352,7 @@ export default function SubLevelChildHierarchy() {
                                         onClick={() => setCurrentPage(i + 1)}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium ${currentPage === i + 1
                                             ? 'bg-teal-600 text-white'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            : 'text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5'
                                             }`}
                                     >
                                         {i + 1}
@@ -359,9 +361,9 @@ export default function SubLevelChildHierarchy() {
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage === totalPages}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50"
                                 >
-                                    Next
+                                    {t("SubLevelChildHierarchy.Next")}
                                 </button>
                             </div>
                         </div>
@@ -374,10 +376,10 @@ export default function SubLevelChildHierarchy() {
             {/* Confirm Delete Modal */}
             {showConfirmModal && userToDelete && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-                    <div className="bg-white rounded-lg p-6 max-w-md">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Confirm Unassign</h3>
-                        <p className="text-gray-600 mb-4">
-                            Are you sure you want to unassign {userToDelete.first_name} {userToDelete.last_name}?
+                    <div className="bg-[var(--bg-card)] rounded-lg p-6 max-w-md">
+                        <h3 className="text-lg font-bold text-[var(--text-color)] mb-2">{t("SubLevelChildHierarchy.Confirm_Unassign")}</h3>
+                        <p className="text-[var(--text-secondary)] mb-4">
+                            {t("SubLevelChildHierarchy.Desc1")} {userToDelete.first_name} {userToDelete.last_name}?
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
@@ -385,15 +387,15 @@ export default function SubLevelChildHierarchy() {
                                     setShowConfirmModal(false);
                                     setUserToDelete(null);
                                 }}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             >
-                                Cancel
+                                {t("SubLevelChildHierarchy.Cancel")}
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
                                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                             >
-                                Unassign
+                                {t("SubLevelChildHierarchy.Unassign")}
                             </button>
                         </div>
                     </div>
@@ -404,3 +406,5 @@ export default function SubLevelChildHierarchy() {
         </div>
     );
 }
+
+

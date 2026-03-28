@@ -17,6 +17,7 @@ import {
   useActivateRoleMutation,
   useDeactivateRoleMutation,
 } from "../../../store/api/roleApi";
+import { useTranslation } from "react-i18next";
 
 export const RolePage: React.FC = () => {
   const [searchParams, setSearchParams] = useState<RoleSearchParams>({
@@ -34,7 +35,7 @@ export const RolePage: React.FC = () => {
     isError,
     isFetching,
   } = useGetRolesQuery({ page: searchParams.page, limit: searchParams.limit });
-
+  const {t} = useTranslation();
   const roles = rolesResponse?.data || [];
   const backendPagination = rolesResponse?.pagination;
 
@@ -161,18 +162,18 @@ export const RolePage: React.FC = () => {
   };
 
   return (
-    <div className="p-1 sm:p-1 bg-gray-50 rounded-2xl shadow-md w-full">
+    <div className="p-1 sm:p-1 bg-[var(--bg-main)] rounded-2xl shadow-md w-full">
       {/* Header */}
-      <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl p-4 sm:p-6 mb-1 text-white">
+      <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl p-4 sm:p-6 mb-1 ">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+            <div className="bg-white text-blue-600 bg-opacity-20 p-3 rounded-lg">
               <Shield className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Role Management</h1>
+              <h1 className="text-2xl font-bold text-white">{t("RolePage.Title")}</h1>
               <p className="text-blue-100 mt-1">
-                Manage system roles, statuses and visibility.
+                {t("RolePage.Desc")}
               </p>
             </div>
           </div>
@@ -186,16 +187,16 @@ export const RolePage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-white text-blue-700 font-medium shadow hover:bg-blue-50 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                New Role
+                {t("RolePage.New_Role")}
               </button>
             )}
             {showForm && (
               <button
                 onClick={cancelForm}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white/20 text-white font-medium hover:bg-white/30 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--bg-card)]/20 text-white font-medium hover:bg-[var(--bg-card)]/30 transition-colors"
               >
                 <X className="w-4 h-4" />
-                Close
+                {t("RolePage.Close")}
               </button>
             )}
           </div>
@@ -211,7 +212,7 @@ export const RolePage: React.FC = () => {
 
       {/* Action / query errors */}
       {(isError || actionError) && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+        <div className="mb-4 p-4 bg-[var(--bg-card)] border border-red-200 text-red-700 rounded-md text-sm">
           {actionError || "Failed to load roles"}
         </div>
       )}
@@ -247,7 +248,7 @@ export const RolePage: React.FC = () => {
       {/* Pagination */}
       {!showForm && pagination.total > searchParams.limit && (
         <div className="mt-6 flex justify-center">
-          <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex items-center gap-2 bg-[var(--bg-card)] p-4 rounded-lg shadow-md">
             <button
               onClick={() =>
                 setSearchParams((prev) => ({
@@ -256,13 +257,13 @@ export const RolePage: React.FC = () => {
                 }))
               }
               disabled={searchParams.page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              Previous
+              {t("RolePage.Previous")}
             </button>
 
-            <span className="px-4 py-2 text-sm text-gray-600 font-medium">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+            <span className="px-4 py-2 text-sm text-[var(--text-secondary)] font-medium">
+              {t("RolePage.Page")} {pagination.page} {t("RolePage.of")} {pagination.totalPages} ({pagination.total} {t("RolePage.total")})
             </span>
 
             <button
@@ -273,9 +274,9 @@ export const RolePage: React.FC = () => {
                 }))
               }
               disabled={searchParams.page >= pagination.totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              Next
+              {t("RolePage.Next")}
             </button>
           </div>
         </div>
@@ -311,3 +312,5 @@ export const RolePage: React.FC = () => {
     </div>
   );
 };
+
+

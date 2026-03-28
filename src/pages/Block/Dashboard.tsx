@@ -106,12 +106,12 @@ export default function BlockDashboard() {
     };
 
     return (
-        <div className="w-full py-8 min-h-screen box-border rounded-2xl shadow-md bg-gray-50 transition-all mx-auto px-4">
+        <div className="w-full py-8 min-h-screen box-border rounded-2xl shadow-md bg-[var(--bg-main)] transition-all mx-auto px-4">
             {/* Header & Search */}
             <header className="mb-8 space-y-6">
                 <div className="flex flex-col lg:flex-row lg:items-end gap-4 lg:justify-between">
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+                        <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-color)]">
                             {blockName} Block Dashboard
                         </h1>
                     </div>
@@ -119,7 +119,7 @@ export default function BlockDashboard() {
                         <label htmlFor="dashboard-search" className="sr-only">
                             Search sections
                         </label>
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-gray-500 transition-colors">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-secondary)] group-focus-within:text-[var(--text-secondary)] transition-colors">
                             <svg
                                 className="h-5 w-5"
                                 fill="none"
@@ -140,13 +140,13 @@ export default function BlockDashboard() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Search..."
-                            className="peer block w-full rounded-xl border border-gray-300 bg-white/70 backdrop-blur-sm pl-10 pr-10 py-2.5 text-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+                            className="peer block w-full rounded-xl border border-gray-300 bg-[var(--bg-card)]/70 backdrop-blur-sm pl-10 pr-10 py-2.5 text-sm placeholder:text-[var(--text-secondary)] focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition"
                         />
                         {searchTerm && (
                             <button
                                 type="button"
                                 onClick={() => setSearchTerm("")}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-secondary)] hover:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded"
                                 aria-label="Clear search"
                             >
                                 <svg
@@ -168,13 +168,13 @@ export default function BlockDashboard() {
                 </div>
                 {searchTerm && (
                     <div className="flex items-center gap-2 text-sm">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-gray-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-[var(--text-secondary)]">
                             {filteredCards.length === 0
                                 ? "No results"
                                 : `${filteredCards.length} result${filteredCards.length > 1 ? "s" : ""
                                 }`}
                         </span>
-                        <span className="text-gray-500">for "{searchTerm}"</span>
+                        <span className="text-[var(--text-secondary)]">for "{searchTerm}"</span>
                     </div>
                 )}
             </header>
@@ -187,7 +187,7 @@ export default function BlockDashboard() {
                             <p className="text-blue-100 text-sm font-medium">Total Mandals</p>
                             <p className="text-3xl font-bold mt-2">{totalMandals || 0}</p>
                         </div>
-                        <div className="bg-white/20 rounded-full p-3">
+                        <div className="bg-[var(--bg-card)]/20 rounded-full p-3">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
@@ -201,7 +201,7 @@ export default function BlockDashboard() {
                             <p className="text-green-100 text-sm font-medium">Total Users</p>
                             <p className="text-3xl font-bold mt-2">{totalUsers || 0}</p>
                         </div>
-                        <div className="bg-white/20 rounded-full p-3">
+                        <div className="bg-[var(--bg-card)]/20 rounded-full p-3">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -215,7 +215,7 @@ export default function BlockDashboard() {
                             <p className="text-emerald-100 text-sm font-medium">Active Users</p>
                             <p className="text-3xl font-bold mt-2">{activeUsers || 0}</p>
                         </div>
-                        <div className="bg-white/20 rounded-full p-3">
+                        <div className="bg-[var(--bg-card)]/20 rounded-full p-3">
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -226,7 +226,7 @@ export default function BlockDashboard() {
 
             {/* Cards */}
             {filteredCards.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-gray-300 rounded-2xl bg-white/50">
+                <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-gray-300 rounded-2xl bg-[var(--bg-card)]/50">
                     <svg
                         className="h-14 w-14 text-gray-300 mb-4"
                         fill="none"
@@ -240,7 +240,7 @@ export default function BlockDashboard() {
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
                     </svg>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         No sections match your search.
                     </p>
                     <button
@@ -266,7 +266,7 @@ export default function BlockDashboard() {
                                 aria-label={`Open ${card.title}`}
                                 onClick={() => goTo(card.path)}
                                 onKeyDown={(e) => handleKeyActivate(e, card.path)}
-                                className={`group relative isolate rounded-2xl border border-gray-200 bg-white shadow-sm ${theme.hoverShadow} transition hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ${theme.ring} cursor-pointer`}
+                                className={`group relative isolate rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm ${theme.hoverShadow} transition hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 ${theme.ring} cursor-pointer`}
                             >
                                 <div
                                     className={`absolute inset-0 -z-10 opacity-80 group-hover:opacity-95 transition ${theme.bg} rounded-2xl`}
@@ -275,11 +275,11 @@ export default function BlockDashboard() {
                                 <div className="p-5 flex flex-col h-full">
                                     <div className="flex-1 space-y-2">
                                         <h3
-                                            className={`text-base font-semibold leading-tight text-gray-800 group-hover:${theme.accent} transition-colors`}
+                                            className={`text-base font-semibold leading-tight text-[var(--text-color)] group-hover:${theme.accent} transition-colors`}
                                         >
                                             {card.title}
                                         </h3>
-                                        <p className="text-[11px] font-medium text-gray-500 tracking-wide uppercase">
+                                        <p className="text-[11px] font-medium text-[var(--text-secondary)] tracking-wide uppercase">
                                             {card.subtitle}
                                         </p>
                                         {card.stats && (
@@ -287,10 +287,10 @@ export default function BlockDashboard() {
                                                 {card.stats.map((s) => (
                                                     <div
                                                         key={s.label}
-                                                        className="flex justify-between text-gray-600"
+                                                        className="flex justify-between text-[var(--text-secondary)]"
                                                     >
                                                         <span>{s.label}</span>
-                                                        <span className={s.colorClass ?? "text-gray-700 font-semibold"}>
+                                                        <span className={s.colorClass ?? "text-[var(--text-secondary)] font-semibold"}>
                                                             {s.value}
                                                         </span>
                                                     </div>
@@ -314,3 +314,6 @@ export default function BlockDashboard() {
         </div>
     );
 }
+
+
+

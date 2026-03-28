@@ -7,6 +7,7 @@ import { UserList } from "../Admin/users/UserList";
 import { UserSearchFilter } from "../Admin/users/UserSearchFilter";
 import { BulkUploadModal } from "../../components/BulkUploadModal";
 import { UserContactModal } from "../../components/UserContactModal";
+import { useTranslation } from "react-i18next";
 import {
     useCreateUserMutation,
     useUpdateUserMutation,
@@ -41,6 +42,7 @@ interface ApiError {
 }
 
 export const AssemblyCreateUser: React.FC = () => {
+    const { t } = useTranslation();
     const { user, selectedAssignment } = useAppSelector((state) => state.auth);
     const [showForm, setShowForm] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -131,7 +133,7 @@ export const AssemblyCreateUser: React.FC = () => {
                 setTotalUsers(response.pagination.total);
             }
         } catch {
-            toast.error("Failed to load users");
+            toast.error(t("assemblyCreateUser.toastFailedToLoadUsers"));
         } finally {
             setIsLoadingUsers(false);
         }
@@ -149,7 +151,7 @@ export const AssemblyCreateUser: React.FC = () => {
 
     const handleCreateUser = async (userData: UserFormType) => {
         if (!partyId || !stateId) {
-            toast.error("Party ID or State ID is missing");
+            toast.error(t("assemblyCreateUser.toastPartyOrStateMissing"));
             return;
         }
 
@@ -159,11 +161,11 @@ export const AssemblyCreateUser: React.FC = () => {
                 party_id: partyId,
                 state_id: stateId,
             }).unwrap();
-            toast.success("User created successfully!");
+            toast.success(t("assemblyCreateUser.toastUserCreatedSuccessfully"));
             setShowForm(false);
             loadUsers();
         } catch (error: unknown) {
-            let errorMessage = "Failed to create user";
+            let errorMessage = t("assemblyCreateUser.toastFailedToCreateUser");
 
             if (error && typeof error === "object") {
                 if ("data" in error) {
@@ -178,7 +180,7 @@ export const AssemblyCreateUser: React.FC = () => {
                                 (detail: ValidationError) => `${detail.path}: ${detail.message}`
                             )
                             .join(", ");
-                        errorMessage = `Validation Error: ${validationErrors}`;
+                        errorMessage = t("assemblyCreateUser.validationError", { details: validationErrors });
                     } else if (errorData?.error?.message) {
                         errorMessage = errorData.error.message;
                     } else if (errorData?.message) {
@@ -205,12 +207,12 @@ export const AssemblyCreateUser: React.FC = () => {
                     state_id: stateId,
                 },
             }).unwrap();
-            toast.success("User updated successfully!");
+            toast.success(t("assemblyCreateUser.toastUserUpdatedSuccessfully"));
             setShowForm(false);
             setEditingUser(null);
             loadUsers();
         } catch (error: unknown) {
-            let errorMessage = "Failed to update user";
+            let errorMessage = t("assemblyCreateUser.toastFailedToUpdateUser");
 
             if (error && typeof error === "object") {
                 if ("data" in error) {
@@ -225,7 +227,7 @@ export const AssemblyCreateUser: React.FC = () => {
                                 (detail: ValidationError) => `${detail.path}: ${detail.message}`
                             )
                             .join(", ");
-                        errorMessage = `Validation Error: ${validationErrors}`;
+                        errorMessage = t("assemblyCreateUser.validationError", { details: validationErrors });
                     } else if (errorData?.error?.message) {
                         errorMessage = errorData.error.message;
                     } else if (errorData?.message) {
@@ -287,14 +289,14 @@ export const AssemblyCreateUser: React.FC = () => {
 
         try {
             await deleteUser(userToDelete.user_id).unwrap();
-            toast.success("User deleted successfully!");
+            toast.success(t("assemblyCreateUser.toastUserDeletedSuccessfully"));
             loadUsers();
         } catch (error: unknown) {
             const errorMessage =
                 error && typeof error === "object" && "data" in error
                     ? (error as { data?: { message?: string } }).data?.message ||
-                    "Failed to delete user"
-                    : "Failed to delete user";
+                    t("assemblyCreateUser.toastFailedToDeleteUser")
+                    : t("assemblyCreateUser.toastFailedToDeleteUser");
             toast.error(errorMessage);
         } finally {
             setShowDeleteConfirm(false);
@@ -310,16 +312,14 @@ export const AssemblyCreateUser: React.FC = () => {
     const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
         try {
             await toggleUserStatus({ id: userId, isActive }).unwrap();
-            toast.success(
-                `User ${isActive ? "activated" : "deactivated"} successfully!`
-            );
+            toast.success(isActive ? t("assemblyCreateUser.toastUserActivated") : t("assemblyCreateUser.toastUserDeactivated"));
             loadUsers();
         } catch (error: unknown) {
             const errorMessage =
                 error && typeof error === "object" && "data" in error
                     ? (error as { data?: { message?: string } }).data?.message ||
-                    `Failed to ${isActive ? "activate" : "deactivate"} user`
-                    : `Failed to ${isActive ? "activate" : "deactivate"} user`;
+                    (isActive ? t("assemblyCreateUser.toastFailedToActivateUser") : t("assemblyCreateUser.toastFailedToDeactivateUser"))
+                    : (isActive ? t("assemblyCreateUser.toastFailedToActivateUser") : t("assemblyCreateUser.toastFailedToDeactivateUser"));
             toast.error(errorMessage);
         }
     };
@@ -335,22 +335,22 @@ export const AssemblyCreateUser: React.FC = () => {
             formData.append("file", file);
 
             await bulkUploadUsers(formData).unwrap();
-            toast.success("Users uploaded successfully!");
+            toast.success(t("assemblyCreateUser.toastUsersUploadedSuccessfully"));
             setShowBulkUpload(false);
             loadUsers();
         } catch (error: unknown) {
             const errorMessage =
                 error && typeof error === "object" && "data" in error
                     ? (error as { data?: { message?: string } }).data?.message ||
-                    "Failed to upload users"
-                    : "Failed to upload users";
+                    t("assemblyCreateUser.toastFailedToUploadUsers")
+                    : t("assemblyCreateUser.toastFailedToUploadUsers");
             toast.error(errorMessage);
         }
     };
 
     const handleExcelDownload = async () => {
         try {
-            toast.loading("Preparing Excel file...");
+            toast.loading(t("assemblyCreateUser.toastPreparingExcelFile"));
 
             let allUsers: LevelAdminUser[] = [];
             let currentPage = 1;
@@ -369,7 +369,7 @@ export const AssemblyCreateUser: React.FC = () => {
 
                 if (!response.success) {
                     toast.dismiss();
-                    toast.error("Failed to fetch users for Excel download");
+                    toast.error(t("assemblyCreateUser.toastFailedToFetchUsersForExcel"));
                     return;
                 }
 
@@ -386,7 +386,7 @@ export const AssemblyCreateUser: React.FC = () => {
 
             if (filteredUsers.length === 0) {
                 toast.dismiss();
-                toast.error("No users found to download");
+                toast.error(t("assemblyCreateUser.toastNoUsersFoundToDownload"));
                 return;
             }
 
@@ -448,11 +448,11 @@ export const AssemblyCreateUser: React.FC = () => {
             XLSX.writeFile(workbook, filename);
 
             toast.dismiss();
-            toast.success(`Excel file downloaded: ${allUsersForExcel.length} users exported`);
+            toast.success(t("assemblyCreateUser.toastExcelDownloadedUsersExported", { count: allUsersForExcel.length }));
         } catch (error) {
             console.error("Excel download error:", error);
             toast.dismiss();
-            toast.error("Failed to download Excel file");
+            toast.error(t("assemblyCreateUser.toastFailedToDownloadExcel"));
         }
     };
 
@@ -461,7 +461,7 @@ export const AssemblyCreateUser: React.FC = () => {
             <div className="p-6">
                 <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6">
                     <p className="text-red-700">
-                        Party or State information is missing
+                        {t("assemblyCreateUser.partyOrStateInfoMissing")}
                     </p>
                 </div>
             </div>
@@ -475,12 +475,12 @@ export const AssemblyCreateUser: React.FC = () => {
                 <div className="mb-1">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <h1 className="text-3xl font-bold text-[var(--text-color)] flex items-center gap-3">
                                 <Users className="text-blue-600" />
-                                Create User
+                                {t("assemblyCreateUser.title")}
                             </h1>
-                            <p className="text-gray-600 mt-1">
-                                Manage users for {partyName} - {assemblyName}
+                            <p className="text-[var(--text-secondary)] mt-1">
+                                {t("assemblyCreateUser.subtitleManageUsersForPartyAssembly", { partyName, assemblyName })}
                             </p>
                         </div>
 
@@ -489,10 +489,10 @@ export const AssemblyCreateUser: React.FC = () => {
                                 onClick={handleExcelDownload}
                                 disabled={totalUsers === 0}
                                 className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                title={`Download all ${totalUsers} users as Excel`}
+                                title={t("assemblyCreateUser.titleDownloadAllUsersAsExcel", { count: totalUsers })}
                             >
                                 <Download className="w-4 h-4" />
-                                Excel ({totalUsers})
+                                {t("assemblyCreateUser.btnExcelCount", { count: totalUsers })}
                             </button>
 
                             <button
@@ -500,7 +500,7 @@ export const AssemblyCreateUser: React.FC = () => {
                                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
                             >
                                 <Upload className="w-4 h-4" />
-                                Upload Users
+                                {t("assemblyCreateUser.btnUploadUsers")}
                             </button>
 
                             <button
@@ -520,7 +520,7 @@ export const AssemblyCreateUser: React.FC = () => {
                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                     />
                                 </svg>
-                                Add User
+                                {t("assemblyCreateUser.btnAddUser")}
                             </button>
                         </div>
                     </div>
@@ -569,7 +569,7 @@ export const AssemblyCreateUser: React.FC = () => {
 
                         {/* Pagination */}
                         {totalPages > 1 && (
-                            <div className="bg-white rounded-lg shadow-md p-4 mt-1">
+                            <div className="bg-[var(--bg-card)] rounded-lg shadow-md p-4 mt-1">
                                 <div className="flex items-center justify-between">
                                     <button
                                         onClick={() =>
@@ -579,13 +579,12 @@ export const AssemblyCreateUser: React.FC = () => {
                                             }))
                                         }
                                         disabled={searchParams.page === 1}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
-                                        Previous
+                                        {t("assemblyCreateUser.btnPrevious")}
                                     </button>
-                                    <span className="text-sm text-gray-600">
-                                        Page {searchParams.page || 1} of {totalPages} ({totalUsers}{" "}
-                                        total users)
+                                    <span className="text-sm text-[var(--text-secondary)]">
+                                        {t("assemblyCreateUser.pageOfTotal", { page: searchParams.page || 1, totalPages, totalUsers })}
                                     </span>
                                     <button
                                         onClick={() =>
@@ -595,9 +594,9 @@ export const AssemblyCreateUser: React.FC = () => {
                                             }))
                                         }
                                         disabled={searchParams.page === totalPages}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
-                                        Next
+                                        {t("assemblyCreateUser.btnNext")}
                                     </button>
                                 </div>
                             </div>
@@ -622,11 +621,11 @@ export const AssemblyCreateUser: React.FC = () => {
 
                 {/* Loading Overlay - Only show for first page load */}
                 {!showForm && isLoadingUsers && searchParams.page === 1 && (
-                    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-40">
-                        <div className="bg-white rounded-lg p-6 shadow-xl">
+                    <div className="fixed inset-0 bg-[var(--bg-card)]/30 backdrop-blur-sm flex items-center justify-center z-40">
+                        <div className="bg-[var(--bg-card)] rounded-lg p-6 shadow-xl">
                             <div className="flex items-center gap-3">
                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                <span className="text-gray-700">Loading users...</span>
+                                <span className="text-[var(--text-secondary)]">{t("assemblyCreateUser.loadingUsers")}</span>
                             </div>
                         </div>
                     </div>
@@ -634,8 +633,8 @@ export const AssemblyCreateUser: React.FC = () => {
 
                 {/* Delete Confirmation Modal */}
                 {showDeleteConfirm && userToDelete && (
-                    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <div className="fixed inset-0 bg-[var(--bg-card)]/30 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-md w-full mx-4">
                             <div className="p-6">
                                 <div className="flex items-center gap-4">
                                     <div className="shrink-0">
@@ -644,16 +643,15 @@ export const AssemblyCreateUser: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            Delete User
+                                        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">
+                                            {t("assemblyCreateUser.deleteUserTitle")}
                                         </h3>
-                                        <p className="text-sm text-gray-600">
-                                            Are you sure you want to delete{" "}
-                                            <span className="font-semibold text-gray-900">
+                                        <p className="text-sm text-[var(--text-secondary)]">
+                                            {t("assemblyCreateUser.deleteUserConfirmPrefix")}{" "}
+                                            <span className="font-semibold text-[var(--text-color)]">
                                                 {userToDelete.first_name} {userToDelete.last_name}
                                             </span>
-                                            ? This action cannot be undone and will permanently remove
-                                            the user from the system.
+                                            {t("assemblyCreateUser.deleteUserConfirmSuffix")}
                                         </p>
                                     </div>
                                 </div>
@@ -661,9 +659,9 @@ export const AssemblyCreateUser: React.FC = () => {
                                 <div className="mt-6 flex justify-end gap-3">
                                     <button
                                         onClick={cancelDeleteUser}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                                        className="px-4 py-2 border border-gray-300 rounded-md text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition-colors"
                                     >
-                                        Cancel
+                                        {t("assemblyCreateUser.btnCancel")}
                                     </button>
                                     <button
                                         onClick={confirmDeleteUser}
@@ -673,10 +671,10 @@ export const AssemblyCreateUser: React.FC = () => {
                                         {isDeleting ? (
                                             <>
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                Deleting...
+                                                {t("assemblyCreateUser.deleting")}
                                             </>
                                         ) : (
-                                            "Delete User"
+                                            t("assemblyCreateUser.btnDeleteUser")
                                         )}
                                     </button>
                                 </div>
@@ -690,3 +688,6 @@ export const AssemblyCreateUser: React.FC = () => {
 };
 
 export default AssemblyCreateUser;
+
+
+

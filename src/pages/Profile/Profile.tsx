@@ -61,9 +61,9 @@ const InlineConfirmationModal: React.FC<{
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg p-6 w-[90%] max-w-md">
+      <div className="bg-[var(--bg-card)] rounded-lg p-6 w-[90%] max-w-md">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{message}</p>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">{message}</p>
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 rounded bg-gray-100">
             Cancel
@@ -104,7 +104,7 @@ const InputField = ({
   maxLength,
 }: InputFieldProps) => (
   <div className="min-w-0 mb-2">
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
       {label}
     </label>
     <input
@@ -565,10 +565,10 @@ export const Profile = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <p className="mt-4 text-[var(--text-secondary)]">Loading profile...</p>
         </div>
       </div>
     );
@@ -577,7 +577,7 @@ export const Profile = () => {
   // Error state
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
           <h3 className="text-red-800 font-semibold mb-2">
             Failed to load profile
@@ -593,16 +593,16 @@ export const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--bg-main)]">
       {/* Simple Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-[var(--bg-card)] shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+              <h1 className="text-xl font-semibold text-[var(--text-color)]">Profile</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-[var(--text-secondary)]">
                 {currentUser?.email}
               </span>
               <button
@@ -629,7 +629,7 @@ export const Profile = () => {
                 className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-pink-400 p-1 shadow-xl animate-gradient-rotate group cursor-pointer"
                 onClick={handleSelectImageClick}
               >
-                <div className="w-full h-full bg-white rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white shadow-inner relative">
+                <div className="w-full h-full bg-[var(--bg-card)] rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white shadow-inner relative">
                   {profileImagePreview ? (
                     <img
                       src={profileImagePreview}
@@ -699,7 +699,7 @@ export const Profile = () => {
                   {currentUser?.first_name} {currentUser?.last_name}
                 </h2>
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4">
-                  <p className="text-sm sm:text-base text-gray-600 font-medium flex items-center gap-2">
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium flex items-center gap-2">
                     <svg
                       className="w-4 h-4 text-blue-500"
                       fill="none"
@@ -722,7 +722,7 @@ export const Profile = () => {
                     {currentUser?.stateName || "No State Assigned"}
                   </p>
                   <span className="hidden sm:inline text-gray-300">|</span>
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
+                  <p className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
                     <svg
                       className="w-4 h-4 text-purple-500"
                       fill="none"
@@ -823,7 +823,7 @@ export const Profile = () => {
                       </button>
                       <button
                         type="button"
-                        className="flex-1 sm:flex-none bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 text-base font-semibold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+                        className="flex-1 sm:flex-none bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-[var(--text-secondary)] text-base font-semibold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -876,7 +876,7 @@ export const Profile = () => {
                 </div>
                 {/* Basic Information */}
                 <section>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 bg-[var(--bg-card)]/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
                     <Controller
                       name="firstName"
                       control={control}
@@ -980,7 +980,7 @@ export const Profile = () => {
 
                 {/* Personal Details Section */}
                 <section className="mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <Controller
                       name="dob"
                       control={control}
@@ -1136,7 +1136,7 @@ export const Profile = () => {
 
                 {/* Categories Section */}
                 <section className="mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     {(
                       [
                         { name: "is_youth", label: "Youth" },
@@ -1158,7 +1158,7 @@ export const Profile = () => {
                         control={control}
                         render={({ field }) => (
                           <div className="flex items-center gap-4">
-                            <span className="text-gray-700 text-sm font-medium w-32">
+                            <span className="text-[var(--text-secondary)] text-sm font-medium w-32">
                               {item.label}:
                             </span>
                             <label className="flex items-center gap-1">
@@ -1196,7 +1196,7 @@ export const Profile = () => {
 
                 {/* Education Section */}
                 <section className="mb-8">
-                  <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="font-semibold text-lg">Education</h2>
                       {isEditing && (
@@ -1225,7 +1225,7 @@ export const Profile = () => {
                               "boardUniversity",
                               "year",
                             ])
-                              ? "text-gray-400 cursor-not-allowed"
+                              ? "text-[var(--text-secondary)] cursor-not-allowed"
                               : "text-blue-600 hover:text-blue-800"
                           }`}
                         >
@@ -1305,7 +1305,7 @@ export const Profile = () => {
 
                 {/* Professional Experience Section */}
                 <section className="mb-8">
-                  <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="font-semibold text-lg">
                         Professional Experience
@@ -1339,7 +1339,7 @@ export const Profile = () => {
                               "durationFrom",
                               "durationTo",
                             ])
-                              ? "text-gray-400 cursor-not-allowed"
+                              ? "text-[var(--text-secondary)] cursor-not-allowed"
                               : "text-blue-600 hover:text-blue-800"
                           }`}
                         >
@@ -1433,7 +1433,7 @@ export const Profile = () => {
 
                 {/* Children Section */}
                 <section className="mb-8">
-                  <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="font-semibold text-lg">Children</h2>
                       {isEditing && (
@@ -1462,7 +1462,7 @@ export const Profile = () => {
                               "gender",
                               "age",
                             ])
-                              ? "text-gray-400 cursor-not-allowed"
+                              ? "text-[var(--text-secondary)] cursor-not-allowed"
                               : "text-blue-600 hover:text-blue-800"
                           }`}
                         >
@@ -1493,7 +1493,7 @@ export const Profile = () => {
                           control={control}
                           render={({ field }) => (
                             <div className="min-w-0 mb-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                                 Gender
                               </label>
                               <select
@@ -1554,7 +1554,7 @@ export const Profile = () => {
 
                 {/* Political Position Details Section */}
                 <section className="mb-8">
-                  <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="font-semibold text-lg">
                         Political Position Details
@@ -1591,7 +1591,7 @@ export const Profile = () => {
                               "durationFrom",
                               "durationTo",
                             ])
-                              ? "text-gray-400 cursor-not-allowed"
+                              ? "text-[var(--text-secondary)] cursor-not-allowed"
                               : "text-blue-600 hover:text-blue-800"
                           }`}
                         >
@@ -1697,7 +1697,7 @@ export const Profile = () => {
 
                 {/* Vehicles Section */}
                 <section className="mb-8">
-                  <div className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm">
+                  <div className="bg-[var(--bg-card)] rounded-xl p-6 border border-blue-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="font-semibold text-lg">Vehicles</h2>
                       {isEditing && (
@@ -1709,7 +1709,7 @@ export const Profile = () => {
                           onClick={() => appendVehicle({ type: "", count: "" })}
                           className={`flex items-center gap-1 ${
                             !areAllRowsFilled(vehicleValues, ["type", "count"])
-                              ? "text-gray-400 cursor-not-allowed"
+                              ? "text-[var(--text-secondary)] cursor-not-allowed"
                               : "text-blue-600 hover:text-blue-800"
                           }`}
                         >
@@ -1781,3 +1781,4 @@ export const Profile = () => {
     </div>
   );
 };
+

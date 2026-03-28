@@ -45,7 +45,7 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
   }
 
   return (
-    <div className="w-full space-y-6 bg-white dark:bg-gray-900 p-6 rounded-2xl">
+    <div className="w-full space-y-6 bg-[var(--bg-card)] dark:bg-gray-900 p-6 rounded-2xl">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white dark:from-blue-700 dark:to-indigo-800">
         <div className="flex items-center justify-between">
@@ -57,7 +57,7 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
           </div>
           <button
             onClick={onAdd}
-            className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg shadow-md transition-colors flex items-center space-x-2"
+            className="bg-[var(--bg-card)] text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg shadow-md transition-colors flex items-center space-x-2"
           >
             <Plus className="w-5 h-5" />
             <span>Add Party Level</span>
@@ -67,29 +67,29 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
         
         {/* Stats */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-xl p-4 bg-white dark:bg-black/30 border border-gray-200 dark:border-white/10">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="rounded-xl p-4 bg-[var(--bg-card)] dark:bg-black/30 border border-[var(--border-color)] dark:border-white/10">
+            <div className="text-2xl font-bold text-[var(--text-color)] dark:text-white">
               {configurations.length}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
               Total Configurations
             </div>
           </div>
 
-          <div className="rounded-xl p-4 bg-white dark:bg-black/30 border border-gray-200 dark:border-white/10">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="rounded-xl p-4 bg-[var(--bg-card)] dark:bg-black/30 border border-[var(--border-color)] dark:border-white/10">
+            <div className="text-2xl font-bold text-[var(--text-color)] dark:text-white">
               {new Set(configurations.map((c) => c.partyId)).size}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
               Unique Parties
             </div>
           </div>
 
-          <div className="rounded-xl p-4 bg-white dark:bg-black/30 border border-gray-200 dark:border-white/10">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="rounded-xl p-4 bg-[var(--bg-card)] dark:bg-black/30 border border-[var(--border-color)] dark:border-white/10">
+            <div className="text-2xl font-bold text-[var(--text-color)] dark:text-white">
               {new Set(configurations.map((c) => c.stateId)).size}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">
+            <div className="text-sm text-[var(--text-secondary)] dark:text-gray-300">
               States Covered
             </div>
           </div>
@@ -97,38 +97,38 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-[var(--bg-card)] dark:bg-gray-800 rounded-xl border border-[var(--border-color)] dark:border-gray-700 p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] w-5 h-5" />
           <input
             type="text"
             placeholder="Search by party or state..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-[var(--bg-card)] dark:bg-gray-900 text-[var(--text-color)] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-[var(--bg-card)] dark:bg-gray-800 rounded-xl border border-[var(--border-color)] dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <thead className="bg-[var(--bg-main)] dark:bg-gray-700 border-b border-[var(--border-color)] dark:border-gray-600">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] dark:text-gray-300 uppercase tracking-wider">
                   Party
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] dark:text-gray-300 uppercase tracking-wider">
                   State
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] dark:text-gray-300 uppercase tracking-wider">
                   Active Levels
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] dark:text-gray-300 uppercase tracking-wider">
                   Added On
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] dark:text-gray-300 uppercase tracking-wider">
                   Action
                 </th>
               </tr>
@@ -138,12 +138,12 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
               {filteredConfigurations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-gray-500">
-                      <Calendar className="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" />
+                    <div className="flex flex-col items-center justify-center text-[var(--text-secondary)]">
+                      <Calendar className="w-12 h-12 mb-3 text-gray-300 dark:text-[var(--text-secondary)]" />
                       <p className="text-lg font-medium dark:text-gray-300">
                         No configurations found
                       </p>
-                      <p className="text-sm mt-1 dark:text-gray-400">
+                      <p className="text-sm mt-1 dark:text-[var(--text-secondary)]">
                         Click "Add Party Level" to create your first
                         configuration
                       </p>
@@ -154,15 +154,15 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
                 filteredConfigurations.map((config) => (
                   <tr
                     key={`${config.partyId}-${config.stateId}`}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="hover:bg-[var(--text-color)]/5 dark:hover:bg-gray-700 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <div className="font-medium text-[var(--text-color)] dark:text-white">
                         {config.partyName}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-gray-700 dark:text-gray-300">
+                      <div className="text-[var(--text-secondary)] dark:text-gray-300">
                         {config.stateName}
                       </div>
                     </td>
@@ -175,7 +175,7 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-sm text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
                         {config.createdAt
                           ? new Date(config.createdAt).toLocaleDateString()
                           : "N/A"}
@@ -202,3 +202,6 @@ const PartyLevelList: React.FC<PartyLevelListProps> = ({ onAdd, onView }) => {
 };
 
 export default PartyLevelList;
+
+
+

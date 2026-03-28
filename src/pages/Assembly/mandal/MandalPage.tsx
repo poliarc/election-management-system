@@ -154,9 +154,9 @@
 //   };
 
 //   return (
-//     <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
+//     <div className="p-6 rounded-2xl shadow-md bg-[var(--bg-main)] w-full">
 //       <div className="flex items-center justify-between mb-6">
-//         <h1 className="text-xl font-bold text-gray-800">Mandal List</h1>
+//         <h1 className="text-xl font-bold text-[var(--text-color)]">Mandal List</h1>
 //       </div>
 
 //           {/* Filters */}
@@ -171,7 +171,7 @@
 //                   type="text"
 //                   value={loggedInUser?.state || ""}
 //                   disabled
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed"
 //                 />
 //               </div>
 
@@ -184,7 +184,7 @@
 //                   type="text"
 //                   value={loggedInUser?.district || ""}
 //                   disabled
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed"
 //                 />
 //               </div>
 
@@ -197,7 +197,7 @@
 //                   value={loggedInAssembly ?? ""}
 //                   disabled
 //                   placeholder={loggedInAssembly}
-//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed appearance-none focus:outline-none"
+//                   className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed appearance-none focus:outline-none"
 //                 />
 //               </div>
 
@@ -256,7 +256,7 @@
 
 //             {/* Show Result */}
 //             <div className="flex items-center gap-2 sm:ml-4 mt-2">
-//               <label className="font-medium text-gray-700 whitespace-nowrap">
+//               <label className="font-medium text-[var(--text-secondary)] whitespace-nowrap">
 //                 Show Result
 //               </label>
 //               <select
@@ -275,7 +275,7 @@
 
 //       {/* Mandal List Table */}
 //       <div className="overflow-x-auto w-full">
-//         <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-white">
+//         <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-[var(--bg-card)]">
 //           <thead className="bg-blue-50 text-[13px] sticky top-0 z-10">
 //             <tr>
 //               <th className="px-4 py-2 font-semibold">SN.</th>
@@ -291,7 +291,7 @@
 //           <tbody>
 //             {visibleData.length === 0 ? (
 //               <tr>
-//                 <td colSpan={8} className="text-center py-8 text-gray-400">
+//                 <td colSpan={8} className="text-center py-8 text-[var(--text-secondary)]">
 //                   No mandal users found
 //                 </td>
 //               </tr>
@@ -302,7 +302,7 @@
 //                 return (
 //                   <tr
 //                     key={mandal.id || index}
-//                     className={index % 2 === 0 ? "bg-white hover:bg-blue-50 transition" : "bg-gray-50 hover:bg-blue-50 transition"}
+//                     className={index % 2 === 0 ? "bg-[var(--bg-card)] hover:bg-blue-50 transition" : "bg-[var(--bg-main)] hover:bg-blue-50 transition"}
 //                   >
 //                     <td className={`px-4 py-2 ${isInactive ? "opacity-60" : ""}`}>{index + 1}</td>
 //                     <td className={`px-4 py-2 ${isInactive ? "opacity-60" : ""}`}>{mandal.mandal}</td>
@@ -355,3 +355,5 @@ import MandalList from "./MandalList";
 export default function AssemblyMandalPage() {
     return <MandalList />;
 }
+
+

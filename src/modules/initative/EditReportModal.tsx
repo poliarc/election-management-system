@@ -147,9 +147,9 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60 lg:left-[258px]">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-[var(--bg-color)] rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-800 text-white p-6 border-b border-gray-200">
+        <div className="bg-gray-800 text-white p-6 border-b border-[var(--text-color)]/10">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-2">Edit Report</h2>
@@ -171,14 +171,14 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="border border-[var(--text-color)]/10 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
                 Personal Information
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Person Name *
                   </label>
                   <input
@@ -193,7 +193,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Phone Number * (10 digits only)
                   </label>
                   <input
@@ -218,14 +218,14 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
             </div>
 
             {/* Event Details */}
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="border border-[var(--text-color)]/10 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4">
                 Event Details
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Number of Attendees *
                   </label>
                   <input
@@ -241,7 +241,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                     Event Date *
                   </label>
                   <input
@@ -256,7 +256,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Description *
                 </label>
                 <textarea
@@ -271,22 +271,22 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
               </div>
             </div>
             {/* Images Section */}
-            <div className="border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Camera className="w-5 h-5 text-gray-600" />
+            <div className="border border-[var(--text-color)]/10 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-color)] mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5 text-[var(--text-secondary)]" />
                 Event Images
               </h3>
 
               {/* Existing Images */}
               {existingImages.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Current Images
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {existingImages.map((imageUrl, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                        <div className="aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10">
                           <img
                             src={imageUrl}
                             alt={`Existing ${index + 1}`}
@@ -320,23 +320,23 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
                 {imagePreviews.length === 0 ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 hover:bg-[var(--bg-color)] transition-all"
                   >
-                    <Upload className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-700 font-medium">Add new images</p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <Upload className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3" />
+                    <p className="text-[var(--text-secondary)] font-medium">Add new images</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">
                       PNG, JPG or GIF (max 5MB each)
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
                       New Images
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                       {imagePreviews.map((preview, index) => (
                         <div key={index} className="relative group">
-                          <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                          <div className="aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10">
                             <img
                               src={preview}
                               alt={`New ${index + 1}`}
@@ -356,7 +356,7 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full px-4 py-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all"
+                      className="w-full px-4 py-2 border-2 border-dashed border-gray-300 text-[var(--text-secondary)] rounded-lg hover:border-gray-400 hover:bg-[var(--bg-color)] transition-all"
                     >
                       Add More Images
                     </button>
@@ -366,12 +366,12 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
             </div>
 
             {/* Submit Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 -mx-6 -mb-6">
+            <div className="sticky bottom-0 bg-[var(--bg-color)] border-t border-[var(--text-color)]/10 p-6 -mx-6 -mb-6">
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-4 border-2 border-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-[var(--bg-color)] hover:border-gray-400 transition-all font-medium flex items-center justify-center gap-2"
                 >
                   <X className="w-5 h-5" />
                   Cancel
@@ -401,3 +401,6 @@ export const EditReportModal: React.FC<EditReportModalProps> = ({
     </div>
   );
 };
+
+
+

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -365,9 +365,9 @@ export default function StateSidebar({
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
+    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
       {/* User header */}
-      <div className="px-5 py-6 border-b border-gray-200 shrink-0">
+      <div className="px-5 py-6 border-b border-[var(--border-color)] shrink-0">
         <div className="flex items-center gap-4">
           <img
             src={avatarUrl}
@@ -375,7 +375,7 @@ export default function StateSidebar({
             className="h-11 w-11 rounded-full ring-2 ring-indigo-500/25 shadow-sm shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-black text-sm">
+            <p className="truncate font-semibold text-[var(--text-color)] text-sm">
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
@@ -397,10 +397,10 @@ export default function StateSidebar({
               className={({ isActive }) =>
                 [
                   "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                   isActive
-                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                    : "border border-transparent hover:border-gray-200",
+                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                    : "border border-transparent hover:border-[var(--border-color)]",
                 ].join(" ")
               }
             >
@@ -421,10 +421,10 @@ export default function StateSidebar({
               className={({ isActive }) =>
                 [
                   "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                   isActive
-                    ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                    : "border border-transparent hover:border-gray-200",
+                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                    : "border border-transparent hover:border-[var(--border-color)]",
                 ].join(" ")
               }
             >
@@ -446,10 +446,10 @@ export default function StateSidebar({
               onClick={() => setListOpen((v) => !v)}
               className={[
                 "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 listOpen
-                  ? "bg-gray-50 ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")}
             >
               <span className="flex items-center gap-3 text-indigo-600">
@@ -466,7 +466,7 @@ export default function StateSidebar({
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="text-black truncate">List</span>
+                <span className="text-[var(--text-color)] truncate">List</span>
               </span>
               <svg
                 className={[
@@ -486,7 +486,7 @@ export default function StateSidebar({
               </svg>
             </button>
             {listOpen && (
-              <div className="mt-2 ml-2 pl-2 border-l border-gray-200 space-y-1">
+              <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
                 {listItems.map((li) => (
                   <NavLink
                     key={li.to}
@@ -495,10 +495,10 @@ export default function StateSidebar({
                     className={({ isActive }) =>
                       [
                         "no-underline group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                        "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                         isActive
-                          ? "bg-indigo-50 ring-1 ring-indigo-200"
-                          : "border border-transparent hover:border-gray-200",
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
                       ].join(" ")
                     }
                   >
@@ -521,10 +521,10 @@ export default function StateSidebar({
                 className={({ isActive }) =>
                   [
                     "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                    "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                     isActive
-                      ? "bg-linear-to-r from-indigo-50 to-white ring-1 ring-indigo-200"
-                      : "border border-transparent hover:border-gray-200",
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
                   ].join(" ")
                 }
               >
@@ -542,7 +542,7 @@ export default function StateSidebar({
       <div className="mt-auto pt-3 pb-5">
         <div className="px-5">
           <div className="mb-3">
-            <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            <div className="px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
               Account
             </div>
           </div>
@@ -554,10 +554,10 @@ export default function StateSidebar({
             className={({ isActive }) =>
               [
                 "no-underline group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                "text-black hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-gray-50 ring-1 ring-indigo-200"
-                  : "border border-transparent hover:border-gray-200",
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                  : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >

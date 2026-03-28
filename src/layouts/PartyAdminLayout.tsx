@@ -8,7 +8,7 @@ export default function PartyAdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col transition-all duration-300 ease-in-out">
             {/* Topbar with toggle */}
             <Topbar onToggleSidebar={() => setSidebarOpen((s) => !s)} />
 
@@ -35,7 +35,7 @@ export default function PartyAdminLayout() {
                     {/* Slide Drawer */}
                     <div
                         className={`
-              absolute left-0 top-0 bottom-0 w-68 bg-white shadow-lg overflow-y-auto
+              absolute left-0 top-0 bottom-0 w-68 bg-[var(--bg-color)] shadow-lg overflow-y-auto
               transform transition-all duration-300
               ease-[cubic-bezier(0.22,1,0.36,1)]
               ${sidebarOpen
@@ -52,10 +52,12 @@ export default function PartyAdminLayout() {
                 </div>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto p-1">
+                <main className="flex-1 overflow-auto p-1 transition-all duration-300 ease-in-out">
                     <Outlet />
                 </main>
             </div>
         </div>
     );
 }
+
+

@@ -3,10 +3,11 @@ import { useGetBlockHierarchyQuery } from "../../../store/api/blockTeamApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store";
 import * as XLSX from "xlsx";
-
+import { useTranslation } from "react-i18next";
 import InlineUserDisplay from "../../../components/InlineUserDisplay";
 
 export default function StateMandalList() {
+  const {t} = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
@@ -437,10 +438,10 @@ export default function StateMandalList() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="shrink-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-                Mandal List
+                {t("stateMandal.Title")}
               </h1>
               <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                State: {stateInfo.stateName}
+                {t("stateMandal.State")}: {stateInfo.stateName}
               </p>
             </div>
 
@@ -466,16 +467,16 @@ export default function StateMandalList() {
                       d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  Export Excel ({allMandals.length})
+                  {t("stateMandal.Export_Excel")} ({allMandals.length})
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                 {/* Total Mandals Card */}
-                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Total Mandals
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("stateMadnal.Total_Mandals")}
                     </p>
                     <p className="text-xl sm:text-2xl font-semibold mt-1">
                       {mandals.length}
@@ -499,10 +500,10 @@ export default function StateMandalList() {
                 </div>
 
                 {/* Total Users Card */}
-                <div className="bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between">
+                <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Total Users
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("stateMandal.Total_Users")}
                     </p>
                     <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
                       {mandals.reduce(
@@ -531,7 +532,7 @@ export default function StateMandalList() {
                 {/* Mandals Without Users Card - Clickable */}
                 <div
                   onClick={handleMandalsWithoutUsersClick}
-                  className={`bg-white text-gray-900 rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
+                  className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
                     mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                       .length > 0
                       ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
@@ -549,11 +550,11 @@ export default function StateMandalList() {
                   }
                 >
                   <div>
-                    <p className="text-xs font-medium text-gray-600">
-                      Mandals Without Users
+                    <p className="text-xs font-medium text-[var(--text-secondary)]">
+                      {t("stateMandal.Without_Users")}
                       {showMandalsWithoutUsers && (
                         <span className="ml-2 text-red-600 font-semibold">
-                          (Filtered)
+                          ({t("stateMandal.Filtered")})
                         </span>
                       )}
                     </p>
@@ -563,7 +564,7 @@ export default function StateMandalList() {
                           (mandal) => (mandal.user_count || 0) === 0
                         ).length > 0
                           ? "text-red-600"
-                          : "text-gray-400"
+                          : "text-[var(--text-secondary)]"
                       }`}
                     >
                       {
@@ -578,7 +579,7 @@ export default function StateMandalList() {
                       mandals.filter((mandal) => (mandal.user_count || 0) === 0)
                         .length > 0
                         ? "bg-red-50"
-                        : "bg-gray-50"
+                        : "bg-[var(--bg-main)]"
                     }`}
                   >
                     {mandals.filter((mandal) => (mandal.user_count || 0) === 0)
@@ -598,7 +599,7 @@ export default function StateMandalList() {
                       </svg>
                     ) : (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400"
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--text-secondary)]"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -619,22 +620,22 @@ export default function StateMandalList() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-md p-3 mb-1">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-md p-3 mb-1">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                State
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateUser.State")}
               </label>
               <input
                 type="text"
                 value={stateInfo.stateName}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select District <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateMandal.Select_District")} <span className="text-red-500">*</span>
               </label>
               <select
                 value={selectedDistrictId}
@@ -647,7 +648,7 @@ export default function StateMandalList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={0}>Select District</option>
+                <option value={0}>{t("stateMandal.Select_District")}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id || district.id}
@@ -659,8 +660,8 @@ export default function StateMandalList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assembly (Optional)
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateMandal.Assembly_Optional")}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -673,7 +674,7 @@ export default function StateMandalList() {
                 disabled={!selectedDistrictId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Assemblies in District</option>
+                <option value={0}>{t("stateMandal.Assemblies_District")}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id || assembly.id}
@@ -685,8 +686,8 @@ export default function StateMandalList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Block (Optional)
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateMandal.Block_Optional")}
               </label>
               <select
                 value={selectedBlockId}
@@ -698,7 +699,7 @@ export default function StateMandalList() {
                 disabled={!selectedAssemblyId}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value={0}>All Blocks in Assembly</option>
+                <option value={0}>{t("stateMandal.Blocks_Assembly")}</option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>
                     {block.displayName}
@@ -707,8 +708,8 @@ export default function StateMandalList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by Mandal
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateMandal.Filter_Mandal")}
               </label>
               <select
                 value={selectedMandalFilter}
@@ -718,7 +719,7 @@ export default function StateMandalList() {
                 }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">All Mandals</option>
+                <option value="">{t("stateMandal.All_Mandals")}</option>
                 {mandals.map((mandal) => (
                   <option key={mandal.id} value={mandal.id}>
                     {mandal.displayName}
@@ -727,13 +728,13 @@ export default function StateMandalList() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Mandals
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                {t("stateMandal.Search_Mandals")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
-                    className="w-5 h-5 text-gray-400"
+                    className="w-5 h-5 text-[var(--text-secondary)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -762,20 +763,20 @@ export default function StateMandalList() {
         </div>
 
         {/* Mandal List */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden">
           {(loadingMandals && selectedBlockId) || (selectedDistrictId && mandals.length === 0 && allMandals.length > 0) ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading mandals...</p>
+              <p className="mt-4 text-[var(--text-secondary)]">{t("stateMandal.Loading_mandals")}</p>
             </div>
           ) : error && selectedBlockId ? (
             <div className="text-center py-12 text-red-600">
-              <p>Error loading mandals</p>
+              <p>{t("stateMandal.Error_Loading")}</p>
             </div>
           ) : filteredMandals.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="mx-auto h-12 w-12 text-gray-400"
+                className="mx-auto h-12 w-12 text-[var(--text-secondary)]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -787,7 +788,7 @@ export default function StateMandalList() {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <p className="mt-2 text-gray-500 font-medium">No mandals found</p>
+              <p className="mt-2 text-[var(--text-secondary)] font-medium">{t("stateMandal.No_mandals")}</p>
             </div>
           ) : (
             <>
@@ -795,32 +796,32 @@ export default function StateMandalList() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        S.No
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateMandal.S_NO")}
                       </th>
                       
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Block
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateMandal.Block")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Level Type
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateMandal.Level")}
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Mandal Name
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateMandal.Mandal_Name")}
                       </th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Total Users
+                      <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                        {t("stateMandal.Total_Users")}
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                     {paginatedMandals.map((mandal, index) => (
                       <React.Fragment key={mandal.id}>
                         <tr
                           key={mandal.id}
                           className="hover:bg-blue-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-secondary)]">
                             {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
                       
@@ -853,10 +854,10 @@ export default function StateMandalList() {
                                 </svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-gray-900">
+                                <p className="text-sm font-semibold text-[var(--text-color)]">
                                   {mandal.displayName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[var(--text-secondary)]">
                                   {mandal.partyLevelDisplayName}
                                 </p>
                               </div>
@@ -897,7 +898,7 @@ export default function StateMandalList() {
                                   />
                                 </svg>
                               </button>
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-color)]">
                                 {mandal.user_count || 0}
                               </span>
                             </div>
@@ -939,45 +940,45 @@ export default function StateMandalList() {
 
               {/* Pagination */}
               {filteredMandals.length > 0 && (
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div className="bg-[var(--bg-main)] px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-[var(--text-secondary)]">
                       <span>
-                        Showing{" "}
+                        {t("stateMadnal.Showing")}{" "}
                         <span className="font-semibold">
                           {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
-                        to{" "}
+                        {t("stateMandal.To")}{" "}
                         <span className="font-semibold">
                           {Math.min(
                             currentPage * itemsPerPage,
                             filteredMandals.length
                           )}
                         </span>{" "}
-                        of{" "}
+                        {t("stateMandal.Of")}{" "}
                         <span className="font-semibold">
                           {filteredMandals.length}
                         </span>{" "}
-                        results
+                        {t("stateMandal.Results")}
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Previous
+                        {t("stateMandal.Previous")}
                       </button>
-                      <span className="px-4 py-2 text-sm font-medium text-gray-700">
-                        Page {currentPage} of {totalPages}
+                      <span className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+                        {t("stateMandal.Page")} {currentPage} {t("stateMandal.Of")} {totalPages}
                       </span>
                       <button
                         onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-card)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Next
+                        {t("stateMandal.Next")}
                       </button>
                     </div>
                   </div>
@@ -1008,3 +1009,6 @@ export default function StateMandalList() {
     </div>
   );
 }
+
+
+

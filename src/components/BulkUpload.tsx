@@ -65,14 +65,14 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+          <h2 className="text-2xl font-bold text-[var(--text-color)]">{title}</h2>
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition disabled:opacity-50"
           >
             <X className="w-6 h-6" />
           </button>
@@ -80,7 +80,7 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
 
         {/* Content */}
         <div className="p-6">
-          <p className="text-gray-600 mb-6">{description}</p>
+          <p className="text-[var(--text-secondary)] mb-6">{description}</p>
 
           {/* Sample File Download */}
           {sampleFileName && (
@@ -88,10 +88,10 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
               <div className="flex items-center gap-3">
                 <FileSpreadsheet className="w-5 h-5 text-blue-600" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">
+                  <p className="text-sm font-medium text-[var(--text-color)]">
                     Download Sample Template
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     Use this template to format your data correctly
                   </p>
                 </div>
@@ -113,18 +113,18 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
             className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
               dragActive
                 ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 bg-gray-50"
+                : "border-gray-300 bg-[var(--bg-main)]"
             }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 mb-2">
+            <Upload className="w-12 h-12 mx-auto mb-4 text-[var(--text-secondary)]" />
+            <p className="text-[var(--text-secondary)] mb-2">
               Drag and drop your file here, or click to browse
             </p>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
               Supported formats: .xlsx, .xls, .csv
             </p>
             <input
@@ -149,10 +149,10 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
               <div className="flex items-center gap-3">
                 <FileSpreadsheet className="w-5 h-5 text-green-600" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">
+                  <p className="text-sm font-medium text-[var(--text-color)]">
                     {selectedFile.name}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     {(selectedFile.size / 1024).toFixed(2)} KB
                   </p>
                 </div>
@@ -169,11 +169,11 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-end gap-3 p-6 border-t bg-[var(--bg-main)]">
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition disabled:opacity-50"
+            className="px-6 py-2 bg-gray-300 text-[var(--text-secondary)] rounded-lg hover:bg-gray-400 transition disabled:opacity-50"
           >
             Cancel
           </button>
@@ -199,3 +199,6 @@ export const BulkUpload: React.FC<BulkUploadProps> = ({
     </div>
   );
 };
+
+
+

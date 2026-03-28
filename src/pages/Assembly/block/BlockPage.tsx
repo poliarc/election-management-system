@@ -117,27 +117,27 @@
 //   };
 
 //   return (
-//     <div className="p-6 rounded-2xl shadow-md bg-gray-50 w-full">
+//     <div className="p-6 rounded-2xl shadow-md bg-[var(--bg-main)] w-full">
 //       <div className="flex items-center justify-between mb-6">
-//         <h1 className="text-xl font-bold text-gray-800">Block List</h1>
+//         <h1 className="text-xl font-bold text-[var(--text-color)]">Block List</h1>
 //       </div>
 
 //       <div className="mb-4 flex flex-col gap-4 w-full">
 //         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 w-full">
 //           <div>
 //             <label className="text-sm">State</label>
-//             <input type="text" value={loggedInUser?.state || ""} disabled className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed" />
+//             <input type="text" value={loggedInUser?.state || ""} disabled className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed" />
 //           </div>
 //           <div>
 //             <label className="text-sm">District</label>
-//             <input type="text" value={loggedInUser?.district || ""} disabled className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed" />
+//             <input type="text" value={loggedInUser?.district || ""} disabled className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed" />
 //           </div>
 //           <div>
 //             <label className="text-sm">Assembly</label>
 //             <input
 //               value={loggedInUser?.assembly || ""}
 //               disabled
-//               className="w-full px-3 py-2 border rounded bg-gray-200 text-gray-700 cursor-not-allowed appearance-none focus:outline-none"
+//               className="w-full px-3 py-2 border rounded bg-gray-200 text-[var(--text-secondary)] cursor-not-allowed appearance-none focus:outline-none"
 //             />
 //           </div>
 
@@ -152,7 +152,7 @@
 //           </div>
 
 //           <div className="flex items-center gap-2 sm:ml-4">
-//             <label htmlFor="showCount" className="font-medium text-gray-700 whitespace-nowrap">
+//             <label htmlFor="showCount" className="font-medium text-[var(--text-secondary)] whitespace-nowrap">
 //               Show Result
 //             </label>
 //             <select
@@ -177,7 +177,7 @@
 
 //       {/* Block List Table */}
 //       <div className="overflow-x-auto w-full">
-//         <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-white">
+//         <table className="w-full text-sm text-left rounded-lg shadow-md overflow-hidden bg-[var(--bg-card)]">
 //           <thead className="bg-blue-50 text-[13px] sticky top-0 z-10">
 //             <tr>
 //               <th className="px-4 py-2 font-semibold">SN.</th>
@@ -193,7 +193,7 @@
 //           <tbody>
 //             {filteredBlocks.length === 0 ? (
 //               <tr>
-//                 <td colSpan={8} className="text-center py-8 text-gray-400">
+//                 <td colSpan={8} className="text-center py-8 text-[var(--text-secondary)]">
 //                   No block users found
 //                 </td>
 //               </tr>
@@ -204,7 +204,7 @@
 //                 return (
 //                   <tr
 //                     key={block.id || index}
-//                     className={index % 2 === 0 ? "bg-white hover:bg-blue-50 transition" : "bg-gray-50 hover:bg-blue-50 transition"}
+//                     className={index % 2 === 0 ? "bg-[var(--bg-card)] hover:bg-blue-50 transition" : "bg-[var(--bg-main)] hover:bg-blue-50 transition"}
 //                   >
 //                     <td className={`px-4 py-2 ${isInactive ? "opacity-60" : ""}`}>{index + 1}</td>
 //                     <td className={`px-4 py-2 ${isInactive ? "opacity-60" : ""}`}>{block.blockName}</td>
@@ -252,12 +252,15 @@
 export default function AssemblyBlockPage() {
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Block page</h1>
-            <div className="bg-white rounded-lg shadow p-6">
-                <p className="text-gray-600">Assembly Block members will be displayed here</p>
+            <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Block page</h1>
+            <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
+                <p className="text-[var(--text-secondary)]">Assembly Block members will be displayed here</p>
             </div>
         </div>
     );
 }
+
+
+
 
 

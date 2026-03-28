@@ -136,7 +136,7 @@ export default function SearchableSelect({
                 disabled={disabled}
                 className={`
                     w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                    ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:border-gray-400 cursor-pointer'}
+                    ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-[var(--bg-card)] hover:border-gray-400 cursor-pointer'}
                     ${isOpen ? 'ring-2 ring-blue-500 border-transparent' : ''}
                 `}
             >
@@ -144,41 +144,41 @@ export default function SearchableSelect({
                     <div className="flex-1 min-w-0">
                         {selectedOption ? (
                             <div>
-                                <div className="text-sm font-medium text-gray-900 truncate">
+                                <div className="text-sm font-medium text-[var(--text-color)] truncate">
                                     {selectedOption.label}
                                 </div>
                                 {selectedOption.subtitle && (
-                                    <div className="text-xs text-gray-500 truncate" title={selectedOption.subtitle}>
+                                    <div className="text-xs text-[var(--text-secondary)] truncate" title={selectedOption.subtitle}>
                                         {selectedOption.subtitle}
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <span className="text-gray-500 text-sm">{placeholder}</span>
+                            <span className="text-[var(--text-secondary)] text-sm">{placeholder}</span>
                         )}
                     </div>
                     <div className="flex items-center gap-1">
                         {selectedOption && !disabled && (
                             <button
                                 onClick={clearSelection}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                                className="p-1 hover:bg-[var(--text-color)]/5 rounded transition-colors"
                                 title="Clear selection"
                             >
-                                <X className="w-3 h-3 text-gray-400" />
+                                <X className="w-3 h-3 text-[var(--text-secondary)]" />
                             </button>
                         )}
-                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </div>
                 </div>
             </button>
 
             {/* Dropdown */}
             {isOpen && (
-                <div className={`absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg ${maxHeight} overflow-hidden`}>
+                <div className={`absolute z-50 w-full mt-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg ${maxHeight} overflow-hidden`}>
                     {/* Search Input */}
                     <div className="p-2 border-b border-gray-100">
                         <div className="relative">
-                            <Search className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                            <Search className="absolute left-2 top-2.5 w-4 h-4 text-[var(--text-secondary)]" />
                             <input
                                 ref={searchInputRef}
                                 type="text"
@@ -189,7 +189,7 @@ export default function SearchableSelect({
                                     setHighlightedIndex(-1);
                                 }}
                                 onKeyDown={handleKeyDown}
-                                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full pl-8 pr-3 py-2 text-sm border border-[var(--border-color)] rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
                     </div>
@@ -204,18 +204,18 @@ export default function SearchableSelect({
                                     className={`
                                         w-full px-3 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors
                                         ${index === highlightedIndex ? 'bg-blue-50' : ''}
-                                        ${option.value === value ? 'bg-blue-100 text-blue-900' : 'text-gray-900'}
+                                        ${option.value === value ? 'bg-blue-100 text-blue-900' : 'text-[var(--text-color)]'}
                                     `}
                                     title={option.subtitle}
                                 >
                                     <div className="text-sm font-medium">{option.label}</div>
                                     {option.subtitle && (
-                                        <div className="text-xs text-gray-500 break-words mt-1">{option.subtitle}</div>
+                                        <div className="text-xs text-[var(--text-secondary)] break-words mt-1">{option.subtitle}</div>
                                     )}
                                 </button>
                             ))
                         ) : (
-                            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                            <div className="px-3 py-4 text-sm text-[var(--text-secondary)] text-center">
                                 No options found
                             </div>
                         )}
@@ -225,3 +225,4 @@ export default function SearchableSelect({
         </div>
     );
 }
+

@@ -28,10 +28,10 @@ function PanelCard({ panel, onClick }: PanelCardProps) {
   return (
     <button
       onClick={onClick}
-      className="group rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-left shadow-sm transition bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600"
+      className="group rounded-xl border border-[var(--border-color)] dark:border-gray-700 p-4 text-left shadow-sm transition bg-[var(--bg-card)] dark:bg-gray-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600"
     >
       <div className="flex items-center justify-between mb-2">
-        <div className="text-gray-900 dark:text-white font-semibold">
+        <div className="text-[var(--text-color)] dark:text-white font-semibold">
           {panel.displayName}
         </div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 capitalize">
@@ -39,7 +39,7 @@ function PanelCard({ panel, onClick }: PanelCardProps) {
         </span>
       </div>
       {panel.metadata && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+        <div className="text-xs text-[var(--text-secondary)] dark:text-[var(--text-secondary)] space-y-1">
           {panel.type === 'party' && panel.metadata.partyCode && (
             <div>Code: {panel.metadata.partyCode}</div>
           )}
@@ -76,8 +76,8 @@ function LevelCard({ levelType, icon, isEnabled, assignmentCount, onClick }: Lev
       className={[
         "group rounded-xl border p-4 text-left shadow-sm transition",
         isEnabled
-          ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-600 cursor-pointer"
-          : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed",
+          ? "bg-[var(--bg-card)] dark:bg-gray-800 border-[var(--border-color)] dark:border-gray-700 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-600 cursor-pointer"
+          : "bg-[var(--bg-main)] dark:bg-gray-900 border-[var(--border-color)] dark:border-gray-800 opacity-50 cursor-not-allowed",
       ].join(" ")}
     >
       <div className="flex items-center justify-between mb-2">
@@ -85,7 +85,7 @@ function LevelCard({ levelType, icon, isEnabled, assignmentCount, onClick }: Lev
           <span className="text-2xl">{icon}</span>
           <div className={[
             "font-semibold",
-            isEnabled ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-600"
+            isEnabled ? "text-[var(--text-color)] dark:text-white" : "text-[var(--text-secondary)] dark:text-[var(--text-secondary)]"
           ].join(" ")}>
             {levelType}
           </div>
@@ -95,7 +95,7 @@ function LevelCard({ levelType, icon, isEnabled, assignmentCount, onClick }: Lev
             {assignmentCount} Assigned
           </span>
         ) : (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-[var(--text-secondary)] dark:bg-gray-800 dark:text-[var(--text-secondary)]">
             Not Assigned
           </span>
         )}
@@ -122,12 +122,12 @@ function DynamicLevelCard({ levelType, assignmentCount, onClick }: DynamicLevelC
   return (
     <button
       onClick={onClick}
-      className="group rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-left shadow-sm transition bg-white dark:bg-gray-800 hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600 cursor-pointer"
+      className="group rounded-xl border border-[var(--border-color)] dark:border-gray-700 p-4 text-left shadow-sm transition bg-[var(--bg-card)] dark:bg-gray-800 hover:shadow-md hover:border-purple-300 dark:hover:border-purple-600 cursor-pointer"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{icon}</span>
-          <div className="font-semibold text-gray-900 dark:text-white">
+          <div className="font-semibold text-[var(--text-color)] dark:text-white">
             {levelType}
           </div>
         </div>
@@ -297,10 +297,10 @@ export default function PanelSelect() {
   ]);
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] p-6 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-[calc(100vh-3.5rem)] p-6 bg-[var(--bg-main)] dark:bg-gray-900">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-[var(--text-color)] dark:text-white">
             Choose your panel
           </h1>
           {hasAnyAccess && (
@@ -311,8 +311,8 @@ export default function PanelSelect() {
         </div>
 
         {!hasAnyAccess && (
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="rounded-xl border border-[var(--border-color)] dark:border-gray-700 bg-[var(--bg-card)] dark:bg-gray-800 p-8 text-center">
+            <p className="text-[var(--text-secondary)] dark:text-[var(--text-secondary)]">
               No panel access assigned. Please contact your administrator.
             </p>
           </div>
@@ -325,7 +325,7 @@ export default function PanelSelect() {
           {/* Fixed Levels Section - State, District, Assembly */}
           {hasStateAssignments && (
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)] dark:text-[var(--text-secondary)] mb-3">
                 Team Levels
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -367,7 +367,7 @@ export default function PanelSelect() {
           {/* Party Admin Panels Section */}
           {isPartyAdmin && partyAdminPanels.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)] dark:text-[var(--text-secondary)] mb-3">
                 National Levels
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -385,7 +385,7 @@ export default function PanelSelect() {
           {/* Level Admin Panels Section */}
           {isLevelAdmin && levelAdminPanels.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)] dark:text-[var(--text-secondary)] mb-3">
                 Role Assign
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -406,3 +406,5 @@ export default function PanelSelect() {
     </div>
   );
 }
+
+

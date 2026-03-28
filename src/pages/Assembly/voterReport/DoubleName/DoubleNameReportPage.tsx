@@ -122,14 +122,14 @@ const duplicateVoters = useMemo(() => {
     <div className="p-1">
       <div className="mb-1 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[var(--text-main)]">
             Double Name Report
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-[var(--text-muted)] mt-1">
             View voters with duplicate names in the voter list
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-[var(--bg-color)] border border-gray-300 rounded-lg p-1">
           <button
             onClick={() => setLanguage("en")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
@@ -161,10 +161,10 @@ const duplicateVoters = useMemo(() => {
         />
       ) : (
         <>
-          <div className="bg-white p-1 rounded-lg shadow mb-1">
+          <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
                   Part No From
                 </label>
                 <input
@@ -180,7 +180,7 @@ const duplicateVoters = useMemo(() => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
                   Part No To
                 </label>
                 <input

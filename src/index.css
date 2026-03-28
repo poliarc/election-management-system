@@ -12,7 +12,13 @@
   --color-brand-700: #4338ca;
   --color-brand-800: #3730a3;
   --color-brand-900: #312e81;
+  --color-brand-primary: var(--primary, #646cff);
+  --color-brand-bg: var(--bg-color, #ffffff);
+  --color-brand-text: var(--text-color, #213547);
+  --color-brand-accent: var(--accent, #646cffaa);
 }
+
+
 
 /* Custom Animations */
 @keyframes fadeIn {
@@ -141,12 +147,51 @@
 
 /* App global styles - Light mode only */
 :root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --border-color: #e2e8f0;
+  --bg-color: var(--bg-main);
+  --text-primary: var(--text-main);
+  --text-secondary: var(--text-muted);
+  --text-color: var(--text-main);
   --bg: 255 255 255;
   --fg: 17 24 39;
-  color-scheme: light only;
+  --brand-bg: var(--bg-color);
+  --brand-text: var(--text-color);
+  color-scheme: light dark;
+}
+
+.dark {
+  --bg-main: #111827;
+  --bg-card: #1f2937;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --bg-color: var(--bg-main);
+  --text-primary: var(--text-main);
+  --text-secondary: var(--text-muted);
+  --text-color: var(--text-main);
+  --brand-bg: var(--bg-color);
+  --brand-text: var(--text-color);
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--border-color, inherit);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
 }
 
 /* Force light mode - override any dark class */
+/*
 html,
 html.dark,
 html.light {
@@ -156,26 +201,52 @@ html.light {
   background-color: white !important;
 }
 
+*/
+
 html,
 body,
 #root {
   height: 100%;
 }
 
+/*
 body {
   background-color: rgb(var(--bg)) !important;
   color: rgb(var(--fg)) !important;
 }
 
+*/
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  will-change: background-color, color;
+}
+
+#root {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  will-change: background-color, color;
+}
+
+input,
+select,
+textarea {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+
 /* Override any dark mode styles that might be applied */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
 
   html,
   body {
     background-color: white !important;
     color: rgb(17, 24, 39) !important;
   }
-}
+} */
 
 a {
   /* Make links inherit surrounding text color and remove underline by default.
@@ -190,7 +261,7 @@ a {
 /* Optional: keep a subtle hover state for regular links */
 a:hover {
   color: var(--color-brand);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .container-page {
@@ -315,4 +386,77 @@ body {
 body>.skiptranslate>iframe.skiptranslate {
   display: none !important;
   visibility: hidden !important;
+}
+
+.dark .goog-te-combo,
+.dark .google-translate-container select,
+.dark .goog-te-gadget select.goog-te-combo,
+.dark #google_translate_element select.goog-te-combo {
+  background-color: #111827 !important;
+  color: #f3f4f6 !important;
+  border-color: #374151 !important;
+}
+
+.dark .goog-te-combo:hover,
+.dark .google-translate-container select:hover {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .goog-te-combo:focus,
+.dark .google-translate-container select:focus {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2) !important;
+}
+
+.topbar-surface {
+  /* background-color: color-mix(in srgb, var(--bg-color) 88%, transparent) !important; */
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-color: color-mix(in srgb, var(--text-main) 16%, transparent) !important;
+  will-change: background-color, color;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-control {
+  background-color: color-mix(in srgb, var(--bg-card) 96%, var(--text-main) 4%) !important;
+  color: var(--text-main) !important;
+  border-color: color-mix(in srgb, var(--text-main) 18%, transparent) !important;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-control:hover {
+  background-color: rgb(0 0 0 / 0.05) !important;
+}
+
+.dark .topbar-control:hover {
+  background-color: rgb(255 255 255 / 0.05) !important;
+}
+
+.topbar-menu-surface {
+  background-color: color-mix(in srgb, var(--bg-card) 97%, var(--text-main) 3%) !important;
+  color: var(--text-main) !important;
+  border-color: color-mix(in srgb, var(--text-main) 18%, transparent) !important;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-menu-item {
+  color: var(--text-main) !important;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-menu-item:hover {
+  background-color: rgb(0 0 0 / 0.05) !important;
+}
+
+.dark .topbar-menu-item:hover {
+  background-color: rgb(255 255 255 / 0.05) !important;
 }
