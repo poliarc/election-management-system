@@ -223,13 +223,14 @@ const Icons = {
 };
 
 // Top-level items (excluding team - will be dynamic)
-const stateItems: NavItem[] = [
+const stateItemsTop: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+];
+
+// Second group: District & Assembly
+const stateItemsGeo: NavItem[] = [
   { to: "districts", label: "District", icon: Icons.district },
   { to: "assembly", label: "Assembly", icon: Icons.assembly },
-  { to: "supporters", label: "Supporters", icon: Icons.supporters },
-  { to: "user-wise-supporters", label: "User Wise", icon: Icons.team },
-  // { to: "vic", label: "VIC", icon: Icons.vic },
 ];
 
 // Dropdown items - These will be replaced by dynamic levels from API
@@ -389,31 +390,31 @@ export default function StateSidebar({
       {/* Nav - Scrollable content */}
       <div className="flex-1">
         <nav className="px-4 py-5 space-y-2">
-          {stateItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={`${base}/${item.to}`}
-              onClick={() => onNavigate?.()}
-              className={({ isActive }) =>
-                [
-                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  isActive
-                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                    : "border border-transparent hover:border-[var(--border-color)]",
-                ].join(" ")
-              }
-            >
-              <span className="text-indigo-600 shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-              {/** Accent bar */}
-              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              {/** Active indicator */}
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-            </NavLink>
-          ))}
+          {/* Dashboard */}
+            {stateItemsTop.map((item) => (
+              <NavLink
+                key={item.to}
+                to={`${base}/${item.to}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            ))}
 
-          {/* State Team - Dynamic based on module access */}
+
+            {/* State Team - Dynamic based on module access */}
           {hasStateTeamAccess && (
             <NavLink
               to={`${base}/team`}
@@ -436,6 +437,33 @@ export default function StateSidebar({
               <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
             </NavLink>
           )}
+
+
+
+            {/* District & Assembly */}
+            {stateItemsGeo.map((item) => (
+              <NavLink
+                key={item.to}
+                to={`${base}/${item.to}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            ))}
+
+
 
           {/* List dropdown */}
           <div>
@@ -485,6 +513,8 @@ export default function StateSidebar({
                 />
               </svg>
             </button>
+
+            
             {listOpen && (
               <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
                 {listItems.map((li) => (
@@ -509,6 +539,52 @@ export default function StateSidebar({
               </div>
             )}
           </div>
+
+
+
+
+          {/* Supporters */}
+            <NavLink
+                to={`${base}/supporters`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.supporters}</span>
+                <span className="truncate">Supporters</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+
+              {/* User Wise */}
+              <NavLink
+                to={`${base}/user-wise-supporters`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+                <span className="truncate">User Wise</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+
+
+          
 
           {/* Dynamic Modules */}
           {sidebarModules

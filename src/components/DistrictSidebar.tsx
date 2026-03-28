@@ -376,6 +376,7 @@ export default function DistrictSidebar({
   );
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
+  const [campaignDropdownOpen, setCampaignDropdownOpen] = useState(false);
 
   // Get all District assignments
   let sameTypeAssignments: StateAssignment[] = [];
@@ -422,6 +423,14 @@ export default function DistrictSidebar({
     // Navigate to district dashboard
     navigate('/district/dashboard');
   };
+  const campaignModules = sidebarModules.filter(m =>
+  m.moduleName.toLowerCase().includes('campaign')
+);
+
+const nonCampaignModules = sidebarModules.filter(m =>
+  !m.moduleName.toLowerCase().includes('team') &&
+  !m.moduleName.toLowerCase().includes('campaign')
+);
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col">
@@ -646,31 +655,78 @@ export default function DistrictSidebar({
         </div>
 
         {/* Dynamic Modules */}
-        {sidebarModules
-          .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team modules as they're handled separately
-          .map((module) => (
-          <NavLink
-            key={module.module_id}
-            to={`${base}/${getModuleRoute(module.moduleName)}`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
-            <span className="truncate">{module.displayName}</span>
-            {/** Accent bar */}
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        ))}
+        {/* Campaign Dropdown */}
+          {campaignModules.length > 0 && (
+            <div>
+              <button
+                onClick={() => setCampaignDropdownOpen(!campaignDropdownOpen)}
+                className={[
+                  "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                  "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                  campaignDropdownOpen
+                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                    : "border border-transparent hover:border-[var(--border-color)]",
+                ].join(" ")}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-indigo-600">{Icons.campaigns}</span>
+                  <span>Campaign</span>
+                </div>
+                <svg
+                  className={`h-4 w-4 text-indigo-600 transition-transform ${campaignDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {campaignDropdownOpen && (
+                <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+                  {/* Create Campaign */}
+                  <NavLink
+                    to={`${base}/campaigns`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600">{Icons.campaigns}</span>
+                    <span className="truncate">Create Campaign</span>
+                  </NavLink>
+
+                  {/* Assigned Campaigns */}
+                  {nonCampaignModules.map((module) => (
+                    <NavLink
+                      key={module.module_id}
+                      to={`${base}/${getModuleRoute(module.moduleName)}`}
+                      onClick={() => onNavigate?.()}
+                      className={({ isActive }) =>
+                        [
+                          "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                          "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                          isActive
+                            ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                            : "border border-transparent hover:border-[var(--border-color)]",
+                        ].join(" ")
+                      }
+                    >
+                      <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
+                      <span className="truncate">{module.displayName}</span>
+                      <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                      <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}          
       </nav>
 
       {/* Account section */}

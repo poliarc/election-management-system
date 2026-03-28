@@ -441,7 +441,7 @@ export default function AfterAssemblyPanelSidebar({
   ];
 
   return (
-    <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
+    <aside className=" w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col overflow-y-auto">
       {/* User header */}
       <div className="px-5 py-6 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-4">
@@ -584,7 +584,7 @@ export default function AfterAssemblyPanelSidebar({
             to={`${base}/${item.to}`}
             onClick={() => {
               onNavigate?.();
-              setVicDropdownOpen(false); // Close VIC dropdown when clicking other nav items
+              setVicDropdownOpen(false); 
             }}
             className={({ isActive }) =>
               [
