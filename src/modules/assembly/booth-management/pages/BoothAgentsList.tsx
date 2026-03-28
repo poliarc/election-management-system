@@ -11,6 +11,119 @@ interface BoothAgentsListProps {
   title: string;
 }
 
+// Agent Detail Modal
+const AgentDetailModal: React.FC<{ agent: BoothAgent; onClose: () => void }> = ({ agent, onClose }) => {
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const token = localStorage.getItem("auth_access_token");
+  const apiBase = import.meta.env.VITE_API_BASE_URL;
+
+  const downloadFile = async (url: string, filename: string) => {
+    const proxyUrl = `${apiBase}/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+    try {
+      const res = await fetch(proxyUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      window.open(proxyUrl, "_blank");
+    }
+  };
+
+  const ImageCard = ({ url, label }: { url: string | null | undefined; label: string }) => {
+    if (!url) return (
+      <div className="border border-[var(--border-color)] rounded-lg p-3 text-center text-sm text-[var(--text-secondary)] bg-[var(--bg-hover)]">{label}<br /><span className="text-xs">Not uploaded</span></div>
+    );
+    const isPdf = url.toLowerCase().includes(".pdf");
+    const ext = url.split(".").pop() || "file";
+    return (
+      <div className="border border-[var(--border-color)] rounded-lg overflow-hidden">
+        <div className="bg-[var(--bg-hover)] px-3 py-1.5 flex items-center justify-between">
+          <span className="text-xs font-medium text-[var(--text-secondary)]">{label}</span>
+          <button onClick={() => downloadFile(url, `${label.replace(/\s/g, "_")}.${ext}`)}
+            className="text-xs text-indigo-500 hover:text-indigo-400 flex items-center gap-1">
+            ⬇ Download
+          </button>
+        </div>
+        {isPdf ? (
+          <div className="p-4 text-center text-sm text-[var(--text-secondary)] cursor-pointer" onClick={() => window.open(url, "_blank")}>📄 PDF — Click to view</div>
+        ) : (
+          <img src={url} alt={label}
+            className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setLightboxUrl(url)}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60]" onClick={() => setLightboxUrl(null)}>
+          <img src={lightboxUrl} alt="Preview" className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" />
+          <button className="absolute top-4 right-4 text-white text-2xl">✕</button>
+        </div>
+      )}
+
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-color)]">
+            <h2 className="text-lg font-semibold text-[var(--text-color)]">Agent Details</h2>
+            <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-color)] text-xl">✕</button>
+          </div>
+          <div className="p-6 space-y-5">
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {[
+                { label: "Name", value: agent.name },
+                { label: "Phone", value: agent.phone },
+                { label: "Father Name", value: agent.father_name },
+                { label: "Alternate No", value: agent.alternate_no },
+                { label: "Email", value: agent.email },
+                { label: "Category", value: agent.category },
+                { label: "Role", value: agent.role },
+                { label: "Polling Center", value: agent.polling_center_name },
+                { label: "Booth", value: agent.booth_name || agent.booth_no },
+                { label: "Android Phone", value: agent.android_phone },
+                { label: "Laptop", value: agent.laptop },
+                { label: "Two Wheeler", value: agent.twoWheeler },
+                { label: "Four Wheeler", value: agent.fourWheeler },
+                { label: "Address", value: agent.address },
+              ].map(({ label, value }) => value ? (
+                <div key={label}>
+                  <p className="text-xs text-[var(--text-secondary)]">{label}</p>
+                  <p className="font-medium text-[var(--text-color)]">{value}</p>
+                </div>
+              ) : null)}
+            </div>
+
+            {/* Images */}
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--text-color)] mb-3">Documents & Photos</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <ImageCard url={agent.photo} label="Photo" />
+                <ImageCard url={agent.aadhar_card} label="Aadhar Card" />
+                <ImageCard url={agent.voter_id_file} label="Voter ID" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, title }) => {
   const {t} = useTranslation();
   const [agents, setAgents] = useState<BoothAgent[]>([]);
@@ -23,6 +136,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
   const [totalPages, setTotalPages] = useState(1);
   const [pollingCenters, setPollingCenters] = useState<PollingCenter[]>([]);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [viewingAgent, setViewingAgent] = useState<BoothAgent | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const limit = 10;
 
@@ -115,7 +229,7 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
   if (showForm) {
     return (
       <div className="bg-[var(--bg-color)] rounded-lg border p-6">
-        <h2 className="text-xl font-semibold mb-6">{editingAgent ? "Edit Agent" : "Add New Agent"}</h2>
+        <h2 className="text-xl font-semibold mb-6">{editingAgent ? "Edit Team" : "Add Team"}</h2>
         <BoothAgentForm
           initialData={editingAgent ? {
             agent_id: editingAgent.agent_id,
@@ -143,6 +257,10 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
 
   return (
     <div className="space-y-6">
+      {/* Agent Detail Modal */}
+      {viewingAgent && (
+        <AgentDetailModal agent={viewingAgent} onClose={() => setViewingAgent(null)} />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{title}</h1>
@@ -198,9 +316,10 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
                 <thead className="bg-[var(--bg-color)]">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Name")}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Phone")}</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Category")}</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Role")}</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Phone")}</th>
+                    
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Polling_Center")}</th>
                     {!isPollingCenterTeam && <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Booth_No")}</th>}
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">{t("BoothAgent.Actions")}</th>
@@ -210,9 +329,10 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
                   {agents.map((agent) => (
                     <tr key={agent.agent_id} className="hover:bg-[var(--bg-color)]">
                       <td className="px-4 py-3 text-sm">{agent.name}</td>
+                      <td className="px-4 py-3 text-sm">{agent.phone}</td>
                       <td className="px-4 py-3 text-sm">{agent.category}</td>
                       <td className="px-4 py-3 text-sm">{agent.role}</td>
-                      <td className="px-4 py-3 text-sm">{agent.phone}</td>
+                      
                       <td className="px-4 py-3 text-sm">
                         {agent.polling_center_name || "-"}
                       </td>
@@ -234,6 +354,16 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
 
                           {openMenuId === agent.agent_id && (
                             <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                              <button
+                                onClick={() => { setViewingAgent(agent); setOpenMenuId(null); }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                View
+                              </button>
                               <button
                                 onClick={() => { handleEdit(agent); setOpenMenuId(null); }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
