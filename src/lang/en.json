@@ -2379,7 +2379,12 @@
         "married_women_voters": "married women voters",
         "Part_No": "Part No",
         "Age": "Age",
-        "No_assembly_selected": "No assembly selected. Please select an assembly first."
+        "No_assembly_selected": "No assembly selected. Please select an assembly first.",
+        "Showing_page":"Showing page",
+        "of":"of",
+        "total_voters":"total voters",
+        "Previous":"Previous",
+        "Next":"Next"
     },
 
     "OutsideLocationListPage": {
@@ -3806,6 +3811,8 @@
         "Edit_Booth_Data":"Edit Booth Data",
         "Update":"Update"
     }
+
+
 
 
 }

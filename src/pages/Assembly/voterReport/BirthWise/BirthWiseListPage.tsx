@@ -135,7 +135,7 @@ const BirthWiseListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("BirthWiseListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -233,8 +233,8 @@ const BirthWiseListPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-color)] p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-[var(--text-secondary)]">
                                         Showing page {currentPage} of {totalPages} • {totalVoters} total voters
                                     </div>
                                     <div className="flex gap-2">
