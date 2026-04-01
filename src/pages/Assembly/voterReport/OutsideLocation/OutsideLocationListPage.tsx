@@ -134,7 +134,7 @@ const OutsideLocationListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("OutsideLocationListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -147,10 +147,10 @@ const OutsideLocationListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Outside Country
                                 </label>
                                 <select
@@ -170,7 +170,7 @@ const OutsideLocationListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     &nbsp;
                                 </label>
                                 <button

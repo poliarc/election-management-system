@@ -145,7 +145,7 @@ const MarriedWomenReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("MarriedWomenReportPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -252,9 +252,9 @@ const MarriedWomenReportPage: React.FC = () => {
                             />
 
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                                    <div className="text-sm text-gray-600">
-                                        Showing page {currentPage} of {totalPages} • {totalVoters} total voters
+                                <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-gray-200">
+                                    <div className="text-sm text-[var(--text-secondary)]">
+                                        {t("MarriedWomenReportPage.Showing_page")} {currentPage} {t("MarriedWomenReportPage.of")} {totalPages} • {totalVoters} {t("MarriedWomenReportPage.total_voters")}
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -262,14 +262,14 @@ const MarriedWomenReportPage: React.FC = () => {
                                             disabled={currentPage === 1}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Previous
+                                            {t("MarriedWomenReportPage.Previous")}
                                         </button>
                                         <button
                                             onClick={() => setCurrentPage(currentPage + 1)}
                                             disabled={currentPage === totalPages}
                                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                                         >
-                                            Next
+                                            {t("MarriedWomenReportPage.Next")}
                                         </button>
                                     </div>
                                 </div>
