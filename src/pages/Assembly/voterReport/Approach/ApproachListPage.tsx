@@ -185,7 +185,7 @@ const ApproachListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("ApproachListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -346,7 +346,7 @@ const ApproachListPage: React.FC = () => {
                                             >
                                                 {t("ApproachListPage.Previous")}
                                             </button>
-                                            <span className="px-4 py-2 text-[var(--text-secondary)] bg-gray-100 rounded-lg">
+                                            <span className="px-4 py-2 text-black bg-gray-100 rounded-lg">
                                                 {currentPage} / {totalPages}
                                             </span>
                                             <button

@@ -164,7 +164,7 @@ const HomeShiftedListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("HomeShiftedListPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -177,10 +177,10 @@ const HomeShiftedListPage: React.FC = () => {
                 />
             ) : (
                 <>
-                    <div className="bg-white p-1 rounded-lg shadow mb-1">
+                    <div className="bg-[var(--bg-card)] p-1 rounded-lg shadow mb-1">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Shifted State
                                 </label>
                                 <select
@@ -200,7 +200,7 @@ const HomeShiftedListPage: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                     Shifted District
                                 </label>
                                 <select

@@ -9,6 +9,7 @@ import { VoterListTable } from "../../voters/VoterListList";
 import { VoterEditForm } from "../../voters/VoterListForm";
 import type { VoterList, VoterListCandidate } from "../../../../types/voter";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 // import { usePartFilterPagination } from "../../../../hooks/useFilterPagination";
 
 const DoubleNameReportPage: React.FC = () => {
@@ -16,6 +17,7 @@ const DoubleNameReportPage: React.FC = () => {
     (state: RootState) => state.auth.selectedAssignment,
   );
   const assembly_id = selectedAssignment?.stateMasterData_id;
+  const {t} = useTranslation();
 
   const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
   const [partFrom, setPartFrom] = useState<number | undefined>();
@@ -115,17 +117,17 @@ const DoubleNameReportPage: React.FC = () => {
   }
 
   return (
-    <div className="p-1">
+    <div className="p-1 bg-[var(--bg-card)]">
       <div className="mb-1 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Double Name Report
+          <h1 className="text-2xl font-bold text-[var(--text-main)]">
+            {t("DoubleNameReportPage.Title")}
           </h1>
-          <p className="text-gray-600 mt-1">
-            View voters with duplicate names in the voter list
+          <p className="text-[var(--text-secondary)] mt-1">
+            {t("DoubleNameReportPage.Desc")}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-[var(--bg-card)] border border-gray-300 rounded-lg p-1">
           <button
             onClick={() => setLanguage("en")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
@@ -134,17 +136,17 @@ const DoubleNameReportPage: React.FC = () => {
                 : "text-gray-700 hover:bg-gray-100"
             }`}
           >
-            English
+            {t("DoubleNameReportPage.English")}
           </button>
           <button
             onClick={() => setLanguage("hi")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               language === "hi"
                 ? "bg-indigo-600 text-white"
-                : "text-gray-700 hover:bg-gray-100"
+                : "text-[var(--text-secondary)] hover:bg-gray-100"
             }`}
           >
-            Regional
+            {t("DoubleNameReportPage.Regional")}
           </button>
         </div>
       </div>
@@ -157,11 +159,11 @@ const DoubleNameReportPage: React.FC = () => {
         />
       ) : (
         <>
-          <div className="bg-white p-1 rounded-lg shadow mb-1">
+          <div className="bg-[var(--bg-color)] p-1 rounded-lg shadow mb-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Part No From
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t("DoubleNameReportPage.Part_No_From")}
                 </label>
                 <input
                   type="number"
@@ -176,8 +178,8 @@ const DoubleNameReportPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Part No To
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t("DoubleNameReportPage.Part_No_To")}
                 </label>
                 <input
                   type="number"
@@ -199,7 +201,7 @@ const DoubleNameReportPage: React.FC = () => {
                   onClick={handleReset}
                   className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                 >
-                  Reset
+                  {t("DoubleNameReportPage.Reset")}
                 </button>
               </div>
             </div>
@@ -213,10 +215,10 @@ const DoubleNameReportPage: React.FC = () => {
             <>
               <div className="mb-1 text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                 <strong>
-                  ⚠️ Found {duplicateVoters.length} voters with duplicate names
+                  ⚠️ {t("DoubleNameReportPage.Found")} {duplicateVoters.length} {t("DoubleNameReportPage.Desc1")}
                 </strong>
                 <br />
-                These voters have the same name and may need verification
+                {t("DoubleNameReportPage.Desc2")}
               </div>
               <VoterListTable
                 voters={duplicateVoters}
@@ -225,10 +227,10 @@ const DoubleNameReportPage: React.FC = () => {
               />
 
               {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                  <div className="text-sm text-gray-600">
-                    Showing page {page} of {totalPages} • {duplicateVoters.length}{" "}
-                    total voters
+                <div className="mt-6 flex items-center justify-between bg-[var(--bg-color)] p-4 rounded-lg border border-gray-200">
+                  <div className="text-sm text-[var(--text-secondary)]">
+                    {t("DoubleNameReportPage.Showing_page")} {page} {t("DoubleNameReportPage.of")} {totalPages} • {duplicateVoters.length}{" "}
+                    {t("DoubleNameReportPage.total_voters")}
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -236,14 +238,14 @@ const DoubleNameReportPage: React.FC = () => {
                       disabled={page === 1}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                     >
-                      Previous
+                      {t("DoubleNameReportPage.Previous")}
                     </button>
                     <button
                       onClick={() => setPage(page + 1)}
                       disabled={page === totalPages}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition"
                     >
-                      Next
+                      {t("DoubleNameReportPage.Next")}
                     </button>
                   </div>
                 </div>
