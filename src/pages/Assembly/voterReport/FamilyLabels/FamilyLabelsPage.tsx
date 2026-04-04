@@ -213,7 +213,7 @@ const FamilyLabelsPage: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    <div className="mb-1 text-sm text-[var(--text-secondary)] bg-violet-50 p-3 rounded-lg border border-violet-200">
+                    <div className="mb-1 text-sm text-[var(--text-muted)] bg-[var(--bg-card)] p-3 rounded-lg border border-violet-200">
                         Found {familyLabelsData.length} families
                         {selectedHouseNo && <span> • {t("FamilyLabelsPage.House_No:")} {selectedHouseNo}</span>}
                         {(partFrom || partTo) && (
@@ -246,7 +246,7 @@ const FamilyLabelsPage: React.FC = () => {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-[var(--bg-card)] divide-y divide-gray-200">
                                     {familyLabelsData.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-[var(--text-secondary)]">
@@ -255,8 +255,8 @@ const FamilyLabelsPage: React.FC = () => {
                                         </tr>
                                     ) : (
                                         familyLabelsData.map((item, index) => (
-                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <tr key={`${item.partNo}-${item.houseNo}-${index}`} className="hover:bg-[var(--bg-color)]/20">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-secondary)]">
                                                     {item.partNo}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-color)] font-medium">

@@ -28,6 +28,10 @@ export default function AssemblyDynamicLevelList({
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(20);
 
+    // Sorting state
+    const [sortBy, setSortBy] = useState<string>("");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
     // State for action dropdown and modals
     const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
     const [showAssignVotersModal, setShowAssignVotersModal] = useState(false);
@@ -104,65 +108,6 @@ export default function AssemblyDynamicLevelList({
 
     // State for dynamic hierarchy order (actual parent-child chain for current level)
     const [actualHierarchyChain, setActualHierarchyChain] = useState<string[]>([]);
-
-    // Fallback: Infer hierarchy from first item's data structure (FULLY DYNAMIC)
-    const inferHierarchyFromData = (items: any[]): string[] => {
-        if (items.length === 0) return [];
-
-        const firstItem = items[0];
-        const hierarchy: string[] = [];
-
-        console.log(`[Hierarchy Inference] Analyzing first item:`, firstItem);
-
-        // Dynamically detect all properties that end with 'Name' or 'Id' and might be parent levels
-        // Build a map of potential parent properties
-        const potentialParents: Array<{ key: string; level: string; id?: number }> = [];
-
-        for (const key in firstItem) {
-            // Check if property ends with 'Name' and has a corresponding 'Id' property
-            if (key.endsWith('Name') && !key.includes('display') && !key.includes('party')) {
-                const levelName = key.replace('Name', '');
-                const idKey = `${levelName}Id`;
-                const altIdKey = `${levelName}_id`;
-
-                // Check if corresponding ID exists
-                if (firstItem[idKey] || firstItem[altIdKey]) {
-                    const level = levelName.charAt(0).toUpperCase() + levelName.slice(1); // Capitalize
-                    potentialParents.push({
-                        key: key,
-                        level: level,
-                        id: firstItem[idKey] || firstItem[altIdKey]
-                    });
-                }
-            }
-        }
-
-        console.log(`[Hierarchy Inference] Found potential parents:`, potentialParents.map(p => p.level));
-
-        // Add parents to hierarchy if they're not the current level
-        for (const parent of potentialParents) {
-            if (firstItem.levelName !== parent.level && firstItem.displayName !== parent.level) {
-                hierarchy.push(parent.level);
-            }
-        }
-
-        // Also check parentChain if available
-        if (firstItem.parentChain && typeof firstItem.parentChain === 'object') {
-            const chainLevels = Object.keys(firstItem.parentChain);
-            console.log(`[Hierarchy Inference] Found parentChain:`, chainLevels);
-            for (const level of chainLevels) {
-                if (!hierarchy.includes(level) && level !== firstItem.levelName) {
-                    hierarchy.push(level);
-                }
-            }
-        }
-
-        // Remove duplicates and sort by common hierarchy order
-        const uniqueHierarchy = [...new Set(hierarchy)];
-
-        console.log(`[Hierarchy Inference] Inferred hierarchy:`, uniqueHierarchy);
-        return uniqueHierarchy;
-    };
 
     // State for parent information
     const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
@@ -494,25 +439,40 @@ export default function AssemblyDynamicLevelList({
                         console.error(`[Hierarchy] Alternative approach failed:`, err);
                     }
 
-                    // Last resort: set empty chain
-                    console.warn(`[Hierarchy] ✗ Could not determine hierarchy, setting empty chain`);
-                    setActualHierarchyChain([]);
+                    // Last resort: use robust fallback
+                    console.warn(`[Hierarchy] ✗ Could not determine hierarchy, using robust fallback`);
+                    const robustFallback: Record<string, string[]> = {
+                        "Block": [],
+                        "Ward": [],
+                        "Zone": [],
+                        "Sector": [],
+                        "Mandal": ["Block"],
+                        "PollingCenter": ["Block", "Mandal"],
+                        "Booth": ["Block", "Mandal", "PollingCenter"],
+                    };
+                    const fallback = robustFallback[levelName] || [];
+                    console.log(`[Hierarchy] Setting fallback hierarchy:`, fallback);
+                    setActualHierarchyChain(fallback);
                 }
             } catch (error) {
                 console.error("[Hierarchy] Error fetching actual hierarchy:", error);
 
-                // Fallback: Try to infer from existing data
-                if (allLevelItems.length > 0) {
-                    console.log(`[Hierarchy] Error occurred, attempting to infer from data...`);
-                    const inferredChain = inferHierarchyFromData(allLevelItems);
-                    if (inferredChain.length > 0) {
-                        console.log(`[Hierarchy] ✓ Using inferred hierarchy:`, inferredChain);
-                        setActualHierarchyChain(inferredChain);
-                        return;
-                    }
-                }
+                // Robust fallback hierarchy based on level name
+                console.log(`[Hierarchy] Using robust fallback hierarchy for ${levelName}`);
 
-                setActualHierarchyChain([]);
+                const robustFallback: Record<string, string[]> = {
+                    "Block": [],
+                    "Ward": [],
+                    "Zone": [],
+                    "Sector": [],
+                    "Mandal": ["Block"],
+                    "PollingCenter": ["Block", "Mandal"],
+                    "Booth": ["Block", "Mandal", "PollingCenter"],
+                };
+
+                const fallback = robustFallback[levelName] || [];
+                console.log(`[Hierarchy] Setting fallback hierarchy:`, fallback);
+                setActualHierarchyChain(fallback);
             }
         };
 
@@ -539,6 +499,59 @@ export default function AssemblyDynamicLevelList({
     };
 
     const visibleFilters = getVisibleFilters();
+
+    // Sorting helpers
+    const getSortValue = (item: any, key: string): string | number => {
+        if (!item) return "";
+
+        if (key === "id") {
+            return item.id || 0;
+        }
+
+        if (key === "Assembly") {
+            return item.assemblyName || assemblyInfo.assemblyName || "";
+        }
+
+        if (key === displayLevelName || key === "Name") {
+            // When user clicks the main level name column, sort by unique id (as requested)
+            return item.id || 0;
+        }
+
+        const normalizedKey = key.toLowerCase();
+
+        const properties = [
+            `${normalizedKey}Name`,
+            `${normalizedKey}_name`,
+            `${normalizedKey}name`,
+            `${normalizedKey}_Name`,
+        ];
+
+        for (const prop of properties) {
+            if (item[prop]) return item[prop];
+        }
+
+        if (item.parentLevelType === key && item.parentLevelName) {
+            return item.parentLevelName;
+        }
+
+        if (item.parentHierarchy && Array.isArray(item.parentHierarchy)) {
+            const parentKeyName = Object.keys(item).find((x) => x.toLowerCase().includes(normalizedKey));
+            if (parentKeyName && item[parentKeyName]) return item[parentKeyName];
+        }
+
+        return "";
+    };
+
+    const handleSort = (column: string) => {
+        if (sortBy === column) {
+            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortBy(column);
+            setSortDirection("asc");
+        }
+
+        setCurrentPage(1);
+    };
 
     // Helper function to fetch all pages - same as existing files
     const fetchAllPages = async (url: string) => {
@@ -1186,6 +1199,23 @@ export default function AssemblyDynamicLevelList({
         return matchesSearch && matchesFilter && matchesWithoutUsersFilter && matchesWithUsersFilter;
     });
 
+    const sortedLevelItems = React.useMemo(() => {
+        const activeSortBy = sortBy || "id";
+        const activeSortDirection = sortBy ? sortDirection : "asc";
+
+        return [...filteredLevelItems].sort((a, b) => {
+            const aVal = getSortValue(a, activeSortBy);
+            const bVal = getSortValue(b, activeSortBy);
+
+            const normalizedA = typeof aVal === "string" ? aVal.toLowerCase() : aVal;
+            const normalizedB = typeof bVal === "string" ? bVal.toLowerCase() : bVal;
+
+            if (normalizedA < normalizedB) return activeSortDirection === "asc" ? -1 : 1;
+            if (normalizedA > normalizedB) return activeSortDirection === "asc" ? 1 : -1;
+            return 0;
+        });
+    }, [filteredLevelItems, sortBy, sortDirection]);
+
     const handleViewUsers = async (itemId: number) => {
         if (expandedItemId === itemId) {
             setExpandedItemId(null);
@@ -1553,8 +1583,8 @@ export default function AssemblyDynamicLevelList({
         }
     }, [allLevelItems, levelName]);
 
-    const totalPages = Math.ceil(filteredLevelItems.length / itemsPerPage);
-    const paginatedItems = filteredLevelItems.slice(
+    const totalPages = Math.ceil(sortedLevelItems.length / itemsPerPage);
+    const paginatedItems = sortedLevelItems.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -1934,16 +1964,39 @@ export default function AssemblyDynamicLevelList({
                                                         {t("AssemblyDynamic.Assembly")}
                                                     </th>
                                                     {/* Dynamic parent level columns - show all levels in hierarchy */}
-                                                    {visibleFilters.map((filterLevel) => (
-                                                        <th key={filterLevel} className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                                                            {filterLevel}
-                                                        </th>
-                                                    ))}
+                                                    {visibleFilters.map((filterLevel) => {
+                                                        const sortKey = filterLevel === "PollingCenter" ? "id" : filterLevel;
+                                                        const isActiveSort = sortBy === sortKey;
+                                                        const sortIcon = isActiveSort
+                                                            ? sortDirection === "asc"
+                                                                ? "▲"
+                                                                : "▼"
+                                                            : "";
+
+                                                        return (
+                                                            <th
+                                                                key={filterLevel}
+                                                                onClick={() => handleSort(sortKey)}
+                                                                className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider cursor-pointer select-none"
+                                                            >
+                                                                <span className="inline-flex items-center gap-1">
+                                                                    {filterLevel}
+                                                                    <span>{sortIcon}</span>
+                                                                </span>
+                                                            </th>
+                                                        );
+                                                    })}
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         {t("AssemblyDynamic.Level_Type")}
                                                     </th>
-                                                    <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                                                        {displayLevelName} {t("AssemblyDynamic.Name")}
+                                                    <th
+                                                        onClick={() => handleSort("id")}
+                                                        className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider cursor-pointer select-none"
+                                                    >
+                                                        <span className="inline-flex items-center gap-1">
+                                                            {displayLevelName} {t("AssemblyDynamic.Name")}
+                                                            {sortBy === "id" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                                                        </span>
                                                     </th>
                                                     <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                                         {t("AssemblyDynamic.Total_Users")}

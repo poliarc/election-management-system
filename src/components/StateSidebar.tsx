@@ -466,28 +466,7 @@ export default function StateSidebar({
 
 
           {/* State Team - Dynamic based on module access */}
-          {hasStateTeamAccess && (
-            <NavLink
-              to={`${base}/team`}
-              onClick={() => onNavigate?.()}
-              className={({ isActive }) =>
-                [
-                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  isActive
-                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                    : "border border-transparent hover:border-[var(--border-color)]",
-                ].join(" ")
-              }
-            >
-              <span className="text-indigo-600 shrink-0">{Icons.team}</span>
-              <span className="truncate">State Team</span>
-              {/** Accent bar */}
-              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              {/** Active indicator */}
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-            </NavLink>
-          )}
+          
 
           {/* List dropdown */}
           <div>

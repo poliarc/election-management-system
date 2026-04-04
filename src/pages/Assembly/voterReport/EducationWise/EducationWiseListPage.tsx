@@ -112,7 +112,7 @@ const EducationWiseListPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("EducationWiseListPage.Regional")}
                     </button>
                 </div>
             </div>

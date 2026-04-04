@@ -157,7 +157,7 @@ const SurnameReportPage: React.FC = () => {
                             : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
                             }`}
                     >
-                        Regional
+                        {t("SurnameReportPage.Regional")}
                     </button>
                 </div>
             </div>
@@ -258,7 +258,7 @@ const SurnameReportPage: React.FC = () => {
                                     {surnameData.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-secondary)]">
-                                                {t("SurnameReportPage.No_surname_date_found")}
+                                                {t("SurnameReportPage.No_surname_data_found")}
                                             </td>
                                         </tr>
                                     ) : (
@@ -288,8 +288,8 @@ const SurnameReportPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="text-sm text-gray-600">
+                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-[var(--text-secondary)]">
                                 Showing page {currentPage} of {totalPages} • {totalVoters} total surnames
                             </div>
                             <div className="flex gap-2">
