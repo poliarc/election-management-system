@@ -17,7 +17,7 @@ export const API_CONFIG = {
     MOBILE_LOGIN_VERIFY_OTP: "/api/mobile-login/verify-otp",
     MOBILE_LOGIN_RESEND_OTP: "/api/mobile-login/resend-otp",
   },
-  TIMEOUT: 30000,
+  TIMEOUT: 120000,
 } as const;
 
 export function getApiUrl(endpoint: string): string {
