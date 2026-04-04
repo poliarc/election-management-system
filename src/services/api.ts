@@ -6,7 +6,7 @@ const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 // Configure axios instance with authentication
 export const apiClient = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 30000,
+    timeout: 120000,
 });
 
 // Add auth token to all requests
