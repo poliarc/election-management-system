@@ -126,6 +126,7 @@ import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
+import { WhatsAppGroupLinksRouter } from "./pages/LevelAdmin/WhatsAppGroupLinksRouter";
 import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
 import ChatPage from "./pages/Chat/ChatPage";
 // import { ThemeSettings } from "./pages/Settings";
@@ -204,6 +205,7 @@ export default function App() {
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
+            <Route path="whatsapp-groups" element={<WhatsAppGroupLinksRouter />} />
             <Route
               path="assembly-hierarchy"
               element={<AssemblyHierarchyManager />}

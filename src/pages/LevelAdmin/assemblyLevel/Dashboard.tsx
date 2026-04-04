@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
-import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
+import { fetchLevelAdminDashboard } from "../../../services/levelAdminApi";
 import { useTranslation } from "react-i18next";
 
 export default function AssemblyLevelDashboard() {
@@ -14,6 +14,7 @@ export default function AssemblyLevelDashboard() {
         totalUsers: 0,
         activeUsers: 0,
         inactiveUsers: 0,
+        totalLevels: 0,
     });
     const [loading, setLoading] = useState(true);
 
@@ -21,57 +22,26 @@ export default function AssemblyLevelDashboard() {
 
     useEffect(() => {
         const loadStats = async () => {
-            const metadata = currentPanel?.metadata;
-            if (!metadata?.stateId) return;
+            if (!currentPanel?.id) return;
 
             try {
                 setLoading(true);
-                // Fetch districts
-                const districtResponse = await fetchHierarchyChildren(metadata.stateId, {
-                    page: 1,
-                    limit: 1000
-                });
-
-                if (districtResponse.success && districtResponse.data?.children) {
-                    const districts = districtResponse.data.children;
-                    let totalAssemblies = 0;
-                    let totalUsers = 0;
-                    let activeUsers = 0;
-                    let inactiveUsers = 0;
-
-                    // Fetch assemblies for each district
-                    for (const district of districts) {
-                        const assemblyResponse = await fetchHierarchyChildren(district.location_id, {
-                            page: 1,
-                            limit: 1000
-                        });
-                        if (assemblyResponse.success && assemblyResponse.data?.children) {
-                            totalAssemblies += assemblyResponse.data.children.length;
-                            totalUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.total_users || 0),
-                                0
-                            );
-                            activeUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.active_users || 0),
-                                0
-                            );
-                            inactiveUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.inactive_users || 0),
-                                0
-                            );
-                        }
-                    }
-
+                const response = await fetchLevelAdminDashboard(currentPanel.id);
+                
+                if (response.success && response.data) {
+                    // Extract overall stats from API response
+                    const overallStats = response.data.overallStats || {};
                     setStats({
-                        totalDistricts: districts.length,
-                        totalAssemblies,
-                        totalUsers,
-                        activeUsers,
-                        inactiveUsers,
+                        totalDistricts: response.data.stateHierarchyStats?.find((s: any) => s.levelType === 'District')?.total_locations || 0,
+                        totalAssemblies: response.data.stateHierarchyStats?.find((s: any) => s.levelType === 'Assembly')?.total_locations || 0,
+                        totalUsers: overallStats.total_users || 0,
+                        activeUsers: overallStats.active_users || 0,
+                        inactiveUsers: overallStats.inactive_users || 0,
+                        totalLevels: overallStats.total_levels || 0,
                     });
                 }
             } catch (error) {
-                console.error("Failed to load stats:", error);
+                console.error("Failed to load dashboard stats:", error);
             } finally {
                 setLoading(false);
             }

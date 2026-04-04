@@ -237,3 +237,30 @@ export async function fetchDistrictsByState(
 
   return response.json();
 }
+
+// Fetch Level Admin Dashboard Data
+export async function fetchLevelAdminDashboard(
+  partyWiseId: number
+): Promise<any> {
+  const token = getAuthToken();
+  if (!token) throw new Error("Authentication required");
+
+  const url = `${API_CONFIG.BASE_URL}/api/dashboard/leveladmin/${partyWiseId}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ message: `HTTP ${response.status}` }));
+    throw new Error(error.message || "Failed to fetch dashboard data");
+  }
+
+  return response.json();
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
-import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
+import { fetchLevelAdminDashboard } from "../../../services/levelAdminApi";
 import { useTranslation } from "react-i18next";
 
 export default function DistrictLevelDashboard() {
@@ -13,6 +13,7 @@ export default function DistrictLevelDashboard() {
         totalUsers: 0,
         activeUsers: 0,
         inactiveUsers: 0,
+        totalLevels: 0,
     });
     const [loading, setLoading] = useState(true);
 
@@ -20,30 +21,25 @@ export default function DistrictLevelDashboard() {
 
     useEffect(() => {
         const loadStats = async () => {
-            if (!currentPanel?.metadata?.stateId) return;
+            if (!currentPanel?.id) return;
 
             try {
                 setLoading(true);
-                const response = await fetchHierarchyChildren(currentPanel.metadata.stateId, {
-                    page: 1,
-                    limit: 1000
-                });
-
-                if (response.success && response.data?.children) {
-                    const districts = response.data.children;
-                    const totalUsers = districts.reduce((sum: number, d: any) => sum + (d.total_users || 0), 0);
-                    const activeUsers = districts.reduce((sum: number, d: any) => sum + (d.active_users || 0), 0);
-                    const inactiveUsers = districts.reduce((sum: number, d: any) => sum + (d.inactive_users || 0), 0);
-
+                const response = await fetchLevelAdminDashboard(currentPanel.id);
+                
+                if (response.success && response.data) {
+                    // Extract overall stats from API response
+                    const overallStats = response.data.overallStats || {};
                     setStats({
-                        totalDistricts: districts.length,
-                        totalUsers,
-                        activeUsers,
-                        inactiveUsers,
+                        totalDistricts: response.data.stateHierarchyStats?.find((s: any) => s.levelType === 'District')?.total_locations || 0,
+                        totalUsers: overallStats.total_users || 0,
+                        activeUsers: overallStats.active_users || 0,
+                        inactiveUsers: overallStats.inactive_users || 0,
+                        totalLevels: overallStats.total_levels || 0,
                     });
                 }
             } catch (error) {
-                console.error("Failed to load stats:", error);
+                console.error("Failed to load dashboard stats:", error);
             } finally {
                 setLoading(false);
             }

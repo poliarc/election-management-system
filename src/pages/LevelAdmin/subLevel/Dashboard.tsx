@@ -1,13 +1,53 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
+import { fetchLevelAdminDashboard } from "../../../services/levelAdminApi";
 import { useTranslation } from "react-i18next";
 
 export default function SubLevelDashboard() {
     const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
+    const [stats, setStats] = useState({
+        totalLevels: 0,
+        totalUsers: 0,
+        activeLevels: 0,
+    });
+    const [loading, setLoading] = useState(true);
 
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
+
+    useEffect(() => {
+        const loadStats = async () => {
+            if (!currentPanel?.id) return;
+
+            try {
+                setLoading(true);
+                const response = await fetchLevelAdminDashboard(currentPanel.id);
+                
+                if (response.success && response.data) {
+                    // Extract overall stats from API response
+                    const overallStats = response.data.overallStats || {};
+                    const afterAssemblyStats = response.data.afterAssemblyStats || [];
+                    
+                    // Calculate total levels from after-assembly stats
+                    const totalLevels = afterAssemblyStats.reduce((sum: number, stat: any) => sum + (stat.total_locations || 0), 0);
+                    
+                    setStats({
+                        totalLevels,
+                        totalUsers: overallStats.total_users || 0,
+                        activeLevels: overallStats.total_levels || 0,
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load dashboard stats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadStats();
+    }, [currentPanel]);
 
     if (!currentPanel) {
         return (
@@ -34,7 +74,9 @@ export default function SubLevelDashboard() {
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelDashboard.Total_Levels")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold mt-1">0</p>
+                                <p className="text-2xl sm:text-3xl font-semibold mt-1">
+                                    {loading ? "..." : stats.totalLevels}
+                                </p>
                             </div>
                             <div className="bg-teal-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +88,9 @@ export default function SubLevelDashboard() {
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelDashboard.Total_Users")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-cyan-600 mt-1">0</p>
+                                <p className="text-2xl sm:text-3xl font-semibold text-cyan-600 mt-1">
+                                    {loading ? "..." : stats.totalUsers}
+                                </p>
                             </div>
                             <div className="bg-cyan-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +102,9 @@ export default function SubLevelDashboard() {
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelDashboard.Active_Levels")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">0</p>
+                                <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
+                                    {loading ? "..." : stats.activeLevels}
+                                </p>
                             </div>
                             <div className="bg-green-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -6,6 +6,7 @@ import { logout, setSelectedAssignment } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
+import { useGetLinksQuery } from "../store/api/whatsappGroupLinkApi";
 import type { StateAssignment } from "../types/api";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
@@ -709,6 +710,14 @@ const otherModules = sidebarModules.filter(m =>
     navigate("/login");
   };
 
+  // Fetch Assembly-level WhatsApp links for this assembly
+  const assemblyStateMasterId = selectedAssignment?.stateMasterData_id;
+  const { data: waLinksData } = useGetLinksQuery(
+    { assembly_id: assemblyStateMasterId, party_id: partyId },
+    { skip: !assemblyStateMasterId || !partyId }
+  );
+  const waLinks = (waLinksData?.data || []).filter((l) => l.target_level === "Assembly");
+
   // Determine if any list item is active to default-open the dropdown
   const isListPathActive = useMemo(
     () =>
@@ -754,6 +763,8 @@ const otherModules = sidebarModules.filter(m =>
   );
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
   const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [assemblySearchTerm, setAssemblySearchTerm] = useState("");
 
   // Get all Assembly assignments
   let sameTypeAssignments: StateAssignment[] = [];
@@ -792,6 +803,13 @@ const otherModules = sidebarModules.filter(m =>
     seen.add(a.assignment_id);
     return true;
   });
+
+  // Filter assignments based on search term
+  const filteredAssignments = sameTypeAssignments.filter((assignment) =>
+    (assignment.displayName || assignment.levelName || "")
+      .toLowerCase()
+      .includes(assemblySearchTerm.toLowerCase())
+  );
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
@@ -874,57 +892,95 @@ const otherModules = sidebarModules.filter(m =>
                 <div className="px-2 py-1.5 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                   Switch Assembly
                 </div>
-                {sameTypeAssignments.map((assignment) => (
-                  <button
-                    key={assignment.assignment_id}
-                    onClick={() => handleAssignmentSwitch(assignment)}
-                    className={[
-                      "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
-                      selectedAssignment.assignment_id ===
-                        assignment.assignment_id
-                        ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
-                    ].join(" ")}
-                  >
-                    <svg
-                      className="h-4 w-4 mt-0.5 shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path
-                        d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate text-xs">
-                        {assignment.displayName || assignment.levelName}
-                      </div>
-                      {assignment.parentLevelName && (
-                        <div className="text-xs text-[var(--text-secondary)] truncate">
-                          {assignment.parentLevelName}
-                        </div>
-                      )}
+
+                {/* Search Input */}
+                <div className="px-2 pb-2">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <svg
+                        className="h-3 w-3 text-[var(--text-secondary)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0 1 14 0z"
+                        />
+                      </svg>
                     </div>
-                    {selectedAssignment.assignment_id ===
-                      assignment.assignment_id && (
+                    <input
+                      type="text"
+                      placeholder="Search assemblies..."
+                      value={assemblySearchTerm}
+                      onChange={(e) => setAssemblySearchTerm(e.target.value)}
+                      className="w-full pl-7 pr-3 py-1.5 text-xs border border-[var(--border-color)] rounded-md bg-[var(--bg-main)] focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Assembly List */}
+                <div className="max-h-48 overflow-y-auto">
+                  {filteredAssignments.length === 0 ? (
+                    <div className="px-2 py-2 text-xs text-[var(--text-secondary)] text-center">
+                      No assemblies found
+                    </div>
+                  ) : (
+                    filteredAssignments.map((assignment) => (
+                      <button
+                        key={assignment.assignment_id}
+                        onClick={() => handleAssignmentSwitch(assignment)}
+                        className={[
+                          "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
+                          selectedAssignment.assignment_id ===
+                            assignment.assignment_id
+                            ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+                            : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
+                        ].join(" ")}
+                      >
                         <svg
-                          className="h-4 w-4 shrink-0"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
+                          className="h-4 w-4 mt-0.5 shrink-0"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
                         >
                           <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
+                            d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           />
                         </svg>
-                      )}
-                  </button>
-                ))}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate text-xs">
+                            {assignment.displayName || assignment.levelName}
+                          </div>
+                          {assignment.parentLevelName && (
+                            <div className="text-xs text-[var(--text-secondary)] truncate">
+                              {assignment.parentLevelName}
+                            </div>
+                          )}
+                        </div>
+                        {selectedAssignment.assignment_id ===
+                          assignment.assignment_id && (
+                            <svg
+                              className="h-4 w-4 shrink-0"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -1717,6 +1773,50 @@ const otherModules = sidebarModules.filter(m =>
           </NavLink>
         ))}
       </nav>
+
+      {/* WhatsApp Group Links */}
+      {waLinks.length > 0 && (
+        <div className="px-4 mb-2">
+          <button
+            onClick={() => setWhatsappOpen(!whatsappOpen)}
+            className="w-full flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-green-600 hover:bg-green-50 border border-transparent hover:border-green-200 transition"
+          >
+            <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.186-1.443A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.672.857.896-3.567-.243-.386A9.937 9.937 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            </svg>
+            <span>WhatsApp Groups</span>
+            <span className="ml-auto bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">{waLinks.length}</span>
+          </button>
+          {whatsappOpen && (
+            <div className="mt-1 rounded-xl border border-green-200 bg-[var(--bg-card)] shadow-lg overflow-hidden">
+              <div className="px-3 py-2 bg-green-50 border-b border-green-100 text-xs font-semibold text-green-700">
+                Join your WhatsApp groups
+              </div>
+              <div className="divide-y divide-[var(--border-color)] max-h-52 overflow-y-auto">
+                {waLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.group_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-green-50 transition no-underline"
+                  >
+                    <svg className="h-4 w-4 text-green-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.186-1.443A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.672.857.896-3.567-.243-.386A9.937 9.937 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                    <span className="text-sm text-[var(--text-color)] truncate flex-1">{link.title}</span>
+                    <svg className="h-3.5 w-3.5 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Account section */}
       <div className="mt-auto pt-3 pb-5">
