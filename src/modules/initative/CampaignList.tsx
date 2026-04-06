@@ -481,7 +481,7 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                       ref={fileInputRef}
                       type="file"
                       name="images"
-                      accept="image/*"
+                      accept="image/*,video/mp4,video/webm,video/ogg,video/quicktime"
                       multiple
                       onChange={handleReportChange}
                       className="hidden"
@@ -510,13 +510,12 @@ export const CampaignList: React.FC<CampaignListProps> = ({
                           {imagePreviews.map((src, idx) => (
                             <div key={idx} className="relative group">
                               <div className="aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10">
-                                <img
-                                  src={src}
-                                  alt={`Preview ${idx + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
+                                {src.startsWith("data:video") || reportData.images[idx]?.type?.startsWith("video/") ? (
+                                  <video src={src} className="w-full h-full object-cover" muted playsInline />
+                                ) : (
+                                  <img src={src} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                                )}
                               </div>
-                              {/* Remove button */}
                               <button
                                 type="button"
                                 onClick={() => handleRemoveImage(idx)}

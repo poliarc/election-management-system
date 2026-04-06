@@ -23,6 +23,7 @@ interface CampaignFormProps {
   onSubmit: (data: CampaignFormData) => Promise<void>;
   onCancel: () => void;
   initialData?: Partial<Campaign>;
+  isExternalSubmitting?: boolean;
 }
 
 type SelectorState = {
@@ -183,6 +184,7 @@ export const CampaignForm = ({
   onSubmit,
   onCancel,
   initialData,
+  isExternalSubmitting = false,
 }: CampaignFormProps) => {
   const [selectedImages, setSelectedImages] = React.useState<Array<File>>([]);
   const [imagePreviews, setImagePreviews] = React.useState<Array<string>>([]);
@@ -1480,67 +1482,101 @@ export const CampaignForm = ({
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <Plus className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-xs font-medium text-[var(--text-secondary)]">{t("stateCampaign.Add_Photo")}</span>
+                <span className="text-xs font-medium text-[var(--text-secondary)]">{t("stateCampaign.Add_Photo")} / Video</span>
               </button>
 
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/ogg,video/quicktime"
                 onChange={handleImageChange}
                 className="hidden"
               />
 
-              {/* Images Preview - Horizontal Scroll */}
-              {imagePreviews.map((preview, index) => (
-                <div
-                  key={`new-${index}`}
-                  className="group relative flex-shrink-0 w-24 h-24 bg-[var(--bg-color)] rounded-lg border border-[var(--text-color)]/10 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                >
-                  <img
-                    src={preview}
-                    alt={`Image ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  />
-
-                  {/* Remove Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeImage(index);
-                    }}
-                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
-                    title="Remove image"
+              {/* Images/Videos Preview - Horizontal Scroll */}
+              {imagePreviews.map((preview, index) => {
+                const file = selectedImages[index];
+                const isVideo = file
+                  ? file.type.startsWith("video/")
+                  : typeof preview === "string" && (
+                      preview.includes(".mp4") ||
+                      preview.includes(".webm") ||
+                      preview.includes(".ogg") ||
+                      preview.includes(".mov") ||
+                      preview.startsWith("data:video")
+                    );
+                return (
+                  <div
+                    key={`new-${index}`}
+                    className="group relative flex-shrink-0 w-24 h-24 bg-[var(--bg-color)] rounded-lg border border-[var(--text-color)]/10 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
+                    {isVideo ? (
+                      <video
+                        src={preview}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                        onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play()}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLVideoElement).pause(); (e.currentTarget as HTMLVideoElement).currentTime = 0; }}
+                      />
+                    ) : (
+                      <img
+                        src={preview}
+                        alt={`Image ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    )}
 
-                  {/* File Name Tooltip on Hover */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                    {selectedImages[index]?.name || `Image ${index + 1}`}
+                    {/* Video badge */}
+                    {isVideo && (
+                      <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1 rounded">▶</div>
+                    )}
+
+                    {/* Remove Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeImage(index);
+                      }}
+                      className="absolute top-1 right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                      title="Remove"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+
+                    {/* File Name Tooltip on Hover */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                      {file?.name || `File ${index + 1}`}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Form Actions */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-blue-400 disabled:to-purple-400 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none"
+              disabled={isSubmitting || isExternalSubmitting}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-blue-400 disabled:to-purple-400 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none min-w-[160px] justify-center"
             >
-              <Send size={20} className={isSubmitting ? "animate-pulse" : ""} />
-              {isSubmitting
-                ? isEditing
-                  ? "Updating..."
-                  : "Creating..."
-                : isEditing
-                ? "Update Campaign"
-                : "Launch Campaign"}
+              {(isSubmitting || isExternalSubmitting) ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white shrink-0" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                  </svg>
+                  {isEditing ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                <>
+                  <Send size={20} />
+                  {isEditing ? "Update Campaign" : "Launch Campaign"}
+                </>
+              )}
             </button>
             <button
               type="button"

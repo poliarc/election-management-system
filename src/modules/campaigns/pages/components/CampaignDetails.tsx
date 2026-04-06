@@ -478,22 +478,41 @@ export const CampaignDetails = ({
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {selectedReport.images.map(
-                        (image: string, index: number) => (
-                          <div
-                            key={index}
-                            className="group relative aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10 hover:border-blue-500 transition-all cursor-pointer shadow-sm hover:shadow-md"
-                            onClick={() => handleImageClick(image, index)}
-                          >
-                            <img
-                              src={image}
-                              alt={`Event image ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute top-2 right-2 bg-[var(--bg-color)] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                              <Eye size={20} className="text-blue-600" />
+                        (image: string, index: number) => {
+                          const isVid = image && (
+                            image.toLowerCase().includes(".mp4") ||
+                            image.toLowerCase().includes(".webm") ||
+                            image.toLowerCase().includes(".mov") ||
+                            image.startsWith("data:video")
+                          );
+                          return (
+                            <div
+                              key={index}
+                              className="group relative aspect-square rounded-lg overflow-hidden border-2 border-[var(--text-color)]/10 hover:border-blue-500 transition-all cursor-pointer shadow-sm hover:shadow-md"
+                              onClick={() => !isVid && handleImageClick(image, index)}
+                            >
+                              {isVid ? (
+                                <video
+                                  src={image}
+                                  className="w-full h-full object-cover"
+                                  controls
+                                  playsInline
+                                />
+                              ) : (
+                                <img
+                                  src={image}
+                                  alt={`Event image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                              {!isVid && (
+                                <div className="absolute top-2 right-2 bg-[var(--bg-color)] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                                  <Eye size={20} className="text-blue-600" />
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        )
+                          );
+                        }
                       )}
                     </div>
                   </div>
