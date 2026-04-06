@@ -122,16 +122,40 @@ const FullScreenImageModal = ({
       )}
 
       <div className="relative max-w-full max-h-full p-4">
-        <img
-          src={images[currentIndex]}
-          alt={`${campaignName} - Image ${currentIndex + 1}`}
-          className="max-w-full max-h-full object-contain transition-opacity duration-300"
-          style={{ maxHeight: "90vh", maxWidth: "90vw" }}
-        />
+        {isVideoUrl(images[currentIndex]) ? (
+          <video
+            src={images[currentIndex]}
+            controls
+            autoPlay
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            style={{ maxHeight: "90vh", maxWidth: "90vw" }}
+          />
+        ) : (
+          <img
+            src={images[currentIndex]}
+            alt={`${campaignName} - Image ${currentIndex + 1}`}
+            className="max-w-full max-h-full object-contain transition-opacity duration-300"
+            style={{ maxHeight: "90vh", maxWidth: "90vw" }}
+          />
+        )}
       </div>
 
       <div className="absolute inset-0 -z-10" onClick={onClose} />
     </div>
+  );
+};
+
+// Helper to detect if a URL is a video
+const isVideoUrl = (url: string): boolean => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes(".mp4") ||
+    lower.includes(".webm") ||
+    lower.includes(".ogg") ||
+    lower.includes(".mov") ||
+    lower.startsWith("data:video") ||
+    lower.includes("video/")
   );
 };
 
@@ -166,12 +190,25 @@ const CampaignImageSlider = ({
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onImageClick(currentIndex)}
     >
-      <img
-        src={images[currentIndex]}
-        alt={`${campaignName} - Image ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-        style={{ minHeight: "120px", maxHeight: "100%" }}
-      />
+      {isVideoUrl(images[currentIndex]) ? (
+        <video
+          src={images[currentIndex]}
+          className="w-full h-full object-cover transition-all duration-300"
+          style={{ minHeight: "120px", maxHeight: "100%" }}
+          muted
+          playsInline
+          loop
+          onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play()}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLVideoElement).pause(); (e.currentTarget as HTMLVideoElement).currentTime = 0; }}
+        />
+      ) : (
+        <img
+          src={images[currentIndex]}
+          alt={`${campaignName} - Image ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+          style={{ minHeight: "120px", maxHeight: "100%" }}
+        />
+      )}
 
       <div
         className={`absolute top-2 left-2 bg-black bg-opacity-50 text-white rounded-full p-1 transition-all duration-200 ${
