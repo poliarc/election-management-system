@@ -120,11 +120,13 @@ export const campaignApi = {
     payload: CampaignCreateRequest,
     imageFiles: File[] = []
   ) {
-    // Step 1: Create campaign without images
-    const response = await apiClient.post('/campaigns/create', payload);
+    // Send everything in one request with a long timeout
+    const response = await apiClient.post('/campaigns/create', payload, {
+      timeout: 900000, // 15 minutes
+    });
     const result = response.data as CampaignCreateResponse;
 
-    // Step 2: If images exist, upload them separately
+    // Upload images separately if any
     if (imageFiles.length > 0 && result.data?.campaign_id) {
       try {
         await this.uploadCampaignImages(
@@ -133,7 +135,6 @@ export const campaignApi = {
         );
       } catch (error) {
         console.error("Failed to upload images:", error);
-        // Campaign is created, but images failed - don't throw error
       }
     }
 
@@ -153,7 +154,7 @@ export const campaignApi = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 60000,
+      timeout: 600000,
     });
   },
 
@@ -178,13 +179,13 @@ export const campaignApi = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 60000,
+        timeout: 600000,
       });
       return response.data as CampaignCreateResponse;
     }
 
     // No images - update with JSON
-    const response = await apiClient.put(`/campaigns/${numericId}`, payload);
+    const response = await apiClient.put(`/campaigns/${numericId}`, payload, { timeout: 600000 });
     return response.data as CampaignCreateResponse;
   },
 

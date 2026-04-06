@@ -7,6 +7,34 @@ interface CampaignImageSliderProps {
   className?: string;
 }
 
+const isVideo = (url: string): boolean => {
+  const lower = url.toLowerCase();
+  return (
+    lower.includes(".mp4") ||
+    lower.includes(".webm") ||
+    lower.includes(".ogg") ||
+    lower.includes(".mov") ||
+    lower.startsWith("data:video")
+  );
+};
+
+const MediaItem: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
+  if (isVideo(src)) {
+    return (
+      <video
+        src={src}
+        className={className}
+        muted
+        playsInline
+        loop
+        autoPlay
+        controls={false}
+      />
+    );
+  }
+  return <img src={src} alt={alt} className={className} />;
+};
+
 export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
   images,
   alt,
@@ -14,12 +42,10 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Images are already parsed, just filter valid ones
   const validImages = images.filter(
     (img) => img && typeof img === "string" && img.trim().length > 0
   );
 
-  // If no valid images, show placeholder
   if (validImages.length === 0) {
     return (
       <img
@@ -30,21 +56,20 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
     );
   }
 
-  // If only one image, show it directly
   if (validImages.length === 1) {
-    return <img src={validImages[0]} alt={alt} className={className} />;
+    return <MediaItem src={validImages[0]} alt={alt} className={className} />;
   }
 
-  // Auto-slide functionality for multiple images
   useEffect(() => {
+    // Don't auto-slide if current item is a video
+    if (isVideo(validImages[currentImageIndex])) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex === validImages.length - 1 ? 0 : prevIndex + 1
       );
-    }, 3000); // Change image every 3 seconds
-
+    }, 3000);
     return () => clearInterval(interval);
-  }, [validImages.length]);
+  }, [validImages.length, currentImageIndex]);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,14 +87,12 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
 
   return (
     <div className="relative w-full h-full group">
-      {/* Current Image */}
-      <img
+      <MediaItem
         src={validImages[currentImageIndex]}
-        alt={`${alt} - Image ${currentImageIndex + 1}`}
+        alt={`${alt} - ${currentImageIndex + 1}`}
         className={className}
       />
 
-      {/* Navigation Arrows - only show on hover for multiple images */}
       {validImages.length > 1 && (
         <>
           <button
@@ -85,12 +108,10 @@ export const CampaignImageSlider: React.FC<CampaignImageSliderProps> = ({
             <ChevronRight className="w-4 h-4 text-white" />
           </button>
 
-          {/* Image Counter */}
           <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200">
-            {currentImageIndex + 1}/{validImages.length}
+            {isVideo(validImages[currentImageIndex]) ? "▶ " : ""}{currentImageIndex + 1}/{validImages.length}
           </div>
 
-          {/* Dots Indicator */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
             {validImages.map((_: string, index: number) => (
               <button
