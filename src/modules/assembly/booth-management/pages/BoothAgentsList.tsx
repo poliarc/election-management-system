@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import type { RootState } from "../../../../store";
 import { boothAgentApi } from "../services/boothAgentApi";
 import type { BoothAgent, BoothAgentCategory, PollingCenter } from "../types";
@@ -126,6 +127,10 @@ const AgentDetailModal: React.FC<{ agent: BoothAgent; onClose: () => void }> = (
 
 export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, title }) => {
   const {t} = useTranslation();
+  const [searchParams] = useSearchParams();
+  const pendingDocsFilter = searchParams.get("pendingDocs") === "1";
+  const docStatusFilter = searchParams.get("docStatus"); // "pending" | "complete" | null
+
   const [agents, setAgents] = useState<BoothAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -184,16 +189,51 @@ export const BoothAgentsList: React.FC<BoothAgentsListProps> = ({ category, titl
     if (!assemblyId || !partyId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const params: Record<string, unknown> = {
-        page, limit,
-        search: search || undefined,
-        category: category || undefined,
-        partyId,
-        ...(boothFilter !== "all" && { booth_id: boothFilter }),
-      };
-      const response = await boothAgentApi.getAgentsByAssembly(assemblyId, params as any);
-      setAgents(response.data);
-      setTotalPages(response.pagination?.totalPages || 1);
+      const isDocFilter = pendingDocsFilter || docStatusFilter === "pending" || docStatusFilter === "complete";
+      if (isDocFilter) {
+        const res = await boothAgentApi.getDocumentStatus(assemblyId, partyId, {
+          category: category || undefined,
+          page,
+          limit,
+          search: search || undefined,
+        });
+        const targetStatus = docStatusFilter === "complete" ? "All Completed" : "Pending Documents";
+        const filtered = res.data
+          .filter(a => a.overall_status === targetStatus)
+          .map(a => ({
+            agent_id: a.agent_id,
+            name: a.name,
+            phone: a.phone,
+            email: a.email,
+            category: a.category as BoothAgentCategory,
+            role: a.role as any,
+            status: a.status,
+            photo: a.photo,
+            aadhar_card: a.aadhar_card,
+            voter_id_file: a.voter_id_file,
+            state_name: a.state_name,
+            district_name: a.district_name,
+            assembly_name: a.assembly_name,
+            polling_center_name: a.polling_center_name,
+            booth_name: a.booth_name,
+            isDelete: 0,
+            created_at: "",
+            updated_at: "",
+          } as BoothAgent));
+        setAgents(filtered);
+        setTotalPages(res.pagination?.total_pages || 1);
+      } else {
+        const params: Record<string, unknown> = {
+          page, limit,
+          search: search || undefined,
+          category: category || undefined,
+          partyId,
+          ...(boothFilter !== "all" && { booth_id: boothFilter }),
+        };
+        const response = await boothAgentApi.getAgentsByAssembly(assemblyId, params as any);
+        setAgents(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+      }
     } catch {
       // silent
     } finally {

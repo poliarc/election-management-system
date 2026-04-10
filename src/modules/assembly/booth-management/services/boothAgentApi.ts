@@ -205,7 +205,7 @@ export const boothAgentApi = {
     };
   },
 
-  // Get dashboard stats
+  // Get dashboard stats (assembly level)
   getStats: async (assemblyId: number, partyId: number): Promise<{
     total_agents: number;
     booth_inside_team: number;
@@ -215,6 +215,123 @@ export const boothAgentApi = {
     inactive_agents: number;
   }> => {
     const response = await apiClient.get(`${BASE_PATH}/stats/${assemblyId}/${partyId}`);
+    return response.data.data;
+  },
+
+  // Get document status for assembly
+  getDocumentStatus: async (assemblyId: number, partyId: number, params?: {
+    category?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<{
+    summary: {
+      total_agents: number;
+      documents: {
+        photo: { completed: number; pending: number };
+        aadhar_card: { completed: number; pending: number };
+        voter_id_file: { completed: number; pending: number };
+      };
+      overall: { all_documents_completed: number; documents_pending: number };
+    };
+    data: Array<{
+      agent_id: number;
+      name: string;
+      phone: string;
+      email: string;
+      category: string;
+      role: string;
+      status: number;
+      photo: string | null;
+      aadhar_card: string | null;
+      voter_id_file: string | null;
+      photo_status: "Completed" | "Pending";
+      aadhar_status: "Completed" | "Pending";
+      voter_id_status: "Completed" | "Pending";
+      overall_status: "All Completed" | "Pending Documents";
+      state_name: string;
+      district_name: string;
+      assembly_name: string;
+      polling_center_name: string;
+      booth_name: string;
+    }>;
+    pagination: { current_page: number; per_page: number; total: number; total_pages: number };
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/documents/status/assembly/${assemblyId}/${partyId}`, { params });
+    return response.data;
+  },
+
+  // Get document status for state
+  getStateDocumentStatus: async (stateId: number, partyId: number): Promise<{
+    summary: {
+      total_agents: number;
+      documents: {
+        photo: { completed: number; pending: number };
+        aadhar_card: { completed: number; pending: number };
+        voter_id_file: { completed: number; pending: number };
+      };
+      overall: { all_documents_completed: number; documents_pending: number };
+    };
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/documents/status/state/${stateId}/${partyId}`, { params: { limit: 1 } });
+    return response.data;
+  },
+
+  // Get document status for district
+  getDistrictDocumentStatus: async (districtId: number, partyId: number): Promise<{
+    summary: {
+      total_agents: number;
+      documents: {
+        photo: { completed: number; pending: number };
+        aadhar_card: { completed: number; pending: number };
+        voter_id_file: { completed: number; pending: number };
+      };
+      overall: { all_documents_completed: number; documents_pending: number };
+    };
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/documents/status/district/${districtId}/${partyId}`, { params: { limit: 1 } });
+    return response.data;
+  },
+
+  // Get dashboard stats for state level
+  getStateStats: async (stateId: number, partyId: number): Promise<{
+    stats: {
+      total_agents: number;
+      booth_inside_team: number;
+      booth_outside_team: number;
+      polling_support_team: number;
+      active_agents: number;
+      inactive_agents: number;
+    };
+    data: {
+      booth_inside_team: BoothAgent[];
+      booth_outside_team: BoothAgent[];
+      polling_support_team: BoothAgent[];
+    };
+    all_agents: BoothAgent[];
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/stats/state/${stateId}/${partyId}`);
+    return response.data.data;
+  },
+
+  // Get dashboard stats for district level
+  getDistrictStats: async (districtId: number, partyId: number): Promise<{
+    stats: {
+      total_agents: number;
+      booth_inside_team: number;
+      booth_outside_team: number;
+      polling_support_team: number;
+      active_agents: number;
+      inactive_agents: number;
+    };
+    data: {
+      booth_inside_team: BoothAgent[];
+      booth_outside_team: BoothAgent[];
+      polling_support_team: BoothAgent[];
+    };
+    all_agents: BoothAgent[];
+  }> => {
+    const response = await apiClient.get(`${BASE_PATH}/stats/district/${districtId}/${partyId}`);
     return response.data.data;
   },
 
