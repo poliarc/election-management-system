@@ -106,14 +106,12 @@ export const BoothManagementDashboard: React.FC = () => {
 
   const partyId = user?.partyId;
 
-  const hasFetched = React.useRef(false);
-
   useEffect(() => {
-    if (assemblyId && partyId && !hasFetched.current) {
-      hasFetched.current = true;
+    if (assemblyId && partyId) {
       fetchDashboardData();
+    } else {
+      setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assemblyId, partyId]);
 
   const fetchDashboardData = async () => {
