@@ -14,8 +14,11 @@ import {
     Table as TableIcon,
     Users,
     Search,
-    Clock
+    Clock,
+    Download,
+    Loader2,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 // Import login session API hooks with updated types
 import { useGetLoginSessionsByPartyQuery, useGetUserLoginReportQuery, useGetUnloggedUsersQuery } from "../../../store/api/loginSessionApi";
 import { useGetUsersByPartyQuery } from "../../../store/api/partyUserApi";
@@ -53,6 +56,9 @@ export const LoginReportPage: React.FC = () => {
     const [pendingPage, setPendingPage] = useState(1);
     const [pendingDateFrom, setPendingDateFrom] = useState("");
     const [pendingDateTo, setPendingDateTo] = useState("");
+
+    // Export state
+    const [isExporting, setIsExporting] = useState(false);
 
     // Data Fetching
     const { data: stateMasterData = [] } = useGetAllStateMasterDataQuery();
@@ -172,6 +178,79 @@ export const LoginReportPage: React.FC = () => {
     const pendingPagination = unloggedData?.pagination;
 
     const pagination = sessionsData?.pagination;
+
+    const handleExportSessions = async () => {
+        if (!partyId) return;
+        setIsExporting(true);
+        try {
+            const apiBase = import.meta.env.VITE_API_BASE_URL;
+            const token = localStorage.getItem("auth_access_token");
+            const allSessions: any[] = [];
+            let currentPage = 1;
+            let totalPages = 1;
+
+            do {
+                const params = new URLSearchParams({ page: String(currentPage), limit: "100" });
+                if (statusFilter) params.set("login_status", statusFilter);
+                if (dateFrom) params.set("date_from", dateFrom);
+                if (dateTo) params.set("date_to", `${dateTo} 23:59:59`);
+                if (selectedDistrictId) params.set("district_id", String(selectedDistrictId));
+
+                const url = selectedStateId
+                    ? `${apiBase}/api/login-sessions/by-party-state/${partyId}/${selectedStateId}?${params}`
+                    : `${apiBase}/api/login-sessions/by-party/${partyId}?${params}`;
+
+                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                const json = await res.json();
+                const pageData: any[] = json.data || [];
+
+                // Apply district frontend filter if needed
+                const filtered = selectedDistrictId
+                    ? pageData.filter((s: any) => s.district_id === selectedDistrictId)
+                    : pageData;
+
+                allSessions.push(...filtered);
+                totalPages = json.pagination?.totalPages || 1;
+                currentPage++;
+            } while (currentPage <= totalPages);
+
+            if (!allSessions.length) {
+                alert("No data to export.");
+                return;
+            }
+
+            const COLS = ["#", "State", "Name", "Email", "Status", "Failure Reason", "IP Address", "Device", "Country",  "Login Time"];
+            const rows = allSessions.map((s, i) => [
+                i + 1,
+                s.stateName || "",
+                s.first_name ? `${s.first_name} ${s.last_name || ""}`.trim() : s.username,
+                
+                s.user_email || "",
+                s.login_status,
+                s.failure_reason || "",
+                s.ip_address,
+                s.user_agent || "",
+                s.country_code || "",
+                
+                s.created_at ? new Date(s.created_at).toLocaleString() : "",
+            ]);
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([COLS, ...rows]);
+            ws["!cols"] = [6, 20, 18, 24, 10, 20, 16, 30, 10, 16, 20].map(w => ({ wch: w }));
+            XLSX.utils.book_append_sheet(wb, ws, "Sessions");
+
+            const date = new Date().toISOString().split("T")[0];
+            const filterTag = statusFilter ? `_${statusFilter}` : "";
+            const dateTag = dateFrom ? `_${dateFrom}` : "";
+            XLSX.writeFile(wb, `login_sessions${filterTag}${dateTag}_${date}.xlsx`);
+        } catch (e) {
+            console.error(e);
+            alert("Export failed.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -354,6 +433,20 @@ export const LoginReportPage: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Export button */}
+                    <div className="flex justify-end mb-2">
+                        <button
+                            onClick={handleExportSessions}
+                            disabled={isExporting}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isExporting
+                                ? <><Loader2 className="w-4 h-4 animate-spin" />Exporting...</>
+                                : <><Download className="w-4 h-4" />Export Excel</>
+                            }
+                        </button>
                     </div>
 
                     {/* Table Content */}
