@@ -119,6 +119,7 @@ import { PartyAdminUsers } from "./pages/PartyAdmin/Users";
 import { DynamicLinkGenerator } from "./pages/PartyAdmin/DynamicLinkGenerator";
 import { RegistrationLinksManager } from "./pages/PartyAdmin/RegistrationLinksManager";
 import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
+import ExportBoothAgentsPage from "./pages/PartyAdmin/ExportBoothAgentsPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
 import { PublicRegistration } from "./pages/PublicRegistration";
@@ -149,6 +150,8 @@ import {
   BoothOutsideTeamPage,
   PollingSupportTeamPage,
 } from "./modules/assembly/booth-management/pages";
+import StateBoothManagementDashboard from "./pages/State/booth-management/BoothManagementDashboard";
+import DistrictBoothManagementDashboard from "./pages/District/booth-management/BoothManagementDashboard";
 import {
   UserCommunication,
   VoterCommunication,
@@ -191,6 +194,7 @@ export default function App() {
             <Route path="roles" element={<PartyAdminRoles />} />
             <Route path="login-report" element={<LoginReportPage />} />
             <Route path="export-supporters" element={<ExportSupportersPage />} />
+            <Route path="export-booth-agents" element={<ExportBoothAgentsPage />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 
@@ -204,6 +208,7 @@ export default function App() {
             <Route path="assign-users" element={<UserManagementRouter />} />
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
+           
             <Route
               path="assembly-hierarchy"
               element={<AssemblyHierarchyManager />}
@@ -249,6 +254,7 @@ export default function App() {
             <Route path="user-wise-supporters" element={<StateUserWiseSupportersPage />} />
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
+            <Route path="booth-management" element={<StateBoothManagementDashboard />} />
             <Route path="profile" element={<StateProfile />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
@@ -274,6 +280,7 @@ export default function App() {
             <Route path="campaigns" element={<CampaignsStatePage />} />
             <Route path="campaigns/reports" element={<CampaignReportsPage />} />
             <Route path="initiatives" element={<DistrictInitiatives />} />
+            <Route path="booth-management" element={<DistrictBoothManagementDashboard />} />
             <Route path="profile" element={<DistrictProfile />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
