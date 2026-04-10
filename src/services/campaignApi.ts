@@ -167,7 +167,6 @@ export const campaignApi = {
     if (!Number.isFinite(numericId)) {
       throw new Error("A valid campaign id is required to update a campaign.");
     }
-
     // If images exist, upload them using multipart
     if (imageFiles.length > 0) {
       const formData = new FormData();
