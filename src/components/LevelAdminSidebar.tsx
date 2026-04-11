@@ -7,33 +7,50 @@ interface LevelAdminSidebarProps {
 }
 
 export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps) {
-    const { levelAdminPanels } = useAppSelector((state) => state.auth);
+    const { levelAdminPanels, selectedAssignment } = useAppSelector((state) => state.auth);
     const [selectedPanel, setSelectedPanel] = useState<any>(null);
 
     const location = useLocation();
 
     useEffect(() => {
-        // Update selected panel when panels list or URL changes
         const path = location.pathname;
         const match = path.match(/\/leveladmin\/(\d+)/);
         if (match) {
             const panelId = parseInt(match[1]);
             const panel = levelAdminPanels.find((p) => p.id === panelId);
             setSelectedPanel(panel || levelAdminPanels[0]);
+        } 
+        // NEW: Check for BOTH whatsapp routes so the sidebar stays highlighted!
+        else if (location.pathname === "/whatsapp" || location.pathname === "/mandal-whatsapp") {
+            const locationState = location.state as { levelId?: number } | null;
+            const panelFromLocation = locationState?.levelId
+                ? levelAdminPanels.find((p) => p.id === locationState.levelId)
+                : null;
+            const panelFromAssignment = selectedAssignment?.levelType
+                ? levelAdminPanels.find(
+                    (p) => p.name?.toLowerCase() === selectedAssignment.levelType.toLowerCase()
+                )
+                : null;
+            const assemblyPanel = levelAdminPanels.find(
+                (p) => p.name?.toLowerCase() === "assembly"
+            );
+            setSelectedPanel(panelFromLocation || panelFromAssignment || assemblyPanel || levelAdminPanels[0]);
         } else {
             setSelectedPanel(levelAdminPanels[0]);
         }
-    }, [levelAdminPanels, location.pathname]);
+    }, [levelAdminPanels, location.pathname, location.state, selectedAssignment?.levelType]);
 
     if (!selectedPanel) return null;
 
     const baseUrl = `/leveladmin/${selectedPanel.id}`;
-
-    // Check if this is a Booth level panel
     const isBoothLevel = selectedPanel.name?.toLowerCase() === "booth";
-
-    // Check if this is an Assembly level panel
-    const isAssemblyLevel = selectedPanel.name?.toLowerCase() === "assembly";
+    const panelNameLower = selectedPanel.name?.toLowerCase() || "";
+    
+    // Determine if WhatsApp should be shown
+    const showWhatsApp = panelNameLower === "assembly" || panelNameLower === "mandal";
+    
+    // NEW: Dynamically determine the route!
+    const whatsappRoute = panelNameLower === "mandal" ? "/mandal-whatsapp" : "/whatsapp";
 
     const navItems = [
         {
@@ -54,7 +71,6 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: "Chat",
         },
-
         {
             to: `${baseUrl}/users`,
             icon: (
@@ -64,7 +80,6 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: (selectedPanel.name !== "State" && selectedPanel.name !== "District" && selectedPanel.name !== "Assembly") ? "Manage Levels" : "User Management",
         },
-        // Add "Manage Booths" for Booth level panels
         ...(isBoothLevel ? [{
             to: `${baseUrl}/manage-booths`,
             icon: (
@@ -74,7 +89,6 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: "Manage Booths",
         }] : []),
-        // Add "Assign Users" for sub-level panels
         ...(selectedPanel.name !== "State" && selectedPanel.name !== "District" && selectedPanel.name !== "Assembly" ? [{
             to: `${baseUrl}/assign-users`,
             icon: (
@@ -84,7 +98,6 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: "Assign Users",
         }] : []),
-        // Add "Create User" for all level admin panels
         {
             to: `${baseUrl}/create-user`,
             icon: (
@@ -94,21 +107,20 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             ),
             label: "Create User",
         },
-        // Add "Assembly Hierarchy" only for Assembly level panels
-        ...(isAssemblyLevel ? [{
-            to: `${baseUrl}/assembly-hierarchy`,
+        ...(showWhatsApp ? [{
+            to: whatsappRoute, // <-- NEW: Uses dynamic route!
+            state: { levelId: selectedPanel.id },
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7v2a2 2 0 01-2 2H7a2 2 0 01-2-2V4m14 7v2a2 2 0 01-2 2H7a2 2 0 01-2-2v-2m14 7v2a2 2 0 01-2 2H7a2 2 0 01-2-2v-2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h8M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
                 </svg>
             ),
-            label: "Assembly Hierarchy",
+            label: "WhatsApp",
         }] : []),
     ];
 
     return (
         <aside className="bg-[var(--bg-card)] border-r border-[var(--border-color)] h-full flex flex-col">
-            {/* Header */}
             <div className="p-6 border-b border-[var(--border-color)]">
                 <h2 className="text-xl font-bold text-[var(--text-color)]">{selectedPanel.displayName}</h2>
                 <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -119,12 +131,12 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
                 </p>
             </div>
 
-            {/* Navigation */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
+                        state={(item as { state?: { levelId: number } }).state}
                         onClick={onNavigate}
                         className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
@@ -139,7 +151,6 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
                 ))}
             </nav>
 
-            {/* Footer */}
             <div className="p-4 border-t border-[var(--border-color)]">
                 <div className="text-xs text-[var(--text-secondary)] text-center">
                     Level Admin Panel
@@ -148,5 +159,3 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
         </aside>
     );
 }
-
-

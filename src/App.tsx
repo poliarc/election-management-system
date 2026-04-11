@@ -127,7 +127,7 @@ import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
-import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
+import WhatsAppPage from "./pages/LevelAdmin/assemblyLevel/WhatsAppPage";
 import ChatPage from "./pages/Chat/ChatPage";
 // import { ThemeSettings } from "./pages/Settings";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
@@ -164,6 +164,7 @@ import {
   ReportDetails,
 } from "./pages/VIC";
 import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
+import MandalWhatsAppPage from "./pages/LevelAdmin/subLevel/MandalWhatsAppPage";
 
 export default function App() {
   return (
@@ -209,11 +210,12 @@ export default function App() {
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
            
-            <Route
-              path="assembly-hierarchy"
-              element={<AssemblyHierarchyManager />}
-            />
             <Route path="update-password" element={<UpdatePasswordPage />} />
+          </Route>
+
+          <Route element={<LevelAdminLayout />}>
+            <Route path="/whatsapp" element={<WhatsAppPage />} />
+            <Route path="/mandal-whatsapp" element={<MandalWhatsAppPage />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
