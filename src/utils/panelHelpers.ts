@@ -104,34 +104,80 @@ export function getLevelDisplayName(assignment: StateAssignment): string {
 }
 
 /**
+ * Hierarchy order for dynamic levels (after Assembly).
+ * Lower index = higher in hierarchy = shown first.
+ */
+const DYNAMIC_LEVEL_ORDER: Record<string, number> = {
+  block: 1,
+  mandal: 2,
+  locality: 3,
+  pollingcenter: 4,
+  sector: 5,
+  zone: 6,
+  ward: 7,
+  booth: 8,
+};
+
+function sortDynamicLevelTypes(types: string[]): string[] {
+  return [...types].sort((a, b) => {
+    const aOrder = DYNAMIC_LEVEL_ORDER[a.toLowerCase()] ?? 99;
+    const bOrder = DYNAMIC_LEVEL_ORDER[b.toLowerCase()] ?? 99;
+    return aOrder - bOrder;
+  });
+}
+
+/**
  * Gets all dynamic level assignments from permissions (everything after Assembly)
- * This function dynamically discovers all accessible* properties in permissions
+ * Uses accessibleLevelsByType as primary source (direct map of levelType -> assignments)
  */
 export function getAllDynamicLevelAssignments(permissions: any): StateAssignment[] {
   if (!permissions) return [];
 
   const assignments: StateAssignment[] = [];
-  
-  // Fixed levels that we should skip
+
+  // Primary: use accessibleLevelsByType if available (e.g., { Booth: [...], Locality: [...] })
+  if (permissions.accessibleLevelsByType && typeof permissions.accessibleLevelsByType === 'object') {
+    Object.entries(permissions.accessibleLevelsByType).forEach(([levelType, items]) => {
+      if (!Array.isArray(items) || items.length === 0) return;
+      items.forEach((item: any) => {
+        assignments.push({
+          assignment_id: item.assignment_id,
+          stateMasterData_id: item.afterAssemblyData_id || item.level_id || 0,
+          afterAssemblyData_id: item.afterAssemblyData_id,
+          levelName: item.levelName || levelType,
+          levelType: item.levelName || levelType,
+          displayName: item.displayName || item.levelName || levelType,
+          level_id: item.level_id,
+          parentId: item.parentId ?? null,
+          parentLevelName: item.parentLevelName || null,
+          parentLevelType: item.parentLevelType || (item.parentId == null ? 'Assembly' : null),
+          parentAssemblyId: item.parentAssemblyId,
+          assemblyName: item.assemblyName,
+          assemblyType: item.assemblyType,
+          partyLevelName: item.partyLevelName,
+          partyLevelDisplayName: item.partyLevelDisplayName,
+          partyLevelId: item.partyLevelId,
+          assignment_active: item.assignment_active,
+          assigned_at: item.assigned_at,
+        });
+      });
+    });
+    return assignments;
+  }
+
+  // Fallback: legacy accessible* pattern
   const fixedLevels = ['accessibleStates', 'accessibleDistricts', 'accessibleAssemblies'];
-  
-  // Special cases that need different handling
   const specialCases = ['accessibleBooths'];
-  
-  // Get all properties that start with 'accessible' and are arrays
+
   Object.keys(permissions).forEach(key => {
-    if (key.startsWith('accessible') && 
-        !fixedLevels.includes(key) && 
+    if (key.startsWith('accessible') &&
+        !fixedLevels.includes(key) &&
         !specialCases.includes(key) &&
-        Array.isArray(permissions[key]) && 
+        Array.isArray(permissions[key]) &&
         permissions[key].length > 0) {
-      
-      // Extract level type from property name (e.g., 'accessibleWards' -> 'Ward')
-      const levelType = key.replace('accessible', '').slice(0, -1); // Remove 's' at the end
-      
-      // Transform each item to StateAssignment format
+
+      const levelType = key.replace('accessible', '').slice(0, -1);
       permissions[key].forEach((item: any) => {
-        const isDirectChildOfAssembly = item.parentId === null || item.parentId === undefined;
         assignments.push({
           assignment_id: item.assignment_id,
           stateMasterData_id: item.afterAssemblyData_id || 0,
@@ -141,8 +187,8 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
           displayName: item.displayName || item.levelName,
           level_id: item.level_id,
           parentId: item.parentId,
-          parentLevelName: item.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
-          parentLevelType: item.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'Unknown'),
+          parentLevelName: item.parentLevelName || null,
+          parentLevelType: item.parentLevelType || (item.parentId == null ? 'Assembly' : null),
           parentAssemblyId: item.parentAssemblyId,
           assemblyName: item.assemblyName,
         });
@@ -150,10 +196,9 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
     }
   });
 
-  // Handle special case: Booths
+  // Handle special case: Booths (legacy)
   if (permissions.accessibleBooths && permissions.accessibleBooths.length > 0) {
     permissions.accessibleBooths.forEach((booth: any) => {
-      const isDirectChildOfAssembly = booth.parentLevelId === null || booth.parentLevelId === undefined;
       assignments.push({
         assignment_id: booth.booth_assignment_id,
         stateMasterData_id: booth.booth_assignment_id || 0,
@@ -163,8 +208,8 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
         displayName: `${booth.partyLevelDisplayName || 'Booth'} (${booth.boothFrom}-${booth.boothTo})`,
         level_id: booth.booth_assignment_id,
         parentId: booth.parentLevelId,
-        parentLevelName: booth.parentLevelName || (isDirectChildOfAssembly ? 'Assembly' : 'PollingCenter'),
-        parentLevelType: booth.parentLevelType || (isDirectChildOfAssembly ? 'Assembly' : 'PollingCenter'),
+        parentLevelName: booth.parentLevelName || null,
+        parentLevelType: booth.parentLevelType || null,
         parentAssemblyId: undefined,
         assemblyName: undefined,
       });
@@ -180,26 +225,33 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
 export function getAllDynamicLevelTypes(permissions: any): string[] {
   if (!permissions) return [];
 
+  // Primary: use accessibleLevelsByType keys directly
+  if (permissions.accessibleLevelsByType && typeof permissions.accessibleLevelsByType === 'object') {
+    const types = Object.keys(permissions.accessibleLevelsByType).filter(
+      (key) => Array.isArray(permissions.accessibleLevelsByType[key]) && permissions.accessibleLevelsByType[key].length > 0
+    );
+    return sortDynamicLevelTypes(types);
+  }
+
+  // Fallback: legacy accessible* pattern
   const levelTypes: string[] = [];
   const fixedLevels = ['accessibleStates', 'accessibleDistricts', 'accessibleAssemblies'];
   const specialCases = ['accessibleBooths'];
 
   Object.keys(permissions).forEach(key => {
-    if (key.startsWith('accessible') && 
-        !fixedLevels.includes(key) && 
+    if (key.startsWith('accessible') &&
+        !fixedLevels.includes(key) &&
         !specialCases.includes(key) &&
-        Array.isArray(permissions[key]) && 
+        Array.isArray(permissions[key]) &&
         permissions[key].length > 0) {
-      
       const levelType = key.replace('accessible', '').slice(0, -1);
       levelTypes.push(levelType);
     }
   });
 
-  // Add Booth if exists
   if (permissions.accessibleBooths && permissions.accessibleBooths.length > 0) {
     levelTypes.push('Booth');
   }
 
-  return levelTypes;
+  return sortDynamicLevelTypes(levelTypes);
 }

@@ -219,7 +219,15 @@ export default function AfterAssemblyPanelSidebar({
       return selectedAssignment?.partyLevelId || 0;
     }
 
-    // Check in all accessible levels for matching assignment (sub-levels only)
+    // Primary: check accessibleLevelsByType
+    if (permissions.accessibleLevelsByType) {
+      for (const items of Object.values(permissions.accessibleLevelsByType) as any[][]) {
+        const match = items.find((item: any) => item.assignment_id === selectedAssignment.assignment_id);
+        if (match?.partyLevelId) return match.partyLevelId;
+      }
+    }
+
+    // Fallback: legacy accessible* arrays
     const accessibleLevels = [
       { data: permissions.accessibleBooths, idField: 'booth_assignment_id' },
       { data: permissions.accessiblePollingCenters, idField: 'assignment_id' },
@@ -241,7 +249,6 @@ export default function AfterAssemblyPanelSidebar({
       }
     }
 
-    // Fallback to selectedAssignment
     return selectedAssignment.partyLevelId || 0;
   };
 
@@ -296,34 +303,57 @@ export default function AfterAssemblyPanelSidebar({
   const currentLevelName = selectedAssignment?.levelType;
   let sameTypeAssignments: StateAssignment[] = [];
 
-  if (currentLevelName) {
-    const allAfterAssemblyAssignments = [
-      ...(permissions?.accessibleBlocks || []),
-      ...(permissions?.accessiblePollingCenters || []),
-      ...(permissions?.accessibleMandals || []),
-      ...(permissions?.accessibleBooths || []),
-    ];
-
-    sameTypeAssignments = allAfterAssemblyAssignments
-      .filter((a: any) => a.levelName === currentLevelName)
-      .map((a: any) => ({
-        assignment_id: a.assignment_id || a.booth_assignment_id,
-        stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+  if (currentLevelName && permissions) {
+    // Primary: use accessibleLevelsByType (covers all dynamic levels like Locality, Booth, etc.)
+    if (permissions.accessibleLevelsByType && permissions.accessibleLevelsByType[currentLevelName]) {
+      sameTypeAssignments = permissions.accessibleLevelsByType[currentLevelName].map((a: any) => ({
+        assignment_id: a.assignment_id,
+        stateMasterData_id: a.afterAssemblyData_id || a.level_id || 0,
         afterAssemblyData_id: a.afterAssemblyData_id,
-        levelName: a.displayName || a.levelName,
-        levelType: a.levelName,
+        levelName: a.levelName || currentLevelName,
+        levelType: a.levelName || currentLevelName,
         level_id: a.level_id,
-        parentId: a.parentId || a.parentAssemblyId || a.parentLevelId,
-        parentLevelName: a.assemblyName || a.parentLevelName || "Unknown",
-        parentLevelType: a.parentLevelType || "Unknown",
-        displayName: a.displayName,
+        parentId: a.parentId ?? null,
+        parentLevelName: a.parentLevelName || a.assemblyName || null,
+        parentLevelType: a.parentLevelType || null,
+        displayName: a.displayName || a.levelName,
         assemblyName: a.assemblyName,
         partyLevelName: a.partyLevelName,
         partyLevelDisplayName: a.partyLevelDisplayName,
         partyLevelId: a.partyLevelId,
-        boothFrom: a.boothFrom,
-        boothTo: a.boothTo,
+        assignment_active: a.assignment_active,
+        assigned_at: a.assigned_at,
       }));
+    } else {
+      // Fallback: legacy accessible* arrays
+      const allAfterAssemblyAssignments = [
+        ...(permissions?.accessibleBlocks || []),
+        ...(permissions?.accessiblePollingCenters || []),
+        ...(permissions?.accessibleMandals || []),
+        ...(permissions?.accessibleBooths || []),
+      ];
+
+      sameTypeAssignments = allAfterAssemblyAssignments
+        .filter((a: any) => a.levelName === currentLevelName)
+        .map((a: any) => ({
+          assignment_id: a.assignment_id || a.booth_assignment_id,
+          stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+          afterAssemblyData_id: a.afterAssemblyData_id,
+          levelName: a.displayName || a.levelName,
+          levelType: a.levelName,
+          level_id: a.level_id,
+          parentId: a.parentId || a.parentAssemblyId || a.parentLevelId,
+          parentLevelName: a.assemblyName || a.parentLevelName || null,
+          parentLevelType: a.parentLevelType || null,
+          displayName: a.displayName,
+          assemblyName: a.assemblyName,
+          partyLevelName: a.partyLevelName,
+          partyLevelDisplayName: a.partyLevelDisplayName,
+          partyLevelId: a.partyLevelId,
+          boothFrom: a.boothFrom,
+          boothTo: a.boothTo,
+        }));
+    }
   }
 
   // Get booth range for current assignment if it's a booth
@@ -341,12 +371,9 @@ export default function AfterAssemblyPanelSidebar({
   // Auto-scroll to selected item when dropdown opens
   useEffect(() => {
     if (switchDropdownOpen && switchDropdownRef.current) {
-      const selectedButton = switchDropdownRef.current.querySelector('.bg-indigo-500/10');
+      const selectedButton = switchDropdownRef.current.querySelector('[data-selected="true"]');
       if (selectedButton) {
-        selectedButton.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest'
-        });
+        selectedButton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
   }, [switchDropdownOpen]);
@@ -523,6 +550,7 @@ export default function AfterAssemblyPanelSidebar({
                   <button
                     key={assignment.assignment_id}
                     onClick={() => handleAssignmentSwitch(assignment)}
+                    data-selected={selectedAssignment.assignment_id === assignment.assignment_id ? "true" : "false"}
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===
