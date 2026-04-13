@@ -17,7 +17,6 @@ interface WhatsAppLinkModalProps {
   onSuccess?: () => void;
   initialData?: WhatsAppLinkData | null;
   row: AssemblyOption | null;
-  // NEW: Prop to hide user selection for Mandal level
   hideUserSelection?: boolean; 
 }
 
@@ -32,7 +31,7 @@ export default function WhatsAppLinkModal({
   onSuccess,
   initialData,
   row,
-  hideUserSelection = false, // Defaults to false so Assembly page stays exactly the same
+  hideUserSelection = false,
 }: WhatsAppLinkModalProps) {
   const { levelAdminPanels, user } = useAppSelector((state) => state.auth);
 
@@ -60,7 +59,6 @@ export default function WhatsAppLinkModal({
   const stateId = assemblyPanel?.metadata?.stateId ?? levelAdminPanels[0]?.metadata?.stateId ?? user?.state_id ?? null;
 
   const loadUsers = async (page: number, search: string = "", isInitial = false) => {
-    // If we are hiding user selection, don't even bother fetching users!
     if (hideUserSelection) return;
 
     if (!partyId || !stateId) {
@@ -189,12 +187,13 @@ export default function WhatsAppLinkModal({
   const handleSubmit = async () => {
     if (!row) return;
 
+    // 🌟 THE FIX: Smart Routing based on the hideUserSelection flag!
     const payload = {
-      afterAssemblyData_id: row.assemblyId,
+      stateMasterData_id: hideUserSelection ? null : row.assemblyId,
+      afterAssemblyData_id: hideUserSelection ? row.assemblyId : null,
       group_type: groupType,
       group_name: groupName.trim() || null,
       link: whatsappLink.trim(),
-      // If we hid the user selection, explicitly send an empty array
       user_ids: hideUserSelection ? [] : selectedUsers, 
     };
 
@@ -267,7 +266,6 @@ export default function WhatsAppLinkModal({
               <input type="text" value={whatsappLink} onChange={(e) => setWhatsappLink(e.target.value)} placeholder="Enter WhatsApp group link" className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-color)] outline-none focus:border-blue-500" />
             </div>
 
-            {/* ONLY SHOW THIS SECTION IF NOT HIDING USER SELECTION */}
             {!hideUserSelection && (
               <div>
                 <div className="mb-2 flex items-center justify-between">
@@ -323,7 +321,6 @@ export default function WhatsAppLinkModal({
                   )}
                 </div>
                 
-                {/* Pagination */}
                 {!loadingUsers && totalPages > 1 && (
                   <div className="mt-3 flex items-center justify-between">
                     <button type="button" onClick={() => loadUsers(currentPage - 1, userSearch)} disabled={currentPage === 1 || pageLoading} className="rounded-lg border border-[var(--border-color)] px-3 py-1.5 text-xs font-medium text-[var(--text-color)] hover:bg-[var(--bg-main)] disabled:cursor-not-allowed disabled:opacity-40">← Previous</button>
@@ -338,7 +335,6 @@ export default function WhatsAppLinkModal({
         </div>
 
         <div className="flex items-center justify-between border-t border-[var(--border-color)] px-6 py-4">
-          {/* Hide user count if user selection is hidden */}
           {hideUserSelection ? <div></div> : (
             <span className="text-sm text-[var(--text-secondary)]">
               {selectedUsers.length > 0 ? `${selectedUsers.length} user${selectedUsers.length !== 1 ? "s" : ""} selected` : "No users selected"}
@@ -352,7 +348,6 @@ export default function WhatsAppLinkModal({
             <button
               type="button"
               onClick={handleSubmit}
-              // THE FIX: If hideUserSelection is true, we ONLY check if whatsappLink exists!
               disabled={(hideUserSelection ? false : selectedUsers.length === 0) || !whatsappLink.trim() || submitting}
               className="rounded-xl bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
