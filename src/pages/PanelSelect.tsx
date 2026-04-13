@@ -218,17 +218,46 @@ export default function PanelSelect() {
     return acc;
   }, {} as Record<string, number>);
 
-  const hasDynamicLevels = dynamicLevelAssignments.length > 0;
-
-  // Group dynamic assignments by level type
-  const groupedDynamicLevels = dynamicLevelAssignments.reduce((acc, assignment) => {
-    const type = assignment.levelType;
-    if (!acc[type]) {
-      acc[type] = [];
+  // Group dynamic assignments by level type - prefer accessibleLevelsByType directly
+  const groupedDynamicLevels = useMemo((): Record<string, StateAssignment[]> => {
+    // If accessibleLevelsByType is available, use it directly (already grouped by levelType)
+    if (permissions?.accessibleLevelsByType && typeof permissions.accessibleLevelsByType === 'object') {
+      const result: Record<string, StateAssignment[]> = {};
+      Object.entries(permissions.accessibleLevelsByType).forEach(([levelType, items]) => {
+        if (!Array.isArray(items) || items.length === 0) return;
+        result[levelType] = items.map((item: any) => ({
+          assignment_id: item.assignment_id,
+          stateMasterData_id: item.afterAssemblyData_id || item.level_id || 0,
+          afterAssemblyData_id: item.afterAssemblyData_id,
+          levelName: item.levelName || levelType,
+          levelType: item.levelName || levelType,
+          displayName: item.displayName || item.levelName || levelType,
+          level_id: item.level_id,
+          parentId: item.parentId ?? null,
+          parentLevelName: item.parentLevelName || null,
+          parentLevelType: item.parentLevelType || (item.parentId == null ? 'Assembly' : null),
+          parentAssemblyId: item.parentAssemblyId,
+          assemblyName: item.assemblyName,
+          assemblyType: item.assemblyType,
+          partyLevelName: item.partyLevelName,
+          partyLevelDisplayName: item.partyLevelDisplayName,
+          partyLevelId: item.partyLevelId,
+          assignment_active: item.assignment_active,
+          assigned_at: item.assigned_at,
+        }));
+      });
+      return result;
     }
-    acc[type].push(assignment);
-    return acc;
-  }, {} as Record<string, StateAssignment[]>);
+    // Fallback: group from flattened dynamicLevelAssignments
+    return dynamicLevelAssignments.reduce((acc, assignment) => {
+      const type = assignment.levelType;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(assignment);
+      return acc;
+    }, {} as Record<string, StateAssignment[]>);
+  }, [permissions, dynamicLevelAssignments]);
+
+  const hasDynamicLevels = Object.keys(groupedDynamicLevels).length > 0;
 
   // Auto-redirect to first available panel/assignment on initial mount/login
   const didAutoRedirectRef = useRef(false);
@@ -353,7 +382,12 @@ export default function PanelSelect() {
           {hasDynamicLevels && (
             <section>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {Object.entries(groupedDynamicLevels).map(([levelType, assignments]) => (
+                {Object.entries(groupedDynamicLevels)
+                  .sort(([a], [b]) => {
+                    const order: Record<string, number> = { block: 1, mandal: 2, locality: 3, pollingcenter: 4, sector: 5, zone: 6, ward: 7, booth: 8 };
+                    return (order[a.toLowerCase()] ?? 99) - (order[b.toLowerCase()] ?? 99);
+                  })
+                  .map(([levelType, assignments]) => (
                   <DynamicLevelCard
                     key={levelType}
                     levelType={levelType}

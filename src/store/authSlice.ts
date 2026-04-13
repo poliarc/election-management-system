@@ -40,23 +40,39 @@ const ensureSelectedAssignmentPartyLevelId = (
 
   // If not found in stateAssignments, try to find in permissions
   if (!matchingAssignment && permissions) {
-    const permissionArrays = [
-      permissions.accessibleStates,
-      permissions.accessibleDistricts,
-      permissions.accessibleAssemblies,
-      permissions.accessibleBlocks,
-      permissions.accessibleMandals,
-      permissions.accessiblePollingCenters,
-    ].filter(Boolean);
+    // Primary: check accessibleLevelsByType
+    if (permissions.accessibleLevelsByType && typeof permissions.accessibleLevelsByType === 'object') {
+      for (const items of Object.values(permissions.accessibleLevelsByType) as StateAssignment[][]) {
+        matchingAssignment = items.find(
+          (pa: any) => (pa.stateMasterData_id === selectedAssignment.stateMasterData_id ||
+            pa.assignment_id === selectedAssignment.assignment_id ||
+            pa.afterAssemblyData_id === selectedAssignment.afterAssemblyData_id) &&
+            pa.partyLevelId
+        ) || null;
+        if (matchingAssignment) break;
+      }
+    }
 
-    for (const permArray of permissionArrays) {
-      matchingAssignment = permArray.find(
-        (pa: StateAssignment) => (pa.stateMasterData_id === selectedAssignment.stateMasterData_id ||
-          pa.assignment_id === selectedAssignment.assignment_id ||
-          pa.afterAssemblyData_id === selectedAssignment.afterAssemblyData_id) &&
-          pa.partyLevelId // Only match assignments that have partyLevelId
-      ) || null;
-      if (matchingAssignment) break;
+    // Fallback: legacy accessible* arrays
+    if (!matchingAssignment) {
+      const permissionArrays = [
+        permissions.accessibleStates,
+        permissions.accessibleDistricts,
+        permissions.accessibleAssemblies,
+        permissions.accessibleBlocks,
+        permissions.accessibleMandals,
+        permissions.accessiblePollingCenters,
+      ].filter(Boolean);
+
+      for (const permArray of permissionArrays) {
+        matchingAssignment = permArray.find(
+          (pa: StateAssignment) => (pa.stateMasterData_id === selectedAssignment.stateMasterData_id ||
+            pa.assignment_id === selectedAssignment.assignment_id ||
+            pa.afterAssemblyData_id === selectedAssignment.afterAssemblyData_id) &&
+            pa.partyLevelId
+        ) || null;
+        if (matchingAssignment) break;
+      }
     }
   }
 
@@ -228,23 +244,39 @@ const authSlice = createSlice({
 
         // If not found in stateAssignments, try to find in permissions
         if (!matchingAssignment && state.permissions) {
-          const permissionArrays = [
-            state.permissions.accessibleStates,
-            state.permissions.accessibleDistricts,
-            state.permissions.accessibleAssemblies,
-            state.permissions.accessibleBlocks,
-            state.permissions.accessibleMandals,
-            state.permissions.accessiblePollingCenters,
-          ].filter(Boolean);
+          // Primary: check accessibleLevelsByType
+          if (state.permissions.accessibleLevelsByType && typeof state.permissions.accessibleLevelsByType === 'object') {
+            for (const items of Object.values(state.permissions.accessibleLevelsByType) as StateAssignment[][]) {
+              matchingAssignment = items.find(
+                (pa: any) => (pa.stateMasterData_id === assignment.stateMasterData_id ||
+                  pa.assignment_id === assignment.assignment_id ||
+                  pa.afterAssemblyData_id === assignment.afterAssemblyData_id) &&
+                  pa.partyLevelId
+              ) || null;
+              if (matchingAssignment) break;
+            }
+          }
 
-          for (const permArray of permissionArrays) {
-            matchingAssignment = permArray.find(
-              (pa: StateAssignment) => (pa.stateMasterData_id === assignment.stateMasterData_id ||
-                pa.assignment_id === assignment.assignment_id ||
-                pa.afterAssemblyData_id === assignment.afterAssemblyData_id) &&
-                pa.partyLevelId // Only match assignments that have partyLevelId
-            ) || null;
-            if (matchingAssignment) break;
+          // Fallback: legacy accessible* arrays
+          if (!matchingAssignment) {
+            const permissionArrays = [
+              state.permissions.accessibleStates,
+              state.permissions.accessibleDistricts,
+              state.permissions.accessibleAssemblies,
+              state.permissions.accessibleBlocks,
+              state.permissions.accessibleMandals,
+              state.permissions.accessiblePollingCenters,
+            ].filter(Boolean);
+
+            for (const permArray of permissionArrays) {
+              matchingAssignment = permArray.find(
+                (pa: StateAssignment) => (pa.stateMasterData_id === assignment.stateMasterData_id ||
+                  pa.assignment_id === assignment.assignment_id ||
+                  pa.afterAssemblyData_id === assignment.afterAssemblyData_id) &&
+                  pa.partyLevelId
+              ) || null;
+              if (matchingAssignment) break;
+            }
           }
         }
 

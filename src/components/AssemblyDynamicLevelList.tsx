@@ -2,6 +2,7 @@ import React, { useState, useEffect, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
+import type { SidebarLevel } from "../store/api/partyWiseLevelApi";
 import InlineUserDisplay from "./InlineUserDisplay";
 import AssignBoothVotersModal from "./AssignBoothVotersModal";
 import ResultAnalysisModal from "./ResultAnalysisModal";
@@ -13,11 +14,67 @@ interface AssemblyDynamicLevelListProps {
     levelName: string;
     displayLevelName: string;
     parentLevelName?: string;
+    sidebarLevels?: SidebarLevel[];
 }
+
+const normalizeLevelName = (value?: string | null) =>
+    (value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+const buildSidebarHierarchyChain = (
+    targetLevel: string,
+    levels: SidebarLevel[]
+): string[] => {
+    if (!targetLevel || levels.length === 0) return [];
+
+    const levelMap = new Map<string, SidebarLevel>();
+    levels.forEach((level) => {
+        const key = normalizeLevelName(level.level_name);
+        if (key) levelMap.set(key, level);
+    });
+
+    const normalizedTarget = normalizeLevelName(targetLevel);
+    const chain: string[] = [];
+    const visited = new Set<string>();
+    let current = levelMap.get(normalizedTarget);
+
+    while (current && current.parent_level_name) {
+        const parentKey = normalizeLevelName(current.parent_level_name);
+        if (!parentKey || parentKey === "assembly" || visited.has(parentKey)) break;
+
+        const parentLevel = levelMap.get(parentKey);
+        if (!parentLevel) break;
+
+        chain.unshift(parentLevel.level_name);
+        visited.add(parentKey);
+        current = parentLevel;
+    }
+
+    if (chain.length > 0) {
+        return chain;
+    }
+
+    // Fallback: use sidebar ordering only after Assembly if parent references are missing
+    const assemblyIndex = levels.findIndex((level) => normalizeLevelName(level.level_name) === "assembly");
+    const currentIndex = levels.findIndex((level) => normalizeLevelName(level.level_name) === normalizedTarget);
+
+    if (assemblyIndex >= 0 && currentIndex > assemblyIndex) {
+        return levels
+            .slice(assemblyIndex + 1, currentIndex)
+            .map((level) => level.level_name);
+    }
+
+    return [];
+};
 
 export default function AssemblyDynamicLevelList({
     levelName,
-    displayLevelName }: AssemblyDynamicLevelListProps) {
+    displayLevelName,
+    parentLevelName,
+    sidebarLevels,
+}: AssemblyDynamicLevelListProps) {
     const {t} = useTranslation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
@@ -188,6 +245,7 @@ export default function AssemblyDynamicLevelList({
         districtName: "",
         assemblyId: 0,
         stateId: 0,
+        stateName: "",
         districtId: 0,
     });
 
@@ -195,6 +253,32 @@ export default function AssemblyDynamicLevelList({
     useEffect(() => {
         const fetchActualHierarchy = async () => {
             if (!assemblyInfo.assemblyId || !levelName) return;
+
+            if (sidebarLevels && sidebarLevels.length > 0) {
+                const targetLevel = sidebarLevels.find(
+                    (level) =>
+                        normalizeLevelName(level.level_name) ===
+                        normalizeLevelName(levelName)
+                );
+
+                if (targetLevel) {
+                    const chain = buildSidebarHierarchyChain(levelName, sidebarLevels);
+                    console.log(`[Hierarchy] Sidebar-based chain for ${levelName}:`, chain);
+                    if (chain.length > 0) {
+                        setActualHierarchyChain(chain);
+                        return;
+                    }
+                }
+            }
+
+            if (parentLevelName) {
+                const parentName = parentLevelName.trim();
+                if (parentName && normalizeLevelName(parentName) !== normalizeLevelName(levelName)) {
+                    console.log(`[Hierarchy] Using parentLevelName fallback for ${levelName}:`, parentName);
+                    setActualHierarchyChain([parentName]);
+                    return;
+                }
+            }
 
             try {
                 console.log(`[Hierarchy] ========================================`);
@@ -477,7 +561,7 @@ export default function AssemblyDynamicLevelList({
         };
 
         fetchActualHierarchy();
-    }, [assemblyInfo.assemblyId, levelName, allLevelItems.length]);
+    }, [assemblyInfo.assemblyId, levelName, allLevelItems.length, sidebarLevels]);
 
     useEffect(() => {
         if (selectedAssignment) {
@@ -486,6 +570,7 @@ export default function AssemblyDynamicLevelList({
                 districtName: selectedAssignment.parentLevelName || "",
                 assemblyId: selectedAssignment.stateMasterData_id || 0,
                 stateId: (selectedAssignment as any).state_id || 0,
+                stateName: (selectedAssignment as any).state_name || selectedAssignment.stateName || "",
                 districtId: (selectedAssignment as any).district_id || selectedAssignment.parentId || 0,
             });
         }
@@ -495,7 +580,9 @@ export default function AssemblyDynamicLevelList({
     const getVisibleFilters = () => {
         // Return the actual parent chain for current level
         // If empty, means current level is direct child of assembly (no filters needed)
-        return actualHierarchyChain;
+        return actualHierarchyChain.filter(
+            (level) => normalizeLevelName(level) !== "assembly"
+        );
     };
 
     const visibleFilters = getVisibleFilters();
@@ -886,6 +973,131 @@ export default function AssemblyDynamicLevelList({
         fetchAllUserCounts();
     }, [levelItems, levelName]); // Add levelName as dependency to refetch when level changes
 
+    // Handle items without users filter
+    const handleItemsWithoutUsersClick = () => {
+        const itemsWithoutUsersCount = levelItems.filter(
+            (item) =>
+                (itemUserCounts[item.id] !== undefined
+                    ? itemUserCounts[item.id]
+                    : item.user_count || 0) === 0
+        ).length;
+
+        if (itemsWithoutUsersCount > 0) {
+            setShowItemsWithoutUsers(!showItemsWithoutUsers);
+            setShowItemsWithUsers(false);
+            setCurrentPage(1);
+        }
+    };
+
+    // Handle items with users filter
+    const handleItemsWithUsersClick = () => {
+        const itemsWithUsersCount = levelItems.filter(
+            (item) =>
+                (itemUserCounts[item.id] !== undefined
+                    ? itemUserCounts[item.id]
+                    : item.user_count || 0) > 0
+        ).length;
+
+        if (itemsWithUsersCount > 0) {
+            setShowItemsWithUsers(!showItemsWithUsers);
+            setShowItemsWithoutUsers(false);
+            setCurrentPage(1);
+        }
+    };
+
+    const filteredLevelItems = levelItems.filter((item) => {
+        const matchesSearch = item.displayName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+        const matchesFilter =
+            selectedLevelFilter === "" || item.id.toString() === selectedLevelFilter;
+
+        const matchesWithoutUsersFilter = showItemsWithoutUsers
+            ? (itemUserCounts[item.id] !== undefined
+                ? itemUserCounts[item.id]
+                : item.user_count || 0) === 0
+            : true;
+
+        const matchesWithUsersFilter = showItemsWithUsers
+            ? (itemUserCounts[item.id] !== undefined
+                ? itemUserCounts[item.id]
+                : item.user_count || 0) > 0
+            : true;
+
+        return (
+            matchesSearch &&
+            matchesFilter &&
+            matchesWithoutUsersFilter &&
+            matchesWithUsersFilter
+        );
+    });
+
+    const sortedLevelItems = [...filteredLevelItems].sort((a, b) => {
+        if (!sortBy) return 0;
+        const aValue = getSortValue(a, sortBy);
+        const bValue = getSortValue(b, sortBy);
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+            return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+
+        return sortDirection === "asc"
+            ? String(aValue).localeCompare(String(bValue), undefined, { numeric: true })
+            : String(bValue).localeCompare(String(aValue), undefined, { numeric: true });
+    });
+
+    const handleViewUsers = async (itemId: number) => {
+        if (expandedItemId === itemId) {
+            setExpandedItemId(null);
+            return;
+        }
+
+        if (itemUsers[itemId]) {
+            setExpandedItemId(itemId);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+                    },
+                }
+            );
+            const data = await response.json();
+
+            if (data.success && data.data?.users) {
+                setItemUsers((prev) => ({
+                    ...prev,
+                    [itemId]: data.data.users,
+                }));
+
+                setItemUserCounts((prev) => ({
+                    ...prev,
+                    [itemId]: data.data.users.length,
+                }));
+
+                if (data.data.parentDetails) {
+                    const parentDetails = data.data.parentDetails;
+                    setParentInfo((prev) => ({
+                        ...prev,
+                        [parentDetails.id]: {
+                            id: parentDetails.id,
+                            displayName: parentDetails.displayName,
+                            levelName: parentDetails.levelName,
+                        },
+                    }));
+                }
+
+                setExpandedItemId(itemId);
+            }
+        } catch (error) {
+            console.error(`Error fetching users for item ${itemId}:`, error);
+        }
+    };
+
     // Fetch all items for the current level - Assembly context
     useEffect(() => {
         const fetchAllLevelItems = async () => {
@@ -911,235 +1123,66 @@ export default function AssemblyDynamicLevelList({
                 }));
 
                 // Now fetch items based on the target level
-                if (levelName === "Block" || levelName === "Ward" || levelName === "Zone" || levelName === "Sector") {
-                    // Check if this level is a direct child of Assembly
-                    const directAssemblyChildren = afterAssemblyLevels.filter((level: any) =>
-                        level.levelName === levelName &&
-                        level.parentAssemblyId &&
-                        !level.parentId
-                    );
+                const normalizedLevelName = levelName.trim().toLowerCase();
+                const directAssemblyChildren = afterAssemblyLevels.filter((level: any) =>
+                    level.levelName?.trim().toLowerCase() === normalizedLevelName &&
+                    level.parentAssemblyId &&
+                    !level.parentId
+                );
 
-                    if (directAssemblyChildren.length > 0) {
-                        levelItems = directAssemblyChildren;
-                    } else {
-                        // This level might be a child of another after-assembly level
-                        // Fetch children of all after-assembly levels and build proper hierarchy
-                        levelItems = (
-                            await Promise.all(
-                                afterAssemblyLevels.map(async (parentLevel: any) => {
-                                    const childrenData = await fetchAllPages(
-                                        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
-                                    );
-                                    return childrenData
-                                        .filter((child: any) => child.levelName === levelName)
-                                        .map((child: any) => ({
-                                            ...child,
-                                            parentLevelId: parentLevel.id,
-                                            parentLevelName: parentLevel.displayName,
-                                            parentLevelType: parentLevel.levelName,
-                                            assemblyId: parentLevel.assemblyId,
-                                            assemblyName: parentLevel.assemblyName,
-                                            districtId: parentLevel.districtId,
-                                            districtName: parentLevel.districtName,
-                                            // Add parent hierarchy chain for better filtering
-                                            parentHierarchy: [parentLevel.id, ...(parentLevel.parentHierarchy || [])],
-                                            // Add all parent level names for proper display
-                                            [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
-                                            [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
-                                        }));
-                                })
-                            )
-                        ).flat();
-                    }
-                } else if (levelName === "Mandal") {
-                    // Step 3: Fetch all mandals for each after-assembly level
-                    levelItems = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
-                                const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
-                                );
-                                return mandalsData
-                                    .filter((mandal: any) => mandal.levelName === "Mandal")
-                                    .map((mandal: any) => ({
-                                        ...mandal,
-                                        // Store the Block/Ward/Zone parent info
-                                        parentLevelId: parentLevel.id,
-                                        parentLevelName: parentLevel.displayName,
-                                        parentLevelType: parentLevel.levelName,
-                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
-                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
-                                        assemblyId: parentLevel.assemblyId,
-                                        assemblyName: parentLevel.assemblyName,
-                                        districtId: parentLevel.districtId,
-                                        districtName: parentLevel.districtName,
-                                        // Add parent hierarchy chain for better filtering
-                                        parentHierarchy: [parentLevel.id, ...(parentLevel.parentHierarchy || [])],
-                                    }));
-                            })
-                        )
-                    ).flat();
-                } else if (levelName === "PollingCenter") {
-                    // Step 3: Fetch mandals first, then polling centers
-                    const mandals = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
-                                const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
-                                );
-                                return mandalsData
-                                    .filter((mandal: any) => mandal.levelName === "Mandal")
-                                    .map((mandal: any) => ({
-                                        ...mandal,
-                                        // Store the Block/Ward/Zone parent info
-                                        parentLevelId: parentLevel.id,
-                                        parentLevelName: parentLevel.displayName,
-                                        parentLevelType: parentLevel.levelName,
-                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
-                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
-                                        assemblyId: parentLevel.assemblyId,
-                                        assemblyName: parentLevel.assemblyName,
-                                        districtId: parentLevel.districtId,
-                                        districtName: parentLevel.districtName,
-                                    }));
-                            })
-                        )
-                    ).flat();
-
-                    // Step 4: Fetch polling centers for each mandal
-                    levelItems = (
-                        await Promise.all(
-                            mandals.map(async (mandal: any) => {
-                                const pollingCentersData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
-                                );
-                                const filteredChildren = pollingCentersData.filter(
-                                    (item: any) => item.levelName !== "Booth"
-                                );
-
-                                return filteredChildren.map((pc: any) => ({
-                                    ...pc,
-                                    // Propagate Mandal info
-                                    mandalId: mandal.id,
-                                    mandalName: mandal.displayName,
-                                    // Propagate Block/Ward/Zone info from mandal
-                                    [`${mandal.parentLevelType.toLowerCase()}Name`]: mandal.parentLevelName,
-                                    [`${mandal.parentLevelType.toLowerCase()}Id`]: mandal.parentLevelId,
-                                    // Keep original parent info for immediate parent
-                                    parentLevelId: mandal.id,
-                                    parentLevelName: mandal.displayName,
-                                    parentLevelType: mandal.levelName,
-                                    // Propagate assembly info
-                                    assemblyId: mandal.assemblyId,
-                                    assemblyName: mandal.assemblyName,
-                                    districtId: mandal.districtId,
-                                    districtName: mandal.districtName,
-                                }));
-                            })
-                        )
-                    ).flat();
-                } else if (levelName === "Booth") {
-                    // For booths, we need to go through the full hierarchy
-                    const mandals = (
-                        await Promise.all(
-                            afterAssemblyLevels.map(async (parentLevel: any) => {
-                                const mandalsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${parentLevel.id}`
-                                );
-                                return mandalsData
-                                    .filter((mandal: any) => mandal.levelName === "Mandal")
-                                    .map((mandal: any) => ({
-                                        ...mandal,
-                                        // Store the Block/Ward/Zone parent info
-                                        parentLevelId: parentLevel.id,
-                                        parentLevelName: parentLevel.displayName,
-                                        parentLevelType: parentLevel.levelName,
-                                        [`${parentLevel.levelName.toLowerCase()}Name`]: parentLevel.displayName,
-                                        [`${parentLevel.levelName.toLowerCase()}Id`]: parentLevel.id,
-                                        assemblyId: parentLevel.assemblyId,
-                                        assemblyName: parentLevel.assemblyName,
-                                        districtId: parentLevel.districtId,
-                                        districtName: parentLevel.districtName,
-                                    }));
-                            })
-                        )
-                    ).flat();
-                    // Get all children of mandals (both polling centers and direct booths)
-                    const allMandalChildren = (
-                        await Promise.all(
-                            mandals.map(async (mandal: any) => {
-                                const childrenData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${mandal.id}`
-                                );
-                                return childrenData.map((child: any) => ({
-                                    ...child,
-                                    // Propagate Mandal info
-                                    mandalId: mandal.id,
-                                    mandalName: mandal.displayName,
-                                    // Propagate Block/Ward/Zone info from mandal
-                                    [`${mandal.parentLevelType.toLowerCase()}Name`]: mandal.parentLevelName,
-                                    [`${mandal.parentLevelType.toLowerCase()}Id`]: mandal.parentLevelId,
-                                    // Keep original parent info for immediate parent
-                                    parentLevelId: mandal.id,
-                                    parentLevelName: mandal.displayName,
-                                    parentLevelType: mandal.levelName,
-                                    // Propagate assembly info
-                                    assemblyId: mandal.assemblyId,
-                                    assemblyName: mandal.assemblyName,
-                                    districtId: mandal.districtId,
-                                    districtName: mandal.districtName,
-                                }));
-                            })
-                        )
-                    ).flat();
-
-                    // Separate polling centers and direct booths
-                    const pollingCenters = allMandalChildren.filter(
-                        (item: any) => item.levelName !== "Booth"
-                    );
-                    const directBooths = allMandalChildren.filter(
-                        (item: any) => item.levelName === "Booth"
-                    );
-
-                    // Get booths from polling centers
-                    const pollingCenterBooths = (
-                        await Promise.all(
-                            pollingCenters.map(async (pc: any) => {
-                                const boothsData = await fetchAllPages(
-                                    `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${pc.id}`
-                                );
-                                return boothsData.map((booth: any) => ({
-                                    ...booth,
-                                    // Propagate Polling Center info
-                                    pollingCenterId: pc.id,
-                                    pollingCenterName: pc.displayName,
-                                    // Propagate Mandal info from polling center
-                                    mandalId: pc.mandalId,
-                                    mandalName: pc.mandalName,
-                                    // Propagate Block/Ward/Zone info from polling center
-                                    ...(pc.blockName && { blockName: pc.blockName, blockId: pc.blockId }),
-                                    ...(pc.wardName && { wardName: pc.wardName, wardId: pc.wardId }),
-                                    ...(pc.zoneName && { zoneName: pc.zoneName, zoneId: pc.zoneId }),
-                                    ...(pc.sectorName && { sectorName: pc.sectorName, sectorId: pc.sectorId }),
-                                    // Keep original parent info for immediate parent (polling center)
-                                    parentLevelId: pc.id,
-                                    parentLevelName: pc.displayName,
-                                    parentLevelType: pc.levelName,
-                                    // Propagate assembly info
-                                    assemblyId: pc.assemblyId,
-                                    assemblyName: pc.assemblyName,
-                                    districtId: pc.districtId,
-                                    districtName: pc.districtName,
-                                }));
-                            })
-                        )
-                    ).flat();
-
-                    levelItems = [...directBooths, ...pollingCenterBooths];
+                if (directAssemblyChildren.length > 0) {
+                    levelItems = directAssemblyChildren;
                 } else {
-                    // For other levels - this is handled in the first condition above
-                    // All levels after assembly are handled dynamically
-                    levelItems = [];
+                    // Generic traversal for any dynamic parent-child chain.
+                    const dynamicMatches: any[] = [];
+                    const visited = new Set<number>();
+                    const queue = afterAssemblyLevels.map((node: any) => ({
+                        ...node,
+                        parentHierarchy: node.parentHierarchy || [],
+                        parentNames: [], // Add parent names chain
+                        assemblyId: node.assemblyId,
+                        assemblyName: node.assemblyName,
+                        districtId: node.districtId,
+                        districtName: node.districtName,
+                    }));
+
+                    while (queue.length > 0) {
+                        const current = queue.shift();
+                        if (!current || visited.has(current.id)) continue;
+                        visited.add(current.id);
+
+                        const childrenData = await fetchAllPages(
+                            `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/hierarchy/children/${current.id}`
+                        );
+
+                        for (const child of childrenData) {
+                            const normalizedChildLevel = child.levelName?.trim().toLowerCase();
+                            const childNode = {
+                                ...child,
+                                assemblyId: child.assemblyId || current.assemblyId,
+                                assemblyName: child.assemblyName || current.assemblyName,
+                                districtId: child.districtId || current.districtId,
+                                districtName: child.districtName || current.districtName,
+                                parentLevelId: current.id,
+                                parentLevelName: current.displayName,
+                                parentLevelType: current.levelName,
+                                parentHierarchy: [current.id, ...(current.parentHierarchy || [])],
+                                parentNames: [current.displayName, ...(current.parentNames || [])], // Build parent names chain
+                                [`${current.levelName.toLowerCase()}Name`]: current.displayName,
+                                [`${current.levelName.toLowerCase()}Id`]: current.id,
+                            };
+
+                            if (normalizedChildLevel === normalizedLevelName) {
+                                dynamicMatches.push(childNode);
+                            }
+
+                            if (childNode.id && !visited.has(childNode.id)) {
+                                queue.push(childNode);
+                            }
+                        }
+                    }
+
+                    levelItems = dynamicMatches;
                 }
 
                 setAllLevelItems(levelItems);
@@ -1154,161 +1197,6 @@ export default function AssemblyDynamicLevelList({
         fetchAllLevelItems();
     }, [assemblyInfo.assemblyId, levelName]);
 
-    // Handle items without users filter
-    const handleItemsWithoutUsersClick = () => {
-        const itemsWithoutUsersCount = levelItems.filter(
-            (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
-        ).length;
-
-        if (itemsWithoutUsersCount > 0) {
-            setShowItemsWithoutUsers(!showItemsWithoutUsers);
-            setShowItemsWithUsers(false); // Disable the other filter
-            setCurrentPage(1);
-        }
-    };
-
-    // Handle items with users filter
-    const handleItemsWithUsersClick = () => {
-        const itemsWithUsersCount = levelItems.filter(
-            (item) => (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0
-        ).length;
-
-        if (itemsWithUsersCount > 0) {
-            setShowItemsWithUsers(!showItemsWithUsers);
-            setShowItemsWithoutUsers(false); // Disable the other filter
-            setCurrentPage(1);
-        }
-    };
-
-    const filteredLevelItems = levelItems.filter((item) => {
-        const matchesSearch = item.displayName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-        const matchesFilter =
-            selectedLevelFilter === "" ||
-            item.id.toString() === selectedLevelFilter;
-
-        const matchesWithoutUsersFilter = showItemsWithoutUsers
-            ? (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) === 0
-            : true;
-
-        const matchesWithUsersFilter = showItemsWithUsers
-            ? (itemUserCounts[item.id] !== undefined ? itemUserCounts[item.id] : (item.user_count || 0)) > 0
-            : true;
-
-        return matchesSearch && matchesFilter && matchesWithoutUsersFilter && matchesWithUsersFilter;
-    });
-
-    const sortedLevelItems = React.useMemo(() => {
-        const activeSortBy = sortBy || "id";
-        const activeSortDirection = sortBy ? sortDirection : "asc";
-
-        return [...filteredLevelItems].sort((a, b) => {
-            const aVal = getSortValue(a, activeSortBy);
-            const bVal = getSortValue(b, activeSortBy);
-
-            const normalizedA = typeof aVal === "string" ? aVal.toLowerCase() : aVal;
-            const normalizedB = typeof bVal === "string" ? bVal.toLowerCase() : bVal;
-
-            if (normalizedA < normalizedB) return activeSortDirection === "asc" ? -1 : 1;
-            if (normalizedA > normalizedB) return activeSortDirection === "asc" ? 1 : -1;
-            return 0;
-        });
-    }, [filteredLevelItems, sortBy, sortDirection]);
-
-    const handleViewUsers = async (itemId: number) => {
-        if (expandedItemId === itemId) {
-            setExpandedItemId(null);
-            return;
-        }
-
-        if (itemUsers[itemId]) {
-            setExpandedItemId(itemId);
-            return;
-        }
-
-        try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
-                    },
-                }
-            );
-            const data = await response.json();
-
-            if (data.success && data.data?.users) {
-                // Store user data
-                setItemUsers((prev) => ({
-                    ...prev,
-                    [itemId]: data.data.users,
-                }));
-
-                // Update user count with the actual count from the API
-                setItemUserCounts((prev) => ({
-                    ...prev,
-                    [itemId]: data.data.users.length,
-                }));
-
-                // Store parent information from parentDetails if available
-                if (data.data.parentDetails) {
-                    const parentDetails = data.data.parentDetails;
-                    setParentInfo(prev => ({
-                        ...prev,
-                        [parentDetails.id]: {
-                            id: parentDetails.id,
-                            displayName: parentDetails.displayName,
-                            levelName: parentDetails.levelName,
-                        }
-                    }));
-                }
-
-                setExpandedItemId(itemId);
-            }
-        } catch (error) {
-            console.error(`Error fetching users for ${levelName} ${itemId}:`, error);
-        }
-    };
-
-    // Booth-specific handlers (only used when levelName === "Booth")
-    const fetchAllBoothFileCounts = async (booths: any[]) => {
-        if (levelName !== "Booth") return;
-
-        const token = localStorage.getItem("auth_access_token");
-        const counts: Record<number, number> = {};
-
-        const batchSize = 10;
-        for (let i = 0; i < booths.length; i += batchSize) {
-            const batch = booths.slice(i, i + batchSize);
-            const promises = batch.map(async (booth) => {
-                try {
-                    const response = await fetch(
-                        `${import.meta.env.VITE_API_BASE_URL}/api/booth-deleted-voter-files/booth/${booth.id}?page=1&limit=1`,
-                        { headers: { Authorization: `Bearer ${token}` } }
-                    );
-                    const data = await response.json();
-
-                    if (response.ok && data?.success && data?.pagination) {
-                        return { id: booth.id, count: data.pagination.total || 0 };
-                    } else {
-                        return { id: booth.id, count: 0 };
-                    }
-                } catch (error) {
-                    console.error(`Error fetching file count for booth ${booth.id}:`, error);
-                    return { id: booth.id, count: 0 };
-                }
-            });
-
-            const results = await Promise.all(promises);
-            results.forEach(({ id, count }) => {
-                counts[id] = count;
-            });
-        }
-
-        setBoothFileCounts(counts);
-    };
-
     const getStateDetails = () => {
         const rawUser = localStorage.getItem("auth_user");
         const parsedUser = rawUser ? JSON.parse(rawUser) : {};
@@ -1319,6 +1207,7 @@ export default function AssemblyDynamicLevelList({
             "";
 
         const stateName =
+            assemblyInfo.stateName ||
             stateNameFromAssignment ||
             parsedUser.state_name ||
             parsedUser.stateName ||
@@ -1574,6 +1463,43 @@ export default function AssemblyDynamicLevelList({
             boothName: booth.displayName,
         });
         setIsResultAnalysisModalOpen(true);
+    };
+
+    const fetchAllBoothFileCounts = async (booths: any[]) => {
+        const token = localStorage.getItem("auth_access_token");
+        if (!token || booths.length === 0) return;
+
+        const counts: Record<number, number> = {};
+        const batchSize = 10;
+
+        for (let i = 0; i < booths.length; i += batchSize) {
+            const batch = booths.slice(i, i + batchSize);
+            const promises = batch.map(async (booth) => {
+                try {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_API_BASE_URL}/api/booth-deleted-voter-files/booth/${booth.id}?page=1&limit=1`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
+                    const data = await response.json();
+
+                    if (response.ok && data?.success && data?.pagination) {
+                        counts[booth.id] = data.pagination.total || 0;
+                    } else {
+                        counts[booth.id] = 0;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching file count for booth ${booth.id}:`, error);
+                    counts[booth.id] = 0;
+                }
+            });
+
+            await Promise.all(promises);
+            setBoothFileCounts((prev) => ({ ...prev, ...counts }));
+        }
     };
 
     // Fetch file counts when booths are loaded
@@ -2051,6 +1977,7 @@ export default function AssemblyDynamicLevelList({
                                                                         'Ward': ['wardName', 'ward_name'],
                                                                         'Zone': ['zoneName', 'zone_name'],
                                                                         'Sector': ['sectorName', 'sector_name'],
+                                                                        'Locality': ['localityName', 'locality_name'],
                                                                     };
 
                                                                     const possibleProps = propertyMap[levelName] || [];
@@ -2063,11 +1990,15 @@ export default function AssemblyDynamicLevelList({
                                                                         return item.parentLevelName;
                                                                     }
 
-                                                                    // Try to get from parentInfo if this level matches the parent
-                                                                    const parentId = item.parentId || item.parent_id;
-                                                                    const parent = parentId ? parentInfo[parentId] : null;
-                                                                    if (parent && parent.levelName === levelName) {
-                                                                        return parent.displayName || parent.levelName;
+                                                                    // Use parentNames chain if available (for dynamic hierarchies)
+                                                                    if (item.parentNames && Array.isArray(item.parentNames) && visibleFilters.length > 0) {
+                                                                        const index = visibleFilters.indexOf(levelName);
+                                                                        if (index !== -1) {
+                                                                            const nameIndex = visibleFilters.length - 1 - index;
+                                                                            if (item.parentNames[nameIndex]) {
+                                                                                return item.parentNames[nameIndex];
+                                                                            }
+                                                                        }
                                                                     }
 
                                                                     return "N/A";

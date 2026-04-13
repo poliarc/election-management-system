@@ -550,14 +550,15 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         const dynamicLevelTypes = getAllDynamicLevelTypes(permissions);
                         const allDynamicAssignments = getAllDynamicLevelAssignments(permissions);
                         
+                        // Group by levelType - prefer accessibleLevelsByType keys directly
                         const groupedByType = dynamicLevelTypes.map(levelType => {
-                          const assignments = allDynamicAssignments.filter(a => 
-                            a.levelType === levelType || a.levelName === levelType
-                          );
-                          return {
-                            type: levelType,
-                            items: assignments
-                          };
+                          // Try accessibleLevelsByType first for accurate count
+                          const fromSource = permissions?.accessibleLevelsByType?.[levelType];
+                          const items = fromSource
+                            ? allDynamicAssignments.filter(a => a.levelType === levelType || a.levelName === levelType)
+                            : allDynamicAssignments.filter(a => a.levelType === levelType || a.levelName === levelType);
+                          const count = fromSource ? fromSource.length : items.length;
+                          return { type: levelType, items, count };
                         }).filter(group => group.items.length > 0);
 
                         return (
@@ -575,7 +576,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                               >
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{g.type}</div>
-                                  <div className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">{g.items.length} Assigned</div>
+                                  <div className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-color)]">{g.count} Assigned</div>
                                 </div>
                                 {(selectedAssignment?.levelType === g.type || selectedAssignment?.levelName === g.type) && (
                                   <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
