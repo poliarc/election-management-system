@@ -33,9 +33,9 @@ export default function MandalWhatsAppPage() {
   const [levelOptions, setLevelOptions] = useState<AfterAssemblyData[][]>([]);
 
   // Loading States
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [assembliesLoading, setAssembliesLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(false);
+  const [, setDataLoading] = useState(false);
   const [whatsAppLoading, setWhatsAppLoading] = useState(false);
 
   // WhatsApp States
@@ -44,8 +44,9 @@ export default function MandalWhatsAppPage() {
   const [modalRow, setModalRow] = useState<any>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingLinkId, setDeletingLinkId] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false); 
+  
   const menuRef = useRef<HTMLDivElement>(null);
-
   const locationState = location.state as { levelId?: number } | null;
 
   const currentPanel = useMemo(() => {
@@ -166,10 +167,10 @@ export default function MandalWhatsAppPage() {
   const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
   const isMandalSelected = selectedLevel?.levelName?.toLowerCase() === "mandal" || selectedLevel?.levelName === currentPanel?.name;
 
-  const loadWhatsAppLinks = useCallback(async (levelId: number) => {
+  const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, state_id?: number, levelType?: string }) => {
     try {
       setWhatsAppLoading(true);
-      const data = await fetchWhatsAppLinks({ afterAssemblyData_id: levelId });
+      const data = await fetchWhatsAppLinks(params);
       setWhatsappLinks(data ?? []);
     } catch (err) {
       setWhatsappLinks([]);
@@ -180,11 +181,84 @@ export default function MandalWhatsAppPage() {
 
   useEffect(() => {
     if (selectedLevel?.id && isMandalSelected) {
-      void loadWhatsAppLinks(selectedLevel.id);
+      void loadWhatsAppLinks({ afterAssemblyData_id: selectedLevel.id, levelType: 'Mandal' });
+    } else if (stateId) {
+      void loadWhatsAppLinks({ state_id: stateId, levelType: 'Mandal' });
     } else {
       setWhatsappLinks([]);
     }
-  }, [selectedLevel, isMandalSelected, loadWhatsAppLinks]);
+  }, [selectedLevel, isMandalSelected, stateId, loadWhatsAppLinks]);
+
+  // 🌟 DYNAMIC EXPORT LOGIC
+  const handleExport = () => {
+    try {
+      setIsExporting(true);
+      
+      let dataToExport = [...whatsappLinks];
+
+      // Identify the deepest selected point for filtering
+      if (selectedLevel) {
+        if (isMandalSelected) {
+          // Links already filtered for this specific Mandal via backend
+          dataToExport = whatsappLinks;
+        } else {
+          // User selected a higher level (like Block), filter local links
+          dataToExport = whatsappLinks.filter(link => 
+            link.block_name === selectedLevel.displayName || 
+            link.mandal_name === selectedLevel.displayName
+          );
+        }
+      } else if (selectedAssembly) {
+        dataToExport = whatsappLinks.filter(link => link.assembly_name === selectedAssembly.location_name);
+      } else if (selectedDistrict) {
+        dataToExport = whatsappLinks.filter(link => link.district_name === selectedDistrict.location_name);
+      }
+      // If none of the above, dataToExport remains as all state-level mandal links
+
+      if (dataToExport.length === 0) {
+        toast.error("No data available to export");
+        return;
+      }
+
+      const headers = ["State", "Block", "Mandal", "Group Name", "WhatsApp Link"];
+
+      const csvRows = dataToExport.map(link => [
+        `"${stateName}"`,
+        `"${link.block_name || "—"}"`,
+        `"${link.mandal_name || selectedLevel?.displayName || "—"}"`,
+        `"${link.group_name || link.group_type || "—"}"`,
+        `"${link.link}"`
+      ]);
+      
+      const csvContent = [headers.join(","), ...csvRows.map(row => row.join(","))].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      
+      // Generate Dynamic Filename based on selection
+      const fileName = selectedLevel 
+        ? `WhatsApp_Links_${selectedLevel.displayName}.csv`
+        : selectedAssembly
+          ? `WhatsApp_Links_Assembly_${selectedAssembly.location_name}.csv`
+          : selectedDistrict
+            ? `WhatsApp_Links_District_${selectedDistrict.location_name}.csv`
+            : `WhatsApp_Links_All_${stateName}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", fileName);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Export successful");
+    } catch (error) {
+      toast.error("Failed to export data");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Delete this WhatsApp link?")) return;
@@ -192,7 +266,11 @@ export default function MandalWhatsAppPage() {
       setDeletingLinkId(id);
       await deleteWhatsAppLink(id);
       toast.success("Link deleted");
-      if (selectedLevel?.id) void loadWhatsAppLinks(selectedLevel.id);
+      if (selectedLevel?.id && isMandalSelected) {
+        void loadWhatsAppLinks({ afterAssemblyData_id: selectedLevel.id, levelType: 'Mandal' });
+      } else {
+        void loadWhatsAppLinks({ state_id: stateId, levelType: 'Mandal' });
+      }
     } catch (err) {
       toast.error("Failed to delete");
     } finally {
@@ -202,17 +280,19 @@ export default function MandalWhatsAppPage() {
   };
 
   const openModal = (linkData: WhatsAppLinkData | null = null) => {
-    if (!selectedLevel?.id) return;
+    const targetLevel = linkData?.afterAssemblyData_id ? { id: linkData.afterAssemblyData_id, displayName: linkData.mandal_name || "Mandal" } : selectedLevel;
+    
+    if (!targetLevel?.id) return;
     setEditingLink(linkData);
     
     setModalRow({
-      assemblyId: selectedLevel.id, 
-      assemblyName: selectedLevel.displayName || "Mandal",
+      assemblyId: targetLevel.id, 
+      assemblyName: targetLevel.displayName || "Mandal",
       districtId: selectedDistrict?.location_id || 0,
-      districtName: selectedDistrict?.location_name || "",
+      districtName: linkData?.district_name || selectedDistrict?.location_name || "",
       stateId: stateId || 0,
       stateName: stateName || "State",
-      totalUsers: 0 
+      totalUsers: linkData?.users?.length || 0 
     });
   };
 
@@ -225,6 +305,7 @@ export default function MandalWhatsAppPage() {
           <p className="mt-2 text-sm text-white">Manage WhatsApp links for specific Mandals. Sub-level users (Polling Center/Booth) can access these.</p>
         </div>
 
+        {/* Hierarchy Filter Bar */}
         <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border border-[var(--border-color)]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -239,7 +320,6 @@ export default function MandalWhatsAppPage() {
                   setLevelOptions([]);
                 }}
                 className="w-full px-4 py-3 border border-[var(--border-color)] rounded-xl bg-[var(--bg-main)] focus:ring-2 focus:ring-purple-500 outline-none transition-all text-sm"
-                disabled={loading}
               >
                 <option value="">-- Select District --</option>
                 {districts?.map((d) => (
@@ -274,7 +354,6 @@ export default function MandalWhatsAppPage() {
               {levelOptions.map((options, index) => {
                 const selectedValue = hierarchyPath[index]?.id || "";
                 const levelLabel = options?.length > 0 ? `${options[0].levelName}` : `Level ${index + 1}`;
-
                 return (
                   <div key={index}>
                     <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">{levelLabel}</label>
@@ -288,9 +367,7 @@ export default function MandalWhatsAppPage() {
                     >
                       <option value="">-- Select {levelLabel} --</option>
                       {options?.map((level) => (
-                        <option key={level.id} value={level.id}>
-                          {level.displayName}
-                        </option>
+                        <option key={level.id} value={level.id}>{level.displayName}</option>
                       ))}
                     </select>
                   </div>
@@ -298,93 +375,103 @@ export default function MandalWhatsAppPage() {
               })}
             </div>
           )}
-
-          {(loading || assembliesLoading || dataLoading) && (
-            <div className="mt-4 flex items-center text-purple-600 text-sm font-medium">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
-              Loading hierarchy data...
-            </div>
-          )}
         </div>
 
-        {selectedLevel && isMandalSelected && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm gap-4">
-            <div>
-              <h3 className="text-sm font-bold text-[var(--text-color)]">{selectedLevel.displayName} Actions</h3>
-              <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to this Mandal</p>
-            </div>
-            <button
-              onClick={() => openModal(null)}
-              className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700 shadow-md active:scale-95 shrink-0"
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              Create Mandal Link
-            </button>
+        {/* Actions Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-[var(--text-color)]">
+              {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : "Mandal Actions"}
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to Mandals</p>
           </div>
-        )}
 
-        {selectedLevel && isMandalSelected && (
-          <div className="overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
-            <div className="max-h-[500px] overflow-auto">
-              <table className="min-w-full divide-y divide-[var(--border-color)]">
-                <thead className="sticky top-0 z-10 bg-[var(--bg-main)]">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">District</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Assembly</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Mandal</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Link</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-[var(--text-secondary)]">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-color)]">
-                  {whatsAppLoading ? (
-                    <tr><td colSpan={5} className="py-12 text-center text-sm text-[var(--text-secondary)]">Loading links...</td></tr>
-                  ) : whatsappLinks?.length > 0 ? (
-                    whatsappLinks.map((link) => (
-                      <tr key={link.id} className="hover:bg-[var(--bg-main)]/60 transition-colors">
-                        <td className="px-4 py-4 text-sm text-[var(--text-color)]">{selectedDistrict?.location_name}</td>
-                        <td className="px-4 py-4 text-sm text-[var(--text-color)]">{selectedAssembly?.location_name}</td>
-                        <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{selectedLevel.displayName}</td>
-                        <td className="px-4 py-4">
-                          <a href={link.link} target="_blank" rel="noreferrer" title={link.link} className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-all max-w-[200px]">
-                            <span className="truncate">{link.group_name || link.group_type || "Open Link"}</span>
-                            <svg className="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                          </a>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <div className="relative inline-block" ref={link.id === openMenuId ? menuRef : null}>
-                            <button
-                              onClick={() => setOpenMenuId(openMenuId === link.id ? null : link.id)}
-                              className="p-2 rounded-lg hover:bg-[var(--bg-main)] text-[var(--text-secondary)]">
-                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                            </button>
-                            {openMenuId === link.id && (
-                              <div className="absolute right-0 z-20 mt-2 w-32 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] py-1 shadow-xl ring-1 ring-black ring-opacity-5 animate-in fade-in zoom-in duration-75">
-                                <button onClick={() => { openModal(link); setOpenMenuId(null); }} className="block w-full px-4 py-2 text-left text-sm hover:bg-[var(--bg-main)]">Edit</button>
-                                <button onClick={() => handleDelete(link.id)} disabled={deletingLinkId === link.id} className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50">
-                                  {deletingLinkId === link.id ? "Deleting..." : "Delete"}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr><td colSpan={5} className="py-12 text-center text-sm text-[var(--text-secondary)]">No WhatsApp links found for this Mandal.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+          <div className="flex items-center gap-3">
+            {/* 🌟 Export CSV Button */}
+            <button
+              onClick={handleExport}
+              disabled={isExporting || whatsappLinks.length === 0}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-5 py-2.5 text-sm font-bold text-[var(--text-color)] transition hover:bg-[var(--text-color)]/5 shadow-sm active:scale-95 disabled:opacity-50"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              {isExporting ? "Exporting..." : "Export CSV"}
+            </button>
+
+            {selectedLevel && isMandalSelected && (
+              <button
+                onClick={() => openModal(null)}
+                className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700 shadow-md active:scale-95 shrink-0"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Create Mandal Link
+              </button>
+            )}
           </div>
-        )}
+        </div>
+
+        {/* Table Section */}
+        <div className="overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
+          <div className="max-h-[500px] overflow-auto">
+            <table className="min-w-full divide-y divide-[var(--border-color)]">
+              <thead className="sticky top-0 z-10 bg-[var(--bg-main)]">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">State</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Block</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Mandal</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Link</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-[var(--text-secondary)]">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)]">
+                {whatsAppLoading ? (
+                  <tr><td colSpan={7} className="py-12 text-center text-sm text-[var(--text-secondary)]">Loading links...</td></tr>
+                ) : whatsappLinks?.length > 0 ? (
+                  whatsappLinks.map((link) => (
+                    <tr key={link.id} className="hover:bg-[var(--bg-main)]/60 transition-colors">
+                      <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{stateName}</td>
+                      <td className="px-4 py-4 text-sm text-[var(--text-color)]">{link.block_name || "—"}</td>
+                      <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{link.mandal_name || selectedLevel?.displayName || "—"}</td>
+                      <td className="px-4 py-4">
+                        <a href={link.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-all max-w-[200px]">
+                          <span className="truncate">{link.group_name || link.group_type || "Open Link"}</span>
+                          <svg className="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <div className="relative inline-block" ref={link.id === openMenuId ? menuRef : null}>
+                          <button onClick={() => setOpenMenuId(openMenuId === link.id ? null : link.id)} className="p-2 rounded-lg hover:bg-[var(--bg-main)] text-[var(--text-secondary)]">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                          </button>
+                          {openMenuId === link.id && (
+                            <div className="absolute right-0 z-20 mt-2 w-32 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] py-1 shadow-xl ring-1 ring-black ring-opacity-5 animate-in fade-in zoom-in duration-75">
+                              <button onClick={() => { openModal(link); setOpenMenuId(null); }} className="block w-full px-4 py-2 text-left text-sm hover:bg-[var(--bg-main)]">Edit</button>
+                              <button onClick={() => handleDelete(link.id)} disabled={deletingLinkId === link.id} className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50">{deletingLinkId === link.id ? "Deleting..." : "Delete"}</button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr><td colSpan={7} className="py-12 text-center text-sm text-[var(--text-secondary)]">No WhatsApp links found for this Mandal.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <WhatsAppLinkModal 
           isOpen={Boolean(modalRow)} 
           onClose={() => { 
             setModalRow(null); 
             setEditingLink(null); 
-            if (selectedLevel?.id) void loadWhatsAppLinks(selectedLevel.id); 
+            if (selectedLevel?.id && isMandalSelected) {
+              void loadWhatsAppLinks({ afterAssemblyData_id: selectedLevel.id, levelType: 'Mandal' });
+            } else if (stateId) {
+              void loadWhatsAppLinks({ state_id: stateId, levelType: 'Mandal' });
+            }
           }} 
           initialData={editingLink} 
           row={modalRow} 

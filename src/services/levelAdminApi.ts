@@ -94,6 +94,10 @@ export interface WhatsAppLinkData {
   group_name?: string | null;
   stateMasterData_id: number | null;
   afterAssemblyData_id: number | null;
+  assembly_name?: string | null;
+  district_name?: string | null;
+  block_name?: string | null;
+  mandal_name?: string | null;
   users: WhatsAppLinkUser[];
 }
 
@@ -428,6 +432,8 @@ export async function fetchUsersByAssembly(
 export async function fetchWhatsAppLinks(params: {
   stateMasterData_id?: number | null;
   afterAssemblyData_id?: number | null;
+  state_id?: number | null;
+  levelType?: string;
 }): Promise<WhatsAppLinkData[]> {
   const token = getAuthToken();
   if (!token) throw new Error("Authentication required");
@@ -444,6 +450,10 @@ export async function fetchWhatsAppLinks(params: {
       params.afterAssemblyData_id.toString()
     );
   }
+
+  if (params.state_id) query.append("state_id", params.state_id.toString());
+
+  if (params.levelType) query.append("levelType", params.levelType);
 
   const url = `${API_CONFIG.BASE_URL}/api/whatsapp/get-whatsapp-link?${query.toString()}`;
 
