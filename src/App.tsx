@@ -165,6 +165,7 @@ import {
 } from "./pages/VIC";
 import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
 import MandalWhatsAppPage from "./pages/LevelAdmin/subLevel/MandalWhatsAppPage";
+import MarketTable from "./pages/Assembly/market/MarketTable";
 
 export default function App() {
   return (
@@ -289,6 +290,7 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
+            <Route path="market-table" element={<MarketTable />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="compare-voters" element={<VoterComparePage />} />

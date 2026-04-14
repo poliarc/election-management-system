@@ -6,12 +6,14 @@ import WhatsAppLinkModal from "./WhatsAppLinkModal";
 import {
   deleteWhatsAppLink,
   fetchAssembliesByDistrict,
-  fetchDistrictsByState,
+  // Removed fetchDistrictsByState in favor of hierarchy API
   type AssemblyOption,
-  type DistrictOption,
   type WhatsAppLinkData,
   fetchWhatsAppLinks,
 } from "../../../services/levelAdminApi";
+// Added Hierarchy imports
+import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
+import type { HierarchyChild } from "../../../types/hierarchy";
 
 interface WhatsAppLocationState {
   levelId?: number;
@@ -21,7 +23,8 @@ export default function WhatsAppPage() {
   const location = useLocation();
   const { levelAdminPanels, user } = useAppSelector((state) => state.auth);
 
-  const [districts, setDistricts] = useState<DistrictOption[]>([]);
+  // Changed state type to HierarchyChild to match UserManagement
+  const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [assemblies, setAssemblies] = useState<AssemblyOption[]>([]);
   const [editingLink, setEditingLink] = useState<WhatsAppLinkData | null>(null);
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | "">("");
@@ -57,14 +60,25 @@ export default function WhatsAppPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
 
+  // Updated to use fetchHierarchyChildren to get districts
   useEffect(() => {
-    if (!stateId) return;
     const loadDistricts = async () => {
+      if (!stateId) return;
       try {
-        const response = await fetchDistrictsByState(stateId);
-        setDistricts(response.data);
+        setWhatsAppLoading(true);
+        const response = await fetchHierarchyChildren(stateId, {
+          page: 1,
+          limit: 1000,
+        });
+
+        if (response.success && response.data?.children) {
+          setDistricts(response.data.children);
+        }
       } catch (err) {
+        toast.error("Failed to load districts");
         setDistricts([]);
+      } finally {
+        setWhatsAppLoading(false);
       }
     };
     void loadDistricts();
@@ -112,7 +126,7 @@ export default function WhatsAppPage() {
   const handleExport = () => {
     try {
       setIsExporting(true);
-      const selectedDistrict = districts.find(d => d.id === selectedDistrictId);
+      const selectedDistrict = districts.find(d => d.location_id === selectedDistrictId);
       const selectedAssembly = assemblies.find(a => a.assemblyId === selectedAssemblyId);
 
       let dataToExport = [...whatsappLinks];
@@ -121,7 +135,7 @@ export default function WhatsAppPage() {
         dataToExport = whatsappLinks;
       } else if (selectedDistrictId && selectedDistrict) {
         dataToExport = whatsappLinks.filter(
-          link => link.district_name === selectedDistrict.name
+          link => link.district_name === selectedDistrict.location_name
         );
       }
 
@@ -133,7 +147,7 @@ export default function WhatsAppPage() {
       const headers = ["State", "District", "Assembly", "Group Name", "WhatsApp Link", "Users Count"];
       const csvRows = dataToExport.map(link => [
         `"${stateName}"`,
-        `"${link.district_name || selectedDistrict?.name || "—"}"`,
+        `"${link.district_name || selectedDistrict?.location_name || "—"}"`,
         `"${link.assembly_name || selectedAssembly?.assemblyName || "—"}"`,
         `"${link.group_name || "—"}"`,
         `"${link.link}"`,
@@ -148,7 +162,7 @@ export default function WhatsAppPage() {
       const fileName = selectedAssembly 
         ? `WhatsApp_Links_${selectedAssembly.assemblyName}.csv`
         : selectedDistrict 
-          ? `WhatsApp_Links_District_${selectedDistrict.name}.csv`
+          ? `WhatsApp_Links_District_${selectedDistrict.location_name}.csv`
           : `WhatsApp_Links_All_${stateName}.csv`;
 
       link.setAttribute("href", url);
@@ -211,7 +225,12 @@ export default function WhatsAppPage() {
               className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-color)] outline-none focus:border-emerald-500"
             >
               <option value="">Select District</option>
-              {districts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              {/* Updated to use location_id and location_name */}
+              {districts.map((d) => (
+                <option key={d.location_id} value={d.location_id}>
+                  {d.location_name}
+                </option>
+              ))}
             </select>
           </div>
           <div>

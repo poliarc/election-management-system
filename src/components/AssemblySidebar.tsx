@@ -360,6 +360,7 @@ const Icons = {
 // Top-level items (excluding team - will be dynamic)
 const assemblyItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+  
 ];
 
 // Dropdown items under "List" - These will be replaced by dynamic levels from API
@@ -385,7 +386,9 @@ const staticListItems: NavItem[] = [
 //   { to: "form-20", label: "Form 20", icon: Icons.form20 },
 // ];
 
-const otherItemsAfter: NavItem[] = [];
+const otherItemsAfter: NavItem[] = [
+  { to: "market-table", label: "Market Place", icon: Icons.generic }
+];
 
 // Booth Management dropdown items
 const boothManagementItems: NavItem[] = [
