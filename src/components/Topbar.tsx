@@ -109,8 +109,6 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     });
   }, [stateAssignments, permissions]);
 
-  // 🌟 THE BULLETPROOF CONTEXT ISOLATOR & TREE CLIMBER 🌟
-  // 🌟 UPDATE THIS LINE (Add 'as any') 🌟
   useEffect(() => {
     const currentUserId = user?.id ?? (user as any)?.user_id ?? null;
     if (!currentUserId) {
@@ -148,8 +146,6 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
         // 2. Fetch Explicit User Links AND Backend Family Tree Links
         if (typeof fetchWhatsAppLinksByUser === 'function') {
-          // 🌟 THE FIX: Booth IDs aren't in the afterAssemblyData table, so the backend SQL fails to climb.
-          // But the frontend knows the Polling Center ID (parentId). We pass THAT to the backend! 🌟
           const backendSearchId = selectedAssignment?.levelType === 'Booth' ? selectedAssignment?.parentId : currentLocId;
 
           const fetchApi: any = fetchWhatsAppLinksByUser;
@@ -157,7 +153,6 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
             .then((res: any) => {
               if (!Array.isArray(res)) return [];
               
-              // 🌟 MAGIC FIX: Add any discovered ancestors into the frontend hierarchy! 🌟
               res.forEach((link: any) => {
                   if (link.afterAssemblyData_id) {
                       hierarchyIds.add(Number(link.afterAssemblyData_id));
@@ -264,46 +259,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     return () => { cancelled = true; };
   }, [user, selectedAssignment, allAssignments]); 
 
-  {/*const isAfterAssemblyPanel = location.pathname.startsWith('/afterassembly/');
-  const isSubLevelPanel = location.pathname.startsWith('/sublevel/'); */}
   const isAdminPanel = location.pathname.startsWith('/admin');
   const isLevelAdminPanel = location.pathname.startsWith('/leveladmin');
   const isPartyAdminPanel = location.pathname.startsWith('/partyadmin');
   const shouldHideProfile = isAdminPanel || isLevelAdminPanel || isPartyAdminPanel;
   const currentLevelType = selectedAssignment?.levelType;
-
-{/**  const currentLevelType = selectedAssignment?.levelType;
-  let sameTypeAssignments: StateAssignment[] = [];
-
-  if (isAfterAssemblyPanel || isSubLevelPanel) {
-    const currentLevelName = selectedAssignment?.levelType;
-    if (isAfterAssemblyPanel) {
-      const allAfterAssemblyAssignments = getAllDynamicLevelAssignments(permissions);
-      if (currentLevelName) {
-        sameTypeAssignments = allAfterAssemblyAssignments.filter((a: StateAssignment) => a.levelName === currentLevelName || a.levelType === currentLevelName);
-      }
-    } else if (isSubLevelPanel) {
-      const allSubLevelAssignments = getAllDynamicLevelAssignments(permissions);
-      if (currentLevelName) {
-        sameTypeAssignments = allSubLevelAssignments.filter((a: StateAssignment) => a.levelName === currentLevelName || a.levelType === currentLevelName);
-      }
-    }
-  } else {
-    if (currentLevelType) {
-      if (currentLevelType === 'Block' && permissions?.accessibleBlocks) {
-        sameTypeAssignments = permissions.accessibleBlocks.map((block: any) => ({
-          ...block,
-          levelType: 'Block',
-          stateMasterData_id: block.afterAssemblyData_id || 0,
-          displayName: block.displayName,
-          partyLevelName: block.partyLevelName,
-        }));
-      } else {
-        sameTypeAssignments = stateAssignments.filter((a) => a.levelType === currentLevelType);
-      }
-    }
-  }
-     */}
 
   const hasAnyAssignments = allAssignments.length > 0;
   const hasAnyAdminPanels = (partyAdminPanels && partyAdminPanels.length > 0) || (levelAdminPanels && levelAdminPanels.length > 0);
@@ -429,13 +389,14 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   return (
     <header className="topbar-surface sticky top-0 z-50 border-b border-[var(--border-color)]/50 bg-[var(--bg-card)] backdrop-blur-md text-[var(--text-color)] transition-all duration-300 ease-in-out [will-change:background-color,color]">
       
-      <div className="container-page flex flex-wrap items-center justify-between py-2 sm:py-3 px-3 sm:px-4 gap-3 sm:gap-4 overflow-visible">
+      {/* 🌟 CHANGED: flex-nowrap, reduced gaps and paddings 🌟 */}
+      <div className="container-page flex flex-nowrap items-center justify-between py-2 sm:py-3 px-2 sm:px-4 gap-1 sm:gap-4 w-full">
         
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={() => onToggleSidebar?.()}
-            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0"
+            className="lg:hidden inline-flex items-center justify-center p-1.5 sm:p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0"
             aria-label="Open sidebar"
           >
             <svg className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--text-color)]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -446,7 +407,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <button
             type="button"
             onClick={() => navigate("/panels")}
-            className="group inline-flex items-center justify-center p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0 relative"
+            className="group inline-flex items-center justify-center p-1.5 sm:p-2 rounded-md hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out shrink-0 relative"
             aria-label="Go to assigned panels"
             title="Assigned Panels"
           >
@@ -457,7 +418,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           </button>
 
           {(hasAnyAssignments || hasAnyAdminPanels) && user && (
-            <div className="flex items-center gap-2 sm:gap-3 ml-1 sm:ml-2 border-l border-[var(--border-color)] pl-2 sm:pl-3">
+            <div className="flex items-center gap-1 sm:gap-3 ml-0.5 sm:ml-2 border-l border-[var(--border-color)] pl-1 sm:pl-3">
               {hasAnyAssignments && (
                 <div className="relative shrink-0" ref={levelAccessRef}>
                   <button
@@ -467,7 +428,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setPartyPanelsOpen(false);
                       setLevelAdminPanelsOpen(false);
                     }}
-                    className="topbar-control flex items-center cursor-pointer gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
+                    className="topbar-control flex items-center cursor-pointer gap-1 sm:gap-2 rounded-lg border border-[var(--border-color)] px-1.5 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="Team Levels"
                   >
                     <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -550,9 +511,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         const dynamicLevelTypes = getAllDynamicLevelTypes(permissions);
                         const allDynamicAssignments = getAllDynamicLevelAssignments(permissions);
                         
-                        // Group by levelType - prefer accessibleLevelsByType keys directly
                         const groupedByType = dynamicLevelTypes.map(levelType => {
-                          // Try accessibleLevelsByType first for accurate count
                           const fromSource = permissions?.accessibleLevelsByType?.[levelType];
                           const items = fromSource
                             ? allDynamicAssignments.filter(a => a.levelType === levelType || a.levelName === levelType)
@@ -602,7 +561,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setPartyPanelsOpen(false);
                       setLevelAccessOpen(false);
                     }}
-                    className="topbar-control flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
+                    className="topbar-control flex items-center gap-1 sm:gap-2 rounded-lg border border-[var(--border-color)] px-1.5 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="Role Assign"
                   >
                     <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -647,7 +606,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       setLevelAdminPanelsOpen(false);
                       setLevelAccessOpen(false);
                     }}
-                    className="topbar-control flex items-center gap-1.5 sm:gap-2 rounded-lg border border-[var(--border-color)] px-2 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
+                    className="topbar-control flex items-center gap-1 sm:gap-2 rounded-lg border border-[var(--border-color)] px-1.5 sm:px-3 py-1.5 text-xs sm:text-sm hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
                     title="National Levels"
                   >
                     <svg className="h-4 w-4 text-[var(--text-secondary)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -689,14 +648,14 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           )}
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
           
           <div className="hidden md:block">
             <GoogleTranslate />
           </div>
 
           {whatsAppLinks.length > 0 && (
-            <div className="relative shrink-0 mr-1" ref={whatsappMenuRef}>
+            <div className="relative shrink-0" ref={whatsappMenuRef}>
               <button
                 type="button"
                 onClick={() => {
@@ -706,7 +665,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   setLevelAdminPanelsOpen(false);
                   setLevelAccessOpen(false);
                 }}
-                className="topbar-control flex items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-2 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400 transition-colors duration-300 ease-in-out relative"
+                className="topbar-control flex items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-1.5 sm:p-2 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400 transition-colors duration-300 ease-in-out relative"
                 aria-label="WhatsApp Groups"
                 title="WhatsApp Groups"
               >
@@ -798,7 +757,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           <button
             type="button"
             onClick={() => setDarkMode((prev) => !prev)}
-            className="topbar-control inline-flex items-center justify-center rounded-xl border border-[var(--border-color)] p-2 text-[var(--text-color)] hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
+            className="topbar-control inline-flex items-center justify-center rounded-xl border border-[var(--border-color)] p-1.5 sm:p-2 text-[var(--text-color)] hover:bg-[var(--text-color)]/5 transition-colors duration-300 ease-in-out"
             aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
             title={darkMode ? "Light Mode" : "Dark Mode"}
           >
@@ -815,13 +774,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           </button>
 
           {user && (
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen((s) => !s)}
-                className="topbar-control flex items-center gap-1.5 sm:gap-3 rounded-2xl border border-[var(--border-color)] px-2 sm:px-3 py-1.5 shadow-sm hover:bg-[var(--text-color)]/5 hover:shadow transition-colors duration-300 ease-in-out text-xs sm:text-sm"
+                className="topbar-control flex items-center gap-1 sm:gap-3 rounded-2xl border border-[var(--border-color)] px-1.5 sm:px-3 py-1 sm:py-1.5 shadow-sm hover:bg-[var(--text-color)]/5 hover:shadow transition-colors duration-300 ease-in-out text-xs sm:text-sm"
               >
                 <span className="text-[var(--text-color)] hidden sm:inline">
                   Hello, <span className="font-medium">{firstName}</span>

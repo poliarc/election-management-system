@@ -378,34 +378,37 @@ export default function MandalWhatsAppPage() {
         </div>
 
         {/* Actions Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-sm gap-4">
-          <div>
-            <h3 className="text-sm font-bold text-[var(--text-color)]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-6 shadow-sm gap-4">
+          <div className="w-full sm:w-auto">
+            <h3 className="text-sm sm:text-base font-bold text-[var(--text-color)]">
               {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : "Mandal Actions"}
             </h3>
             <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to Mandals</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* 🌟 Export CSV Button */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            {/* Export CSV Button - Full width on mobile */}
             <button
               onClick={handleExport}
               disabled={isExporting || whatsappLinks.length === 0}
-              className="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-5 py-2.5 text-sm font-bold text-[var(--text-color)] transition hover:bg-[var(--text-color)]/5 shadow-sm active:scale-95 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-5 py-2.5 text-sm font-bold text-[var(--text-color)] transition hover:bg-[var(--text-color)]/5 shadow-sm active:scale-95 disabled:opacity-50"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
               </svg>
-              {isExporting ? "Exporting..." : "Export CSV"}
+              <span className="whitespace-nowrap">{isExporting ? "Exporting..." : "Export CSV"}</span>
             </button>
 
+            {/* Create Mandal Link Button - Full width on mobile */}
             {selectedLevel && isMandalSelected && (
               <button
                 onClick={() => openModal(null)}
-                className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700 shadow-md active:scale-95 shrink-0"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700 shadow-md active:scale-95 shrink-0"
               >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                Create Mandal Link
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span className="whitespace-nowrap">Create Mandal Link</span>
               </button>
             )}
           </div>
@@ -472,7 +475,7 @@ export default function MandalWhatsAppPage() {
             } else if (stateId) {
               void loadWhatsAppLinks({ state_id: stateId, levelType: 'Mandal' });
             }
-          }} 
+{/* Actions Section */}          }} 
           initialData={editingLink} 
           row={modalRow} 
           hideUserSelection={true}
