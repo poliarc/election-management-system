@@ -360,7 +360,7 @@ const Icons = {
 // Top-level items (excluding team - will be dynamic)
 const assemblyItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  
+  { to: "programs", label: "Programs", icon: Icons.eventLog },
 ];
 
 // Dropdown items under "List" - These will be replaced by dynamic levels from API
@@ -514,6 +514,7 @@ const voterReportsItems: NavItem[] = [
   { to: "voter-report/approach", label: "Approach List", icon: Icons.report },
   { to: "voter-report/ssr-form", label: "SSR Form Report", icon: Icons.report },
   // { to: "voter-report/survey", label: "Voter Survey List", icon: Icons.report },
+  { to: "voter-report/voter-tracking", label: "User Activity Report", icon: Icons.eventLog },
 ];
 
 export default function AssemblySidebar({

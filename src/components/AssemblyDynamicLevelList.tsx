@@ -85,8 +85,8 @@ export default function AssemblyDynamicLevelList({
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(20);
 
-    // Sorting state
-    const [sortBy, setSortBy] = useState<string>("");
+    // Sorting state - Default sort by 'id' for proper numerical ordering
+    const [sortBy, setSortBy] = useState<string>("id");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
     // State for action dropdown and modals

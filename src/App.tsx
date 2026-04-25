@@ -67,6 +67,7 @@ import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachList
 import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
 import SSRFormReportPage from "./pages/Assembly/voterReport/SSRForm";
 import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
+import VoterTrackingPage from "./pages/Assembly/voterReport/VoterTracking/VoterTrackingPage";
 import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
 import {
   AfterAssemblyAssignedEvents,
@@ -167,6 +168,9 @@ import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
 import MandalWhatsAppPage from "./pages/LevelAdmin/subLevel/MandalWhatsAppPage";
 import MarketTable from "./pages/Assembly/market/MarketTable";
 
+import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
+import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -175,6 +179,7 @@ export default function App() {
         <Route path="/register" element={<PublicRegistration />} />
         <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/program/add" element={<PublicAddProgramPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
           <Route path="dashboard" element={<RoleRedirect />} />
@@ -290,7 +295,7 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
-            <Route path="market-table" element={<MarketTable />} />
+             <Route path="market-table" element={<MarketTable />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="compare-voters" element={<VoterComparePage />} />
@@ -372,6 +377,10 @@ export default function App() {
               path="voter-report/family-labels"
               element={<FamilyLabelsPage />}
             />
+            <Route
+              path="voter-report/voter-tracking"
+              element={<VoterTrackingPage />}
+            />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="users" element={<AssemblyCreateUser />} />
             <Route path="create-user" element={<AssemblyCreateUser />} />
@@ -436,6 +445,7 @@ export default function App() {
             />
             <Route path="vic/report-details/:id" element={<ReportDetails />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="programs" element={<ProgramsPage />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>
