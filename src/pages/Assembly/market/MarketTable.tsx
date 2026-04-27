@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast';  
 
 export interface Market {
   id: number;
@@ -24,8 +24,17 @@ export interface Market {
   youtube_link?: string;
 }
 
+// --- Configuration for Categories and Sub-categories ---
+const categoriesData: Record<string, string[]> = {
+  "Electronics": ["Mobile Store", "Home Appliances", "Computer Hardware", "Repair Services"],
+  "Automobile": ["Two Wheeler Dealer", "Four Wheeler Dealer", "Spare Parts", "Service Center"],
+  "IT Services": ["Software Development", "Web Design", "Digital Marketing", "Cloud Services"],
+  "Retail": ["Grocery", "Clothing", "Footwear", "Stationery"],
+  "Healthcare": ["Pharmacy", "Clinic", "Diagnostic Center", "Hospital"],
+  "Food & Beverage": ["Restaurant", "Cafe", "Bakery", "Catering"]
+};
+
 const getCategoryStyle = (category: string = '') => {
-  // Safe check: if category is null, undefined, or empty string, return default
   if (!category) {
     return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
   }
@@ -45,16 +54,14 @@ const MarketTable = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   
-  // Modal State for both Create and Update
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [formData, setFormData] = useState<Partial<Market>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- 1. Fetch Markets ---
   const fetchMarkets = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:4435/api/market/get-market');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/market/get-market`);
       const result = await response.json();
       
       if (result.success) {
@@ -77,37 +84,43 @@ const MarketTable = () => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  // --- 2. Open Modal Handlers ---
   const handleOpenCreate = () => {
-    setFormData({}); // Clear form for new entry
+    setFormData({});
     setModalMode('create');
   };
 
   const handleOpenUpdate = (market: Market) => {
-    setFormData(market); // Populate form with existing data
+    setFormData(market);
     setModalMode('edit');
   };
 
   const handleModalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Logic: If category changes, reset the sub-category
+    if (name === 'business_category') {
+      setFormData(prev => ({ 
+        ...prev, 
+        business_category: value, 
+        business_sub_category: "" 
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  // --- 3. Submit Handler ---
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const isEditing = modalMode === 'edit';
     const url = isEditing 
-      ? `http://localhost:4435/api/market/update-market/${formData.id}`
-      : `http://localhost:4435/api/market/create-market`;
+      ? `${import.meta.env.VITE_API_BASE_URL}/api/market/update-market/${formData.id}`
+      : `${import.meta.env.VITE_API_BASE_URL}/api/market/create-market`;
     const method = isEditing ? 'PATCH' : 'POST';
 
-    // --- AUTO-FIXER & CLEANUP ---
     let payloadToSend: any = { ...formData };
 
-    // Trim spaces and remove empty/null fields to prevent Zod optional() validation errors
     Object.keys(payloadToSend).forEach(key => {
       if (typeof payloadToSend[key] === 'string') {
         payloadToSend[key] = payloadToSend[key].trim();
@@ -128,8 +141,8 @@ const MarketTable = () => {
 
       if (result.success) {
         toast.success(`Market ${isEditing ? 'updated' : 'created'} successfully!`);
-        setModalMode(null); // Close modal
-        fetchMarkets();     // Refresh table
+        setModalMode(null);
+        fetchMarkets();
       } else {
         const errorMessage = result.error?.details?.[0]?.message || result.message || `Failed to ${isEditing ? 'update' : 'create'} market`;
         toast.error(errorMessage);
@@ -141,7 +154,6 @@ const MarketTable = () => {
     }
   };
 
-  // --- 4. Export Logic ---
   const handleExport = () => {
     try {
       setIsExporting(true);
@@ -150,7 +162,6 @@ const MarketTable = () => {
         return;
       }
 
-      // Define comprehensive headers
       const headers = [
         "State", "District", "Assembly", "Block", "Mandal", 
         "Business Name", "Nature of Business", "Category", "Sub-Category",
@@ -158,7 +169,6 @@ const MarketTable = () => {
         "Website", "LinkedIn", "Facebook", "Instagram", "Twitter", "YouTube"
       ];
 
-      // Map data accurately
       const csvRows = markets.map(market => [
         `"${market.state || "—"}"`, 
         `"${market.district || "—"}"`, 
@@ -257,7 +267,6 @@ const MarketTable = () => {
               ) : (
                 markets.map((market) => (
                   <React.Fragment key={market.id}>
-                    {/* Main Visible Row */}
                     <tr className={`transition-colors group cursor-pointer ${expandedId === market.id ? 'bg-[var(--bg-main)]' : 'hover:bg-[var(--bg-hover)]'}`} onClick={() => toggleRow(market.id)}>
                       <td className="px-6 py-4 whitespace-nowrap"><span className="text-[var(--text-color)] text-sm font-medium">{market.state}</span></td>
                       <td className="px-6 py-4 whitespace-nowrap"><span className="text-[var(--text-color)] text-sm font-medium">{market.district}</span></td>
@@ -291,7 +300,6 @@ const MarketTable = () => {
                       </td>
                     </tr>
 
-                    {/* Expandable Details Row */}
                     {expandedId === market.id && (
                       <tr className="bg-[var(--bg-main)]">
                         <td colSpan={6} className="p-0 border-b border-[var(--border-color)]">
@@ -308,7 +316,7 @@ const MarketTable = () => {
                                   {market.alternative_number && (
                                     <div className="flex items-center gap-2">
                                       <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                      <span className="text-sm font-medium text-[var(--text-color)]">{market.alternative_number} <span className="text-xs text-[var(--text-secondary)] ml-1"></span></span>
+                                      <span className="text-sm font-medium text-[var(--text-color)]">{market.alternative_number}</span>
                                     </div>
                                   )}
                                 </div>
@@ -319,6 +327,14 @@ const MarketTable = () => {
                                 <div className="flex items-center gap-2">
                                   <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                   <span className="text-sm font-bold text-[var(--text-color)]">{market.owner_name}</span>
+                                </div>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Sub-Category</p>
+                                <div className="flex items-center gap-2">
+                                  <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                  <span className="text-sm font-medium text-[var(--text-color)]">{market.business_sub_category || '—'}</span>
                                 </div>
                               </div>
 
@@ -340,33 +356,7 @@ const MarketTable = () => {
                                 </div>
                               </div>
 
-                              <div>
-                                <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Social Links</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {market.linkedin_link && (
-                                    <a href={market.linkedin_link} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-500/20">LinkedIn</a>
-                                  )}
-                                  {market.fb_link && (
-                                    <a href={market.fb_link} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-bold border border-indigo-500/20">Facebook</a>
-                                  )}
-                                  {market.instagram_link && (
-                                    <a href={market.instagram_link} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 text-xs font-bold border border-pink-500/20">Instagram</a>
-                                  )}
-                                  {market.twitter_link && (
-                                    <a href={market.twitter_link} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-gray-500/10 text-gray-700 dark:text-gray-300 text-xs font-bold border border-gray-500/20">Twitter/X</a>
-                                  )}
-                                  {market.youtube_link && (
-                                    <a href={market.youtube_link} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold border border-red-500/20">YouTube</a>
-                                  )}
-                                  {(!market.linkedin_link && !market.fb_link && !market.instagram_link && !market.twitter_link && !market.youtube_link) && (
-                                    <span className="text-sm text-[var(--text-secondary)]">No links available</span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* --- Location & Actions on the Same Row --- */}
                               <div className="sm:col-span-2 lg:col-span-4 mt-2 pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                {/* Left Side: Location Details */}
                                 <div>
                                   <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Location Details</p>
                                   <div className="flex items-start gap-2">
@@ -377,7 +367,6 @@ const MarketTable = () => {
                                   </div>
                                 </div>
                                 
-                                {/* Right Side: Update Button Only */}
                                 <div className="w-full sm:w-auto flex justify-end">
                                   <button 
                                     onClick={() => handleOpenUpdate(market)}
@@ -406,7 +395,6 @@ const MarketTable = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col border border-[var(--border-color)]">
             
-            {/* Modal Header */}
             <div className="px-6 py-4 border-b border-[var(--border-color)] bg-[var(--bg-main)] flex justify-between items-center">
               <h3 className="text-lg font-bold text-[var(--text-color)]">
                 {modalMode === 'create' ? 'Add New Market Listing' : 'Edit Market Listing'}
@@ -416,11 +404,9 @@ const MarketTable = () => {
               </button>
             </div>
             
-            {/* Modal Body */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                {/* --- Section 1: Location Hierarchy --- */}
                 <div className="md:col-span-3 border-b border-[var(--border-color)] pb-2">
                   <h4 className="text-sm font-bold text-indigo-500 uppercase tracking-wider">Location Information</h4>
                 </div>
@@ -445,7 +431,6 @@ const MarketTable = () => {
                   <input type="text" name="mandal" value={formData.mandal || ''} onChange={handleModalChange} className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                {/* --- Section 2: Business Details --- */}
                 <div className="md:col-span-3 border-b border-[var(--border-color)] pb-2 mt-4">
                   <h4 className="text-sm font-bold text-indigo-500 uppercase tracking-wider">Business Details</h4>
                 </div>
@@ -457,16 +442,40 @@ const MarketTable = () => {
                   <label className="text-xs font-semibold text-[var(--text-secondary)]">Nature of Business</label>
                   <input type="text" name="nature_of_business" value={formData.nature_of_business || ''} onChange={handleModalChange} placeholder="e.g. Retail, Wholesale" className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none placeholder-[var(--text-secondary)] opacity-80" />
                 </div>
+
+                {/* --- Business Category Dropdown --- */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-[var(--text-secondary)]">Business Category</label>
-                  <input type="text" name="business_category" value={formData.business_category || ''} onChange={handleModalChange} className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[var(--text-secondary)]">Sub-Category</label>
-                  <input type="text" name="business_sub_category" value={formData.business_sub_category || ''} onChange={handleModalChange} className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                  <select 
+                    name="business_category" 
+                    value={formData.business_category || ''} 
+                    onChange={handleModalChange} 
+                    className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                  >
+                    <option value="">Select Category</option>
+                    {Object.keys(categoriesData).map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* --- Section 3: Owner & Contact --- */}
+                {/* --- Sub-Category Dropdown (Dependent on Category) --- */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[var(--text-secondary)]">Sub-Category</label>
+                  <select 
+                    name="business_sub_category" 
+                    disabled={!formData.business_category}
+                    value={formData.business_sub_category || ''} 
+                    onChange={handleModalChange} 
+                    className={`w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none ${!formData.business_category ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <option value="">Select Sub-Category</option>
+                    {formData.business_category && categoriesData[formData.business_category]?.map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="md:col-span-3 border-b border-[var(--border-color)] pb-2 mt-4">
                   <h4 className="text-sm font-bold text-indigo-500 uppercase tracking-wider">Owner & Contact Information</h4>
                 </div>
@@ -487,7 +496,6 @@ const MarketTable = () => {
                   <input type="email" name="email_id" value={formData.email_id || ''} onChange={handleModalChange} className="w-full px-3 py-2 bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-color)] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
 
-                {/* --- Section 4: Social Media Links --- */}
                 <div className="md:col-span-3 border-b border-[var(--border-color)] pb-2 mt-4">
                   <h4 className="text-sm font-bold text-indigo-500 uppercase tracking-wide flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,7 +531,6 @@ const MarketTable = () => {
                 </div>
               </div>
 
-              {/* Modal Footer Actions */}
               <div className="mt-10 flex justify-end gap-3 pt-6 border-t border-[var(--border-color)]">
                 <button type="button" onClick={() => setModalMode(null)} className="px-6 py-2.5 text-sm font-semibold text-[var(--text-color)] bg-[var(--bg-main)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)] rounded-xl transition-colors">
                   Cancel

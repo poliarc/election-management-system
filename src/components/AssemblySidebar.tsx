@@ -146,21 +146,6 @@ const Icons = {
       />
     </svg>
   ),
-  // karyakarta: (
-  //   <svg
-  //     className={iconClass}
-  //     viewBox="0 0 24 24"
-  //     fill="none"
-  //     stroke="currentColor"
-  //   >
-  //     <path
-  //       d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
-  //       strokeWidth={1.4}
-  //       strokeLinecap="round"
-  //       strokeLinejoin="round"
-  //     />
-  //   </svg>
-  // ),
   campaigns: (
     <svg
       className={iconClass}
@@ -188,6 +173,21 @@ const Icons = {
         strokeWidth={1.4}
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  market: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.4}
+        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
       />
     </svg>
   ),
@@ -369,26 +369,15 @@ const staticListItems: NavItem[] = [
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booths },
-  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
-// const otherItemsBefore: NavItem[] = [
-//   { to: "visitors", label: "Visitors", icon: Icons.visitors },
-//   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
-//   // {
-//   //   to: "assigned-campaigns",
-//   //   label: "Assigned Campaigns",
-//   //   icon: Icons.campaigns,
-//   // },
-//   { to: "assigned-events", label: "Assigned Events", icon: Icons.campaigns },
-//   { to: "search-voter", label: "Search Voter", icon: Icons.search },
-//   { to: "compare-voters", label: "Compare Voters", icon: Icons.compare },
-//   { to: "form-20", label: "Form 20", icon: Icons.form20 },
-// ];
-
-const otherItemsAfter: NavItem[] = [
-  { to: "market-table", label: "Market Place", icon: Icons.generic }
+// Market dropdown items
+const marketItems: NavItem[] = [
+  { to: "market-table", label: "Market List", icon: Icons.generic },
+  { to: "market-discussion", label: "Market Approach", icon: Icons.team }
 ];
+
+const otherItemsAfter: NavItem[] = []; // Empty now since items moved to Market dropdown
 
 // Booth Management dropdown items
 const boothManagementItems: NavItem[] = [
@@ -474,7 +463,6 @@ const voterReportsItems: NavItem[] = [
     label: "Caste Wise List",
     icon: Icons.report,
   },
-  // { to: "voter-report/area-wise", label: "Area Wise List", icon: Icons.report },
   {
     to: "voter-report/party-wise",
     label: "Party Wise List",
@@ -513,7 +501,6 @@ const voterReportsItems: NavItem[] = [
   { to: "voter-report/labharthi", label: "Labharthi List", icon: Icons.report },
   { to: "voter-report/approach", label: "Approach List", icon: Icons.report },
   { to: "voter-report/ssr-form", label: "SSR Form Report", icon: Icons.report },
-  // { to: "voter-report/survey", label: "Voter Survey List", icon: Icons.report },
   { to: "voter-report/voter-tracking", label: "User Activity Report", icon: Icons.eventLog },
 ];
 
@@ -574,38 +561,34 @@ export default function AssemblySidebar({
     { skip: !partyId || !stateId || !partyLevelId }
   );
 
+  const campaignModules = sidebarModules.filter(m =>
+    m.moduleName.toLowerCase().includes('campaign')
+  );
 
-  
+  const assignedEventModules = sidebarModules.filter(m =>
+    m.moduleName.toLowerCase().includes('assigned event')
+  );
 
-const campaignModules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('campaign')
-);
+  const compareVotersModules = sidebarModules.filter(m =>
+    m.moduleName.toLowerCase().includes('compare voters')
+  );
 
-const assignedEventModules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('assigned event')
-);
+  const form20Modules = sidebarModules.filter(m =>
+    m.moduleName.toLowerCase().includes('form 20')
+  );
 
-const compareVotersModules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('compare voters')
-);
+  const visitorsModules = sidebarModules.filter(m =>
+    m.moduleName.toLowerCase().includes('visitors')
+  );
 
-const form20Modules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('form 20')
-);
-
-const visitorsModules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('visitors')
-);
-
-const otherModules = sidebarModules.filter(m =>
-  !m.moduleName.toLowerCase().includes('team') &&
-  !m.moduleName.toLowerCase().includes('campaign') &&
-  !m.moduleName.toLowerCase().includes('compare voters') &&
-  !m.moduleName.toLowerCase().includes('form 20') &&
-  !m.moduleName.toLowerCase().includes('visitors') &&
-  !m.moduleName.toLowerCase().includes('assigned event')
-);
-
+  const otherModules = sidebarModules.filter(m =>
+    !m.moduleName.toLowerCase().includes('team') &&
+    !m.moduleName.toLowerCase().includes('campaign') &&
+    !m.moduleName.toLowerCase().includes('compare voters') &&
+    !m.moduleName.toLowerCase().includes('form 20') &&
+    !m.moduleName.toLowerCase().includes('visitors') &&
+    !m.moduleName.toLowerCase().includes('assigned event')
+  );
 
   // Check if Assembly Team module is accessible
   const hasAssemblyTeamAccess = useMemo(() => {
@@ -745,6 +728,18 @@ const otherModules = sidebarModules.filter(m =>
     isCommunicationPathActive
   );
 
+  // Determine if any market item is active to default-open the dropdown
+  const isMarketPathActive = useMemo(
+    () =>
+      marketItems.some((mk) =>
+        location.pathname.startsWith(`${base}/${mk.to}`)
+      ),
+    [location.pathname, base]
+  );
+  const [openMarket, setOpenMarket] = useState<boolean>(
+    isMarketPathActive
+  );
+
   // Determine if any voter report item is active to default-open the dropdown
   const isVoterReportPathActive = useMemo(
     () =>
@@ -805,9 +800,6 @@ const otherModules = sidebarModules.filter(m =>
 
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event("assignmentChanged"));
-
-    // Navigate to assembly dashboard
-    // navigate("/assembly/dashboard");
   };
 
   return (
@@ -955,9 +947,7 @@ const otherModules = sidebarModules.filter(m =>
           >
             <span className="text-indigo-600 shrink-0">{item.icon}</span>
             <span className="truncate">{item.label}</span>
-            {/** Accent bar */}
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
@@ -979,74 +969,10 @@ const otherModules = sidebarModules.filter(m =>
           >
             <span className="text-indigo-600 shrink-0">{Icons.team}</span>
             <span className="truncate">Assembly Team</span>
-            {/** Accent bar */}
             <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         )}
-
-        {/* Users - Same access as Assembly Team */}
-        {/* {hasAssemblyTeamAccess && (
-          <NavLink
-            to={`${base}/users`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{Icons.team}</span>
-            <span className="truncate">Users</span>
-            {/** Accent bar 
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator 
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        )} */}
-
-        {/* Create User - Same access as Assembly Team */}
-        {/* {hasAssemblyTeamAccess && (
-          <NavLink
-            to={`${base}/create-user`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">
-              <svg
-                className={iconClass}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path
-                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                  strokeWidth={1.4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="truncate">Create User</span>
-            {/** Accent bar 
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator 
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        )} */}
 
         {/* List dropdown */}
         <div>
@@ -1213,7 +1139,7 @@ const otherModules = sidebarModules.filter(m =>
               className={[
                 "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
                 "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                campaignOpen                               // ✅ was openBoothMgmt
+                campaignOpen
                   ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")}
@@ -1276,9 +1202,8 @@ const otherModules = sidebarModules.filter(m =>
           </div>
         )}
 
-          {/* Dynamic Modules */}
-        
-          {otherModules.map((module) => (
+        {/* Dynamic Modules */}
+        {otherModules.map((module) => (
           <NavLink
             key={module.module_id}
             to={`${base}/${getModuleRoute(module.moduleName)}`}
@@ -1298,9 +1223,9 @@ const otherModules = sidebarModules.filter(m =>
             </span>
             <span className="truncate">{module.displayName}</span>
           </NavLink>
-          ))}
+        ))}
 
-          {/* Voter Reports dropdown */}
+        {/* Voter Reports dropdown */}
         <div>
           <button
             type="button"
@@ -1432,104 +1357,78 @@ const otherModules = sidebarModules.filter(m =>
           </div>
         )}
 
+        {/* Supporters Dropdown */}
+        {(visitorsModules.length > 0 || sidebarModules.some(m => m.moduleName.toLowerCase().includes('supporter'))) && (
+          <div>
+            <button
+              onClick={() => setSupporterDropdownOpen(!supporterDropdownOpen)}
+              className={[
+                "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                supporterDropdownOpen
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                  : "border border-transparent hover:border-[var(--border-color)]",
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-indigo-600">{Icons.supporters}</span>
+                <span>Supporter</span>
+              </div>
+              <svg
+                className={`h-4 w-4 text-blue-600 transition-transform ${supporterDropdownOpen ? "rotate-180" : ""}`}
+                viewBox="0 0 20 20"
+                fill="none"
+              >
+                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
 
-
-          {/* Supporters Dropdown */}
-            {(visitorsModules.length > 0 || sidebarModules.some(m => m.moduleName.toLowerCase().includes('supporter'))) && (
-              <div>
-                <button
-                  onClick={() => setSupporterDropdownOpen(!supporterDropdownOpen)}
-                  className={[
-                    "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                    "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                    supporterDropdownOpen
-                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                      : "border border-transparent hover:border-[var(--border-color)]",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-indigo-600">{Icons.supporters}</span>
-                    <span>Supporter</span>
-                  </div>
-                  <svg
-                    className={`h-4 w-4 text-blue-600 transition-transform ${supporterDropdownOpen ? "rotate-180" : ""}`}
-                    viewBox="0 0 20 20"
-                    fill="none"
+            {supporterDropdownOpen && (
+              <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+                {/* Visitors */}
+                {visitorsModules.map((module) => (
+                  <NavLink
+                    key={module.module_id}
+                    to={`${base}/${getModuleRoute(module.moduleName)}`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
+                      ].join(" ")
+                    }
                   >
-                    <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                </button>
-
-                {supporterDropdownOpen && (
-                  <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-                    {/* Visitors */}
-                    {visitorsModules.map((module) => (
-                      <NavLink
-                        key={module.module_id}
-                        to={`${base}/${getModuleRoute(module.moduleName)}`}
-                        onClick={() => onNavigate?.()}
-                        className={({ isActive }) =>
-                          [
-                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                            "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                            isActive
-                              ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                              : "border border-transparent hover:border-[var(--border-color)]",
-                          ].join(" ")
-                        }
-                      >
-                        <span className="text-indigo-600">{Icons.visitors}</span>
-                        <span className="truncate">{module.displayName}</span>
-                      </NavLink>
-                    ))}
-                    {/* Supporters */}
-                    <NavLink
-                      to={`${base}/supporters`}
-                      onClick={() => onNavigate?.()}
-                      className={({ isActive }) =>
-                        [
-                          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                          "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                          isActive
-                            ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                            : "border border-transparent hover:border-[var(--border-color)]",
-                        ].join(" ")
-                      }
-                    >
-                      <span className="text-indigo-600">{Icons.supporters}</span>
-                      <span className="truncate">Supporters</span>
-                    </NavLink>
-                  </div>
-                )}
+                    <span className="text-indigo-600">{Icons.visitors}</span>
+                    <span className="truncate">{module.displayName}</span>
+                  </NavLink>
+                ))}
+                {/* Supporters */}
+                <NavLink
+                  to={`${base}/supporters`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{Icons.supporters}</span>
+                  <span className="truncate">Supporters</span>
+                </NavLink>
               </div>
             )}
+          </div>
+        )}
 
-          {/*   Event    */}
-        {/**  <NavLink
-            to={`${base}/event`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{Icons.supporters}</span>
-            <span className="truncate">Event</span>
-            {/** Accent bar 
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator 
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-          */}
-
-        
-          {/* Communication dropdown */}
-          <div>
+        {/* Communication dropdown */}
+        <div>
           <button
             type="button"
             aria-haspopup="true"
@@ -1589,6 +1488,66 @@ const otherModules = sidebarModules.filter(m =>
           )}
         </div>
 
+        {/* Market Dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openMarket}
+            onClick={() => setOpenMarket((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openMarket
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.market}
+              <span className="text-[var(--text-color)]">Market</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openMarket ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openMarket && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              {marketItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={`${base}/${item.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* VIC Dropdown */}
         <div>
@@ -1695,31 +1654,6 @@ const otherModules = sidebarModules.filter(m =>
             </div>
           )}
         </div>
-
-        {/* Other items after Voter Reports */}
-        {otherItemsAfter.map((item) => (
-          <NavLink
-            key={item.to}
-            to={`${base}/${item.to}`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
-            {/** Accent bar */}
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            {/** Active indicator */}
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        ))}
       </nav>
 
       {/* Account section */}
