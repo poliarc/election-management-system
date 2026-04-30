@@ -28,8 +28,9 @@ export interface MarketDiscussionData extends MarketDiscussionPayload {
   id: number;
   updated_on?: string;
   created_at?: string;
-  updated_by_name?: string;     
-  contact_person_name?: string; 
+  updated_by_name?: string;
+  contact_person_name?: string;
+  contact_person_phone?: string;
 }
 
 export interface MarketDiscussionFetchParams {

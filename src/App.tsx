@@ -171,6 +171,7 @@ import MarketTable from "./pages/Assembly/market/MarketTable";
 
 import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
 import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
+import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
 
 export default function App() {
   return (
@@ -210,6 +211,7 @@ export default function App() {
           <Route path="leveladmin/:levelId" element={<LevelAdminLayout />}>
             <Route index element={<LevelAdminDashboardRouter />} />
             <Route path="dashboard" element={<LevelAdminDashboardRouter />} />
+            <Route path="whatsapp" element={<WhatsAppPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="users" element={<UserManagementRouter />} />
@@ -297,6 +299,7 @@ export default function App() {
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
              <Route path="market-table" element={<MarketTable />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="market-discussion" element={<MarketDiscussionTable />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
