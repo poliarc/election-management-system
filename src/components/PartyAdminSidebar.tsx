@@ -223,6 +223,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
             children: [
                 { to: "export-supporters", label: " Supporters" },
                 { to: "export-booth-agents", label: " Booth Team" },
+                { to: "voter-tracking", label: " Voter Report" },
             ],
         },
     ];
@@ -263,7 +264,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                             "w-full group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                                             "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                             isChildActive(item.children) || isDropdownExpanded(item.to)
-                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200 text-indigo-700 dark:from-indigo-500/20 dark:to-indigo-500/10 dark:ring-indigo-400/40 dark:text-indigo-200"
+                                                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                                                 : "border border-transparent hover:border-[var(--border-color)]",
                                         ].join(" ")}
                                     >
@@ -298,7 +299,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                                                 "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
                                                                 "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                                                 isActive
-                                                                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200 border-l-2 border-indigo-500"
+                                                                    ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200 border-l-2 border-indigo-500"
                                                                     : "border-l-2 border-transparent hover:border-[var(--border-color)]",
                                                             ].join(" ")
                                                         }
@@ -321,7 +322,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                                                 "no-underline group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
                                                                 "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                                                 isActive
-                                                                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200 border-l-2 border-indigo-500"
+                                                                    ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200 border-l-2 border-indigo-500"
                                                                     : "border-l-2 border-transparent hover:border-[var(--border-color)]",
                                                             ].join(" ")
                                                         }
@@ -343,7 +344,7 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
                                             "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                                             "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                                             isActive
-                                                ? "bg-gradient-to-r from-indigo-50 to-white ring-1 ring-indigo-200 text-indigo-700 dark:from-indigo-500/20 dark:to-indigo-500/10 dark:ring-indigo-400/40 dark:text-indigo-200"
+                                                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                                                 : "border border-transparent hover:border-[var(--border-color)]",
                                         ].join(" ")
                                     }
@@ -383,6 +384,8 @@ export const PartyAdminSidebar: React.FC<PartyAdminSidebarProps> = ({
         </aside>
     );
 };
+
+
 
 
 

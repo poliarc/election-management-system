@@ -123,6 +123,7 @@ import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
 import ExportBoothAgentsPage from "./pages/PartyAdmin/ExportBoothAgentsPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
+import { VoterTrackingPage as PartyAdminVoterTrackingPage } from "./pages/PartyAdmin";
 import { PublicRegistration } from "./pages/PublicRegistration";
 import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
@@ -204,6 +205,7 @@ export default function App() {
             <Route path="login-report" element={<LoginReportPage />} />
             <Route path="export-supporters" element={<ExportSupportersPage />} />
             <Route path="export-booth-agents" element={<ExportBoothAgentsPage />} />
+            <Route path="voter-tracking" element={<PartyAdminVoterTrackingPage />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 

@@ -103,6 +103,23 @@ export default function DynamicLevelList({
         { skip: !partyId || !stateId }
     );
 
+    // Calculate afterAssemblyId for the Redux query
+    // Find the last selected filter that comes after Assembly in hierarchy
+    const getAfterAssemblyIdForQuery = () => {
+        const assemblyIndex = hierarchyOrder.indexOf("Assembly");
+        const currentLevelIndex = hierarchyOrder.indexOf(levelName);
+        // Iterate in reverse to find the deepest selected after-assembly filter
+        for (let i = currentLevelIndex - 1; i > assemblyIndex; i--) {
+            const filterLevel = hierarchyOrder[i];
+            if (selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
+                return selectedFilters[filterLevel];
+            }
+        }
+        return undefined;
+    };
+
+    const afterAssemblyIdForQuery = getAfterAssemblyIdForQuery();
+
     // Fetch dynamic level data using Redux API (BLA API) with pagination
     const { 
         data: dynamicLevelData, 
@@ -115,8 +132,7 @@ export default function DynamicLevelList({
             levelName,
             districtId: selectedFilters["District"],
             assemblyId: selectedFilters["Assembly"],
-            blockId: selectedFilters["Block"],
-            mandalId: selectedFilters["Mandal"],
+            afterAssemblyId: afterAssemblyIdForQuery,
             page: currentPage,
             limit: itemsPerPage,
         },
@@ -241,20 +257,14 @@ export default function DynamicLevelList({
     // Helper function to get the last selected after-assembly level ID
     // This works for any level after Assembly (Block, Mandal, PollingCenter, Ward, Zone, Sector, Booth, etc.)
     const getAfterAssemblyId = () => {
-        // Find the last selected filter that comes after Assembly in hierarchy
         const assemblyIndex = hierarchyOrder.indexOf("Assembly");
-        
-        // Iterate through visible filters in reverse order to find the last selected after-assembly level
-        for (let i = visibleFilters.length - 1; i >= 0; i--) {
-            const filterLevel = visibleFilters[i];
-            const filterLevelIndex = hierarchyOrder.indexOf(filterLevel);
-            
-            // Check if this level is after Assembly and has a selected value
-            if (filterLevelIndex > assemblyIndex && selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
+        const currentLevelIndex = hierarchyOrder.indexOf(levelName);
+        for (let i = currentLevelIndex - 1; i > assemblyIndex; i--) {
+            const filterLevel = hierarchyOrder[i];
+            if (selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
                 return selectedFilters[filterLevel];
             }
         }
-        
         return null;
     };
 
@@ -890,7 +900,7 @@ export default function DynamicLevelList({
     };
 
     // Calculate total pages - prioritize server pagination, but use client-side when filter/search is active
-    const isClientSidePagination = showItemsWithoutUsers || showItemsWithUsers || searchTerm.trim().length > 0;
+    const isClientSidePagination = showItemsWithoutUsers || showItemsWithUsers || searchTerm.trim().length > 0 || selectedLevelFilter !== "";
     const totalPages = isClientSidePagination
         ? Math.ceil(filteredLevelItems.length / itemsPerPage)
         : (dynamicLevelData?.pagination?.totalPages || Math.ceil(filteredLevelItems.length / itemsPerPage));
@@ -1649,14 +1659,14 @@ export default function DynamicLevelList({
                                                 {t("StateDynamic.Previous")}
                                             </button>
                                             <span className="text-sm text-[var(--text-secondary)] flex items-center">
-                                                {t("StateDynamic.Page")} {currentPage} {t("StateDynamic.of")} {(showItemsWithoutUsers || showItemsWithUsers) ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages)}
-                                                {(showItemsWithoutUsers || showItemsWithUsers) && (
+                                                {t("StateDynamic.Page")} {currentPage} {t("StateDynamic.of")} {isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages)}
+                                                {isClientSidePagination && (
                                                     <span className="ml-1 text-xs text-[var(--text-secondary)]">{t("StateDynamic.Filtered")}</span>
                                                 )}
                                             </span>
                                             <button
-                                                onClick={() => setCurrentPage(Math.min(dynamicLevelData?.pagination?.totalPages || totalPages, currentPage + 1))}
-                                                disabled={currentPage === (dynamicLevelData?.pagination?.totalPages || totalPages)}
+                                                onClick={() => setCurrentPage(Math.min(isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages), currentPage + 1))}
+                                                disabled={currentPage === (isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages))}
                                                 className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-[var(--text-secondary)] bg-[var(--bg-card)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {t("StateDynamic.Next")}
@@ -1667,8 +1677,8 @@ export default function DynamicLevelList({
                                                 <p className="text-sm text-[var(--text-secondary)]">
                                                     {t("StateDynamic.Showing")}{" "}
                                                     <span className="font-medium">
-                                                        {(showItemsWithoutUsers || showItemsWithUsers) ? 
-                                                            ((currentPage - 1) * itemsPerPage + 1) :
+                                                        {isClientSidePagination ? 
+                                                            (filteredLevelItems.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1) :
                                                             (dynamicLevelData?.pagination ? 
                                                                 ((dynamicLevelData.pagination.page - 1) * dynamicLevelData.pagination.limit + 1) :
                                                                 ((currentPage - 1) * itemsPerPage + 1)
@@ -1677,7 +1687,7 @@ export default function DynamicLevelList({
                                                     </span>{" "}
                                                     {t("StateDynamic.to")}{" "}
                                                     <span className="font-medium">
-                                                        {(showItemsWithoutUsers || showItemsWithUsers) ?
+                                                        {isClientSidePagination ?
                                                             Math.min(currentPage * itemsPerPage, filteredLevelItems.length) :
                                                             (dynamicLevelData?.pagination ? 
                                                                 Math.min(dynamicLevelData.pagination.page * dynamicLevelData.pagination.limit, dynamicLevelData.pagination.total) :
@@ -1687,13 +1697,13 @@ export default function DynamicLevelList({
                                                     </span>{" "}
                                                     {t("StateDynamic.of")}{" "}
                                                     <span className="font-medium">
-                                                        {(showItemsWithoutUsers || showItemsWithUsers) ?
+                                                        {isClientSidePagination ?
                                                             filteredLevelItems.length :
                                                             (dynamicLevelData?.pagination?.total || filteredLevelItems.length)
                                                         }
                                                     </span>{" "}
                                                     {t("StateDynamic.results")}
-                                                    {(showItemsWithoutUsers || showItemsWithUsers) && (
+                                                    {isClientSidePagination && (
                                                         <span className="ml-2 text-xs text-[var(--text-secondary)]">(filtered)</span>
                                                     )}
                                                 </p>
@@ -1708,7 +1718,7 @@ export default function DynamicLevelList({
                                                         {t("StateDynamic.Previous")}
                                                     </button>
                                                     {(() => {
-                                                        const maxPages = dynamicLevelData?.pagination?.totalPages || totalPages;
+                                                        const maxPages = isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages);
                                                         const pagesToShow = Math.min(5, maxPages);
                                                         
                                                         // Calculate start page for pagination display
@@ -1737,8 +1747,8 @@ export default function DynamicLevelList({
                                                         });
                                                     })()}
                                                     <button
-                                                        onClick={() => setCurrentPage(Math.min(dynamicLevelData?.pagination?.totalPages || totalPages, currentPage + 1))}
-                                                        disabled={currentPage === (dynamicLevelData?.pagination?.totalPages || totalPages)}
+                                                        onClick={() => setCurrentPage(Math.min(isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages), currentPage + 1))}
+                                                        disabled={currentPage === (isClientSidePagination ? totalPages : (dynamicLevelData?.pagination?.totalPages || totalPages))}
                                                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-[var(--bg-card)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {t("StateDynamic.Next")}

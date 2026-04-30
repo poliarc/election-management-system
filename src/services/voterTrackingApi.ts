@@ -63,4 +63,9 @@ export const voterTrackingApi = {
 
   getAssemblySummary: (assembly_id: number, params: { date_from?: string; date_to?: string } = {}) =>
     apiClient.get<{ success: boolean; data: VoterTrackingSummary }>(`/voters/tracking/assembly/${assembly_id}/summary`, { params }),
+
+  downloadExcel: (assembly_id: number, party_id: number) =>
+    apiClient.get(`/voters/tracking/assembly/${assembly_id}/party/${party_id}/download-excel`, {
+      responseType: 'blob',
+    }),
 };
