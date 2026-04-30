@@ -47,7 +47,11 @@ export default function MandalWhatsAppPage() {
   const [isExporting, setIsExporting] = useState(false); 
   
   const menuRef = useRef<HTMLDivElement>(null);
-  const locationState = location.state as { levelId?: number } | null;
+  const locationState = location.state as {
+  levelId?: number;
+  levelName?: string;
+  displayName?: string;
+} | null;
 
   const currentPanel = useMemo(() => {
     if (locationState?.levelId) {
@@ -58,6 +62,9 @@ export default function MandalWhatsAppPage() {
 
   const stateId = currentPanel?.metadata?.stateId ?? user?.state_id ?? null;
   const stateName = currentPanel?.metadata?.stateName ?? user?.stateName ?? "State";
+  const currentLevelType = currentPanel?.name || "Level";
+
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -144,7 +151,7 @@ export default function MandalWhatsAppPage() {
     const newPath = [...hierarchyPath.slice(0, levelIndex), selectedLevel];
     setHierarchyPath(newPath);
 
-    if (selectedLevel.levelName?.toLowerCase() === "mandal" || selectedLevel.levelName === currentPanel?.name) {
+    if (selectedLevel.levelName?.toLowerCase() === currentLevelType.toLowerCase()) {
       setLevelOptions((prev) => prev.slice(0, levelIndex + 1));
       return;
     }
@@ -165,7 +172,7 @@ export default function MandalWhatsAppPage() {
   };
 
   const selectedLevel = hierarchyPath.length > 0 ? hierarchyPath[hierarchyPath.length - 1] : null;
-  const isMandalSelected = selectedLevel?.levelName?.toLowerCase() === "mandal" || selectedLevel?.levelName === currentPanel?.name;
+  const isMandalSelected = selectedLevel?.levelName?.toLowerCase() === currentLevelType.toLowerCase();
 
   const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, state_id?: number, levelType?: string }) => {
     try {
@@ -301,8 +308,8 @@ export default function MandalWhatsAppPage() {
       <div className="mx-auto max-w-7xl space-y-6">
         
         <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-white">Mandal WhatsApp Management</h1>
-          <p className="mt-2 text-sm text-white">Manage WhatsApp links for specific Mandals. Sub-level users (Polling Center/Booth) can access these.</p>
+          <h1 className="text-2xl font-bold text-white">WhatsApp Management</h1>
+          <p className="mt-2 text-sm text-white">Manage WhatsApp links for specific Sub-levels.</p>
         </div>
 
         {/* Hierarchy Filter Bar */}
@@ -381,9 +388,9 @@ export default function MandalWhatsAppPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-6 shadow-sm gap-4">
           <div className="w-full sm:w-auto">
             <h3 className="text-sm sm:text-base font-bold text-[var(--text-color)]">
-              {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : "Mandal Actions"}
+              {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : "Sub-levels Actions"}
             </h3>
-            <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to Mandals</p>
+            <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to Sub-levels</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
@@ -421,8 +428,7 @@ export default function MandalWhatsAppPage() {
               <thead className="sticky top-0 z-10 bg-[var(--bg-main)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">State</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Block</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Mandal</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Sub-level</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Link</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-[var(--text-secondary)]">Action</th>
                 </tr>
@@ -434,7 +440,6 @@ export default function MandalWhatsAppPage() {
                   whatsappLinks.map((link) => (
                     <tr key={link.id} className="hover:bg-[var(--bg-main)]/60 transition-colors">
                       <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{stateName}</td>
-                      <td className="px-4 py-4 text-sm text-[var(--text-color)]">{link.block_name || "—"}</td>
                       <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{link.mandal_name || selectedLevel?.displayName || "—"}</td>
                       <td className="px-4 py-4">
                         <a href={link.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-all max-w-[200px]">

@@ -69,11 +69,6 @@ const MarketDiscussionTable = () => {
   // Reference to scroll the modal to the top when editing a previous discussion
   const modalScrollRef = useRef<HTMLDivElement>(null);
 
-  const getCurrentDateTimeString = () => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    return now.toISOString().slice(0, 16);
-  };
 
   const getStatusLabel = (status?: string) => {
     switch ((status || 'PENDING').toUpperCase()) {
@@ -126,19 +121,22 @@ const MarketDiscussionTable = () => {
 
   // Open form in "Create New" mode
   const handleOpenForm = (marketId: number, latest: MarketDiscussionData | null) => {
-    if (latest) {
-      const prefilledData = { ...latest };
-      // Delete IDs so it creates a NEW log with pre-filled previous data
-      delete prefilledData.id;
-      delete prefilledData.created_at;
-      delete prefilledData.updated_on;
-      delete prefilledData.updated_by_name;
-      setFormData({ ...prefilledData, market_id: marketId });
-    } else {
-      setFormData({ status: 'PENDING', market_id: marketId });
-    }
-    setIsModalOpen(true);
-  };
+  if (latest) {
+    const {
+      id,
+      created_at,
+      updated_on,
+      updated_by_name,
+      ...prefilledData
+    } = latest;
+
+    setFormData({ ...prefilledData, market_id: marketId });
+  } else {
+    setFormData({ status: 'PENDING', market_id: marketId });
+  }
+
+  setIsModalOpen(true);
+};
 
   // Switch to "Edit" mode for a specific historical record
   const handleEditHistory = (hist: MarketDiscussionData) => {

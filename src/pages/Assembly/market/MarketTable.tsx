@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';  
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is missing in .env file');
+}
+
 export interface Market {
   id: number;
   state: string;
@@ -61,7 +67,7 @@ const MarketTable = () => {
   const fetchMarkets = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/market/get-market`);
+      const response = await fetch(`${API_BASE_URL}/api/market/get-market`);
       const result = await response.json();
       
       if (result.success) {
@@ -115,8 +121,8 @@ const MarketTable = () => {
 
     const isEditing = modalMode === 'edit';
     const url = isEditing 
-      ? `${import.meta.env.VITE_API_BASE_URL}/api/market/update-market/${formData.id}`
-      : `${import.meta.env.VITE_API_BASE_URL}/api/market/create-market`;
+      ? `${API_BASE_URL}/api/market/update-market/${formData.id}`
+      : `${API_BASE_URL}/api/market/create-market`;
     const method = isEditing ? 'PATCH' : 'POST';
 
     let payloadToSend: any = { ...formData };
