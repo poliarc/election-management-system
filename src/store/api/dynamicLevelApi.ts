@@ -76,8 +76,7 @@ export interface DynamicLevelQueryParams {
     levelName: string;
     districtId?: number;
     assemblyId?: number;
-    blockId?: number;
-    mandalId?: number;
+    afterAssemblyId?: number;
     page?: number;
     limit?: number;
 }
@@ -96,7 +95,7 @@ export const dynamicLevelApi = createApi({
     tagTypes: ["DynamicLevel"],
     endpoints: (builder) => ({
         getDynamicLevelData: builder.query<DynamicLevelData, DynamicLevelQueryParams>({
-            query: ({ stateId, partyId, levelName, districtId, assemblyId, blockId, mandalId, page = 1, limit = 20 }) => {
+            query: ({ stateId, partyId, levelName, districtId, assemblyId, afterAssemblyId, page = 1, limit = 20 }) => {
                 const params: Record<string, any> = {
                     partyId,
                     levelName,
@@ -104,18 +103,9 @@ export const dynamicLevelApi = createApi({
                     limit,
                 };
                 
-                // Add optional filter parameters
                 if (districtId && districtId > 0) params.districtId = districtId;
                 if (assemblyId && assemblyId > 0) params.assemblyId = assemblyId;
-                
-                // After assembly, use afterAssemblyId for any after-assembly level
-                // Priority: mandalId > blockId (last selected level wins)
-                // This works for any level after assembly (Block, Mandal, PollingCenter, Ward, Zone, Sector, etc.)
-                if (mandalId && mandalId > 0) {
-                    params.afterAssemblyId = mandalId;
-                } else if (blockId && blockId > 0) {
-                    params.afterAssemblyId = blockId;
-                }
+                if (afterAssemblyId && afterAssemblyId > 0) params.afterAssemblyId = afterAssemblyId;
                 
                 return {
                     url: `/dynamicLevelV2/${stateId}`,
@@ -126,10 +116,10 @@ export const dynamicLevelApi = createApi({
                 ...response.data,
                 pagination: response.pagination
             }),
-            providesTags: (_result, _error, { stateId, partyId, levelName, districtId, assemblyId, blockId, mandalId, page }) => [
+            providesTags: (_result, _error, { stateId, partyId, levelName, districtId, assemblyId, afterAssemblyId, page }) => [
                 { 
                     type: "DynamicLevel", 
-                    id: `${stateId}-${partyId}-${levelName}-${districtId || 0}-${assemblyId || 0}-${blockId || 0}-${mandalId || 0}-${page || 1}` 
+                    id: `${stateId}-${partyId}-${levelName}-${districtId || 0}-${assemblyId || 0}-${afterAssemblyId || 0}-${page || 1}` 
                 },
                 { type: "DynamicLevel", id: "LIST" },
             ],
