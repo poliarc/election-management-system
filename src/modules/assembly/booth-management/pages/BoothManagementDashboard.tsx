@@ -107,36 +107,37 @@ export const BoothManagementDashboard: React.FC = () => {
   const partyId = user?.partyId;
 
   useEffect(() => {
-    if (assemblyId && partyId) {
-      fetchDashboardData();
-    } else {
-      setLoading(false);
-    }
-  }, [assemblyId, partyId]);
-
-  const fetchDashboardData = async () => {
     if (!assemblyId || !partyId) { setLoading(false); return; }
-    setLoading(true);
-    try {
-      const [statsRes, docRes] = await Promise.all([
-        boothAgentApi.getStats(assemblyId, partyId),
-        boothAgentApi.getDocumentStatus(assemblyId, partyId, { limit: 1 }),
-      ]);
-      setStats({
-        total: statsRes.total_agents,
-        boothInside: statsRes.booth_inside_team,
-        boothOutside: statsRes.booth_outside_team,
-        pollingSupport: statsRes.polling_support_team,
-        active: statsRes.active_agents,
-        inactive: statsRes.inactive_agents,
-      });
-      setDocSummary(docRes.summary);
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+    // Reset data on assembly change to avoid stale data flash
+    setStats({ total: 0, boothInside: 0, boothOutside: 0, pollingSupport: 0, active: 0, inactive: 0 });
+    setDocSummary(null);
+
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [statsRes, docRes] = await Promise.all([
+          boothAgentApi.getStats(assemblyId, partyId),
+          boothAgentApi.getDocumentStatus(assemblyId, partyId, { limit: 1 }),
+        ]);
+        setStats({
+          total: statsRes.total_agents,
+          boothInside: statsRes.booth_inside_team,
+          boothOutside: statsRes.booth_outside_team,
+          pollingSupport: statsRes.polling_support_team,
+          active: statsRes.active_agents,
+          inactive: statsRes.inactive_agents,
+        });
+        setDocSummary(docRes.summary);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [assemblyId, partyId]);
 
   const StatCard = ({ title, value, gradient, icon, link }: {
     title: string; value: number; gradient: string; icon: string; link: string;
