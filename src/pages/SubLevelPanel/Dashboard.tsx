@@ -106,8 +106,8 @@ export default function SubLevelPanelDashboard() {
             {/* Header with Stats Cards */}
             <div className="bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="shrink-0">
-                        <h1 className="text-xl sm:text-2xl font-bold">
+                    <div className="min-w-0 overflow-hidden hover:overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <h1 className="text-xl sm:text-2xl font-bold whitespace-nowrap" title={levelInfo?.displayName || levelInfo?.levelName || "Sub Level"}>
                             {levelInfo?.displayName || levelInfo?.levelName || "Sub Level"} {t("SubLevelPanelDashboard.Dashboard")}
                         </h1>
                         <p className="text-teal-100 mt-1 text-xs sm:text-sm">
@@ -120,7 +120,7 @@ export default function SubLevelPanelDashboard() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
                         <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("SubLevelPanelDashboard.Total_Users")}</p>
