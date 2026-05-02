@@ -79,6 +79,7 @@ export default function DynamicLevelPage() {
             levelName={levelConfig.level_name}
             displayLevelName={levelConfig.display_level_name}
             parentLevelName={levelConfig.parent_level_name}
+            sidebarLevels={sidebarLevels}
         />
     );
 }

@@ -391,7 +391,7 @@ export default function AssemblyUserManagement() {
                       setShowAssignModal(false);
                     }}
                     className={`w-full p-4 text-left border-b border-[var(--border-color)] hover:bg-[var(--text-color)]/5 transition-colors ${selectedDistrict?.location_id === district.location_id
-                      ? "bg-indigo-50 border-l-4 border-l-indigo-500"
+                      ? "bg-[var(--bg-main)] border-l-4 border-l-indigo-500"
                       : ""
                       }`}
                   >
@@ -445,7 +445,7 @@ export default function AssemblyUserManagement() {
                       setShowAssignModal(false);
                     }}
                     className={`w-full p-4 text-left border-b border-[var(--border-color)] hover:bg-[var(--text-color)]/5 transition-colors ${selectedAssembly?.location_id === assembly.location_id
-                      ? "bg-indigo-50 border-l-4 border-l-indigo-500"
+                      ? "bg-[var(--bg-main)] border-l-4 border-r-1 border-[var(--border-muted)]"
                       : ""
                       }`}
                   >

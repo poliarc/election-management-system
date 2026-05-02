@@ -199,7 +199,7 @@ const FamilyLabelsPage: React.FC = () => {
                         </label>
                         <button
                             onClick={handleReset}
-                            className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            className="w-full bg-[var(--bg-color)] 0 text-[var(--text-secondary)] px-4 py-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
                         >
                             {t("FamilyLabelsPage.Reset")}
                         </button>
@@ -283,8 +283,8 @@ const FamilyLabelsPage: React.FC = () => {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="text-sm text-gray-600">
+                        <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-gray-200">
+                            <div className="text-sm text-[var(--text-secondary)]">
                                 Showing page {currentPage} of {totalPages} • {totalVoters} total families
                             </div>
                             <div className="flex gap-2">

@@ -836,7 +836,7 @@ export default function DistrictDynamicLevelList({
         const districtIds = [districtInfo.districtId];
         levelItems = await fetchLevelItems(districtIds, 1);
 
-        setAllLevelItems(levelItems);
+        setAllLevelItems(levelItems.sort((a, b) => a.id - b.id));
       } catch (err) {
         console.error(`Error fetching all ${levelName} items:`, err);
         setAllLevelItems([]);

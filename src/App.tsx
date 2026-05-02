@@ -67,6 +67,7 @@ import ApproachListPage from "./pages/Assembly/voterReport/Approach/ApproachList
 import LabharthiListPage from "./pages/Assembly/voterReport/Labharthi/LabharthiListPage";
 import SSRFormReportPage from "./pages/Assembly/voterReport/SSRForm";
 import FamilyLabelsPage from "./pages/Assembly/voterReport/FamilyLabels/FamilyLabelsPage";
+import VoterTrackingPage from "./pages/Assembly/voterReport/VoterTracking/VoterTrackingPage";
 import AfterAssemblyPanelLayout from "./layouts/AfterAssemblyPanelLayout";
 import {
   AfterAssemblyAssignedEvents,
@@ -122,12 +123,13 @@ import { ExportSupportersPage } from "./pages/PartyAdmin/ExportSupportersPage";
 import ExportBoothAgentsPage from "./pages/PartyAdmin/ExportBoothAgentsPage";
 import { RolePage as PartyAdminRoles } from "./pages/PartyAdmin/role";
 import { LoginReportPage } from "./pages/PartyAdmin/loginReport/LoginReport";
+import { VoterTrackingPage as PartyAdminVoterTrackingPage } from "./pages/PartyAdmin";
 import { PublicRegistration } from "./pages/PublicRegistration";
 import { PublicAddSupporterPage } from "./pages/Assembly/supporters";
 import LevelAdminLayout from "./layouts/LevelAdminLayout";
 import { LevelAdminDashboardRouter } from "./pages/LevelAdmin/LevelAdminRouter";
 import { UserManagementRouter } from "./pages/LevelAdmin/UserManagementRouter";
-import { AssemblyHierarchyManager } from "./pages/LevelAdmin/assemblyLevel";
+import WhatsAppPage from "./pages/LevelAdmin/assemblyLevel/WhatsAppPage";
 import ChatPage from "./pages/Chat/ChatPage";
 // import { ThemeSettings } from "./pages/Settings";
 import SubLevelPanelLayout from "./layouts/SubLevelPanelLayout";
@@ -164,6 +166,13 @@ import {
   ReportDetails,
 } from "./pages/VIC";
 import EventsStats from "./modules/assembly/event-master/pages/EventsStats";
+import MandalWhatsAppPage from "./pages/LevelAdmin/subLevel/MandalWhatsAppPage";
+import MarketDiscussionTable from "./pages/Assembly/market/MarketDiscusion";
+import MarketTable from "./pages/Assembly/market/MarketTable";
+
+import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
+import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
+import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
 
 export default function App() {
   return (
@@ -173,6 +182,7 @@ export default function App() {
         <Route path="/register" element={<PublicRegistration />} />
         <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/program/add" element={<PublicAddProgramPage />} />
         <Route element={<ProtectedRoute />}>
           <Route index element={<RoleRedirect />} />
           <Route path="dashboard" element={<RoleRedirect />} />
@@ -195,6 +205,7 @@ export default function App() {
             <Route path="login-report" element={<LoginReportPage />} />
             <Route path="export-supporters" element={<ExportSupportersPage />} />
             <Route path="export-booth-agents" element={<ExportBoothAgentsPage />} />
+            <Route path="voter-tracking" element={<PartyAdminVoterTrackingPage />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
 
@@ -202,6 +213,7 @@ export default function App() {
           <Route path="leveladmin/:levelId" element={<LevelAdminLayout />}>
             <Route index element={<LevelAdminDashboardRouter />} />
             <Route path="dashboard" element={<LevelAdminDashboardRouter />} />
+            <Route path="whatsapp" element={<WhatsAppPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="users" element={<UserManagementRouter />} />
@@ -209,11 +221,12 @@ export default function App() {
             <Route path="manage-booths" element={<UserManagementRouter />} />
             <Route path="create-user" element={<UserManagementRouter />} />
            
-            <Route
-              path="assembly-hierarchy"
-              element={<AssemblyHierarchyManager />}
-            />
             <Route path="update-password" element={<UpdatePasswordPage />} />
+          </Route>
+
+          <Route element={<LevelAdminLayout />}>
+            <Route path="/whatsapp" element={<WhatsAppPage />} />
+            <Route path="/mandal-whatsapp" element={<MandalWhatsAppPage />} />
           </Route>
 
           <Route path="admin" element={<AdminLayout />}>
@@ -287,6 +300,9 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
+             <Route path="market-table" element={<MarketTable />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
+            <Route path="market-discussion" element={<MarketDiscussionTable />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="compare-voters" element={<VoterComparePage />} />
@@ -368,6 +384,10 @@ export default function App() {
               path="voter-report/family-labels"
               element={<FamilyLabelsPage />}
             />
+            <Route
+              path="voter-report/voter-tracking"
+              element={<VoterTrackingPage />}
+            />
             <Route path="team" element={<AssemblyTeam />} />
             <Route path="users" element={<AssemblyCreateUser />} />
             <Route path="create-user" element={<AssemblyCreateUser />} />
@@ -432,6 +452,7 @@ export default function App() {
             />
             <Route path="vic/report-details/:id" element={<ReportDetails />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="programs" element={<ProgramsPage />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
           </Route>
           <Route path="block" element={<BlockLayout />}>

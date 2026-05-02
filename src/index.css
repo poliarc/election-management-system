@@ -18,8 +18,6 @@
   --color-brand-accent: var(--accent, #646cffaa);
 }
 
-
-
 /* Custom Animations */
 @keyframes fadeIn {
   0% {
@@ -145,7 +143,7 @@
   animation-delay: 1000ms;
 }
 
-/* App global styles - Light mode only */
+/* App global styles - Light mode (Crisp & Airy) */
 :root {
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
@@ -164,13 +162,15 @@
   color-scheme: light dark;
 }
 
+/* App global styles - Dark mode (Deep Twilight/Indigo Tinted) */
 .dark {
-  --bg-main: #111827;
-  --bg-card: #1f2937;
-  --bg-hover: rgba(255, 255, 255, 0.05);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: #334155;
+  --bg-main: #050511;      /* Extremely deep indigo-black (Almost OLED black but richer) */
+  --bg-card: #0f1026;      /* Deep midnight violet/blue for elevated cards */
+  --bg-hover: #1c1d3d;     /* Vibrant twilight hover state */
+  --text-main: #fdfdff;    /* Crisp, icy white for primary text */
+  --text-muted: #9fa0c3;   /* Soft, metallic periwinkle for secondary text (No boring gray!) */
+  --border-color: #27284d; /* Indigo-tinted borders to blend perfectly with the background */
+  
   --bg-color: var(--bg-main);
   --text-primary: var(--text-main);
   --text-secondary: var(--text-muted);
@@ -236,7 +236,6 @@ textarea {
   color: var(--text-main);
   border-color: var(--border-color);
 }
-
 
 /* Override any dark mode styles that might be applied */
 /* @media (prefers-color-scheme: dark) {
