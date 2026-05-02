@@ -4,3 +4,4 @@ export { PartyAdminUsers } from "./Users";
 export { DynamicLinkGenerator } from "./DynamicLinkGenerator";
 export { RegistrationLinksManager } from "./RegistrationLinksManager";
 export { ExportSupportersPage } from "./ExportSupportersPage";
+export { default as VoterTrackingPage } from "./voterReport/VoterTracking/VoterTrackingPage";

@@ -249,7 +249,15 @@ export default function SubLevelPanelSidebar({
       return selectedAssignment?.partyLevelId || 0;
     }
 
-    // Check in all accessible levels for matching assignment (sub-levels only)
+    // Primary: check accessibleLevelsByType
+    if (permissions.accessibleLevelsByType) {
+      for (const items of Object.values(permissions.accessibleLevelsByType) as any[][]) {
+        const match = items.find((item: any) => item.assignment_id === selectedAssignment.assignment_id);
+        if (match?.partyLevelId) return match.partyLevelId;
+      }
+    }
+
+    // Fallback: legacy accessible* arrays
     const accessibleLevels = [
       { data: permissions.accessibleBooths, idField: 'booth_assignment_id' },
       { data: permissions.accessiblePollingCenters, idField: 'assignment_id' },
@@ -271,7 +279,6 @@ export default function SubLevelPanelSidebar({
       }
     }
 
-    // Fallback to selectedAssignment
     return selectedAssignment.partyLevelId || 0;
   };
 
@@ -326,30 +333,52 @@ export default function SubLevelPanelSidebar({
   const currentLevelName = selectedAssignment?.levelType;
   let sameTypeAssignments: StateAssignment[] = [];
 
-  if (currentLevelName) {
-    const allSubLevelAssignments = [
-      ...(permissions?.accessiblePollingCenters || []),
-      ...(permissions?.accessibleMandals || []),
-      ...(permissions?.accessibleBooths || []),
-    ];
-
-    sameTypeAssignments = allSubLevelAssignments
-      .filter((a: any) => a.levelName === currentLevelName)
-      .map((a: any) => ({
-        assignment_id: a.assignment_id || a.booth_assignment_id,
-        stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+  if (currentLevelName && permissions) {
+    // Primary: use accessibleLevelsByType (covers all dynamic levels like Locality, Booth, etc.)
+    if (permissions.accessibleLevelsByType && permissions.accessibleLevelsByType[currentLevelName]) {
+      sameTypeAssignments = permissions.accessibleLevelsByType[currentLevelName].map((a: any) => ({
+        assignment_id: a.assignment_id,
+        stateMasterData_id: a.afterAssemblyData_id || a.level_id || 0,
         afterAssemblyData_id: a.afterAssemblyData_id,
-        levelName: a.displayName || a.levelName,
-        levelType: a.levelName,
+        levelName: a.levelName || currentLevelName,
+        levelType: a.levelName || currentLevelName,
         level_id: a.level_id,
-        parentId: a.parentId || a.parentLevelId,
-        parentLevelName: a.parentLevelName || "Unknown",
-        parentLevelType: a.parentLevelType || "Unknown",
-        displayName: a.displayName,
+        parentId: a.parentId ?? null,
+        parentLevelName: a.parentLevelName || a.assemblyName || null,
+        parentLevelType: a.parentLevelType || null,
+        displayName: a.displayName || a.levelName,
         partyLevelName: a.partyLevelName,
         partyLevelDisplayName: a.partyLevelDisplayName,
         partyLevelId: a.partyLevelId,
+        assignment_active: a.assignment_active,
+        assigned_at: a.assigned_at,
       }));
+    } else {
+      // Fallback: legacy accessible* arrays
+      const allSubLevelAssignments = [
+        ...(permissions?.accessiblePollingCenters || []),
+        ...(permissions?.accessibleMandals || []),
+        ...(permissions?.accessibleBooths || []),
+      ];
+
+      sameTypeAssignments = allSubLevelAssignments
+        .filter((a: any) => a.levelName === currentLevelName)
+        .map((a: any) => ({
+          assignment_id: a.assignment_id || a.booth_assignment_id,
+          stateMasterData_id: a.afterAssemblyData_id || a.parentLevelId || 0,
+          afterAssemblyData_id: a.afterAssemblyData_id,
+          levelName: a.displayName || a.levelName,
+          levelType: a.levelName,
+          level_id: a.level_id,
+          parentId: a.parentId || a.parentLevelId,
+          parentLevelName: a.parentLevelName || null,
+          parentLevelType: a.parentLevelType || null,
+          displayName: a.displayName,
+          partyLevelName: a.partyLevelName,
+          partyLevelDisplayName: a.partyLevelDisplayName,
+          partyLevelId: a.partyLevelId,
+        }));
+    }
   }
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
@@ -357,12 +386,9 @@ export default function SubLevelPanelSidebar({
   // Auto-scroll to selected item when dropdown opens
   useEffect(() => {
     if (switchDropdownOpen && switchDropdownRef.current) {
-      const selectedButton = switchDropdownRef.current.querySelector('.bg-teal-50');
+      const selectedButton = switchDropdownRef.current.querySelector('[data-selected="true"]');
       if (selectedButton) {
-        selectedButton.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest'
-        });
+        selectedButton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
   }, [switchDropdownOpen]);
@@ -559,6 +585,7 @@ export default function SubLevelPanelSidebar({
                   <button
                     key={assignment.assignment_id}
                     onClick={() => handleAssignmentSwitch(assignment)}
+                    data-selected={selectedAssignment.assignment_id === assignment.assignment_id ? "true" : "false"}
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
                       selectedAssignment.assignment_id ===

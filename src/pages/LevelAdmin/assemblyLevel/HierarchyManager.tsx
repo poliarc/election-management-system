@@ -1,6 +1,5 @@
-import SimpleHierarchyManager from './SimpleHierarchyManager';
+import WhatsAppPage from "./WhatsAppPage";
 
 export default function HierarchyManager() {
-    // Always render SimpleHierarchyManager since we removed drag mode
-    return <SimpleHierarchyManager />;
+    return <WhatsAppPage />;
 }

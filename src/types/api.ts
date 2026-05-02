@@ -125,6 +125,13 @@ export interface ApiPermissions {
   accessibleMandals: StateAssignment[];
   accessiblePollingCenters: StateAssignment[];
   accessibleBooths?: any[]; // Booth assignments with different structure
+  accessibleLevelsByType?: Record<string, any[]>; // Dynamic levels grouped by levelType
+  isBoothLevelAdmin?: boolean;
+  hasAfterAssemblyAccess?: boolean;
+  hasBoothAccess?: boolean;
+  canManageBoothLevels?: boolean;
+  totalBoothRanges?: number;
+  boothLevelAssignments?: any[];
   // Dynamic catch-all for any other level types (accessibleWards, accessibleZones, etc.)
   [key: string]: any;
 }

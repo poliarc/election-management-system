@@ -72,6 +72,8 @@ interface GetDuplicateVotersParams {
 
 interface UpdateVoterRequest extends Partial<VoterListCandidate> {
   id: number;
+  party_id?: number;
+  change_reason?: string;
 }
 
 interface DraftCompareSummaryPayload {
@@ -432,11 +434,28 @@ export const votersApi = createApi({
       },
     }),
     updateVoter: builder.mutation<VoterList, UpdateVoterRequest>({
-      query: ({ id, ...data }) => ({
-        url: `/voters/update/${id}`,
-        method: "PUT",
-        body: data,
-      }),
+      query: ({ id, party_id: _party_id, change_reason, ...voterData }) => {
+        // Read party_id from localStorage — send as query param so backend
+        // uses it only for voterTracking, not for voterMaster UPDATE
+        let partyId: number | undefined;
+        try {
+          const authState = localStorage.getItem('auth_state');
+          if (authState) {
+            const parsed = JSON.parse(authState);
+            partyId = parsed?.user?.partyId || undefined;
+          }
+        } catch { /* ignore */ }
+
+        const params = partyId ? `?party_id=${partyId}` : '';
+        return {
+          url: `/voters/update/${id}${params}`,
+          method: "PUT",
+          body: {
+            ...voterData,
+            ...(change_reason ? { change_reason } : {}),
+          },
+        };
+      },
       invalidatesTags: ["Voters"],
     }),
   }),
