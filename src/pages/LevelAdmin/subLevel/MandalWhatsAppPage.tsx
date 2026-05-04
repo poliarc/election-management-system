@@ -39,7 +39,7 @@ export default function MandalWhatsAppPage() {
   const [whatsAppLoading, setWhatsAppLoading] = useState(false);
 
   // WhatsApp States
-  const [whatsappLinks, setWhatsappLinks] = useState<WhatsAppLinkData[]>([]);
+  const [whatsappLinks, setWhatsappLinks] = useState<any[]>([]);
   const [editingLink, setEditingLink] = useState<WhatsAppLinkData | null>(null);
   const [modalRow, setModalRow] = useState<any>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -48,10 +48,10 @@ export default function MandalWhatsAppPage() {
   
   const menuRef = useRef<HTMLDivElement>(null);
   const locationState = location.state as {
-  levelId?: number;
-  levelName?: string;
-  displayName?: string;
-} | null;
+    levelId?: number;
+    levelName?: string;
+    displayName?: string;
+  } | null;
 
   const currentPanel = useMemo(() => {
     if (locationState?.levelId) {
@@ -62,9 +62,9 @@ export default function MandalWhatsAppPage() {
 
   const stateId = currentPanel?.metadata?.stateId ?? user?.state_id ?? null;
   const stateName = currentPanel?.metadata?.stateName ?? user?.stateName ?? "State";
-  const currentLevelType = currentPanel?.name || "Level";
-
-
+  
+  // 🌟 Dynamic Level Type string for UI enhancements
+  const currentLevelType = currentPanel?.name || "Sub-Level";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -177,8 +177,10 @@ export default function MandalWhatsAppPage() {
   const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, state_id?: number, levelType?: string }) => {
     try {
       setWhatsAppLoading(true);
-      const data = await fetchWhatsAppLinks(params);
-      setWhatsappLinks(data ?? []);
+      const response: any = await fetchWhatsAppLinks(params);
+      
+      const extractedArray = response?.data ? response.data : response;
+      setWhatsappLinks(Array.isArray(extractedArray) ? extractedArray : []);
     } catch (err) {
       setWhatsappLinks([]);
     } finally {
@@ -196,43 +198,36 @@ export default function MandalWhatsAppPage() {
     }
   }, [selectedLevel, isMandalSelected, stateId, loadWhatsAppLinks]);
 
-  // 🌟 DYNAMIC EXPORT LOGIC
   const handleExport = () => {
     try {
       setIsExporting(true);
       
       let dataToExport = [...whatsappLinks];
 
-      // Identify the deepest selected point for filtering
       if (selectedLevel) {
         if (isMandalSelected) {
-          // Links already filtered for this specific Mandal via backend
           dataToExport = whatsappLinks;
         } else {
-          // User selected a higher level (like Block), filter local links
-          dataToExport = whatsappLinks.filter(link => 
-            link.block_name === selectedLevel.displayName || 
-            link.mandal_name === selectedLevel.displayName
-          );
+          dataToExport = whatsappLinks.filter(link => link.sub_level_name === selectedLevel.displayName);
         }
       } else if (selectedAssembly) {
         dataToExport = whatsappLinks.filter(link => link.assembly_name === selectedAssembly.location_name);
       } else if (selectedDistrict) {
         dataToExport = whatsappLinks.filter(link => link.district_name === selectedDistrict.location_name);
       }
-      // If none of the above, dataToExport remains as all state-level mandal links
 
       if (dataToExport.length === 0) {
         toast.error("No data available to export");
         return;
       }
 
-      const headers = ["State", "Block", "Mandal", "Group Name", "WhatsApp Link"];
+      const headers = ["State", "District", "Assembly", currentLevelType, "Group Name", "WhatsApp Link"];
 
       const csvRows = dataToExport.map(link => [
         `"${stateName}"`,
-        `"${link.block_name || "—"}"`,
-        `"${link.mandal_name || selectedLevel?.displayName || "—"}"`,
+        `"${link.district_name || selectedDistrict?.location_name || "—"}"`,
+        `"${link.assembly_name || selectedAssembly?.location_name || "—"}"`,
+        `"${link.sub_level_name || selectedLevel?.displayName || "—"}"`,
         `"${link.group_name || link.group_type || "—"}"`,
         `"${link.link}"`
       ]);
@@ -243,9 +238,8 @@ export default function MandalWhatsAppPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       
-      // Generate Dynamic Filename based on selection
       const fileName = selectedLevel 
-        ? `WhatsApp_Links_${selectedLevel.displayName}.csv`
+        ? `WhatsApp_Links_${currentLevelType}_${selectedLevel.displayName}.csv`
         : selectedAssembly
           ? `WhatsApp_Links_Assembly_${selectedAssembly.location_name}.csv`
           : selectedDistrict
@@ -286,15 +280,15 @@ export default function MandalWhatsAppPage() {
     }
   };
 
-  const openModal = (linkData: WhatsAppLinkData | null = null) => {
-    const targetLevel = linkData?.afterAssemblyData_id ? { id: linkData.afterAssemblyData_id, displayName: linkData.mandal_name || "Mandal" } : selectedLevel;
+  const openModal = (linkData: any = null) => {
+    const targetLevel = linkData?.afterAssemblyData_id ? { id: linkData.afterAssemblyData_id, displayName: linkData.sub_level_name || currentLevelType } : selectedLevel;
     
     if (!targetLevel?.id) return;
     setEditingLink(linkData);
     
     setModalRow({
       assemblyId: targetLevel.id, 
-      assemblyName: targetLevel.displayName || "Mandal",
+      assemblyName: targetLevel.displayName || currentLevelType,
       districtId: selectedDistrict?.location_id || 0,
       districtName: linkData?.district_name || selectedDistrict?.location_name || "",
       stateId: stateId || 0,
@@ -308,11 +302,10 @@ export default function MandalWhatsAppPage() {
       <div className="mx-auto max-w-7xl space-y-6">
         
         <div className="rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-white">WhatsApp Management</h1>
-          <p className="mt-2 text-sm text-white">Manage WhatsApp links for specific Sub-levels.</p>
+          <h1 className="text-2xl font-bold text-white">{currentLevelType} WhatsApp Management</h1>
+          <p className="mt-2 text-sm text-white">Manage WhatsApp links for specific {currentLevelType}s.</p>
         </div>
 
-        {/* Hierarchy Filter Bar */}
         <div className="bg-[var(--bg-card)] rounded-xl shadow-lg p-6 border border-[var(--border-color)]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -384,17 +377,15 @@ export default function MandalWhatsAppPage() {
           )}
         </div>
 
-        {/* Actions Section */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-6 shadow-sm gap-4">
           <div className="w-full sm:w-auto">
             <h3 className="text-sm sm:text-base font-bold text-[var(--text-color)]">
-              {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : "Sub-levels Actions"}
+              {selectedLevel && isMandalSelected ? `${selectedLevel.displayName} Actions` : `${currentLevelType} Actions`}
             </h3>
-            <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to Sub-levels</p>
+            <p className="text-xs text-[var(--text-secondary)]">Manage links assigned to this {currentLevelType.toLowerCase()}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            {/* Export CSV Button - Full width on mobile */}
             <button
               onClick={handleExport}
               disabled={isExporting || whatsappLinks.length === 0}
@@ -406,7 +397,6 @@ export default function MandalWhatsAppPage() {
               <span className="whitespace-nowrap">{isExporting ? "Exporting..." : "Export CSV"}</span>
             </button>
 
-            {/* Create Mandal Link Button - Full width on mobile */}
             {selectedLevel && isMandalSelected && (
               <button
                 onClick={() => openModal(null)}
@@ -415,32 +405,37 @@ export default function MandalWhatsAppPage() {
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
-                <span className="whitespace-nowrap">Create Mandal Link</span>
+                <span className="whitespace-nowrap">Create {currentLevelType} Link</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Table Section */}
         <div className="overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
           <div className="max-h-[500px] overflow-auto">
             <table className="min-w-full divide-y divide-[var(--border-color)]">
               <thead className="sticky top-0 z-10 bg-[var(--bg-main)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">State</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Sub-level</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">District</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Assembly</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">{currentLevelType}</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-[var(--text-secondary)]">Link</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-[var(--text-secondary)]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-color)]">
                 {whatsAppLoading ? (
-                  <tr><td colSpan={7} className="py-12 text-center text-sm text-[var(--text-secondary)]">Loading links...</td></tr>
+                  <tr><td colSpan={6} className="py-12 text-center text-sm text-[var(--text-secondary)]">Loading links...</td></tr>
                 ) : whatsappLinks?.length > 0 ? (
                   whatsappLinks.map((link) => (
                     <tr key={link.id} className="hover:bg-[var(--bg-main)]/60 transition-colors">
                       <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{stateName}</td>
-                      <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{link.mandal_name || selectedLevel?.displayName || "—"}</td>
+                      <td className="px-4 py-4 text-sm text-[var(--text-color)]">{link.district_name || selectedDistrict?.location_name || "—"}</td>
+                      <td className="px-4 py-4 text-sm text-[var(--text-color)]">{link.assembly_name || selectedAssembly?.location_name || "—"}</td>
+                      {/* 🌟 Consuming the single dynamic sub_level_name */}
+                      <td className="px-4 py-4 text-sm font-medium text-[var(--text-color)]">{link.sub_level_name || selectedLevel?.displayName || "—"}</td>
+                      
                       <td className="px-4 py-4">
                         <a href={link.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-all max-w-[200px]">
                           <span className="truncate">{link.group_name || link.group_type || "Open Link"}</span>
@@ -463,7 +458,7 @@ export default function MandalWhatsAppPage() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={7} className="py-12 text-center text-sm text-[var(--text-secondary)]">No WhatsApp links found for this Mandal.</td></tr>
+                  <tr><td colSpan={6} className="py-12 text-center text-sm text-[var(--text-secondary)]">No WhatsApp links found for this {currentLevelType}.</td></tr>
                 )}
               </tbody>
             </table>
@@ -480,7 +475,7 @@ export default function MandalWhatsAppPage() {
             } else if (stateId) {
               void loadWhatsAppLinks({ state_id: stateId, levelType: 'Mandal' });
             }
-{/* Actions Section */}          }} 
+          }} 
           initialData={editingLink} 
           row={modalRow} 
           hideUserSelection={true}

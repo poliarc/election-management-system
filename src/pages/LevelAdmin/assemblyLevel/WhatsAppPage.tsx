@@ -6,12 +6,10 @@ import WhatsAppLinkModal from "./WhatsAppLinkModal";
 import {
   deleteWhatsAppLink,
   fetchAssembliesByDistrict,
-  // Removed fetchDistrictsByState in favor of hierarchy API
   type AssemblyOption,
   type WhatsAppLinkData,
   fetchWhatsAppLinks,
 } from "../../../services/levelAdminApi";
-// Added Hierarchy imports
 import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
 import type { HierarchyChild } from "../../../types/hierarchy";
 
@@ -23,7 +21,6 @@ export default function WhatsAppPage() {
   const location = useLocation();
   const { levelAdminPanels, user } = useAppSelector((state) => state.auth);
 
-  // Changed state type to HierarchyChild to match UserManagement
   const [districts, setDistricts] = useState<HierarchyChild[]>([]);
   const [assemblies, setAssemblies] = useState<AssemblyOption[]>([]);
   const [editingLink, setEditingLink] = useState<WhatsAppLinkData | null>(null);
@@ -60,7 +57,6 @@ export default function WhatsAppPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
 
-  // Updated to use fetchHierarchyChildren to get districts
   useEffect(() => {
     const loadDistricts = async () => {
       if (!stateId) return;
@@ -104,8 +100,11 @@ export default function WhatsAppPage() {
   const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, stateMasterData_id?: number, state_id?: number, levelType?: string }) => {
     try {
       setWhatsAppLoading(true);
-      const data = await fetchWhatsAppLinks(params);
-      setWhatsappLinks(data ?? []);
+      const response: any = await fetchWhatsAppLinks(params);
+      
+      // Extract nested data safely
+      const extractedArray = response?.data ? response.data : response;
+      setWhatsappLinks(Array.isArray(extractedArray) ? extractedArray : []);
     } catch (err) {
       setWhatsappLinks([]);
     } finally {
@@ -225,7 +224,6 @@ export default function WhatsAppPage() {
               className="w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] px-4 py-3 text-sm text-[var(--text-color)] outline-none focus:border-emerald-500"
             >
               <option value="">Select District</option>
-              {/* Updated to use location_id and location_name */}
               {districts.map((d) => (
                 <option key={d.location_id} value={d.location_id}>
                   {d.location_name}
