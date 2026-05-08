@@ -991,7 +991,7 @@ const staticListItems: NavItem[] = [
 const marketItems: NavItem[] = [
   { to: "market-table", label: "Market List", icon: Icons.generic },
   { to: "market-discussion", label: "Market Approach", icon: Icons.team },
-  // { to: "Social-Media", label: "Social Media", icon: Icons.team },
+  { to: "Social-Media", label: "Social Media", icon: Icons.team },
 
 ];
 

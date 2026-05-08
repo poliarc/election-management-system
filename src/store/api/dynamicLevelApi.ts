@@ -52,6 +52,7 @@ export interface DynamicLevelItem {
     districtName: string;
     users: any[];
     userCount: number;
+    ancestors?: Array<{ id: number; name: string; levelType: string }>;
 }
 
 export interface DynamicLevelPagination {
