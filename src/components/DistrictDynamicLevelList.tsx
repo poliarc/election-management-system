@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
+import { useGetDynamicLevelDataQuery } from "../store/api/dynamicLevelApi";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import InlineUserDisplay from "./InlineUserDisplay";
-import { getAssemblyCache, setAssemblyCache, fetchAssemblyNameWithCache } from "../utils/assemblyCache";
 import { useTranslation } from "react-i18next";
 
 interface DistrictDynamicLevelListProps {
@@ -16,10 +16,8 @@ interface DistrictDynamicLevelListProps {
 const CONFIG = {
   PAGINATION_LIMIT: 50,
   ITEMS_PER_PAGE: 20,
-  PARENT_INFO_BATCH_SIZE: 5,
-  USER_COUNT_BATCH_SIZE: 10,
-  DEFAULT_FILTER_SLICE_START: 2, // Skip State and District
-  DEFAULT_FILTER_SLICE_END: 6,
+  DEFAULT_FILTER_SLICE_START: 2, // Start from "Assembly" in hierarchy (skip State, District)
+  DEFAULT_FILTER_SLICE_END: 6,   // End at reasonable limit for filter display
 };
 
 export default function DistrictDynamicLevelList({
@@ -49,6 +47,9 @@ export default function DistrictDynamicLevelList({
   const [showItemsWithoutUsers, setShowItemsWithoutUsers] = useState(false);
   // State for filtering items with users
   const [showItemsWithUsers, setShowItemsWithUsers] = useState(false);
+  // Client-side all items for filtering and search
+  const [allItemsForFilter, setAllItemsForFilter] = useState<any[]>([]);
+  const [isLoadingAllItems, setIsLoadingAllItems] = useState(false);
   // State for user counts
   const [itemUserCounts, setItemUserCounts] = useState<Record<number, number>>(
     {}
@@ -73,32 +74,6 @@ export default function DistrictDynamicLevelList({
     Record<string, any[]>
   >({});
 
-  // State for assembly information cache - Use utility functions for persistence
-  const [assemblyInfoCache, setAssemblyInfoCache] = useState<Record<number, { id: number; name: string }>>(() => {
-    return getAssemblyCache();
-  });
-
-  // Update localStorage whenever cache changes using utility
-  useEffect(() => {
-    setAssemblyCache(assemblyInfoCache);
-  }, [assemblyInfoCache]);
-
-  // Function to fetch assembly information by ID using utility
-  const fetchAssemblyInfo = async (assemblyId: number): Promise<string> => {
-    // Use utility function for caching
-    const assemblyName = await fetchAssemblyNameWithCache(assemblyId, districtInfo.districtId);
-    
-    // Update local state cache as well
-    if (assemblyName && !assemblyName.startsWith('Assembly ')) {
-      setAssemblyInfoCache(prev => ({
-        ...prev,
-        [assemblyId]: { id: assemblyId, name: assemblyName }
-      }));
-    }
-    
-    return assemblyName;
-  };
-
   // State for parent information
   const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
 
@@ -114,6 +89,7 @@ export default function DistrictDynamicLevelList({
     setItemUsers({});
     setItemUserCounts({});
     setAllLevelItems([]);
+    setAllItemsForFilter([]);
   }, [levelName]);
 
   // // Function to reset all filters manually
@@ -124,81 +100,6 @@ export default function DistrictDynamicLevelList({
   //   setCurrentPage(1);
   //   setShowItemsWithoutUsers(false);
   // };
-
-  // Function to fetch parent details using the after-assembly API (which returns parentDetails)
-  const fetchParentDetailsFromAPI = async (itemId: number) => {
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
-          },
-        }
-      );
-      const data = await response.json();
-
-      if (data.success && data.data?.parentDetails) {
-        const parentDetails = data.data.parentDetails;
-        setParentInfo((prev) => ({
-          ...prev,
-          [parentDetails.id]: {
-            id: parentDetails.id,
-            displayName: parentDetails.displayName,
-            levelName: parentDetails.levelName,
-          },
-        }));
-        return parentDetails;
-      }
-    } catch (error) {
-      console.error(`Error fetching parent details for item ${itemId}:`, error);
-    }
-    return null;
-  };
-
-  // Function to fetch user count for an item
-  const fetchUserCount = async (itemId: number) => {
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
-          },
-        }
-      );
-      const data = await response.json();
-
-      if (data.success && data.data?.users) {
-        // Store parent information from parentDetails if available
-        if (data.data.parentDetails) {
-          const parentDetails = data.data.parentDetails;
-          setParentInfo((prev) => ({
-            ...prev,
-            [parentDetails.id]: {
-              id: parentDetails.id,
-              displayName: parentDetails.displayName,
-              levelName: parentDetails.levelName,
-            },
-          }));
-        }
-
-        return data.data.users.length;
-      }
-      return 0;
-    } catch (error) {
-      console.error(`Error fetching user count for item ${itemId}:`, error);
-      return 0;
-    }
-  };
 
   const selectedAssignment = useSelector(
     (state: RootState) => state.auth.selectedAssignment
@@ -266,186 +167,6 @@ export default function DistrictDynamicLevelList({
 
   const visibleFilters = getVisibleFilters();
 
-  // Helper function to fetch all pages - same as existing files
-  const fetchAllPages = async (url: string) => {
-    let allData: any[] = [];
-    let page = 1;
-    let hasMore = true;
-
-    while (hasMore) {
-      const response = await fetch(
-        `${url}?page=${page}&limit=${CONFIG.PAGINATION_LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
-          },
-        }
-      );
-      const data = await response.json();
-
-      let currentPageData: any[] = [];
-
-      if (
-        data.success &&
-        data.data?.children &&
-        data.data.children.length > 0
-      ) {
-        currentPageData = data.data.children;
-        allData = allData.concat(currentPageData);
-        hasMore = currentPageData.length === CONFIG.PAGINATION_LIMIT;
-      } else if (data.success && data.children && data.children.length > 0) {
-        currentPageData = data.children;
-        allData = allData.concat(currentPageData);
-        hasMore = currentPageData.length === CONFIG.PAGINATION_LIMIT;
-      } else {
-        hasMore = false;
-      }
-
-      page++;
-    }
-
-    return allData;
-  };
-
-  // Fetch assemblies for the current district
-  useEffect(() => {
-    const fetchAssemblies = async () => {
-      if (!districtInfo.districtId) return;
-      try {
-        const assembliesData = await fetchAllPages(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-state-hierarchies/hierarchy/children/${
-            districtInfo.districtId
-          }`
-        );
-        const mappedAssemblies = assembliesData.map((assembly: any) => ({
-          id: assembly.location_id || assembly.id,
-          displayName: assembly.location_name,
-          levelName: "Assembly",
-          location_id: assembly.location_id,
-        }));
-        
-        // Update assembly cache with localStorage persistence
-        const newAssemblyCache: Record<number, { id: number; name: string }> = { ...assemblyInfoCache };
-        assembliesData.forEach((assembly: any) => {
-          const id = assembly.location_id || assembly.id;
-          const name = assembly.location_name || assembly.displayName || assembly.name || `Assembly ${id}`;
-          newAssemblyCache[id] = { id, name };
-        });
-        setAssemblyInfoCache(newAssemblyCache);
-        
-        setDynamicFilterData((prev) => ({
-          ...prev,
-          Assembly: mappedAssemblies,
-        }));
-      } catch (error) {
-        console.error("Error fetching assemblies:", error);
-      }
-    };
-    fetchAssemblies();
-  }, [districtInfo.districtId]);
-
-  // Update assembly names for existing items when assembly cache is populated
-  useEffect(() => {
-    if (Object.keys(assemblyInfoCache).length > 0 && allLevelItems.length > 0) {
-      const updatedItems = allLevelItems.map(item => {
-        if (item.assemblyId && assemblyInfoCache[item.assemblyId] && 
-            (!item.assemblyName || item.assemblyName.startsWith('Assembly '))) {
-          return {
-            ...item,
-            assemblyName: assemblyInfoCache[item.assemblyId].name
-          };
-        }
-        return item;
-      });
-      
-      // Only update if there are actual changes
-      const hasChanges = updatedItems.some((item, index) => 
-        item.assemblyName !== allLevelItems[index].assemblyName
-      );
-      
-      if (hasChanges) {
-        setAllLevelItems(updatedItems);
-      }
-    }
-  }, [assemblyInfoCache]);
-
-  // Generic function to fetch children for any filter level
-  const fetchFilterLevelChildren = async (
-    parentId: number,
-    parentLevelName: string
-  ) => {
-    if (!parentId) return [];
-
-    try {
-      // Determine which API to use based on parent level
-      if (parentLevelName === "Assembly") {
-        // Fetch direct children of assembly from after-assembly API (single fetch, no pagination needed)
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/after-assembly-data/assembly/${parentId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "auth_access_token"
-              )}`,
-            },
-          }
-        );
-        const data = await response.json();
-        return data.data || [];
-      } else {
-        // Fetch children from after-assembly hierarchy API using pagination
-        const childrenData = await fetchAllPages(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}`
-        );
-        return childrenData;
-      }
-    } catch (error) {
-      console.error(
-        `Error fetching children for ${parentLevelName} ${parentId}:`,
-        error
-      );
-      return [];
-    }
-  };
-
-  // Fetch next level data whenever a filter changes
-  useEffect(() => {
-    const fetchAllLevelData = async () => {
-      const visibleFilters = getVisibleFilters();
-      if (visibleFilters.length === 0) return;
-
-      // Fetch data for each filter level based on its parent selection
-      for (let i = 0; i < visibleFilters.length; i++) {
-        const currentLevel = visibleFilters[i];
-        const parentLevel = i > 0 ? visibleFilters[i - 1] : null;
-        const parentId = parentLevel ? selectedFilters[parentLevel] : null;
-
-        // If parent is selected, fetch children
-        if (parentId && parentId > 0 && parentLevel) {
-          // Parent level is selected, fetch its children
-          const children = await fetchFilterLevelChildren(
-            parentId,
-            parentLevel
-          );
-          setDynamicFilterData((prev) => ({
-            ...prev,
-            [currentLevel]: children,
-          }));
-        }
-      }
-    };
-
-    fetchAllLevelData();
-  }, [selectedFilters]);
-
   // Handle filter change - when a filter is changed, reset all filters after it
   const handleFilterChange = (levelName: string, value: number) => {
     const visibleFilters = getVisibleFilters();
@@ -464,53 +185,157 @@ export default function DistrictDynamicLevelList({
     setCurrentPage(1);
   };
 
-  // Get current level items based on filters - District context (fixed to prevent cross-assembly contamination)
-  const getCurrentLevelItems = () => {
-    let filteredItems = allLevelItems;
-    const visibleFilters = getVisibleFilters();
+  const fetchAllItemsForFilter = async () => {
+    if (
+      isLoadingAllItems ||
+      !partyId ||
+      !levelName ||
+      !districtInfo.stateId ||
+      !districtInfo.districtId
+    ) {
+      return;
+    }
 
-    // Apply filters dynamically based on visible filters
+    setIsLoadingAllItems(true);
+    try {
+      const allItems: any[] = [];
+      let page = 1;
+      const limit = 5000; // use a large limit to minimize API calls on card click
+      let totalPages = 1;
+      const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevelV2/${districtInfo.stateId || stateId}`;
+
+      while (page <= totalPages) {
+        const url = new URL(baseUrl);
+        url.searchParams.append("partyId", String(partyId));
+        url.searchParams.append("levelName", levelName);
+        url.searchParams.append("page", String(page));
+        url.searchParams.append("limit", String(limit));
+
+        if (districtInfo.districtId) {
+          url.searchParams.append("districtId", String(districtInfo.districtId));
+        }
+        if (selectedFilters["Assembly"]) {
+          url.searchParams.append("assemblyId", String(selectedFilters["Assembly"]));
+        }
+        if (afterAssemblyIdForQuery) {
+          url.searchParams.append("afterAssemblyId", String(afterAssemblyIdForQuery));
+        }
+
+        const response = await fetch(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
+          },
+        });
+        const data = await response.json();
+
+        const pageItems =
+          data?.data?.items?.filter((item: any) => item.itemLevelType === levelName) || [];
+
+        const mappedPageItems = pageItems.map((item: any) => ({
+          id: item.itemId,
+          displayName: item.itemName,
+          levelName: item.itemLevelType,
+          parentId: item.parentItemId,
+          parentLevelId: item.parentItemId,
+          parentLevelName: item.parentItemName,
+          parentLevelType: item.parentItemLevelType,
+          districtId: item.districtId,
+          districtName: item.districtName,
+          assemblyId: item.assemblyId,
+          assemblyName: item.assemblyName,
+          users: item.users || [],
+          user_count: item.userCount || 0,
+          userCount: item.userCount || 0,
+        }));
+        allItems.push(...mappedPageItems);
+
+        const responseTotalPages =
+          data?.pagination?.totalPages || data?.data?.pagination?.totalPages;
+        if (responseTotalPages) {
+          totalPages = responseTotalPages;
+        } else {
+          totalPages = page;
+        }
+
+        page += 1;
+      }
+
+      setAllItemsForFilter(allItems);
+    } catch (error) {
+      console.error("Error fetching all items for filter:", error);
+    } finally {
+      setIsLoadingAllItems(false);
+    }
+  };
+
+  const getCurrentLevelItems = () => {
+    const useAllItems =
+      showItemsWithoutUsers ||
+      showItemsWithUsers ||
+      (searchTerm.trim().length > 0 && allItemsForFilter.length > 0);
+    let filteredItems = useAllItems ? allItemsForFilter : allLevelItems;
+
+    if (filteredItems.length === 0) {
+      return [];
+    }
+
+    const hasApiFilters = Object.keys(selectedFilters).some(
+      (key) => selectedFilters[key] && selectedFilters[key] > 0
+    );
+
+    if (hasApiFilters && !useAllItems) {
+      return filteredItems;
+    }
+
+    const itemsWithParentInfo = filteredItems.filter(
+      (item) => item.assemblyId || item.districtId || item.parentId
+    );
+
+    if (itemsWithParentInfo.length === 0) {
+      return filteredItems;
+    }
+
     visibleFilters.forEach((filterLevel) => {
       const selectedIdForFilter = selectedFilters[filterLevel];
       if (selectedIdForFilter && selectedIdForFilter > 0) {
         filteredItems = filteredItems.filter((item) => {
-          // For Assembly filter, check assemblyId - strict matching only
           if (filterLevel === "Assembly") {
-            return item.assemblyId === selectedIdForFilter || 
-                   (item.parentChain && item.parentChain["Assembly"] === selectedIdForFilter);
+            return (
+              item.assemblyId === selectedIdForFilter ||
+              (item.parentChain && item.parentChain["Assembly"] === selectedIdForFilter)
+            );
           }
-          
-          // For District filter, check districtId - strict matching only
-          if (filterLevel === "District") {
-            return item.districtId === selectedIdForFilter ||
-                   (item.parentChain && item.parentChain["District"] === selectedIdForFilter);
-          }
-          
-          // For other levels, use strict hierarchy checking
-          // First check direct parent relationship
-          if (item.parentLevelId === selectedIdForFilter) return true;
 
-          // Check parent chain (full hierarchy) - but only for exact matches
+          if (filterLevel === "District") {
+            return (
+              item.districtId === selectedIdForFilter ||
+              (item.parentChain && item.parentChain["District"] === selectedIdForFilter)
+            );
+          }
+
+          if (item.parentLevelId === selectedIdForFilter) return true;
           if (item.parentChain && item.parentChain[filterLevel] === selectedIdForFilter) {
             return true;
           }
 
-          // Check if the item has this level's id in specific property names
           const levelKey = filterLevel.toLowerCase();
           if (item[`${levelKey}Id`] === selectedIdForFilter) return true;
           if (item[`${levelKey}_id`] === selectedIdForFilter) return true;
 
-          // For after-assembly levels, ensure we only match items that belong to the correct assembly
-          // This prevents cross-assembly contamination
           if (filterLevel !== "Assembly" && filterLevel !== "District") {
-            // If we have an assembly filter active, ensure this item belongs to that assembly
             const selectedAssemblyId = selectedFilters["Assembly"];
-            if (selectedAssemblyId && item.parentChain && item.parentChain["Assembly"] !== selectedAssemblyId) {
+            if (
+              selectedAssemblyId &&
+              item.parentChain &&
+              item.parentChain["Assembly"] !== selectedAssemblyId
+            ) {
               return false;
             }
-            
-            // Check parent hierarchy but only for direct relationships
-            if (item.parentLevelType === filterLevel && item.parentLevelId === selectedIdForFilter) {
+
+            if (
+              item.parentLevelType === filterLevel &&
+              item.parentLevelId === selectedIdForFilter
+            ) {
               return true;
             }
           }
@@ -545,336 +370,172 @@ export default function DistrictDynamicLevelList({
     }
   }, [allLevelItems]);
 
-  // Fetch parent information for all items using the after-assembly API
+  // Initialize user counts from API data (userCount already provided by dynamicLevelV2)
   useEffect(() => {
-    const fetchAllParentInfo = async () => {
-      if (levelItems.length === 0) return;
-
-      // Get items that don't have parent info yet
-      const itemsNeedingParentInfo = levelItems.filter((item) => {
-        const parentId = item.parentId || item.parent_id;
-        return parentId && !parentInfo[parentId];
-      });
-
-      if (itemsNeedingParentInfo.length === 0) return;
-
-      // Fetch parent details using the after-assembly API in batches
-      const batchSize = CONFIG.PARENT_INFO_BATCH_SIZE;
-      for (let i = 0; i < itemsNeedingParentInfo.length; i += batchSize) {
-        const batch = itemsNeedingParentInfo.slice(i, i + batchSize);
-        await Promise.all(
-          batch.map((item) => fetchParentDetailsFromAPI(item.id))
-        );
-      }
-    };
-
-    fetchAllParentInfo();
-  }, [levelItems]);
-
-  // Fetch user counts for all items
-  useEffect(() => {
-    const fetchAllUserCounts = async () => {
-      if (levelItems.length === 0) return;
-
-      // Start with fresh user counts for current level items
+    if (allLevelItems.length > 0) {
       const userCounts: Record<number, number> = {};
+      allLevelItems.forEach((item) => {
+        userCounts[item.id] = item.user_count || 0;
+      });
+      setItemUserCounts(userCounts);
+    } else {
+      setItemUserCounts({});
+    }
+  }, [allLevelItems]);
 
-      // Only fetch counts for items that don't have counts yet
-      const itemsNeedingCounts = levelItems.filter(
-        (item) => !(item.id in itemUserCounts)
-      );
-
-      if (itemsNeedingCounts.length === 0) return;
-
-      // Fetch user counts in batches to avoid overwhelming the API
-      const batchSize = CONFIG.USER_COUNT_BATCH_SIZE;
-      for (let i = 0; i < itemsNeedingCounts.length; i += batchSize) {
-        const batch = itemsNeedingCounts.slice(i, i + batchSize);
-        const promises = batch.map(async (item) => {
-          const count = await fetchUserCount(item.id);
-          return { id: item.id, count };
-        });
-
-        const results = await Promise.all(promises);
-        results.forEach(({ id, count }) => {
-          userCounts[id] = count;
-        });
+  const getAfterAssemblyIdForQuery = () => {
+    const assemblyIndex = hierarchyOrder.indexOf("Assembly");
+    const currentLevelIndex = hierarchyOrder.indexOf(levelName);
+    for (let i = currentLevelIndex - 1; i > assemblyIndex; i--) {
+      const filterLevel = hierarchyOrder[i];
+      if (selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
+        return selectedFilters[filterLevel];
       }
+    }
+    return undefined;
+  };
 
-      // Update user counts by merging with existing counts for current level
-      setItemUserCounts((prevCounts) => ({
-        ...prevCounts,
-        ...userCounts,
-      }));
-    };
+  const afterAssemblyIdForQuery = getAfterAssemblyIdForQuery();
 
-    fetchAllUserCounts();
-  }, [levelItems, levelName]); // Add levelName as dependency to refetch when level changes
+  const {
+    data: dynamicLevelData,
+    isLoading: isDynamicLevelLoading,
+    isFetching: isDynamicLevelFetching,
+  } = useGetDynamicLevelDataQuery(
+    {
+      stateId: districtInfo.stateId || stateId,
+      partyId,
+      levelName,
+      districtId: districtInfo.districtId,
+      assemblyId: selectedFilters["Assembly"],
+      afterAssemblyId: afterAssemblyIdForQuery,
+      page: currentPage,
+      limit: itemsPerPage,
+    },
+    {
+      skip:
+        !partyId ||
+        !districtInfo.stateId ||
+        !districtInfo.districtId ||
+        !levelName,
+    }
+  );
 
-  // Fetch all items for the current level - Dynamic and generic approach
   useEffect(() => {
-    const fetchAllLevelItems = async () => {
-      if (!districtInfo.districtId) return;
+    setIsLoading(isDynamicLevelLoading || isDynamicLevelFetching);
+  }, [isDynamicLevelLoading, isDynamicLevelFetching]);
 
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem("auth_access_token");
-        let levelItems: any[] = [];
+  useEffect(() => {
+    if (!dynamicLevelData) return;
 
-        // Find the position of current level in hierarchy
-        const currentLevelIndex = hierarchyOrder.indexOf(levelName);
+    const newDynamicFilterData: Record<string, any[]> = {};
 
-        if (currentLevelIndex === -1) {
-          console.warn(
-            `Level "${levelName}" not found in hierarchy:`,
-            hierarchyOrder
+    if (dynamicLevelData.assemblyList && dynamicLevelData.assemblyList.length > 0) {
+      newDynamicFilterData["Assembly"] = dynamicLevelData.assemblyList.map(
+        (a) => ({
+          id: a.id,
+          displayName: a.levelName,
+          levelName: "Assembly",
+          ParentId: a.ParentId,
+        })
+      );
+    }
+
+    if (dynamicLevelData.districtList && dynamicLevelData.districtList.length > 0) {
+      newDynamicFilterData["District"] = dynamicLevelData.districtList.map(
+        (d) => ({
+          id: d.id,
+          displayName: d.levelName,
+          levelName: "District",
+          ParentId: d.ParentId,
+        })
+      );
+    }
+
+    if (
+      dynamicLevelData.hierarchicalList &&
+      dynamicLevelData.hierarchicalList.length > 0
+    ) {
+      dynamicLevelData.hierarchicalList.forEach((hierarchyLevel) => {
+        if (hierarchyLevel.list && hierarchyLevel.list.length > 0) {
+          newDynamicFilterData[hierarchyLevel.levelName] = hierarchyLevel.list.map(
+            (item) => ({
+              id: item.id,
+              displayName: item.name,
+              levelName: hierarchyLevel.levelName,
+              parentId: item.parentId,
+            })
           );
-          setAllLevelItems([]);
-          setIsLoading(false);
-          return;
         }
+      });
+    }
 
-        // Generic fetch function for any level
-        const fetchLevelItems = async (
-          parentIds: number[],
-          parentLevelIndex: number,
-          parentChain: Record<string, number> = {}
-        ): Promise<any[]> => {
-          const items: any[] = [];
-          const nextLevelIndex = parentLevelIndex + 1;
-          const nextLevelName = hierarchyOrder[nextLevelIndex];
+    setDynamicFilterData(newDynamicFilterData);
+  }, [dynamicLevelData]);
 
-          if (!nextLevelName) {
-            return items;
-          }
+  useEffect(() => {
+    if (!dynamicLevelData?.items) {
+      setAllLevelItems([]);
+      return;
+    }
 
-          for (const parentId of parentIds) {
-            try {
-              let childrenData: any[] = [];
+    const currentLevelItems = dynamicLevelData.items.filter(
+      (item) => item.itemLevelType === levelName
+    );
 
-              // Determine which API to use based on parent level
-              if (parentLevelIndex === 1) {
-                // District level
-                // Fetch assemblies from state hierarchy API
-                const rawAssemblies = await fetchAllPages(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
-                  }/api/user-state-hierarchies/hierarchy/children/${parentId}`
-                );
-                // Map state hierarchy response to have levelName property and assembly information
-                childrenData = rawAssemblies.map((assembly: any) => ({
-                  ...assembly,
-                  id: assembly.location_id || assembly.id,
-                  displayName: assembly.location_name || assembly.displayName,
-                  levelName: "Assembly",
-                  assemblyId: assembly.location_id || assembly.id, // Self-reference for assemblies
-                  assemblyName: assembly.location_name || assembly.displayName,
-                  districtId: parentId,
-                  districtName: districtInfo.districtName,
-                }));
-              } else if (parentLevelIndex === 2) {
-                // Assembly level
-                // Fetch direct children from after-assembly API
-                const response = await fetch(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
-                  }/api/after-assembly-data/assembly/${parentId}`,
-                  { headers: { Authorization: `Bearer ${token}` } }
-                );
-                const data = await response.json();
-                
-                // Get assembly name from cache or fetch it
-                const assemblyName = await fetchAssemblyInfo(parentId);
-                
-                // Ensure each item has proper assembly association
-                childrenData = (data.data || []).map((item: any) => ({
-                  ...item,
-                  assemblyId: parentId,
-                  assemblyName: assemblyName,
-                  districtId: parentChain["District"] || districtInfo.districtId,
-                  districtName: parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName,
-                }));
-              } else {
-                // All other levels (after-assembly levels)
-                // Fetch from after-assembly hierarchy API
-                const rawChildren = await fetchAllPages(
-                  `${
-                    import.meta.env.VITE_API_BASE_URL
-                  }/api/user-after-assembly-hierarchy/hierarchy/children/${parentId}`
-                );
+    const mappedItems = currentLevelItems.map((item) => ({
+      id: item.itemId,
+      displayName: item.itemName,
+      levelName: item.itemLevelType,
+      parentId: item.parentItemId,
+      parentLevelId: item.parentItemId,
+      parentLevelName: item.parentItemName,
+      parentLevelType: item.parentItemLevelType,
+      districtId: item.districtId,
+      districtName: item.districtName,
+      assemblyId: item.assemblyId,
+      assemblyName: item.assemblyName,
+      users: item.users || [],
+      user_count: item.userCount || 0,
+      userCount: item.userCount || 0,
+    }));
 
-                // Map response - preserve existing levelName, or detect from data structure
-                const childrenDataPromises = rawChildren.map(async (item: any) => {
-                  // If API already has levelName, use it. Otherwise detect it.
-                  let detectedLevel = item.levelName;
-
-                  // If no levelName in API response, try to infer from the object structure
-                  if (!detectedLevel) {
-                    // Check common properties that indicate the level type
-                    if (item.boothNumber !== undefined) {
-                      detectedLevel = "Booth";
-                    } else if (item.pollingCenterNumber !== undefined) {
-                      detectedLevel = "PollingCenter";
-                    } else if (
-                      item.mandalId !== undefined &&
-                      !item.pollingCenterId
-                    ) {
-                      detectedLevel = "Mandal";
-                    } else {
-                      detectedLevel = nextLevelName; // Fallback to expected level
-                    }
-                  }
-
-                  // Get assembly name from cache or fetch it
-                  let assemblyName = item.assemblyName;
-                  if (!assemblyName && parentChain["Assembly"]) {
-                    const assemblyId = parentChain["Assembly"];
-                    assemblyName = await fetchAssemblyInfo(assemblyId);
-                  }
-
-                  return {
-                    ...item,
-                    levelName: detectedLevel,
-                    displayName:
-                      item.displayName ||
-                      item.name ||
-                      `${detectedLevel} ${item.id}`,
-                    // Inherit assembly information from parent chain
-                    assemblyId: item.assemblyId || parentChain["Assembly"],
-                    assemblyName: assemblyName,
-                    districtId: item.districtId || parentChain["District"] || districtInfo.districtId,
-                    districtName: item.districtName || (parentChain["District"] ? `District ${parentChain["District"]}` : districtInfo.districtName),
-                  };
-                });
-                
-                childrenData = await Promise.all(childrenDataPromises);
-              }
-
-              // Filter items - flexible approach to handle non-strictly-nested data
-              // Look for items at current level, next level, or even skip intermediate levels
-              let filteredItems: any[] = [];
-              let foundAtLevel = nextLevelName; // Track which level we actually found items at
-
-              // Try matching at the next expected level first
-              filteredItems = childrenData.filter(
-                (item: any) => item.levelName === nextLevelName
-              );
-
-              // If nothing found, look ahead up to 2 levels (handles skipped levels)
-              if (filteredItems.length === 0) {
-                for (
-                  let i = nextLevelIndex + 1;
-                  i <= Math.min(nextLevelIndex + 2, hierarchyOrder.length - 1);
-                  i++
-                ) {
-                  const levelToCheck = hierarchyOrder[i];
-                  const foundItems = childrenData.filter(
-                    (item: any) => item.levelName === levelToCheck
-                  );
-                  if (foundItems.length > 0) {
-                    filteredItems = foundItems;
-                    foundAtLevel = levelToCheck;
-                    break;
-                  }
-                }
-              }
-
-              // If still nothing found, check parent level (data might be less hierarchical than expected)
-              if (filteredItems.length === 0 && nextLevelIndex > 2) {
-                const parentLevelName = hierarchyOrder[nextLevelIndex - 1];
-                filteredItems = childrenData.filter(
-                  (item: any) => item.levelName === parentLevelName
-                );
-                foundAtLevel = parentLevelName;
-              }
-
-              // Build parent chain - include all ancestors
-              const currentParentChain = { ...parentChain };
-              const parentLevelName = hierarchyOrder[parentLevelIndex];
-              if (parentLevelName) {
-                currentParentChain[parentLevelName] = parentId;
-              }
-
-              const nextLevelItems = filteredItems.map((item: any) => ({
-                ...item,
-                parentLevelId: parentId,
-                parentChain: currentParentChain, // Include full parent hierarchy
-              }));
-
-              // Determine if we should continue fetching deeper or return these items
-              // Find the index of the level we actually found
-              const foundAtIndex = hierarchyOrder.indexOf(foundAtLevel);
-
-              // Only return items if they match the target level exactly
-              // OR if they're deeper and we're still traversing (nextLevelIndex < currentLevelIndex)
-              if (foundAtIndex === currentLevelIndex) {
-                // Found exact level - return these items
-                items.push(...nextLevelItems);
-              }
-              // If this is not the target level, fetch deeper
-              else if (nextLevelIndex < currentLevelIndex) {
-                const deeperItems = await fetchLevelItems(
-                  nextLevelItems.map((i) => i.id),
-                  nextLevelIndex,
-                  currentParentChain
-                );
-                items.push(...deeperItems);
-              }
-              // If foundAtIndex > currentLevelIndex (items are deeper than target), don't return them
-            } catch (error) {
-              console.error(
-                `Error fetching ${nextLevelName} for parent ${parentId}:`,
-                error
-              );
-            }
-          }
-
-          return items;
-        };
-
-        // Start from district level
-        const districtIds = [districtInfo.districtId];
-        levelItems = await fetchLevelItems(districtIds, 1);
-
-        setAllLevelItems(levelItems.sort((a, b) => a.id - b.id));
-      } catch (err) {
-        console.error(`Error fetching all ${levelName} items:`, err);
-        setAllLevelItems([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAllLevelItems();
-  }, [districtInfo.districtId, levelName, hierarchyOrder]);
+    setAllLevelItems(mappedItems);
+  }, [dynamicLevelData, levelName]);
 
   // Handle items without users filter
-  const handleItemsWithoutUsersClick = () => {
-    const itemsWithoutUsersCount = levelItems.filter(
-      (item) =>
-        (itemUserCounts[item.id] !== undefined
-          ? itemUserCounts[item.id]
-          : item.user_count || 0) === 0
-    ).length;
+  const handleItemsWithoutUsersClick = async () => {
+    if (totalWithoutUsersCount > 0) {
+      if (showItemsWithoutUsers) {
+        setShowItemsWithoutUsers(false);
+        setCurrentPage(1);
+        return;
+      }
 
-    if (itemsWithoutUsersCount > 0) {
-      setShowItemsWithoutUsers(!showItemsWithoutUsers);
+      if (allItemsForFilter.length === 0) {
+        await fetchAllItemsForFilter();
+      }
+
+      setShowItemsWithoutUsers(true);
       setShowItemsWithUsers(false); // Disable the other filter
       setCurrentPage(1);
     }
   };
 
   // Handle items with users filter
-  const handleItemsWithUsersClick = () => {
-    const itemsWithUsersCount = levelItems.filter(
-      (item) =>
-        (itemUserCounts[item.id] !== undefined
-          ? itemUserCounts[item.id]
-          : item.user_count || 0) > 0
-    ).length;
+  const handleItemsWithUsersClick = async () => {
+    if (totalUsersCount > 0) {
+      if (showItemsWithUsers) {
+        setShowItemsWithUsers(false);
+        setCurrentPage(1);
+        return;
+      }
 
-    if (itemsWithUsersCount > 0) {
-      setShowItemsWithUsers(!showItemsWithUsers);
+      if (allItemsForFilter.length === 0) {
+        await fetchAllItemsForFilter();
+      }
+
+      setShowItemsWithUsers(true);
       setShowItemsWithoutUsers(false); // Disable the other filter
       setCurrentPage(1);
     }
@@ -902,6 +563,31 @@ export default function DistrictDynamicLevelList({
     return matchesSearch && matchesFilter && matchesWithoutUsersFilter && matchesWithUsersFilter;
   });
 
+  const totalItemsCount =
+    dynamicLevelData?.pagination?.total ||
+    dynamicLevelData?.metaData?.totalItems ||
+    levelItems.length;
+
+  const totalUsersCount =
+    dynamicLevelData?.metaData?.totalUsers ||
+    levelItems.reduce(
+      (sum, item) =>
+        sum +
+        (itemUserCounts[item.id] !== undefined
+          ? itemUserCounts[item.id]
+          : item.user_count || 0),
+      0
+    );
+
+  const totalWithoutUsersCount =
+    dynamicLevelData?.metaData?.levelWithoutUsers ||
+    levelItems.filter(
+      (item) =>
+        (itemUserCounts[item.id] !== undefined
+          ? itemUserCounts[item.id]
+          : item.user_count || 0) === 0
+    ).length;
+
   const handleViewUsers = async (itemId: number) => {
     if (expandedItemId === itemId) {
       setExpandedItemId(null);
@@ -915,14 +601,10 @@ export default function DistrictDynamicLevelList({
 
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
-        }/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/user-after-assembly-hierarchy/after-assembly/${itemId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "auth_access_token"
-            )}`,
+            Authorization: `Bearer ${localStorage.getItem("auth_access_token")}`,
           },
         }
       );
@@ -944,28 +626,43 @@ export default function DistrictDynamicLevelList({
         // Store parent information from parentDetails if available
         if (data.data.parentDetails) {
           const parentDetails = data.data.parentDetails;
-          setParentInfo((prev) => ({
+          setParentInfo(prev => ({
             ...prev,
             [parentDetails.id]: {
               id: parentDetails.id,
               displayName: parentDetails.displayName,
               levelName: parentDetails.levelName,
-            },
+            }
           }));
         }
 
         setExpandedItemId(itemId);
       }
     } catch (error) {
-      console.error(`Error fetching users for ${levelName} ${itemId}:`, error);
+      // Silent error handling
     }
   };
 
-  const totalPages = Math.ceil(filteredLevelItems.length / itemsPerPage);
-  const paginatedItems = filteredLevelItems.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const useClientSidePagination =
+    showItemsWithoutUsers ||
+    showItemsWithUsers ||
+    selectedLevelFilter !== "" ||
+    (searchTerm.trim().length > 0 && allItemsForFilter.length > 0);
+
+  const totalPages = useClientSidePagination
+    ? Math.ceil(filteredLevelItems.length / itemsPerPage)
+    : dynamicLevelData?.pagination?.totalPages || Math.ceil(filteredLevelItems.length / itemsPerPage);
+
+  const totalCount = useClientSidePagination
+    ? filteredLevelItems.length
+    : dynamicLevelData?.pagination?.total || filteredLevelItems.length;
+
+  const paginatedItems = useClientSidePagination
+    ? filteredLevelItems.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    : filteredLevelItems;
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -1009,7 +706,7 @@ export default function DistrictDynamicLevelList({
                         {t("DistrictDynamic.Total")} {displayLevelName}s
                       </p>
                       <p className="text-xl sm:text-2xl font-semibold mt-1">
-                        {levelItems.length}
+                        {totalItemsCount}
                       </p>
                     </div>
                     <div className="bg-blue-50 rounded-full p-1.5">
@@ -1032,12 +729,7 @@ export default function DistrictDynamicLevelList({
                   <div
                     onClick={handleItemsWithUsersClick}
                     className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                      levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) > 0
-                      ).length > 0
+                      totalUsersCount > 0
                         ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50"
                         : "cursor-default"
                     } ${
@@ -1046,12 +738,7 @@ export default function DistrictDynamicLevelList({
                         : ""
                     }`}
                     title={
-                      levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) > 0
-                      ).length > 0
+                      totalUsersCount > 0
                         ? `Click to view ${displayLevelName.toLowerCase()}s with users`
                         : `No ${displayLevelName.toLowerCase()}s with users`
                     }
@@ -1066,14 +753,7 @@ export default function DistrictDynamicLevelList({
                         )}
                       </p>
                       <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">
-                        {levelItems.reduce(
-                          (sum, item) =>
-                            sum +
-                            (itemUserCounts[item.id] !== undefined
-                              ? itemUserCounts[item.id]
-                              : item.user_count || 0),
-                          0
-                        )}
+                        {totalUsersCount}
                       </p>
                     </div>
                     <div className="bg-green-50 rounded-full p-1.5">
@@ -1097,12 +777,7 @@ export default function DistrictDynamicLevelList({
                   <div
                     onClick={handleItemsWithoutUsersClick}
                     className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${
-                      levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) === 0
-                      ).length > 0
+                      totalWithoutUsersCount > 0
                         ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50"
                         : "cursor-default"
                     } ${
@@ -1111,12 +786,7 @@ export default function DistrictDynamicLevelList({
                         : ""
                     }`}
                     title={
-                      levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) === 0
-                      ).length > 0
+                      totalWithoutUsersCount > 0
                         ? `Click to view ${displayLevelName.toLowerCase()}s without users`
                         : `No ${displayLevelName.toLowerCase()}s without users`
                     }
@@ -1132,44 +802,22 @@ export default function DistrictDynamicLevelList({
                       </p>
                       <p
                         className={`text-xl sm:text-2xl font-semibold mt-1 ${
-                          levelItems.filter(
-                            (item) =>
-                              (itemUserCounts[item.id] !== undefined
-                                ? itemUserCounts[item.id]
-                                : item.user_count || 0) === 0
-                          ).length > 0
+                          totalWithoutUsersCount > 0
                             ? "text-red-600"
                             : "text-[var(--text-secondary)]"
                         }`}
                       >
-                        {
-                          levelItems.filter(
-                            (item) =>
-                              (itemUserCounts[item.id] !== undefined
-                                ? itemUserCounts[item.id]
-                                : item.user_count || 0) === 0
-                          ).length
-                        }
+                        {totalWithoutUsersCount}
                       </p>
                     </div>
                     <div
                       className={`rounded-full p-1.5 ${
-                        levelItems.filter(
-                          (item) =>
-                            (itemUserCounts[item.id] !== undefined
-                              ? itemUserCounts[item.id]
-                              : item.user_count || 0) === 0
-                        ).length > 0
+                        totalWithoutUsersCount > 0
                           ? "bg-red-50"
                           : "bg-[var(--bg-main)]"
                       }`}
                     >
-                      {levelItems.filter(
-                        (item) =>
-                          (itemUserCounts[item.id] !== undefined
-                            ? itemUserCounts[item.id]
-                            : item.user_count || 0) === 0
-                      ).length > 0 ? (
+                      {totalWithoutUsersCount > 0 ? (
                         <svg
                           className="w-4 h-4 sm:w-5 sm:h-5 text-red-600"
                           fill="none"
@@ -1777,12 +1425,12 @@ export default function DistrictDynamicLevelList({
                           <span className="font-medium">
                             {Math.min(
                               currentPage * itemsPerPage,
-                              filteredLevelItems.length
+                              totalCount
                             )}
                           </span>{" "}
                           {t("DistrictDynamic.of")}{" "}
                           <span className="font-medium">
-                            {filteredLevelItems.length}
+                            {totalCount}
                           </span>{" "}
                           {t("DistrictDynamic.results")}
                         </p>

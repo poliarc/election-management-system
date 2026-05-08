@@ -3256,7 +3256,8 @@
         "Level_Type": "Level Type",
         "State": "State",
         "Party": "Party",
-        "Parent_Level": "Parent Level"
+        "Parent_Level": "Parent Level",
+        "None": "None"
     },
     "LevelDataManagement": {
         "Desc": "Level admin panel not found",
@@ -3311,7 +3312,8 @@
         "Level_Type": "Level Type",
         "State": "State",
         "Party": "Party",
-        "Parent_Level": "Parent Level"
+        "Parent_Level": "Parent Level",
+        "None": "None"
     },
     "SimpleHierarchyManager": {
         "ID": "ID",
@@ -3403,7 +3405,8 @@
         "Level_Type": "Level Type",
         "State": "State",
         "Party": "Party",
-        "Parent_Level": "Parent Level"
+        "Parent_Level": "Parent Level",
+        "None": "None"
     },
     "DistrictUserManagement": {
         "Desc": "Level admin panel not found",
@@ -3437,7 +3440,8 @@
         "Level_Type": "Level Type",
         "State": "State",
         "Party": "Party",
-        "Parent_Level": "Parent Level"
+        "Parent_Level": "Parent Level",
+        "None": "None"
     },
     "UserManagement": {
         "Desc": "Level admin panel not found",
@@ -3580,12 +3584,13 @@
         "Dashboard": "Dashboard",
         "Total_Levels": "Total Levels",
         "Total_Users": "Total Users",
-        "Active_Levels": "Active Levels",
+        "Active_Levels": "Active Users",
         "Panel_Information": "Panel Information",
         "Level_Type": "Level Type",
         "State": "State",
         "Party": "Party",
-        "Parent_Level": "Parent Level"
+        "Parent_Level": "Parent Level",
+        "None": "None"
     },
     "BoothManagement": {
         "Desc": "Level admin panel not found",
