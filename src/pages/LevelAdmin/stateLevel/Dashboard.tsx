@@ -1,61 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
-import { fetchAssignedUsers } from "../../../services/levelAdminApi";
+import { fetchLevelAdminDashboard } from "../../../services/levelAdminApi";
 import { useTranslation } from "react-i18next";
 
 export default function LevelAdminDashboard() {
-    const {t} = useTranslation();
+    const { t } = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
-    const [stats, setStats] = useState({
-        totalUsers: 0,
-        activeUsers: 0,
-        inactiveUsers: 0,
-    });
+    const [dashData, setDashData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
 
     useEffect(() => {
-        const loadStats = async () => {
-            if (!currentPanel?.metadata) return;
-
-            try {
-                setLoading(true);
-                const response = await fetchAssignedUsers(
-                    currentPanel.metadata.stateId,
-                    1,
-                    1000 // Get all users for stats
-                );
-                if (response.success) {
-                    // Handle both response formats: response.data.users or response.data
-                    const users = response.data?.users || response.data || [];
-
-                    // Filter out super admins
-                    const filteredUsers = users.filter((u: any) => u.isSuperAdmin !== 1);
-
-                    setStats({
-                        totalUsers: filteredUsers.length,
-                        activeUsers: filteredUsers.filter((u: any) => {
-                            const isActive = u.isActive !== undefined ? u.isActive === 1 : u.is_active;
-                            return isActive;
-                        }).length,
-                        inactiveUsers: filteredUsers.filter((u: any) => {
-                            const isActive = u.isActive !== undefined ? u.isActive === 1 : u.is_active;
-                            return !isActive;
-                        }).length,
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to load stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadStats();
-    }, [currentPanel]);
+        if (!currentPanel?.id) return;
+        setLoading(true);
+        fetchLevelAdminDashboard(currentPanel.id)
+            .then((res) => { if (res.success) setDashData(res.data); })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [currentPanel?.id]);
 
     if (!currentPanel) {
         return (
@@ -67,39 +32,40 @@ export default function LevelAdminDashboard() {
         );
     }
 
+    const stats = dashData?.overallStats;
+    const levelInfo = dashData?.levelInfo;
+
+    const totalUsers = stats?.total_users ?? 0;
+    const activeUsers = stats?.active_users ?? 0;
+    const inactiveUsers = stats?.inactive_users ?? 0;
+
     return (
         <div className="p-1 bg-[var(--bg-main)] min-h-screen">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-3 text-white mb-1">
+            {/* Header with Stats Cards */}
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-3 sm:p-6 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
                         <h1 className="text-xl sm:text-2xl font-bold">{currentPanel.displayName} {t("LevelAdminDashboard.Dashboard")}</h1>
                         <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                            {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
+                            {levelInfo?.state_name || currentPanel.metadata?.stateName} - {levelInfo?.partyName || currentPanel.metadata?.partyName}
                         </p>
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Total_Users")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold mt-1">
-                                    {loading ? "..." : stats.totalUsers}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("LevelAdminDashboard.Total_Users")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold mt-1">{loading ? "..." : totalUsers}</p>
                             </div>
                             <div className="bg-blue-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
                         </div>
-
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Active_Users")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-green-600 mt-1">
-                                    {loading ? "..." : stats.activeUsers}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("LevelAdminDashboard.Active_Users")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold text-green-600 mt-1">{loading ? "..." : activeUsers}</p>
                             </div>
                             <div className="bg-green-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,13 +73,10 @@ export default function LevelAdminDashboard() {
                                 </svg>
                             </div>
                         </div>
-
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("LevelAdminDashboard.Inactive_Users")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-red-600 mt-1">
-                                    {loading ? "..." : stats.inactiveUsers}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("LevelAdminDashboard.Inactive_Users")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold text-red-600 mt-1">{loading ? "..." : inactiveUsers}</p>
                             </div>
                             <div className="bg-red-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,25 +89,25 @@ export default function LevelAdminDashboard() {
             </div>
 
             {/* Info Card */}
-            <div className="mt-1 bg-[var(--bg-card)] rounded-lg shadow-md p-6">
+            <div className="mt-6 bg-[var(--bg-card)] rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-bold text-[var(--text-color)] mb-4">{t("LevelAdminDashboard.Panel_Information")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Level_Type")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.stateLevelType}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.display_level_name || currentPanel.metadata?.stateLevelType}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.State")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.stateName}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.state_name || currentPanel.metadata?.stateName}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Party")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.partyName}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.partyName || currentPanel.metadata?.partyName}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("LevelAdminDashboard.Parent_Level")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">
-                            {currentPanel.metadata?.parentLevelName || "None"}
+                            {levelInfo?.parent_display_level_name || currentPanel.metadata?.parentLevelName || t("LevelAdminDashboard.None")}
                         </p>
                     </div>
                 </div>
@@ -152,5 +115,6 @@ export default function LevelAdminDashboard() {
         </div>
     );
 }
+
 
 

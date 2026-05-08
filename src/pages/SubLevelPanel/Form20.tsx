@@ -28,9 +28,8 @@ export default function Form20() {
     }
   }, [selectedAssignment]);
 
-  // Get the correct booth ID - use parentId for booth level users
-  // because result analysis data is uploaded for the parent booth from Assembly level
-  const boothId = selectedAssignment?.parentId || Number(levelId);
+  // Get the correct booth ID - stateMasterData_id is the actual booth ID for SubLevel panel users
+  const boothId = selectedAssignment?.stateMasterData_id || Number(levelId);
 
   // Fetch result analysis data for this booth using parentId as boothId
   const {

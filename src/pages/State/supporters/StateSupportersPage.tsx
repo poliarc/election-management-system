@@ -57,6 +57,7 @@ export default function StateSupportersPage() {
     districtId: selectedDistrictId || undefined,
     assemblyId: selectedAssemblyId || undefined,
     blockId: selectedBlockId || undefined,
+    partyId: partyId || undefined,
   }, {
     skip: !stateId || selectedDistrictId > 0 || selectedAssemblyId > 0,
   });
@@ -68,6 +69,7 @@ export default function StateSupportersPage() {
     search: searchTerm,
     assemblyId: selectedAssemblyId || undefined,
     blockId: selectedBlockId || undefined,
+    partyId: partyId || undefined,
   }, {
     skip: !selectedDistrictId || selectedAssemblyId > 0,
   });
@@ -78,6 +80,7 @@ export default function StateSupportersPage() {
     limit: 10,
     search: searchTerm,
     blockId: selectedBlockId || undefined,
+    partyId: partyId || undefined,
   }, {
     skip: !selectedAssemblyId,
   });
