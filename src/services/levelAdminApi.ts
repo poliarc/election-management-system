@@ -209,6 +209,40 @@ export async function assignUserToDistrict(
   return response.json();
 }
 
+// Level Admin Dashboard API
+export async function fetchLevelAdminDashboard(partyWiseId: number): Promise<{
+    success: boolean;
+    data: {
+        levelInfo: any;
+        overallStats: { total_users: number; active_users: number; inactive_users: number; total_levels: number };
+        levelStats: any[];
+        childLevels: any[];
+        stateHierarchyStats: any[];
+        afterAssemblyStats: any[];
+        hierarchyCounts: { total_districts: number; total_assemblies: number; total_booths: number; total_localities: number; total_polling_centers: number };
+    };
+}> {
+    const token = getAuthToken();
+    if (!token) throw new Error("Authentication required");
+
+    const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/dashboard/leveladmin/${partyWiseId}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        throw new Error(error.message || "Failed to fetch level admin dashboard");
+    }
+
+    return response.json();
+}
+
 // Unassign user from state hierarchy
 export async function unassignUserFromState(
   userId: number,

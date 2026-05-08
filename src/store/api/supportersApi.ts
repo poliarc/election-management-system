@@ -157,33 +157,20 @@ export const supportersApi = createApi({
     // Get supporters by state
     getSupportersByState: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
-      { stateId: number; page?: number; limit?: number; search?: string; districtId?: number; assemblyId?: number; blockId?: number; userId?: number }
+      { stateId: number; page?: number; limit?: number; search?: string; districtId?: number; assemblyId?: number; blockId?: number; userId?: number; partyId?: number }
     >({
-      query: ({ stateId, page = 1, limit = 10, search, districtId, assemblyId, blockId, userId }) => {
+      query: ({ stateId, page = 1, limit = 10, search, districtId, assemblyId, blockId, userId, partyId }) => {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
         });
         
-        if (search) {
-          params.append('search', search);
-        }
-        
-        if (districtId) {
-          params.append('district_id', districtId.toString());
-        }
-        
-        if (assemblyId) {
-          params.append('assembly_id', assemblyId.toString());
-        }
-        
-        if (blockId) {
-          params.append('block_id', blockId.toString());
-        }
-        
-        if (userId) {
-          params.append('created_by', userId.toString());
-        }
+        if (search) params.append('search', search);
+        if (districtId) params.append('district_id', districtId.toString());
+        if (assemblyId) params.append('assembly_id', assemblyId.toString());
+        if (blockId) params.append('block_id', blockId.toString());
+        if (userId) params.append('created_by', userId.toString());
+        if (partyId) params.append('party_id', partyId.toString());
         
         return `supporters/state/${stateId}?${params.toString()}`;
       },
@@ -205,29 +192,19 @@ export const supportersApi = createApi({
     // Get supporters by district
     getSupportersByDistrict: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
-      { districtId: number; page?: number; limit?: number; search?: string; assemblyId?: number; blockId?: number; userId?: number }
+      { districtId: number; page?: number; limit?: number; search?: string; assemblyId?: number; blockId?: number; userId?: number; partyId?: number }
     >({
-      query: ({ districtId, page = 1, limit = 10, search, assemblyId, blockId, userId }) => {
+      query: ({ districtId, page = 1, limit = 10, search, assemblyId, blockId, userId, partyId }) => {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
         });
         
-        if (search) {
-          params.append('search', search);
-        }
-        
-        if (assemblyId) {
-          params.append('assembly_id', assemblyId.toString());
-        }
-        
-        if (blockId) {
-          params.append('block_id', blockId.toString());
-        }
-        
-        if (userId) {
-          params.append('created_by', userId.toString());
-        }
+        if (search) params.append('search', search);
+        if (assemblyId) params.append('assembly_id', assemblyId.toString());
+        if (blockId) params.append('block_id', blockId.toString());
+        if (userId) params.append('created_by', userId.toString());
+        if (partyId) params.append('party_id', partyId.toString());
         
         return `supporters/district/${districtId}?${params.toString()}`;
       },
@@ -249,25 +226,18 @@ export const supportersApi = createApi({
     // Get supporters by assembly
     getSupportersByAssembly: builder.query<
       { success: boolean; message: string; data: Supporter[]; pagination: { page: number; limit: number; total: number; pages: number } },
-      { assemblyId: number; page?: number; limit?: number; search?: string; blockId?: number; userId?: number }
+      { assemblyId: number; page?: number; limit?: number; search?: string; blockId?: number; userId?: number; partyId?: number }
     >({
-      query: ({ assemblyId, page = 1, limit = 10, search, blockId, userId }) => {
+      query: ({ assemblyId, page = 1, limit = 10, search, blockId, userId, partyId }) => {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
         });
         
-        if (search) {
-          params.append('search', search);
-        }
-        
-        if (blockId) {
-          params.append('block_id', blockId.toString());
-        }
-        
-        if (userId) {
-          params.append('created_by', userId.toString());
-        }
+        if (search) params.append('search', search);
+        if (blockId) params.append('block_id', blockId.toString());
+        if (userId) params.append('created_by', userId.toString());
+        if (partyId) params.append('party_id', partyId.toString());
         
         return `supporters/assembly/${assemblyId}?${params.toString()}`;
       },

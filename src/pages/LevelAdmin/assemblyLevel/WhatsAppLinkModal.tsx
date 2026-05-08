@@ -187,8 +187,10 @@ export default function WhatsAppLinkModal({
   const handleSubmit = async () => {
     if (!row) return;
 
-    // 🌟 THE FIX: Smart Routing based on the hideUserSelection flag!
+    // 🌟 THE FIX: Added state_id and district_id to satisfy backend validation
     const payload = {
+      state_id: row.stateId,
+      district_id: row.districtId,
       stateMasterData_id: hideUserSelection ? null : row.assemblyId,
       afterAssemblyData_id: hideUserSelection ? row.assemblyId : null,
       group_type: groupType,

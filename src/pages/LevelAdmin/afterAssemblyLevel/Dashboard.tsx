@@ -1,84 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
-import { fetchHierarchyChildren } from "../../../services/hierarchyApi";
+import { fetchLevelAdminDashboard } from "../../../services/levelAdminApi";
 import { useTranslation } from "react-i18next";
 
 export default function AfterAssemblyLevelDashboard() {
-    const {t} = useTranslation();
+    const { t } = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
     const { levelAdminPanels } = useAppSelector((state) => state.auth);
-    const [stats, setStats] = useState({
-        totalDistricts: 0,
-        totalAssemblies: 0,
-        totalLevels: 0,
-        totalUsers: 0,
-        activeUsers: 0,
-        inactiveUsers: 0,
-    });
+    const [dashData, setDashData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     const currentPanel = levelAdminPanels.find((p) => p.id === Number(levelId));
 
     useEffect(() => {
-        const loadStats = async () => {
-            const metadata = currentPanel?.metadata;
-            if (!metadata?.stateId) return;
-
-            try {
-                setLoading(true);
-                const districtResponse = await fetchHierarchyChildren(metadata.stateId, {
-                    page: 1,
-                    limit: 1000
-                });
-
-                if (districtResponse.success && districtResponse.data?.children) {
-                    const districts = districtResponse.data.children;
-                    let totalAssemblies = 0;
-                    let totalUsers = 0;
-                    let activeUsers = 0;
-                    let inactiveUsers = 0;
-
-                    for (const district of districts) {
-                        const assemblyResponse = await fetchHierarchyChildren(district.location_id, {
-                            page: 1,
-                            limit: 1000
-                        });
-                        if (assemblyResponse.success && assemblyResponse.data?.children) {
-                            totalAssemblies += assemblyResponse.data.children.length;
-                            totalUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.total_users || 0),
-                                0
-                            );
-                            activeUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.active_users || 0),
-                                0
-                            );
-                            inactiveUsers += assemblyResponse.data.children.reduce(
-                                (sum: number, a: any) => sum + (a.inactive_users || 0),
-                                0
-                            );
-                        }
-                    }
-
-                    setStats({
-                        totalDistricts: districts.length,
-                        totalAssemblies,
-                        totalLevels: 0, // Will be calculated from after-assembly data
-                        totalUsers,
-                        activeUsers,
-                        inactiveUsers,
-                    });
-                }
-            } catch (error) {
-                console.error("Failed to load stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadStats();
-    }, [currentPanel]);
+        if (!currentPanel?.id) return;
+        setLoading(true);
+        fetchLevelAdminDashboard(currentPanel.id)
+            .then((res) => { if (res.success) setDashData(res.data); })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [currentPanel?.id]);
 
     if (!currentPanel) {
         return (
@@ -90,24 +32,29 @@ export default function AfterAssemblyLevelDashboard() {
         );
     }
 
+    const stats = dashData?.overallStats;
+    const counts = dashData?.hierarchyCounts;
+    const levelInfo = dashData?.levelInfo;
+
+    const totalDistricts = counts?.total_districts ?? 0;
+    const totalAssemblies = counts?.total_assemblies ?? 0;
+    const totalLevels = stats?.total_levels ?? 0;
+
     return (
         <div className="p-1 bg-[var(--bg-main)] min-h-screen">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg shadow-lg p-4 sm:p-6 text-white mb-4">
+            <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg shadow-lg p-3 sm:p-6 text-white mb-1">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="shrink-0">
                         <h1 className="text-xl sm:text-2xl font-bold">{currentPanel.displayName} {t("AfterAssemblyLevelDashboard.Title")}</h1>
                         <p className="text-purple-100 mt-1 text-xs sm:text-sm">
-                            {currentPanel.metadata?.stateName} - {currentPanel.metadata?.partyName}
+                            {levelInfo?.state_name || currentPanel.metadata?.stateName} - {levelInfo?.partyName || currentPanel.metadata?.partyName}
                         </p>
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Total_Districts")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold mt-1">
-                                    {loading ? "..." : stats.totalDistricts}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("AfterAssemblyLevelDashboard.Total_Districts")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold mt-1">{loading ? "..." : totalDistricts}</p>
                             </div>
                             <div className="bg-blue-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,13 +62,10 @@ export default function AfterAssemblyLevelDashboard() {
                                 </svg>
                             </div>
                         </div>
-
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Total_Assemblies")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-indigo-600 mt-1">
-                                    {loading ? "..." : stats.totalAssemblies}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("AfterAssemblyLevelDashboard.Total_Assemblies")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold text-indigo-600 mt-1">{loading ? "..." : totalAssemblies}</p>
                             </div>
                             <div className="bg-indigo-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,13 +73,10 @@ export default function AfterAssemblyLevelDashboard() {
                                 </svg>
                             </div>
                         </div>
-
-                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-4 flex items-center justify-between">
+                        <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Sub_Levels")}</p>
-                                <p className="text-2xl sm:text-3xl font-semibold text-purple-600 mt-1">
-                                    {loading ? "..." : stats.totalLevels}
-                                </p>
+                                <p className="text-[var(--text-secondary)] text-xs sm:text-sm font-medium">{t("AfterAssemblyLevelDashboard.Sub_Levels")}</p>
+                                <p className="text-xl sm:text-2xl font-semibold text-purple-600 mt-1">{loading ? "..." : totalLevels}</p>
                             </div>
                             <div className="bg-purple-50 rounded-full p-2">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,20 +93,20 @@ export default function AfterAssemblyLevelDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Level_Type")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.name}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.display_level_name || currentPanel.metadata?.stateLevelType}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.State")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.stateName}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.state_name || currentPanel.metadata?.stateName}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Party")}</p>
-                        <p className="text-lg font-semibold text-[var(--text-color)]">{currentPanel.metadata?.partyName}</p>
+                        <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.partyName || currentPanel.metadata?.partyName}</p>
                     </div>
                     <div>
                         <p className="text-sm text-[var(--text-secondary)]">{t("AfterAssemblyLevelDashboard.Parent_Level")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">
-                            {currentPanel.metadata?.parentLevelName || "None"}
+                            {levelInfo?.parent_display_level_name || currentPanel.metadata?.parentLevelName || t("AfterAssemblyLevelDashboard.None")}
                         </p>
                     </div>
                 </div>
@@ -173,5 +114,6 @@ export default function AfterAssemblyLevelDashboard() {
         </div>
     );
 }
+
 
 
