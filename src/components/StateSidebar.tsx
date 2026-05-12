@@ -176,21 +176,6 @@ const Icons = {
       <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
-  // karyakarta: (
-  //   <svg
-  //     className={iconClass}
-  //     viewBox="0 0 24 24"
-  //     fill="none"
-  //     stroke="currentColor"
-  //   >
-  //     <path
-  //       d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8H6v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2Z"
-  //       strokeWidth={1.4}
-  //       strokeLinecap="round"
-  //       strokeLinejoin="round"
-  //     />
-  //   </svg>
-  // ),
   profile: (
     <svg
       className={iconClass}
@@ -256,7 +241,6 @@ const staticListItems: NavItem[] = [
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booths },
-  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
 
 export default function StateSidebar({
@@ -399,7 +383,6 @@ export default function StateSidebar({
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
               State Level
             </p>
-
           </div>
         </div>
       </div>
@@ -431,7 +414,7 @@ export default function StateSidebar({
             ))}
 
 
-            {/* State Team - Dynamic based on module access */}
+          {/* State Team - Dynamic based on module access */}
           {hasStateTeamAccess && (
             <NavLink
               to={`${base}/team`}
@@ -455,8 +438,6 @@ export default function StateSidebar({
             </NavLink>
           )}
 
-
-
             {/* District & Assembly */}
             {stateItemsGeo.map((item) => (
               <NavLink
@@ -479,11 +460,6 @@ export default function StateSidebar({
                 <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
               </NavLink>
             ))}
-
-
-
-          {/* State Team - Dynamic based on module access */}
-          
 
           {/* List dropdown */}
           <div>
@@ -533,7 +509,6 @@ export default function StateSidebar({
                 />
               </svg>
             </button>
-
             
             {listOpen && (
               <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
@@ -559,9 +534,6 @@ export default function StateSidebar({
               </div>
             )}
           </div>
-
-
-
 
           {/* Supporters */}
             <NavLink
@@ -623,8 +595,26 @@ export default function StateSidebar({
                 <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
               </NavLink>
 
+              {/* --- ADDED SOCIAL MEDIA BUTTON --- */}
+              <NavLink
+                to={`${base}/Social-Media`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+                <span className="truncate">Social Media</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
 
-          
 
           {/* Dynamic Modules */}
           {sidebarModules

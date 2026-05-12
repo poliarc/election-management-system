@@ -194,7 +194,6 @@ export default function AfterAssemblyPanelSidebar({
   const base = `/afterassembly/${levelId}`;
   const firstName = user?.firstName || user?.username || "User";
 
-  // Get party and state info for API call from localStorage
   const getPartyAndStateFromStorage = () => {
     try {
       const authUser = localStorage.getItem('auth_user');
@@ -213,13 +212,11 @@ export default function AfterAssemblyPanelSidebar({
 
   const { partyId, stateId } = getPartyAndStateFromStorage();
 
-  // Get correct partyLevelId from permissions data instead of selectedAssignment
   const getCorrectPartyLevelId = () => {
     if (!selectedAssignment || !permissions) {
       return selectedAssignment?.partyLevelId || 0;
     }
 
-    // Primary: check accessibleLevelsByType
     if (permissions.accessibleLevelsByType) {
       for (const items of Object.values(permissions.accessibleLevelsByType) as any[][]) {
         const match = items.find((item: any) => item.assignment_id === selectedAssignment.assignment_id);
@@ -227,7 +224,6 @@ export default function AfterAssemblyPanelSidebar({
       }
     }
 
-    // Fallback: legacy accessible* arrays
     const accessibleLevels = [
       { data: permissions.accessibleBooths, idField: 'booth_assignment_id' },
       { data: permissions.accessiblePollingCenters, idField: 'assignment_id' },
@@ -254,15 +250,6 @@ export default function AfterAssemblyPanelSidebar({
 
   const partyLevelId = getCorrectPartyLevelId();
 
-  // Debug logging to check the values
-  console.log('AfterAssemblyPanelSidebar API params:', {
-    state_id: stateId,
-    party_id: partyId,
-    party_level_id: partyLevelId,
-    selectedAssignment
-  });
-
-  // Fetch dynamic sidebar modules from API
   const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
     {
       state_id: stateId,
@@ -272,7 +259,6 @@ export default function AfterAssemblyPanelSidebar({
     { skip: !partyId || !stateId || !partyLevelId }
   );
 
-  // Check if Team module is accessible
   const hasTeamAccess = useMemo(() => {
     return sidebarModules.some(module => 
       module.moduleName.toLowerCase().includes('team')
@@ -281,10 +267,8 @@ export default function AfterAssemblyPanelSidebar({
 
   const formatLevelName = (name?: string | null): string => {
     if (!name) return "After Assembly";
-    // PollingCenter → Polling Center
     if (name === "PollingCenter" || name === "pollingCenter")
       return "Polling Center";
-    // Add more formatting as needed
     return name;
   };
 
@@ -295,16 +279,13 @@ export default function AfterAssemblyPanelSidebar({
     firstName
   )}&background=6366f1&color=fff&bold=true`;
 
-  // Check if current level is Booth type
   const isBooth =
     levelInfo?.levelType === "Booth" || levelInfo?.partyLevelName === "Booth";
 
-  // Get assignments of the same type as currently selected
   const currentLevelName = selectedAssignment?.levelType;
   let sameTypeAssignments: StateAssignment[] = [];
 
   if (currentLevelName && permissions) {
-    // Primary: use accessibleLevelsByType (covers all dynamic levels like Locality, Booth, etc.)
     if (permissions.accessibleLevelsByType && permissions.accessibleLevelsByType[currentLevelName]) {
       sameTypeAssignments = permissions.accessibleLevelsByType[currentLevelName].map((a: any) => ({
         assignment_id: a.assignment_id,
@@ -325,7 +306,6 @@ export default function AfterAssemblyPanelSidebar({
         assigned_at: a.assigned_at,
       }));
     } else {
-      // Fallback: legacy accessible* arrays
       const allAfterAssemblyAssignments = [
         ...(permissions?.accessibleBlocks || []),
         ...(permissions?.accessiblePollingCenters || []),
@@ -356,7 +336,6 @@ export default function AfterAssemblyPanelSidebar({
     }
   }
 
-  // Get booth range for current assignment if it's a booth
   const currentBoothRange =
     isBooth && selectedAssignment
       ? (selectedAssignment as any).boothFrom &&
@@ -368,7 +347,6 @@ export default function AfterAssemblyPanelSidebar({
 
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
-  // Auto-scroll to selected item when dropdown opens
   useEffect(() => {
     if (switchDropdownOpen && switchDropdownRef.current) {
       const selectedButton = switchDropdownRef.current.querySelector('[data-selected="true"]');
@@ -378,7 +356,6 @@ export default function AfterAssemblyPanelSidebar({
     }
   }, [switchDropdownOpen]);
 
-  // Auto-scroll to VIC dropdown when it opens
   useEffect(() => {
     if (vicDropdownOpen && vicDropdownRef.current) {
       vicDropdownRef.current.scrollIntoView({
@@ -390,13 +367,8 @@ export default function AfterAssemblyPanelSidebar({
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
-    // Don't close dropdown - let user select multiple items if needed
-    // setSwitchDropdownOpen(false);
-
-    // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event("assignmentChanged"));
 
-    // Navigate to the new assignment
     navigate(
       `/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id
       }/dashboard`
@@ -407,10 +379,8 @@ export default function AfterAssemblyPanelSidebar({
     ? `${childLevelLabel} level`
     : "Below Levels";
 
-  // Helper function to get appropriate icon for module
   function getIconForModule(moduleName: string): ReactNode {
     const lowerModuleName = moduleName.toLowerCase();
-
     if (lowerModuleName.includes('campaign')) return Icons.campaigns;
     if (lowerModuleName.includes('user')) return Icons.team;
     if (lowerModuleName.includes('event')) return Icons.campaigns;
@@ -418,15 +388,12 @@ export default function AfterAssemblyPanelSidebar({
     if (lowerModuleName.includes('vic')) return Icons.vic;
     if (lowerModuleName.includes('chat')) return Icons.chat;
 
-    // Default icon for unknown modules
     return Icons.campaigns;
   }
 
-  // Helper function to get appropriate route for module
   function getModuleRoute(moduleName: string): string {
     const lowerModuleName = moduleName.toLowerCase();
 
-    // Map specific module names to their correct routes for AfterAssembly
     if (lowerModuleName.includes('campaign')) return 'campaigns';
     if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'assigned-events';
     if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
@@ -434,26 +401,23 @@ export default function AfterAssemblyPanelSidebar({
     if (lowerModuleName.includes('vic')) return 'vic';
     if (lowerModuleName.includes('chat')) return 'chat';
 
-    // Default: convert module name to kebab-case
     return moduleName.toLowerCase().replace(/\s+/g, '-');
   }
 
   const staticNavItems: NavItem[] = [
     { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-    // Team is now dynamic based on module access
     ...(hasTeamAccess ? [{ to: "team", label: "Team", icon: Icons.team }] : []),
     { to: "child-hierarchy", label: childLevelNavLabel, icon: Icons.hierarchy },
     { to: "booths", label: "Booths", icon: Icons.booths },
   ];
 
   const dynamicModuleItems: NavItem[] = sidebarModules
-    .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team module as it's handled in static items
+    .filter(module => !module.moduleName.toLowerCase().includes('team'))
     .map((module) => ({
       to: getModuleRoute(module.moduleName),
       label: module.displayName,
       icon: getIconForModule(module.moduleName),
     }));
-
 
   const navItems: NavItem[] = [
     ...staticNavItems,
@@ -492,7 +456,7 @@ export default function AfterAssemblyPanelSidebar({
           </div>
         </div>
 
-        {/* Switch Dropdown - Show when user has multiple assignments of same type */}
+        {/* Switch Dropdown */}
         {hasMultipleAssignments && selectedAssignment && (
           <div className="mt-4">
             <button
@@ -631,6 +595,29 @@ export default function AfterAssemblyPanelSidebar({
           </NavLink>
         ))}
 
+        {/* --- ADDED SOCIAL MEDIA BUTTON OUTSIDE MARKET --- */}
+        <NavLink
+          to={`${base}/Social-Media`}
+          onClick={() => {
+            onNavigate?.();
+            setVicDropdownOpen(false); 
+          }}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              isActive
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")
+          }
+        >
+          <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+          <span className="truncate">Social Media</span>
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
+
         {/* VIC Dropdown */}
         <div ref={vicDropdownRef}>
           <button
@@ -675,8 +662,6 @@ export default function AfterAssemblyPanelSidebar({
                   to={`${base}/${item.to}`}
                   onClick={() => {
                     onNavigate?.();
-                    // Don't close VIC dropdown - let user browse multiple items
-                    // setVicDropdownOpen(false);
                   }}
                   className={({ isActive }) =>
                     [
@@ -707,7 +692,7 @@ export default function AfterAssemblyPanelSidebar({
             to={`${base}/profile`}
             onClick={() => {
               onNavigate?.();
-              setVicDropdownOpen(false); // Close VIC dropdown when clicking Profile
+              setVicDropdownOpen(false); 
             }}
             className={({ isActive }) =>
               [
@@ -735,7 +720,7 @@ export default function AfterAssemblyPanelSidebar({
           </NavLink>
           <button
             onClick={() => {
-              setVicDropdownOpen(false); // Close VIC dropdown when logging out
+              setVicDropdownOpen(false);
               dispatch(logout());
               navigate("/login");
             }}

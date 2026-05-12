@@ -173,6 +173,7 @@ import MarketTable from "./pages/Assembly/market/MarketTable";
 import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
 import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
 import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
+import MarkedVotersPage from "./pages/Assembly/voters/MarkedVotersPage"; 
 
 export default function App() {
   return (
@@ -249,6 +250,7 @@ export default function App() {
           </Route>
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
@@ -273,6 +275,7 @@ export default function App() {
           </Route>
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="dashboard" element={<DistrictDashboard />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
@@ -300,6 +303,8 @@ export default function App() {
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />
             <Route path="dashboard" element={<AssemblyDashboard />} />
+            <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="marked-voters" element={<MarkedVotersPage />} />
              <Route path="market-table" element={<MarketTable />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="market-discussion" element={<MarketDiscussionTable />} />
@@ -478,6 +483,7 @@ export default function App() {
             <Route index element={<AfterAssemblyPanelDashboard />} />
             <Route path="dashboard" element={<AfterAssemblyPanelDashboard />} />
             <Route path="team" element={<AfterAssemblyPanelTeam />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route
               path="child-hierarchy"
               element={<AfterAssemblyChildHierarchy />}
@@ -506,6 +512,7 @@ export default function App() {
           {/* Sub Level Panel Routes */}
           <Route path="sublevel/:levelId" element={<SubLevelPanelLayout />}>
             <Route index element={<SubLevelPanelDashboard />} />
+             <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="dashboard" element={<SubLevelPanelDashboard />} />
             <Route path="team" element={<SubLevelPanelTeam />} />
             <Route

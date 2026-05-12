@@ -460,7 +460,7 @@
 
 //           {(compareVotersModules.length > 0 || form20Modules.length > 0) && (
 //             <div>
-//               <button onClick={() => setCompareVotersOpen(!compareVotersOpen)} className={["w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition", "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400", compareVotersOpen ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200" : "border border-transparent hover:border-[var(--border-color)]"].join(" ")}>
+//               <button onClick={() => setCompareVotersOpen(!compareVotersOpen)} className={["w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition", "text-[var(--text-color)] hover:bg-[var(--text-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400", compareVotersOpen ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200" : "border border-transparent hover:border-[var(--border-color)]"].join(" ")}>
 //                 <div className="flex items-center gap-3">
 //                   <span className="text-indigo-600 shrink-0">{Icons.campaigns}</span>
 //                   <span className="text-[var(--text-color)] truncate">Voter Analysis</span>
@@ -978,6 +978,12 @@ const assemblyItems: NavItem[] = [
   { to: "programs", label: "Programs", icon: Icons.eventLog },
 ];
 
+// New Voters Dropdown Items
+const votersDropdownItems: NavItem[] = [
+  { to: "search-voter", label: "Search Voter", icon: Icons.search },
+  { to: "marked-voters", label: "Marked Voters", icon: Icons.team },
+];
+
 // Dropdown items under "List" - These will be replaced by dynamic levels from API
 const staticListItems: NavItem[] = [
   { to: "block", label: "Block", icon: Icons.block },
@@ -988,12 +994,12 @@ const staticListItems: NavItem[] = [
 ];
 
 // Market dropdown items
-const marketItems: NavItem[] = [
-  { to: "market-table", label: "Market List", icon: Icons.generic },
-  { to: "market-discussion", label: "Market Approach", icon: Icons.team },
-  { to: "Social-Media", label: "Social Media", icon: Icons.team },
+// const marketItems: NavItem[] = [
+//   { to: "market-table", label: "Market List", icon: Icons.generic },
+//   { to: "market-discussion", label: "Market Approach", icon: Icons.team },
+//   { to: "Social-Media", label: "Social Media", icon: Icons.team },
 
-];
+// ];
 
 
 // Booth Management dropdown items
@@ -1204,6 +1210,7 @@ export default function AssemblySidebar({
     !m.moduleName.toLowerCase().includes('compare voters') &&
     !m.moduleName.toLowerCase().includes('form 20') &&
     !m.moduleName.toLowerCase().includes('visitors') &&
+    !m.moduleName.toLowerCase().includes('search') &&
     !m.moduleName.toLowerCase().includes('assigned event')
   );
 
@@ -1321,6 +1328,14 @@ export default function AssemblySidebar({
   );
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
+  // Determine if any voters item is active to default-open the dropdown
+  const isVotersPathActive = useMemo(
+    () =>
+      votersDropdownItems.some((vi) => location.pathname.startsWith(`${base}/${vi.to}`)),
+    [location.pathname, base]
+  );
+  const [openVoters, setOpenVoters] = useState<boolean>(isVotersPathActive);
+
   // Determine if any booth management item is active to default-open the dropdown
   const isBoothMgmtPathActive = useMemo(
     () =>
@@ -1346,16 +1361,16 @@ export default function AssemblySidebar({
   );
 
   // Determine if any market item is active to default-open the dropdown
-  const isMarketPathActive = useMemo(
-    () =>
-      marketItems.some((mk) =>
-        location.pathname.startsWith(`${base}/${mk.to}`)
-      ),
-    [location.pathname, base]
-  );
-  const [openMarket, setOpenMarket] = useState<boolean>(
-    isMarketPathActive
-  );
+  // const isMarketPathActive = useMemo(
+  //   () =>
+  //     marketItems.some((mk) =>
+  //       location.pathname.startsWith(`${base}/${mk.to}`)
+  //     ),
+  //   [location.pathname, base]
+  // );
+  // const [openMarket, setOpenMarket] = useState<boolean>(
+  //   isMarketPathActive
+  // );
 
   // Determine if any voter report item is active to default-open the dropdown
   const isVoterReportPathActive = useMemo(
@@ -1590,6 +1605,69 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         )}
+
+        {/* --- NEW VOTERS DROPDOWN --- */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openVoters}
+            onClick={() => setOpenVoters((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openVoters
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              <svg className="h-5 w-5 stroke-[1.6]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+              </svg>
+              <span className="text-[var(--text-color)]">Voters</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openVoters ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openVoters && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              {votersDropdownItems.map((vi) => (
+                <NavLink
+                  key={vi.to}
+                  to={`${base}/${vi.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{vi.icon}</span>
+                  <span className="truncate">{vi.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* List dropdown */}
         <div>
@@ -2105,7 +2183,27 @@ export default function AssemblySidebar({
           )}
         </div>
 
-        {/* Market Dropdown */}
+        {/* Social Media Link (Moved outside Market) */}
+        <NavLink
+          to={`${base}/Social-Media`}
+          onClick={() => onNavigate?.()}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              isActive
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")
+          }
+        >
+          <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+          <span className="truncate">Social Media</span>
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
+
+        {/* Market Dropdown - COMMENTED OUT AS PER REQUEST
         <div>
           <button
             type="button"
@@ -2165,6 +2263,7 @@ export default function AssemblySidebar({
             </div>
           )}
         </div>
+        */}
 
         {/* VIC Dropdown */}
         <div>
