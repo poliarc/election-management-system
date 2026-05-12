@@ -1381,7 +1381,8 @@
         "thAction": "Action",
         "emptyNoVotersFound": "No voters found",
         "titleActions": "Actions",
-        "btnEdit": "Edit"
+        "btnEdit": "Edit",
+        "btnMark": "Mark"
     },
     "voterListPage": {
         "title": "Voter List",

@@ -666,6 +666,29 @@ export default function SubLevelPanelSidebar({
           </NavLink>
         ))}
 
+        {/* --- ADDED SOCIAL MEDIA BUTTON --- */}
+        <NavLink
+          to={`${base}/Social-Media`}
+          onClick={() => {
+            onNavigate?.();
+            setVicDropdownOpen(false); // Close VIC dropdown
+          }}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400",
+              isActive
+                ? "bg-gradient-to-r bg-[var(--bg-color)]"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")
+          }
+        >
+          <span className="text-teal-600 shrink-0">{Icons.team}</span>
+          <span className="truncate">Social Media</span>
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-teal-500/0 group-hover:bg-teal-500/30" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-teal-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
+
         {/* VIC Dropdown */}
         <div ref={vicDropdownRef}>
           <button

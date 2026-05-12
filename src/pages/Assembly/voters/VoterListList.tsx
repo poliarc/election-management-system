@@ -1,7 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useMemo } from "react";
 import type { VoterList } from "../../../types/voter";
-import { EllipsisVertical } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
+import { useCreateVoterMarkerMutation, useGetVoterMarkersQuery } from "../../../store/api/votersApi"; 
+import { useAppSelector } from "../../../store/hooks";
 
 type Props = {
     voters: VoterList[];
@@ -15,51 +17,68 @@ export const VoterListTable: React.FC<Props> = ({
     language,
 }) => {
     const { t } = useTranslation();
-    const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-    const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-    React.useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (
-                openDropdown !== null &&
-                dropdownRefs.current[openDropdown] &&
-                !dropdownRefs.current[openDropdown]?.contains(event.target as Node)
-            ) {
-                setOpenDropdown(null);
+    // 1. Get current logged-in user & assignment from Redux
+    const { user, selectedAssignment } = useAppSelector((state: any) => state.auth);
+    const currentUserId = user?.user_id || user?.id; 
+    
+    // Grab the current Assembly ID just like you do in VoterListPage
+    const currentAssemblyId = selectedAssignment?.stateMasterData_id;
+
+    // 2. Fetch all markers for this specific user to check for already marked voters
+    const { data: markersData } = useGetVoterMarkersQuery(
+        { page: 1, limit: 5000, user_id: currentUserId },
+        { skip: !currentUserId } 
+    );
+
+    // 3. Create a Set of voter_ids that have been marked for fast lookup
+    const markedVoterIds = useMemo(() => {
+        const markersArray = markersData?.data || [];
+        return new Set(markersArray.map((marker: any) => marker.voter_id));
+    }, [markersData]);
+
+    // Initialize the RTK Query mutation for adding new markers
+    const [createVoterMarker, { isLoading: isMarking }] = useCreateVoterMarkerMutation();
+
+    // Handle the API call
+    const handleMarkVoter = async (voter: any) => {
+        const toastId = toast.loading("Marking voter...");
+
+        try {
+            // NEW: Added state_id, district_id, and assembly_id to the payload
+            const payload = {
+                voter_id: voter.id,
+                assembly_id: currentAssemblyId || voter.assembly_id,
+                state_id: user?.state_id || voter.state_id, 
+                district_id: user?.district_id || voter.district_id 
+            };
+
+            const response: any = await createVoterMarker(payload).unwrap();
+            
+            if (response.success) {
+                toast.success("Voter marked successfully!", { id: toastId });
+            } else {
+                toast.error(response.message || "Failed to mark voter.", { id: toastId });
             }
+        } catch (error: any) {
+            toast.error(error?.data?.message || error?.message || "Voter is already marked.", { id: toastId });
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [openDropdown]);
-
-    const handleDropdown = (idx: number) => {
-        setOpenDropdown((prev) => (prev === idx ? null : idx));
     };
 
-    const getLocalizedValue = (voter: VoterList, field: "name" | "relation" | "address") => {
+    const getLocalizedValue = (voter: any, field: "name" | "relation" | "address") => {
         if (language === "hi") {
             switch (field) {
-                case "name":
-                    return voter.voter_full_name_hi || voter.voter_full_name_en || "-";
-                case "relation":
-                    return voter.relative_full_name_hi || voter.relative_full_name_en || "-";
-                case "address":
-                    return voter.town_village_name_eng || "-";
-                default:
-                    return "-";
+                case "name": return voter.voter_full_name_hi || voter.voter_full_name_en || "-";
+                case "relation": return voter.relative_full_name_hi || voter.relative_full_name_en || "-";
+                case "address": return voter.town_village_name_eng || "-";
+                default: return "-";
             }
         }
         switch (field) {
-            case "name":
-                return voter.voter_full_name_en || "-";
-            case "relation":
-                return voter.relative_full_name_en || "-";
-            case "address":
-                return voter.town_village_name_eng || "-";
-            default:
-                return "-";
+            case "name": return voter.voter_full_name_en || "-";
+            case "relation": return voter.relative_full_name_en || "-";
+            case "address": return voter.town_village_name_eng || "-";
+            default: return "-";
         }
     };
 
@@ -87,62 +106,61 @@ export const VoterListTable: React.FC<Props> = ({
                             </td>
                         </tr>
                     ) : (
-                        voters.map((voter, index) => (
-                            <tr
-                                key={voter.id}
-                                className="border-b border-gray-100 hover:bg-[var(--text-color)]/5 transition"
-                            >
-                                <td className="px-4 py-3">{voter.part_no || "-"}</td>
-                                <td
-                                    className="px-4 py-3 cursor-pointer text-grey-600 hover:text-indigo-800 font-medium"
-                                    onClick={() => onEdit(voter)}
+                        voters.map((voter: any) => {
+                            
+                            // 4. CHECK IF THE SET CONTAINS THIS VOTER'S ID
+                            const hasThisUserMarked = markedVoterIds.has(voter.id);
+
+                            return (
+                                <tr
+                                    key={voter.id}
+                                    className="border-b border-gray-100 hover:bg-[var(--text-color)]/5 transition"
                                 >
-                                    {getLocalizedValue(voter, "name")}
-                                </td>
-                                <td className="px-4 py-3">
-                                    {getLocalizedValue(voter, "relation")}
-                                </td>
-                                <td className="px-4 py-3">{voter.gender || "-"}</td>
-                                <td className="px-4 py-3">{voter.age || "-"}</td>
-                                <td className="px-4 py-3">{voter.contact_number1 || "-"}</td>
-                                <td className="px-4 py-3">{voter.voter_id_epic_no || "-"}</td>
-                                <td className="px-4 py-3">
-                                    {getLocalizedValue(voter, "address")}
-                                </td>
-                                <td
-                                    className="px-4 py-3 relative"
-                                    ref={(el) => {
-                                        dropdownRefs.current[index] = el;
-                                    }}
-                                >
-                                    <button
-                                        onClick={() => handleDropdown(index)}
-                                        className="bg-indigo-100 text-indigo-700 rounded-full p-2 hover:bg-indigo-600 hover:text-white transition"
-                                        title={t("voterListTable.titleActions")}
+                                    <td className="px-4 py-3">{voter.part_no || "-"}</td>
+                                    <td
+                                        className="px-4 py-3 cursor-pointer hover:text-indigo-800 font-medium"
+                                        onClick={() => onEdit(voter)}
                                     >
-                                        <EllipsisVertical className="w-4 h-4" />
-                                    </button>
-                                    {openDropdown === index && (
-                                        <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-card)]  rounded-lg shadow-lg border border-[var(--border-color)] z-20">
+                                        {getLocalizedValue(voter, "name")}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {getLocalizedValue(voter, "relation")}
+                                    </td>
+                                    <td className="px-4 py-3">{voter.gender || "-"}</td>
+                                    <td className="px-4 py-3">{voter.age || "-"}</td>
+                                    <td className="px-4 py-3">{voter.contact_number1 || "-"}</td>
+                                    <td className="px-4 py-3">{voter.voter_id_epic_no || "-"}</td>
+                                    <td className="px-4 py-3">
+                                        {getLocalizedValue(voter, "address")}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {/* Action Buttons Directly Visible */}
+                                        <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => {
-                                                    onEdit(voter);
-                                                    setOpenDropdown(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 rounded-t-lg transition"
+                                                onClick={() => onEdit(voter)}
+                                                className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-md hover:bg-indigo-600 hover:text-white transition font-medium text-xs whitespace-nowrap"
                                             >
-                                                {t("voterListTable.btnEdit")}
+                                                {t("voterListTable.btnEdit", "Edit")}
                                             </button>
+                                            
+                                            {/* CONDITIONAL RENDER: Hide if markedVoterIds.has(voter.id) is true */}
+                                            {!hasThisUserMarked && (
+                                                <button
+                                                    onClick={() => handleMarkVoter(voter)}
+                                                    disabled={isMarking}
+                                                    className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md hover:bg-emerald-600 hover:text-white transition font-medium text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {t("voterListTable.btnMark", "Mark Voter")}
+                                                </button>
+                                            )}
                                         </div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
+                                    </td>
+                                </tr>
+                            )
+                        })
                     )}
                 </tbody>
             </table>
         </div>
     );
 };
-
-

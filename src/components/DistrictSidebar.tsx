@@ -79,7 +79,7 @@ const Icons = {
       stroke="currentColor"
     >
       <path
-        d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+        d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
         strokeWidth={1.4}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -201,7 +201,7 @@ const Icons = {
       stroke="currentColor"
     >
       <path
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012-2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
         strokeWidth={1.4}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -251,19 +251,7 @@ const staticListItems: NavItem[] = [
   { to: "mandal", label: "Mandal", icon: Icons.mandal },
   { to: "polling-center", label: "Polling Center", icon: Icons.polling },
   { to: "booth", label: "Booth", icon: Icons.booth },
-  // { to: "karyakarta", label: "Karyakarta", icon: Icons.karyakarta },
 ];
-
-// Other items
-// const otherItems: NavItem[] = [
-//   { to: "campaigns", label: "Campaigns", icon: Icons.campaigns },
-//   //   {
-//   //     to: "assigned-campaigns",
-//   //     label: "Assigned Campaigns",
-//   //     icon: Icons.campaigns,
-//   //   },
-//   { to: "initiatives", label: "Assigned Events", icon: Icons.calendar },
-// ];
 
 export default function DistrictSidebar({
   onNavigate,
@@ -606,6 +594,27 @@ const nonCampaignModules = sidebarModules.filter(m =>
           <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
           <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
         </NavLink>
+
+        {/* --- ADDED SOCIAL MEDIA BUTTON --- */}
+        <NavLink
+          to={`${base}/Social-Media`}
+          onClick={() => onNavigate?.()}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              isActive
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")
+          }
+        >
+          <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+          <span className="truncate">Social Media</span>
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
+
 
         {/* List dropdown */}
         <div>

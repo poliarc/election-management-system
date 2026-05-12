@@ -37,15 +37,15 @@ interface GetVotersByAssemblyParams {
   page: number;
   search?: string;
   fatherName?: string;
-  townVillage?: string,
-  education?: string,
-  married?: string,
-  shifted?: boolean,
-  shiftedState?: string,
-  shiftedCity?: string,
-  labharthiStatus?: string,
-  professionType?: string,
-  voterDOB?: string
+  townVillage?: string;
+  education?: string;
+  married?: string;
+  shifted?: boolean;
+  shiftedState?: string;
+  shiftedCity?: string;
+  labharthiStatus?: string;
+  professionType?: string;
+  voterDOB?: string;
   expiredAliveStatus?: string;
   outsideCountry?: string;
   politicalParty?: string;
@@ -134,7 +134,7 @@ interface DraftCompareModified extends DraftCompareListBase {
 }
 
 interface GetDistinctFieldsParams {
-  field: string
+  field: string;
 }
 
 interface DraftCompareMatched extends DraftCompareListBase {
@@ -180,13 +180,6 @@ export const votersApi = createApi({
         formData.append("district_id", district_id.toString());
         formData.append("assembly_id", assembly_id.toString());
 
-        console.log("FormData being sent:", {
-          state_id,
-          district_id,
-          assembly_id,
-          fileName: file.name,
-        });
-
         return {
           url: `/voters/upload-excel?state_id=${state_id}&district_id=${district_id}&assembly_id=${assembly_id}`,
           method: "POST",
@@ -227,8 +220,8 @@ export const votersApi = createApi({
         query: ({ field }) => {
           const params = new URLSearchParams({});
           if (field) {
-         params.append("field", field);
-        }
+            params.append("field", field);
+          }
 
           return {
             url: `/voters/get-distinct-fields?${params.toString()}`,
@@ -435,8 +428,6 @@ export const votersApi = createApi({
     }),
     updateVoter: builder.mutation<VoterList, UpdateVoterRequest>({
       query: ({ id, party_id: _party_id, change_reason, ...voterData }) => {
-        // Read party_id from localStorage — send as query param so backend
-        // uses it only for voterTracking, not for voterMaster UPDATE
         let partyId: number | undefined;
         try {
           const authState = localStorage.getItem('auth_state');
@@ -458,6 +449,40 @@ export const votersApi = createApi({
       },
       invalidatesTags: ["Voters"],
     }),
+
+    // --- Voter Marker Endpoints ---
+    
+    // UPDATED: Added state_id, district_id, and assembly_id to the type signature
+    createVoterMarker: builder.mutation<ApiResponse<any>, { voter_id: number; state_id?: number; district_id?: number; assembly_id?: number }>({
+      query: (body) => ({
+        url: `/voter-marker/create-voter-marker`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Voters"],
+    }),
+    
+    // UPDATED: Added assembly_id to the type signature and URL builder
+    getVoterMarkers: builder.query<any, { page: number; limit: number; user_id?: number; assembly_id?: number; sortBy?: string; sortOrder?: string; search?: string }>({
+      query: ({ page, limit, user_id, assembly_id, sortBy, sortOrder, search }) => { 
+        let url = `/voter-marker/get-voter-marker?page=${page}&limit=${limit}`;
+        if (user_id) url += `&user_id=${user_id}`;
+        if (assembly_id) url += `&assembly_id=${assembly_id}`; // Appends assembly_id to the fetch URL
+        if (sortBy) url += `&sortBy=${sortBy}`;
+        if (sortOrder) url += `&sortOrder=${sortOrder}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`; 
+        return { url, method: "GET" };
+      },
+      providesTags: ["Voters"],
+    }),
+    
+    deleteVoterMarker: builder.mutation<ApiResponse<any>, number>({
+      query: (id) => ({
+        url: `/voter-marker/delete-voter-marker/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Voters"],
+    }),
   }),
 });
 
@@ -474,4 +499,7 @@ export const {
   useGetDraftCompareMissingQuery,
   useGetDraftCompareModifiedQuery,
   useGetDraftCompareMatchedQuery,
+  useCreateVoterMarkerMutation,
+  useGetVoterMarkersQuery,
+  useDeleteVoterMarkerMutation,
 } = votersApi;
