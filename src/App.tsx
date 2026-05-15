@@ -174,6 +174,7 @@ import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
 import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
 import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
 import MarkedVotersPage from "./pages/Assembly/voters/MarkedVotersPage"; 
+import AssemblyListPage from "./pages/District/mark_voter/AssemblyListPage";
 
 export default function App() {
   return (
@@ -276,6 +277,7 @@ export default function App() {
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
+            <Route path="marked-voters" element={<AssemblyListPage />} />
             <Route path="dashboard" element={<DistrictDashboard />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
