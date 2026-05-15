@@ -610,7 +610,6 @@
 //   );
 // }
 
-
 ///////////////////////////////////////////////////////////////////
 
 import type { ReactNode } from "react";
@@ -963,7 +962,7 @@ const Icons = {
       stroke="currentColor"
     >
       <path
-        d="M3 3v18a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2zm9 4v10m-4-6v6m8-8v12"
+        d="M3 3v18a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2-2zm9 4v10m-4-6v6m8-8v12"
         strokeWidth={1.4}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -975,6 +974,9 @@ const Icons = {
 // Top-level items (excluding team - will be dynamic)
 const assemblyItems: NavItem[] = [
   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+];
+
+const programItems: NavItem[] = [
   { to: "programs", label: "Programs", icon: Icons.eventLog },
 ];
 
@@ -1360,18 +1362,6 @@ export default function AssemblySidebar({
     isCommunicationPathActive
   );
 
-  // Determine if any market item is active to default-open the dropdown
-  // const isMarketPathActive = useMemo(
-  //   () =>
-  //     marketItems.some((mk) =>
-  //       location.pathname.startsWith(`${base}/${mk.to}`)
-  //     ),
-  //   [location.pathname, base]
-  // );
-  // const [openMarket, setOpenMarket] = useState<boolean>(
-  //   isMarketPathActive
-  // );
-
   // Determine if any voter report item is active to default-open the dropdown
   const isVoterReportPathActive = useMemo(
     () =>
@@ -1561,7 +1551,7 @@ export default function AssemblySidebar({
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-5 space-y-2">
-        {/* Assembly items */}
+        {/* Dashboard */}
         {assemblyItems.map((item) => (
           <NavLink
             key={item.to}
@@ -1605,69 +1595,6 @@ export default function AssemblySidebar({
             <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         )}
-
-        {/* --- NEW VOTERS DROPDOWN --- */}
-        <div>
-          <button
-            type="button"
-            aria-haspopup="true"
-            aria-expanded={openVoters}
-            onClick={() => setOpenVoters((v) => !v)}
-            className={[
-              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-              openVoters
-                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                : "border border-transparent hover:border-[var(--border-color)]",
-            ].join(" ")}
-          >
-            <span className="flex items-center gap-3 text-indigo-600">
-              <svg className="h-5 w-5 stroke-[1.6]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
-              </svg>
-              <span className="text-[var(--text-color)]">Voters</span>
-            </span>
-            <svg
-              className={[
-                "h-4 w-4 text-indigo-600 transition-transform",
-                openVoters ? "rotate-180" : "rotate-0",
-              ].join(" ")}
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M6 8l4 4 4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {openVoters && (
-            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-              {votersDropdownItems.map((vi) => (
-                <NavLink
-                  key={vi.to}
-                  to={`${base}/${vi.to}`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                        : "border border-transparent hover:border-[var(--border-color)]",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{vi.icon}</span>
-                  <span className="truncate">{vi.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* List dropdown */}
         <div>
@@ -1826,6 +1753,67 @@ export default function AssemblySidebar({
           )}
         </div>
 
+        {/* Communication dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openCommunication}
+            onClick={() => setOpenCommunication((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openCommunication
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.communication}
+              <span className="text-[var(--text-color)]">Communication</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openCommunication ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openCommunication && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              {communicationItems.map((comm) => (
+                <NavLink
+                  key={comm.to}
+                  to={`${base}/${comm.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{comm.icon}</span>
+                  <span className="truncate">{comm.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Campaign Dropdown */}
         {campaignModules.length > 0 && (
           <div>
@@ -1841,7 +1829,7 @@ export default function AssemblySidebar({
             >
               <div className="flex items-center gap-3">
                 <span className="text-indigo-600">{Icons.campaigns}</span>
-                <span>Campaign</span>
+                <span>Campaigns</span>
               </div>
               <svg
                 className={`h-4 w-4 text-blue-600 transition-transform ${campaignOpen ? "rotate-180" : ""}`}
@@ -1897,28 +1885,163 @@ export default function AssemblySidebar({
           </div>
         )}
 
-        {/* Dynamic Modules */}
-        {otherModules.map((module) => (
+        {/* Supporters Dropdown */}
+        {(visitorsModules.length > 0 || sidebarModules.some(m => m.moduleName.toLowerCase().includes('supporter'))) && (
+          <div>
+            <button
+              onClick={() => setSupporterDropdownOpen(!supporterDropdownOpen)}
+              className={[
+                "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                supporterDropdownOpen
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                  : "border border-transparent hover:border-[var(--border-color)]",
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-indigo-600">{Icons.supporters}</span>
+                <span>Supporter</span>
+              </div>
+              <svg
+                className={`h-4 w-4 text-blue-600 transition-transform ${supporterDropdownOpen ? "rotate-180" : ""}`}
+                viewBox="0 0 20 20"
+                fill="none"
+              >
+                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </button>
+
+            {supporterDropdownOpen && (
+              <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+                {/* Visitors */}
+                {visitorsModules.map((module) => (
+                  <NavLink
+                    key={module.module_id}
+                    to={`${base}/${getModuleRoute(module.moduleName)}`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600">{Icons.visitors}</span>
+                    <span className="truncate">{module.displayName}</span>
+                  </NavLink>
+                ))}
+                {/* Supporters */}
+                <NavLink
+                  to={`${base}/supporters`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{Icons.supporters}</span>
+                  <span className="truncate">Supporters</span>
+                </NavLink>
+
+                {/* Program */}
+        {programItems.map((item) => (
           <NavLink
-            key={module.module_id}
-            to={`${base}/${getModuleRoute(module.moduleName)}`}
+            key={item.to}
+            to={`${base}/${item.to}`}
             onClick={() => onNavigate?.()}
             className={({ isActive }) =>
               [
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                 isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700"
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")
             }
           >
-            <span className="text-indigo-600 shrink-0">
-              {getIconForModule(module.moduleName)}
-            </span>
-            <span className="truncate">{module.displayName}</span>
+            <span className="text-indigo-600 shrink-0">{item.icon}</span>
+            <span className="truncate">{item.label}</span>
+            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
           </NavLink>
         ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        
+
+        {/* --- NEW VOTERS DROPDOWN --- */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openVoters}
+            onClick={() => setOpenVoters((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              openVoters
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              <svg className="h-5 w-5 stroke-[1.6]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+              </svg>
+              <span className="text-[var(--text-color)]">Voter</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openVoters ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openVoters && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              {votersDropdownItems.map((vi) => (
+                <NavLink
+                  key={vi.to}
+                  to={`${base}/${vi.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{vi.icon}</span>
+                  <span className="truncate">{vi.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Voter Reports dropdown */}
         <div>
@@ -2052,138 +2175,7 @@ export default function AssemblySidebar({
           </div>
         )}
 
-        {/* Supporters Dropdown */}
-        {(visitorsModules.length > 0 || sidebarModules.some(m => m.moduleName.toLowerCase().includes('supporter'))) && (
-          <div>
-            <button
-              onClick={() => setSupporterDropdownOpen(!supporterDropdownOpen)}
-              className={[
-                "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                supporterDropdownOpen
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-indigo-600">{Icons.supporters}</span>
-                <span>Supporter</span>
-              </div>
-              <svg
-                className={`h-4 w-4 text-blue-600 transition-transform ${supporterDropdownOpen ? "rotate-180" : ""}`}
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
-            </button>
-
-            {supporterDropdownOpen && (
-              <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-                {/* Visitors */}
-                {visitorsModules.map((module) => (
-                  <NavLink
-                    key={module.module_id}
-                    to={`${base}/${getModuleRoute(module.moduleName)}`}
-                    onClick={() => onNavigate?.()}
-                    className={({ isActive }) =>
-                      [
-                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                        isActive
-                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                          : "border border-transparent hover:border-[var(--border-color)]",
-                      ].join(" ")
-                    }
-                  >
-                    <span className="text-indigo-600">{Icons.visitors}</span>
-                    <span className="truncate">{module.displayName}</span>
-                  </NavLink>
-                ))}
-                {/* Supporters */}
-                <NavLink
-                  to={`${base}/supporters`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                        : "border border-transparent hover:border-[var(--border-color)]",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{Icons.supporters}</span>
-                  <span className="truncate">Supporters</span>
-                </NavLink>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Communication dropdown */}
-        <div>
-          <button
-            type="button"
-            aria-haspopup="true"
-            aria-expanded={openCommunication}
-            onClick={() => setOpenCommunication((v) => !v)}
-            className={[
-              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-              openCommunication
-                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                : "border border-transparent hover:border-[var(--border-color)]",
-            ].join(" ")}
-          >
-            <span className="flex items-center gap-3 text-indigo-600">
-              {Icons.communication}
-              <span className="text-[var(--text-color)]">Communication</span>
-            </span>
-            <svg
-              className={[
-                "h-4 w-4 text-indigo-600 transition-transform",
-                openCommunication ? "rotate-180" : "rotate-0",
-              ].join(" ")}
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M6 8l4 4 4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {openCommunication && (
-            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-              {communicationItems.map((comm) => (
-                <NavLink
-                  key={comm.to}
-                  to={`${base}/${comm.to}`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                        : "border border-transparent hover:border-[var(--border-color)]",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{comm.icon}</span>
-                  <span className="truncate">{comm.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Social Media Link (Moved outside Market) */}
+        {/* Social Media Link */}
         <NavLink
           to={`${base}/Social-Media`}
           onClick={() => onNavigate?.()}
@@ -2202,68 +2194,6 @@ export default function AssemblySidebar({
           <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
           <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
         </NavLink>
-
-        {/* Market Dropdown - COMMENTED OUT AS PER REQUEST
-        <div>
-          <button
-            type="button"
-            aria-haspopup="true"
-            aria-expanded={openMarket}
-            onClick={() => setOpenMarket((v) => !v)}
-            className={[
-              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-              openMarket
-                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                : "border border-transparent hover:border-[var(--border-color)]",
-            ].join(" ")}
-          >
-            <span className="flex items-center gap-3 text-indigo-600">
-              {Icons.market}
-              <span className="text-[var(--text-color)]">Market</span>
-            </span>
-            <svg
-              className={[
-                "h-4 w-4 text-indigo-600 transition-transform",
-                openMarket ? "rotate-180" : "rotate-0",
-              ].join(" ")}
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M6 8l4 4 4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {openMarket && (
-            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-              {marketItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={`${base}/${item.to}`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
-                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                        : "border border-transparent hover:border-[var(--border-color)]",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600">{item.icon}</span>
-                  <span className="truncate">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
-        */}
 
         {/* VIC Dropdown */}
         <div>
@@ -2370,6 +2300,29 @@ export default function AssemblySidebar({
             </div>
           )}
         </div>
+
+        {/* Dynamic Modules (Catch-all for unhandled modules) */}
+        {otherModules.map((module) => (
+          <NavLink
+            key={module.module_id}
+            to={`${base}/${getModuleRoute(module.moduleName)}`}
+            onClick={() => onNavigate?.()}
+            className={({ isActive }) =>
+              [
+                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5",
+                isActive
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700"
+                  : "border border-transparent hover:border-[var(--border-color)]",
+              ].join(" ")
+            }
+          >
+            <span className="text-indigo-600 shrink-0">
+              {getIconForModule(module.moduleName)}
+            </span>
+            <span className="truncate">{module.displayName}</span>
+          </NavLink>
+        ))}
       </nav>
 
       {/* Account section */}
