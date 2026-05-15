@@ -46,11 +46,11 @@ export const VoterListTable: React.FC<Props> = ({
 
         try {
             // NEW: Added state_id, district_id, and assembly_id to the payload
-            const payload = {
+           const payload = {
                 voter_id: voter.id,
-                assembly_id: currentAssemblyId || voter.assembly_id,
-                state_id: user?.state_id || voter.state_id, 
-                district_id: user?.district_id || voter.district_id 
+                assembly_id: voter.assembly_id || currentAssemblyId,
+                state_id: voter.state_id || user?.state_id, 
+                district_id: voter.district_id || selectedAssignment?.parentId || user?.district_id 
             };
 
             const response: any = await createVoterMarker(payload).unwrap();

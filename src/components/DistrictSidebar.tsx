@@ -237,6 +237,21 @@ const Icons = {
       />
     </svg>
   ),
+  markedVoter: (
+    <svg
+      className={iconClass}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 // Top-level items (excluding team - will be dynamic)
@@ -253,7 +268,7 @@ const staticListItems: NavItem[] = [
   { to: "booth", label: "Booth", icon: Icons.booth },
 ];
 
-export default function DistrictSidebar({
+export default function AssemblyListPage({
   onNavigate,
 }: {
   onNavigate?: () => void;
@@ -591,6 +606,26 @@ const nonCampaignModules = sidebarModules.filter(m =>
         >
           <span className="text-indigo-600 shrink-0">{Icons.boothMgmt}</span>
           <span className="truncate">Booth Management</span>
+          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+        </NavLink>
+
+        {/* Marked Voters */}
+        <NavLink
+          to={`${base}/marked-voters`}
+          onClick={() => onNavigate?.()}
+          className={({ isActive }) =>
+            [
+              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              isActive
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")
+          }
+        >
+          <span className="text-indigo-600 shrink-0">{Icons.markedVoter}</span>
+          <span className="truncate">Marked Voters</span>
           <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
           <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
         </NavLink>

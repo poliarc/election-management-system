@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { 
@@ -9,7 +9,7 @@ import {
 import { useAppSelector } from "../../../store/hooks";
 
 export const MarkedVotersPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   
   // States
   const [page, setPage] = useState<number>(1);
@@ -17,7 +17,8 @@ export const MarkedVotersPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   
-  const language = i18n.language || "en";
+  // NEW: Added language state for the toggle
+  const [language, setLanguage] = useState<"en" | "hi">("en");
 
   // 1. Properly destructure BOTH user and selectedAssignment from your auth state
   const { user, selectedAssignment } = useAppSelector((state: any) => state.auth);
@@ -145,13 +146,38 @@ export const MarkedVotersPage: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-[var(--text-color)] shrink-0">
-          {t("markedVoters.title", "Marked Voters")}
-        </h1>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <h1 className="text-2xl font-bold text-[var(--text-color)] shrink-0">
+            {t("markedVoters.title", "Marked Voters")}
+          </h1>
+          
+          {/* NEW: English and Native Language Toggle */}
+          <div className="relative inline-flex items-center bg-gray-200 rounded-full p-1 shrink-0 w-max">
+              <button
+                  onClick={() => setLanguage("en")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                      }`}
+              >
+                  English
+              </button>
+              <button
+                  onClick={() => setLanguage("hi")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                      }`}
+              >
+                  Native
+              </button>
+          </div>
+        </div>
         
         {/* Search Bar Component */}
-        <div className="relative w-full md:max-w-md">
+        <div className="relative w-full xl:max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {isFetching && searchInput ? (
               <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
@@ -237,7 +263,7 @@ export const MarkedVotersPage: React.FC = () => {
                       className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-50 p-2 rounded-full transition"
                       title="Unmark Voter"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Unmark
                     </button>
                   </td>
                 </tr>
