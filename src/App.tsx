@@ -175,6 +175,7 @@ import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage"
 import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
 import MarkedVotersPage from "./pages/Assembly/voters/MarkedVotersPage"; 
 import AssemblyListPage from "./pages/District/mark_voter/AssemblyListPage";
+import StateMarkedVotersPage from "./pages/State/marker_voter/StateMarkedVotersPage";
 
 export default function App() {
   return (
@@ -252,6 +253,7 @@ export default function App() {
           <Route path="state" element={<StateLayout />}>
             <Route index element={<StateOverview />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
+             <Route path="marked-voters" element={<StateMarkedVotersPage />} />
             <Route path="dashboard" element={<StateOverview />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />

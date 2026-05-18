@@ -463,12 +463,26 @@ export const votersApi = createApi({
     }),
     
     // UPDATED: Added assembly_id to the type signature and URL builder
-    getVoterMarkers: builder.query<any, { page: number; limit: number; user_id?: number; assembly_id?: number; district_id?: number; sortBy?: string; sortOrder?: string; search?: string }>({
-      query: ({ page, limit, user_id, assembly_id, district_id, sortBy, sortOrder, search }) => { 
+    getVoterMarkers: builder.query<any, { 
+      page: number; 
+      limit: number; 
+      user_id?: number; 
+      assembly_id?: number; 
+      district_id?: number; 
+      state_id?: number; // <--- 1. Add to TypeScript types
+      sortBy?: string; 
+      sortOrder?: string; 
+      search?: string 
+    }>({
+      query: ({ page, limit, user_id, assembly_id, district_id, state_id, sortBy, sortOrder, search }) => { 
         let url = `/voter-marker/get-voter-marker?page=${page}&limit=${limit}`;
         if (user_id) url += `&user_id=${user_id}`;
-        if (assembly_id) url += `&assembly_id=${assembly_id}`; // Appends assembly_id to the fetch URL
-        if (district_id) url += `&district_id=${district_id}`; // Appends district_id to the fetch URL
+        if (assembly_id) url += `&assembly_id=${assembly_id}`; 
+        if (district_id) url += `&district_id=${district_id}`; 
+        
+        // 2. Append state_id to the URL
+        if (state_id) url += `&state_id=${state_id}`; 
+        
         if (sortBy) url += `&sortBy=${sortBy}`;
         if (sortOrder) url += `&sortOrder=${sortOrder}`;
         if (search) url += `&search=${encodeURIComponent(search)}`; 
