@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Loader2, Search, Users, MapPin, BarChart3, Map } from "lucide-react";
+import { Loader2, Search, Users, MapPin, Map } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useGetVoterMarkersQuery } from "../../../store/api/votersApi"; 
 import { useAppSelector } from "../../../store/hooks";
