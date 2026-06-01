@@ -38,6 +38,9 @@ interface HierarchyTableProps {
   onBlockChange?: (blockId: string) => void;
   assemblyName?: string;
   blockName?: string;
+  stateLabel?: string;
+  districtLabel?: string;
+  assemblyLabel?: string;
   onAssignUsers?: (locationId: string, locationName: string) => void;
   showAssignButton?: boolean;
   onUploadVoters?: (assemblyId: number, assemblyName: string) => void;
@@ -82,6 +85,9 @@ export default function HierarchyTable({
   onBlockChange,
   assemblyName = "",
   blockName = "",
+  stateLabel = "State",
+  districtLabel = "District",
+  assemblyLabel = "Assembly",
   onAssignUsers,
   showAssignButton = false,
   onUploadVoters,
@@ -96,8 +102,11 @@ export default function HierarchyTable({
   // Hide Active Users column for Assembly List only
   hideActiveUsersColumn = false,
 }: HierarchyTableProps) {
-  const { t } = useTranslation();
-  const isAssemblyView = title?.toLowerCase().includes("assembly");
+  const { t } = useTranslation();  
+  const isAssemblyView =
+  title?.toLowerCase().includes(
+    assemblyLabel.toLowerCase()
+  );
   const [sortField, setSortField] = useState<
     "location_name" | "total_users" | "active_users"
   >("location_name");
@@ -157,7 +166,7 @@ export default function HierarchyTable({
         // For districts, parent is state
         return {
           parentName: stateName || parentName,
-          parentType: "State",
+          parentType: stateLabel as any,
         };
       case "Assembly":
         // For assemblies, parent is district
@@ -165,18 +174,18 @@ export default function HierarchyTable({
           // In all-districts mode, use the district name from enhanced data
           return {
             parentName: (item as EnhancedHierarchyChild).district_name,
-            parentType: "District",
+            parentType: districtLabel as any,
           };
         }
         return {
           parentName: districtName || parentName,
-          parentType: "District",
+          parentType: districtLabel as any,
         };
       case "Block":
         // For blocks, parent is assembly
         return {
           parentName: assemblyName,
-          parentType: "Assembly",
+          parentType: assemblyLabel as any,
         };
       case "Mandal":
         // For mandals, parent could be assembly or block depending on context
@@ -188,7 +197,7 @@ export default function HierarchyTable({
         }
         return {
           parentName: assemblyName,
-          parentType: "Assembly",
+          parentType: assemblyLabel as any,
         };
       case "Booth":
         // For booths, parent could be mandal, block, or assembly depending on context
@@ -200,12 +209,18 @@ export default function HierarchyTable({
         }
         return {
           parentName: assemblyName,
-          parentType: "Assembly",
+          parentType: assemblyLabel as any,
         };
       default:
         return {};
     }
   };
+
+  const locationTypeMap: Record<string, string> = {
+  State: stateLabel,
+  District: districtLabel,
+  Assembly: assemblyLabel,
+};
 
   const handleSort = (field: typeof sortField) => {
     const newOrder =
@@ -330,7 +345,7 @@ export default function HierarchyTable({
           {stateName && (
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateAssembly.State")}
+                {stateLabel}
               </label>
               <input
                 type="text"
@@ -345,14 +360,14 @@ export default function HierarchyTable({
           {districts.length > 0 && onDistrictChange && (
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {isAssemblyView ? "District" : "District"}
+                {districtLabel}
               </label>
               <select
                 value={selectedDistrict}
                 onChange={(e) => onDistrictChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t("stateAssembly.All_Districts")}</option>
+                <option value="">{`All ${districtLabel}s`}</option>
                 {districts.map((district) => (
                   <option
                     key={district.location_id}
@@ -369,7 +384,7 @@ export default function HierarchyTable({
           {districtName && !(districts.length > 0 && onDistrictChange) && (
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateAssembly.District")}
+                {districtLabel}
               </label>
               <input
                 type="text"
@@ -384,14 +399,14 @@ export default function HierarchyTable({
           {assemblies.length > 0 && onAssemblyChange && (
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateAssembly.Assembly")}
+                {assemblyLabel}
               </label>
               <select
                 value={selectedAssembly}
                 onChange={(e) => onAssemblyChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t("stateAssembly.Select_Assembly")}</option>
+                <option value="">{t(`Select ${assemblyLabel}`)}</option>
                 {assemblies.map((assembly) => (
                   <option
                     key={assembly.location_id}
@@ -516,15 +531,15 @@ export default function HierarchyTable({
                 <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   {/* Assembly sidebar: replace 'State' with 'District' */}
                   {blockName
-                    ? `${t("stateAssembly.Assembly")} / ${t("stateAssembly.Block")}`
+                    ? `${assemblyLabel} / ${t("stateAssembly.Block")}`
                     : isAssemblyView && stateName
-                      ? `${t("stateAssembly.District")}`
+                      ? `${districtLabel}`
                       : assemblyName
-                        ? `${t("stateAssembly.Assembly")}`
+                        ? `${assemblyLabel}`
                         : stateName
-                          ? `${t("stateAssembly.State")}`
+                          ? `${stateLabel}`
                           : districtName
-                            ? `${t("stateAssembly.District")}`
+                            ? `${districtLabel}`
                             : `${t("stateAssembly.Location")}`}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
@@ -539,13 +554,13 @@ export default function HierarchyTable({
                       {blockName
                         ? `${t("stateAssembly.Mandal")}`
                         : isAssemblyView && stateName
-                          ? `${t("stateAssembly.Assembly")}`
+                          ? `${assemblyLabel}`
                           : assemblyName
                             ? `${t("stateAssembly.Block")}`
                             : stateName
-                              ? `${t("stateAssembly.District")}`
+                              ? `${districtLabel}`
                               : districtName
-                                ? `${t("stateAssembly.Assembly")}`
+                                ? `${assemblyLabel}`
                                 : `${t("stateAssembly.Name")}`}
                     </span>
                     <SortIcon field="location_name" />
@@ -661,7 +676,7 @@ export default function HierarchyTable({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {item.location_type}
+                          {locationTypeMap[item.location_type] || item.location_type}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

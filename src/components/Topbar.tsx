@@ -77,7 +77,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
     };
-  }, []); 
+  }, []);   
 
   useEffect(() => {
     if (!whatsappMenuOpen) {
@@ -458,6 +458,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                             (f.type === 'Assembly' && permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) ||
                             (f.type === 'State' && allAssignments.some(a => a.levelType === 'State'))
                           );
+                          
                           return inState || inPermissions;
                         });
 
@@ -491,7 +492,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                   ].join(' ')}
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{f.type}</div>
+                                    <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{repr?.displayName || repr?.partyLevelDisplayName}</div>
                                   </div>
                                   {selectedAssignment?.levelType === f.type && (
                                     <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">

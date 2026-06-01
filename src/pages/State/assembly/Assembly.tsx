@@ -311,7 +311,7 @@ export default function StateAssembly() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
-              {t("stateAssembly.Assembly_List")}
+              {metaData?.assemblyDisplayName} List
             </h1>
             <p className="text-sky-100 mt-1 text-xs sm:text-sm">
               {stateName}
@@ -348,7 +348,7 @@ export default function StateAssembly() {
             <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-[var(--text-secondary)]">
-                  {t("stateAssembly.Total_Assemblies")}
+                 Total {metaData?.assemblyDisplayName}
                 </p>
                 <p className="text-xl sm:text-2xl font-semibold mt-1">
                   {formatNumber(totalAssemblies)}
@@ -443,7 +443,7 @@ export default function StateAssembly() {
             >
               <div>
                 <p className="text-xs font-medium text-[var(--text-secondary)]">
-                  {t("stateAssembly.Assemblies_Without_Users")}
+                  {metaData?.assemblyDisplayName} without users
                   {showAssembliesWithoutUsers && (
                     <span className="ml-2 text-red-600 font-semibold">
                       (Filtered)
@@ -510,7 +510,7 @@ export default function StateAssembly() {
         currentPage={currentPageFromAPI}
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
-        title="Assembly List"
+        title= {`${metaData?.assemblyDisplayName} List`}
         emptyMessage="No assemblies found"
         stateName={stateName}
         districts={districts.map((d) => ({
@@ -531,6 +531,9 @@ export default function StateAssembly() {
         hideHeader={true}
         showAllDistricts={true}
         hideActiveUsersColumn={true}
+        stateLabel={metaData?.stateDisplayName}
+        districtLabel={metaData?.districtDisplayName}
+        assemblyLabel={metaData?.assemblyDisplayName}
       />
 
       {uploadModalOpen && selectedAssembly && (

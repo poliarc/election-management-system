@@ -144,8 +144,20 @@ const Icons = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="9" cy="7" r="4" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <circle
+        cx="9"
+        cy="7"
+        r="4"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   ),
   polling: (
@@ -255,10 +267,10 @@ const Icons = {
 };
 
 // Top-level items (excluding team - will be dynamic)
-const districtItems: NavItem[] = [
-  { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
-  { to: "assembly", label: "Assembly List", icon: Icons.assembly },
-];
+// const districtItems: NavItem[] = [
+//   { to: "dashboard", label: "Dashboard", icon: Icons.dashboard },
+//   { to: "assembly", label: "Assembly List", icon: Icons.assembly },
+// ];
 
 // Dropdown items under "List" - These will be replaced by dynamic levels from API
 const staticListItems: NavItem[] = [
@@ -273,7 +285,8 @@ export default function AssemblyListPage({
 }: {
   onNavigate?: () => void;
 }) {
-  const { user, stateAssignments, selectedAssignment, permissions } = useAppSelector((s) => s.auth);
+  const { user, stateAssignments, selectedAssignment, permissions } =
+    useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -281,7 +294,7 @@ export default function AssemblyListPage({
   const base = ROLE_DASHBOARD_PATH["District"] || "/district";
   const firstName = user?.firstName || user?.username || "District";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    firstName
+    firstName,
   )}&background=6366f1&color=fff&bold=true`;
 
   // Get party and state info for API call
@@ -291,29 +304,54 @@ export default function AssemblyListPage({
   const partyLevelId = selectedAssignment?.partyLevelId || 0;
 
   // Fetch dynamic sidebar levels from API
-  const { data: sidebarLevels = [], isLoading: sidebarLoading, error: sidebarError } = useGetSidebarLevelsQuery(
+  const {
+    data: sidebarLevels = [],
+    isLoading: sidebarLoading,
+    error: sidebarError,
+  } = useGetSidebarLevelsQuery(
     { partyId, stateId },
     {
       skip: !partyId || !stateId || partyId === 0 || stateId === 0,
-      refetchOnMountOrArgChange: true
-    }
+      refetchOnMountOrArgChange: true,
+    },
   );
+
+  const dynamicDistrictItems: NavItem[] = useMemo(() => {
+    const assemblyLevel = sidebarLevels.find(
+      (level) => level.level_name === "Assembly",
+    );
+
+    return [
+      {
+        to: "dashboard",
+        label: "Dashboard",
+        icon: Icons.dashboard,
+      },
+      {
+        to: "assembly",
+        label: assemblyLevel?.display_level_name || "Assembly",
+        icon: Icons.assembly,
+      },
+    ];
+  }, [sidebarLevels]);
 
   // Fetch dynamic sidebar modules from API
   const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
     {
       state_id: stateId,
       party_id: partyId,
-      party_level_id: partyLevelId
+      party_level_id: partyLevelId,
     },
-    { skip: !partyId || !stateId || !partyLevelId }
+    { skip: !partyId || !stateId || !partyLevelId },
   );
 
   // Check if District Team module is accessible
   const hasDistrictTeamAccess = useMemo(() => {
-    return sidebarModules.some(module => 
-      module.moduleName.toLowerCase().includes('district team') ||
-      (module.moduleName.toLowerCase().includes('team') && !module.moduleName.toLowerCase().includes('state'))
+    return sidebarModules.some(
+      (module) =>
+        module.moduleName.toLowerCase().includes("district team") ||
+        (module.moduleName.toLowerCase().includes("team") &&
+          !module.moduleName.toLowerCase().includes("state")),
     );
   }, [sidebarModules]);
 
@@ -322,11 +360,11 @@ export default function AssemblyListPage({
     if (!sidebarLevels.length) return staticListItems;
 
     // Filter levels that come after Assembly
-    const afterAssemblyLevels = sidebarLevels.filter(level =>
-      !["State", "District", "Assembly"].includes(level.level_name)
+    const afterAssemblyLevels = sidebarLevels.filter(
+      (level) => !["State", "District", "Assembly"].includes(level.level_name),
     );
 
-    return afterAssemblyLevels.map(level => ({
+    return afterAssemblyLevels.map((level) => ({
       to: `dynamic-level/${level.level_name.toLowerCase()}`,
       label: level.display_level_name,
       icon: getIconForLevel(level.level_name),
@@ -334,19 +372,21 @@ export default function AssemblyListPage({
   }, [sidebarLevels]);
 
   // Use dynamic levels if available, otherwise fall back to static
-  const listItems = dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
+  const listItems =
+    dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
 
   // Helper function to get appropriate icon for level
   function getIconForLevel(levelName: string): ReactNode {
     const lowerLevelName = levelName.toLowerCase();
 
-    if (lowerLevelName.includes('block')) return Icons.block;
-    if (lowerLevelName.includes('mandal')) return Icons.mandal;
-    if (lowerLevelName.includes('polling') || lowerLevelName.includes('center')) return Icons.polling;
-    if (lowerLevelName.includes('booth')) return Icons.booth;
-    if (lowerLevelName.includes('ward')) return Icons.ward;
-    if (lowerLevelName.includes('zone')) return Icons.zone;
-    if (lowerLevelName.includes('sector')) return Icons.sector;
+    if (lowerLevelName.includes("block")) return Icons.block;
+    if (lowerLevelName.includes("mandal")) return Icons.mandal;
+    if (lowerLevelName.includes("polling") || lowerLevelName.includes("center"))
+      return Icons.polling;
+    if (lowerLevelName.includes("booth")) return Icons.booth;
+    if (lowerLevelName.includes("ward")) return Icons.ward;
+    if (lowerLevelName.includes("zone")) return Icons.zone;
+    if (lowerLevelName.includes("sector")) return Icons.sector;
 
     // Default icon for unknown levels
     return Icons.mandal;
@@ -356,15 +396,19 @@ export default function AssemblyListPage({
   function getIconForModule(moduleName: string): ReactNode {
     const lowerModuleName = moduleName.toLowerCase();
 
-    if (lowerModuleName.includes('campaign')) return Icons.campaigns;
-    if (lowerModuleName.includes('user')) return Icons.team;
-    if (lowerModuleName.includes('district')) return Icons.assembly;
-    if (lowerModuleName.includes('assembly')) return Icons.assembly;
-    if (lowerModuleName.includes('block')) return Icons.block;
-    if (lowerModuleName.includes('mandal')) return Icons.mandal;
-    if (lowerModuleName.includes('polling') || lowerModuleName.includes('center')) return Icons.polling;
-    if (lowerModuleName.includes('booth')) return Icons.booth;
-    if (lowerModuleName.includes('event')) return Icons.calendar;
+    if (lowerModuleName.includes("campaign")) return Icons.campaigns;
+    if (lowerModuleName.includes("user")) return Icons.team;
+    if (lowerModuleName.includes("district")) return Icons.assembly;
+    if (lowerModuleName.includes("assembly")) return Icons.assembly;
+    if (lowerModuleName.includes("block")) return Icons.block;
+    if (lowerModuleName.includes("mandal")) return Icons.mandal;
+    if (
+      lowerModuleName.includes("polling") ||
+      lowerModuleName.includes("center")
+    )
+      return Icons.polling;
+    if (lowerModuleName.includes("booth")) return Icons.booth;
+    if (lowerModuleName.includes("event")) return Icons.calendar;
 
     // Default icon for unknown modules
     return Icons.campaigns;
@@ -375,12 +419,20 @@ export default function AssemblyListPage({
     const lowerModuleName = moduleName.toLowerCase();
 
     // Map specific module names to their correct routes
-    if (lowerModuleName.includes('campaign')) return 'campaigns';
-    if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'initiatives';
-    if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
+    if (lowerModuleName.includes("campaign")) return "campaigns";
+    if (
+      lowerModuleName.includes("assigned event") ||
+      lowerModuleName.includes("event")
+    )
+      return "initiatives";
+    if (
+      lowerModuleName.includes("user management") ||
+      lowerModuleName.includes("user")
+    )
+      return "users";
 
     // Default: convert module name to kebab-case
-    return moduleName.toLowerCase().replace(/\s+/g, '-');
+    return moduleName.toLowerCase().replace(/\s+/g, "-");
   }
 
   const onLogout = () => {
@@ -392,7 +444,7 @@ export default function AssemblyListPage({
   const isListPathActive = useMemo(
     () =>
       listItems.some((li) => location.pathname.startsWith(`${base}/${li.to}`)),
-    [location.pathname, base]
+    [location.pathname, base],
   );
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
@@ -402,21 +454,28 @@ export default function AssemblyListPage({
   let sameTypeAssignments: StateAssignment[] = [];
 
   // Get districts from stateAssignments
-  const districtAssignments = stateAssignments.filter((a) => a.levelType === 'District');
+  const districtAssignments = stateAssignments.filter(
+    (a) => a.levelType === "District",
+  );
 
   // Get districts from permissions
-  if (permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) {
-    const permissionDistricts = permissions.accessibleDistricts.map((district: any) => ({
-      assignment_id: district.assignment_id,
-      stateMasterData_id: district.stateMasterData_id || 0,
-      levelName: district.displayName || district.levelName,
-      levelType: 'District',
-      level_id: district.level_id,
-      parentId: district.parentId,
-      parentLevelName: district.parentLevelName || 'State',
-      parentLevelType: 'State',
-      displayName: district.displayName,
-    }));
+  if (
+    permissions?.accessibleDistricts &&
+    permissions.accessibleDistricts.length > 0
+  ) {
+    const permissionDistricts = permissions.accessibleDistricts.map(
+      (district: any) => ({
+        assignment_id: district.assignment_id,
+        stateMasterData_id: district.stateMasterData_id || 0,
+        levelName: district.displayName || district.levelName,
+        levelType: "District",
+        level_id: district.level_id,
+        parentId: district.parentId,
+        parentLevelName: district.parentLevelName || "State",
+        parentLevelType: "State",
+        displayName: district.displayName,
+      }),
+    );
     sameTypeAssignments = [...districtAssignments, ...permissionDistricts];
   } else {
     sameTypeAssignments = districtAssignments;
@@ -437,20 +496,21 @@ export default function AssemblyListPage({
     setSwitchDropdownOpen(false);
 
     // Dispatch custom event to trigger data refresh
-    window.dispatchEvent(new Event('districtChanged'));
-    window.dispatchEvent(new Event('assignmentChanged'));
+    window.dispatchEvent(new Event("districtChanged"));
+    window.dispatchEvent(new Event("assignmentChanged"));
 
     // Navigate to district dashboard
-    navigate('/district/dashboard');
+    navigate("/district/dashboard");
   };
-  const campaignModules = sidebarModules.filter(m =>
-  m.moduleName.toLowerCase().includes('campaign')
-);
+  const campaignModules = sidebarModules.filter((m) =>
+    m.moduleName.toLowerCase().includes("campaign"),
+  );
 
-const nonCampaignModules = sidebarModules.filter(m =>
-  !m.moduleName.toLowerCase().includes('team') &&
-  !m.moduleName.toLowerCase().includes('campaign')
-);
+  const nonCampaignModules = sidebarModules.filter(
+    (m) =>
+      !m.moduleName.toLowerCase().includes("team") &&
+      !m.moduleName.toLowerCase().includes("campaign"),
+  );
 
   return (
     <aside className="w-68 shrink-0 h-full border-r border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col">
@@ -467,7 +527,9 @@ const nonCampaignModules = sidebarModules.filter(m =>
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              District Level
+              {sidebarLevels.find(({ level_name }) => level_name === "District")
+                ?.display_level_name ?? "District"}{" "}
+              Level
             </p>
           </div>
         </div>
@@ -481,11 +543,22 @@ const nonCampaignModules = sidebarModules.filter(m =>
               className="w-full flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-main)] px-3 py-2 text-sm hover:bg-[var(--text-color)]/5 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <svg className="h-4 w-4 text-indigo-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  className="h-4 w-4 text-indigo-600 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span className="font-medium text-[var(--text-secondary)] truncate">
-                  {selectedAssignment.displayName || selectedAssignment.levelName}
+                  {selectedAssignment.displayName ||
+                    selectedAssignment.levelName}
                 </span>
               </div>
               <svg
@@ -493,7 +566,13 @@ const nonCampaignModules = sidebarModules.filter(m =>
                 viewBox="0 0 20 20"
                 fill="none"
               >
-                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
 
@@ -508,13 +587,24 @@ const nonCampaignModules = sidebarModules.filter(m =>
                     onClick={() => handleAssignmentSwitch(assignment)}
                     className={[
                       "flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors",
-                      selectedAssignment.assignment_id === assignment.assignment_id
+                      selectedAssignment.assignment_id ===
+                      assignment.assignment_id
                         ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
                         : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                     ].join(" ")}
                   >
-                    <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      className="h-4 w-4 mt-0.5 shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate text-xs">
@@ -526,9 +616,18 @@ const nonCampaignModules = sidebarModules.filter(m =>
                         </div>
                       )}
                     </div>
-                    {selectedAssignment.assignment_id === assignment.assignment_id && (
-                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    {selectedAssignment.assignment_id ===
+                      assignment.assignment_id && (
+                      <svg
+                        className="h-4 w-4 shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </button>
@@ -541,7 +640,7 @@ const nonCampaignModules = sidebarModules.filter(m =>
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-5 space-y-2 overflow-y-auto">
-        {districtItems.map((item) => (
+        {dynamicDistrictItems.map((item) => (
           <NavLink
             key={item.to}
             to={`${base}/${item.to}`}
@@ -650,7 +749,6 @@ const nonCampaignModules = sidebarModules.filter(m =>
           <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
         </NavLink>
 
-
         {/* List dropdown */}
         <div>
           <button
@@ -705,11 +803,17 @@ const nonCampaignModules = sidebarModules.filter(m =>
           {listOpen && (
             <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
               {sidebarLoading ? (
-                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">Loading levels...</div>
+                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
+                  Loading levels...
+                </div>
               ) : sidebarError ? (
-                <div className="px-3 py-2 text-sm text-red-500">Error loading levels</div>
+                <div className="px-3 py-2 text-sm text-red-500">
+                  Error loading levels
+                </div>
               ) : listItems.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">No levels available</div>
+                <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
+                  No levels available
+                </div>
               ) : (
                 listItems.map((li) => (
                   <NavLink
@@ -737,40 +841,66 @@ const nonCampaignModules = sidebarModules.filter(m =>
 
         {/* Dynamic Modules */}
         {/* Campaign Dropdown */}
-          {campaignModules.length > 0 && (
-            <div>
-              <button
-                onClick={() => setCampaignDropdownOpen(!campaignDropdownOpen)}
-                className={[
-                  "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
-                  "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  campaignDropdownOpen
-                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
-                    : "border border-transparent hover:border-[var(--border-color)]",
-                ].join(" ")}
+        {campaignModules.length > 0 && (
+          <div>
+            <button
+              onClick={() => setCampaignDropdownOpen(!campaignDropdownOpen)}
+              className={[
+                "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                campaignDropdownOpen
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
+                  : "border border-transparent hover:border-[var(--border-color)]",
+              ].join(" ")}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-indigo-600">{Icons.campaigns}</span>
+                <span>Campaign</span>
+              </div>
+              <svg
+                className={`h-4 w-4 text-indigo-600 transition-transform ${campaignDropdownOpen ? "rotate-180" : "rotate-0"}`}
+                viewBox="0 0 20 20"
+                fill="none"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-indigo-600">{Icons.campaigns}</span>
-                  <span>Campaign</span>
-                </div>
-                <svg
-                  className={`h-4 w-4 text-indigo-600 transition-transform ${campaignDropdownOpen ? "rotate-180" : "rotate-0"}`}
-                  viewBox="0 0 20 20"
-                  fill="none"
-                >
-                  <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
 
-              {campaignDropdownOpen && (
-                <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
-                  {/* Create Campaign */}
+            {campaignDropdownOpen && (
+              <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+                {/* Create Campaign */}
+                <NavLink
+                  to={`${base}/campaigns`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{Icons.campaigns}</span>
+                  <span className="truncate">Create Campaign</span>
+                </NavLink>
+
+                {/* Assigned Campaigns */}
+                {nonCampaignModules.map((module) => (
                   <NavLink
-                    to={`${base}/campaigns`}
+                    key={module.module_id}
+                    to={`${base}/${getModuleRoute(module.moduleName)}`}
                     onClick={() => onNavigate?.()}
                     className={({ isActive }) =>
                       [
-                        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                        "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
                         "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
                         isActive
                           ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
@@ -778,36 +908,18 @@ const nonCampaignModules = sidebarModules.filter(m =>
                       ].join(" ")
                     }
                   >
-                    <span className="text-indigo-600">{Icons.campaigns}</span>
-                    <span className="truncate">Create Campaign</span>
+                    <span className="text-indigo-600 shrink-0">
+                      {getIconForModule(module.moduleName)}
+                    </span>
+                    <span className="truncate">{module.displayName}</span>
+                    <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                    <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
                   </NavLink>
-
-                  {/* Assigned Campaigns */}
-                  {nonCampaignModules.map((module) => (
-                    <NavLink
-                      key={module.module_id}
-                      to={`${base}/${getModuleRoute(module.moduleName)}`}
-                      onClick={() => onNavigate?.()}
-                      className={({ isActive }) =>
-                        [
-                          "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                          "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                          isActive
-                            ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                            : "border border-transparent hover:border-[var(--border-color)]",
-                        ].join(" ")
-                      }
-                    >
-                      <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
-                      <span className="truncate">{module.displayName}</span>
-                      <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-                      <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-                    </NavLink>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}          
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* Account section */}
