@@ -174,8 +174,11 @@ import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
 import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
 import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
 import MarkedVotersPage from "./pages/Assembly/voters/MarkedVotersPage"; 
+import VoterCentricPage from "./pages/Assembly/voters/VoterCentricPage"; 
 import AssemblyListPage from "./pages/District/mark_voter/AssemblyListPage";
 import StateMarkedVotersPage from "./pages/State/marker_voter/StateMarkedVotersPage";
+import MarkedVoter from "./pages/AfterAssemblyPanel/markvoter";
+import SubLevelMarkedVoter from "./pages/SubLevelPanel/markvoter";
 
 export default function App() {
   return (
@@ -309,6 +312,7 @@ export default function App() {
             <Route path="dashboard" element={<AssemblyDashboard />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="marked-voters" element={<MarkedVotersPage />} />
+            <Route path="marked-users" element={<VoterCentricPage />} />
              <Route path="market-table" element={<MarketTable />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="market-discussion" element={<MarketDiscussionTable />} />
@@ -488,6 +492,7 @@ export default function App() {
             <Route path="dashboard" element={<AfterAssemblyPanelDashboard />} />
             <Route path="team" element={<AfterAssemblyPanelTeam />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
+             <Route path="After-Assembly-Mark-Voter" element={<MarkedVoter />} />
             <Route
               path="child-hierarchy"
               element={<AfterAssemblyChildHierarchy />}
@@ -517,6 +522,7 @@ export default function App() {
           <Route path="sublevel/:levelId" element={<SubLevelPanelLayout />}>
             <Route index element={<SubLevelPanelDashboard />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
+             <Route path="Mark-Voter" element={<SubLevelMarkedVoter />} />
             <Route path="dashboard" element={<SubLevelPanelDashboard />} />
             <Route path="team" element={<SubLevelPanelTeam />} />
             <Route

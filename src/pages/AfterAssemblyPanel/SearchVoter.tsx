@@ -6,22 +6,22 @@ import { VoterEditForm } from "../Assembly/voters/VoterListForm";
 import { VoterListTable } from "../Assembly/voters/VoterListList";
 import type { VoterList } from "../../types/voter";
 import toast from "react-hot-toast";
-import { useUpdateVoterMutation } from "../../store/api/votersApi";
+import { 
+    useUpdateVoterMutation,
+    useCreateVoterMarkerMutation
+} from "../../store/api/votersApi";
 import { useAppSelector } from "../../store/hooks";
 import { useTranslation } from "react-i18next";
-
-
 
 export default function SearchVoter() {
     const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
-    const { selectedAssignment } = useAppSelector((state) => state.auth);
+    const { selectedAssignment, user } = useAppSelector((state) => state.auth);
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(25);
     const [language, setLanguage] = useState<"en" | "hi">("en");
 
-    // Search/Filter states
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [gender, setGender] = useState("");
@@ -29,24 +29,21 @@ export default function SearchVoter() {
     const [ageTo, setAgeTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
 
-    
-
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     const [updateVoter] = useUpdateVoterMutation();
+    const [createVoterMarker, { isLoading: isMarking }] = useCreateVoterMarkerMutation();
 
-    // Check if current level is Booth type
     const isBooth = selectedAssignment?.levelType === "Booth" || selectedAssignment?.partyLevelName === "Booth";
     const boothLevelId = selectedAssignment?.level_id;
 
-    // Debounce search input
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
-            setPage(1); // Reset to first page on search change
-        }, 500); // 500ms delay
+            setPage(1); 
+        }, 500); 
 
         return () => clearTimeout(timer);
     }, [search]);
@@ -60,7 +57,6 @@ export default function SearchVoter() {
             try {
                 let result;
 
-                // Use booth-level API if it's a booth, otherwise use after-assembly API
                 if (isBooth && boothLevelId) {
                     const apiParams = {
                         page,
@@ -70,17 +66,7 @@ export default function SearchVoter() {
                         ageFrom,
                         ageTo
                     };
-                    console.log('🔍 Fetching booth voters with params:', apiParams);
-                    console.log('📊 Gender filter value:', gender, 'Type:', typeof gender);
-
                     result = await fetchVotersByBoothLevel(boothLevelId, apiParams);
-
-                    console.log('✅ Booth voters result:', {
-                        total: result?.pagination?.total,
-                        returned: result?.data?.length,
-                        hasGenderFilter: !!gender,
-                        genderValue: gender
-                    });
                 } else {
                     result = await fetchVotersByAfterAssembly(Number(levelId), {
                         page,
@@ -132,6 +118,41 @@ export default function SearchVoter() {
         setSelectedVoter(null);
     };
 
+    // --- REFINED MARK VOTER FUNCTION ---
+    const handleMarkVoter = async (voter: any) => {
+        let authState = {};
+        try {
+            authState = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        } catch(e) {}
+
+        const currentStateId = selectedAssignment?.state_id || (authState as any).state_id;
+        const currentDistrictId = selectedAssignment?.district_id || (authState as any).district_id;
+        const currentAssemblyId = selectedAssignment?.assembly_id || (authState as any).assembly_id;
+        
+        // 🔥 THE FIX: Stop guessing. Just grab the ID directly from the URL!
+        // Because the URL looks like /sublevel/1/..., levelId will always be "1".
+        const currentAfterAssemblyId = Number(levelId);
+
+        const payload = {
+            voter_id: voter.id,
+            state_id: currentStateId,
+            district_id: currentDistrictId,
+            assembly_id: currentAssemblyId,
+            after_assembly_id: currentAfterAssemblyId // This will now definitely be a number
+        };
+
+        // This will print to your console. Press F12 to verify it before checking the database!
+        console.log("🚀 Payload dispatching to DB:", payload); 
+
+        try {
+            await createVoterMarker(payload).unwrap();
+            toast.success(t("SearchVoter.voterMarkedSuccess", "Voter marked successfully"));
+        } catch (err: any) {
+            const errMessage = err?.data?.message || err?.message || "Failed to mark voter";
+            toast.error(errMessage);
+        }
+    };
+
     if (!levelId) {
         return (
             <div className="p-6">
@@ -173,7 +194,6 @@ export default function SearchVoter() {
                             ))}
                         </div>
                     )}
-                    {/* Active Filters Indicator */}
                     {(debouncedSearch || gender || ageFrom || ageTo) && (
                         <div className="mt-2 flex flex-wrap gap-2">
                             <span className="text-sm text-[var(--text-secondary)]">{t("SearchVoter.Active_Filters")}:</span>
@@ -204,7 +224,6 @@ export default function SearchVoter() {
                             }`}
                     >
                         {t("SearchVoter.English")}
-
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
@@ -214,7 +233,6 @@ export default function SearchVoter() {
                             }`}
                     >
                         {t("SearchVoter.Regional")}
-
                     </button>
                 </div>
             </div>
@@ -223,7 +241,6 @@ export default function SearchVoter() {
                 <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} />
             ) : (
                 <>
-                    {/* Search and Filters */}
                     <div className="mb-6 bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
@@ -313,11 +330,12 @@ export default function SearchVoter() {
                         <VoterListTable
                             voters={data?.data || []}
                             onEdit={handleEdit}
+                            onMark={handleMarkVoter} 
+                            isMarking={isMarking}
                             language={language}
                         />
                     )}
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                             <div className="text-sm text-[var(--text-secondary)]">
@@ -346,5 +364,3 @@ export default function SearchVoter() {
         </div>
     );
 }
-
-

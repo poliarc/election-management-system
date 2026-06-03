@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useParams } from "react-router-dom"; // 🔥 NEW: Import useParams to read the URL
 import type { VoterList } from "../../../types/voter";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -17,6 +18,9 @@ export const VoterListTable: React.FC<Props> = ({
     language,
 }) => {
     const { t } = useTranslation();
+
+    // 🔥 NEW: Grab the levelId directly from the URL route
+    const { levelId } = useParams<{ levelId: string }>();
 
     // 1. Get current logged-in user & assignment from Redux
     const { user, selectedAssignment } = useAppSelector((state: any) => state.auth);
@@ -45,12 +49,13 @@ export const VoterListTable: React.FC<Props> = ({
         const toastId = toast.loading("Marking voter...");
 
         try {
-            // NEW: Added state_id, district_id, and assembly_id to the payload
+            // 🔥 FIXED PAYLOAD: We now include the after_assembly_id
            const payload = {
                 voter_id: voter.id,
                 assembly_id: voter.assembly_id || currentAssemblyId,
                 state_id: voter.state_id || user?.state_id, 
-                district_id: voter.district_id || selectedAssignment?.parentId || user?.district_id 
+                district_id: voter.district_id || selectedAssignment?.parentId || user?.district_id,
+                after_assembly_id: levelId ? Number(levelId) : undefined // Ensure it is a number
             };
 
             const response: any = await createVoterMarker(payload).unwrap();

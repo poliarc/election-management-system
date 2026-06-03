@@ -85,7 +85,6 @@ interface DraftCompareSummaryPayload {
     missing_in_draft: number;
     modified_voters: number;
   };
-  // Details are intentionally empty in summary response; specific endpoints provide records.
   details: {
     matched: unknown[];
     new_in_draft: unknown[];
@@ -452,8 +451,14 @@ export const votersApi = createApi({
 
     // --- Voter Marker Endpoints ---
     
-    // UPDATED: Added state_id, district_id, and assembly_id to the type signature
-    createVoterMarker: builder.mutation<ApiResponse<any>, { voter_id: number; state_id?: number; district_id?: number; assembly_id?: number }>({
+    // UPDATED: Added after_assembly_id mapping to fully map the hierarchy
+    createVoterMarker: builder.mutation<ApiResponse<any>, { 
+      voter_id: number; 
+      state_id?: number; 
+      district_id?: number; 
+      assembly_id?: number;
+      after_assembly_id?: number;
+    }>({
       query: (body) => ({
         url: `/voter-marker/create-voter-marker`,
         method: "POST",
@@ -461,27 +466,38 @@ export const votersApi = createApi({
       }),
       invalidatesTags: ["Voters"],
     }),
-    
-    // UPDATED: Added assembly_id to the type signature and URL builder
+
+    // UPDATED: Added after_assembly_id to query params for filtering based on hierarchy
+    getAfterAssemblyLevelUsers: builder.query<any, number>({
+      query: (levelId) => ({
+        url: `/user-after-assembly-hierarchy/level/${levelId}/users`,
+        method: "GET",
+      }),
+    }),
+
+
+    // Inside votersApi.ts -> getVoterMarkers
     getVoterMarkers: builder.query<any, { 
       page: number; 
       limit: number; 
       user_id?: number; 
       assembly_id?: number; 
       district_id?: number; 
-      state_id?: number; // <--- 1. Add to TypeScript types
+      state_id?: number; 
+      after_assembly_id?: number; // NEW: Added to type
       sortBy?: string; 
       sortOrder?: string; 
       search?: string 
     }>({
-      query: ({ page, limit, user_id, assembly_id, district_id, state_id, sortBy, sortOrder, search }) => { 
+      query: ({ page, limit, user_id, assembly_id, district_id, state_id, after_assembly_id, sortBy, sortOrder, search }) => { 
         let url = `/voter-marker/get-voter-marker?page=${page}&limit=${limit}`;
         if (user_id) url += `&user_id=${user_id}`;
         if (assembly_id) url += `&assembly_id=${assembly_id}`; 
         if (district_id) url += `&district_id=${district_id}`; 
-        
-        // 2. Append state_id to the URL
         if (state_id) url += `&state_id=${state_id}`; 
+        
+        // NEW: Pass to URL
+        if (after_assembly_id) url += `&after_assembly_id=${after_assembly_id}`; 
         
         if (sortBy) url += `&sortBy=${sortBy}`;
         if (sortOrder) url += `&sortOrder=${sortOrder}`;
@@ -490,6 +506,7 @@ export const votersApi = createApi({
       },
       providesTags: ["Voters"],
     }),
+
     
     deleteVoterMarker: builder.mutation<ApiResponse<any>, number>({
       query: (id) => ({
@@ -497,6 +514,14 @@ export const votersApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Voters"],
+    }),
+
+    // Fetch the Parent hierarchy explicitly mapped
+    getParentLevels: builder.query<ApiResponse<any>, number>({
+      query: (id) => ({
+        url: `/voter-marker/parents/${id}`,
+        method: "GET",
+      }),
     }),
   }),
 });
@@ -516,5 +541,7 @@ export const {
   useGetDraftCompareMatchedQuery,
   useCreateVoterMarkerMutation,
   useGetVoterMarkersQuery,
+  useGetAfterAssemblyLevelUsersQuery,
   useDeleteVoterMarkerMutation,
+  useGetParentLevelsQuery,
 } = votersApi;
