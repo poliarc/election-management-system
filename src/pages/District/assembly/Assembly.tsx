@@ -164,13 +164,13 @@ export default function DistrictAssembly() {
       <div className="bg-gradient-to-r from-sky-400 to-sky-500 rounded-lg shadow-lg p-4 sm:p-5 text-white mb-1">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="shrink-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{t("districtAssembly.Title")}</h1>
-            <p className="text-sky-100 mt-1 text-xs sm:text-sm">{t("districtAssembly.District")}: {districtName} | {t("districtAssembly.State")}: {stateName}</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{metaData?.assemblyDisplayName} List</h1>
+            <p className="text-sky-100 mt-1 text-xs sm:text-sm">{metaData?.districtDisplayName}: {districtName} | {metaData?.stateDisplayName}: {stateName}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
             <div className="bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-[var(--text-secondary)]">{t("districtAssembly.Total_Assemblies")}</p>
+                <p className="text-xs font-medium text-[var(--text-secondary)]">Total {metaData?.assemblyDisplayName}</p>
                 <p className="text-xl sm:text-2xl font-semibold mt-1">{formatNumber(totalAssemblies)}</p>
               </div>
               <div className="bg-blue-50 rounded-full p-1.5">
@@ -179,7 +179,7 @@ export default function DistrictAssembly() {
                 </svg>
               </div>
             </div>
-            <div onClick={handleAssignedUsersClick} className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${totalUsers > 0 ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50" : "cursor-default"} ${showAssignedUsers ? "ring-2 ring-green-500 bg-green-50" : ""}`} title={totalUsers > 0 ? "Click to view assemblies with assigned users" : "No assigned users"}>
+            <div onClick={handleAssignedUsersClick} className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${totalUsers > 0 ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-green-50" : "cursor-default"} ${showAssignedUsers ? "ring-2 ring-green-500 bg-green-50" : ""}`} title={totalUsers > 0 ? `Click to view ${metaData?.assemblyDisplayName} with assigned users` : "No assigned users"}>
               <div>
                 <p className="text-xs font-medium text-[var(--text-secondary)]">{t("districtAssembly.Assigned_Users")}{showAssignedUsers && <span className="ml-2 text-green-600 font-semibold">({t("districtAssembly.Filtered")})</span>}</p>
                 <p className={`text-xl sm:text-2xl font-semibold mt-1 ${totalUsers > 0 ? "text-green-600" : "text-[var(--text-secondary)]"}`}>{formatNumber(totalUsers)}</p>
@@ -190,9 +190,9 @@ export default function DistrictAssembly() {
                 </svg>
               </div>
             </div>
-            <div onClick={handleAssembliesWithoutUsersClick} className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${assembliesWithoutUsers > 0 ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50" : "cursor-default"} ${showAssembliesWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""}`} title={assembliesWithoutUsers > 0 ? "Click to view assemblies without users" : "No assemblies without users"}>
+            <div onClick={handleAssembliesWithoutUsersClick} className={`bg-[var(--bg-card)] text-[var(--text-color)] rounded-md shadow-md p-3 flex items-center justify-between transition-all duration-200 ${assembliesWithoutUsers > 0 ? "cursor-pointer hover:shadow-lg hover:scale-105 hover:bg-red-50" : "cursor-default"} ${showAssembliesWithoutUsers ? "ring-2 ring-red-500 bg-red-50" : ""}`} title={assembliesWithoutUsers > 0 ? `Click to view ${metaData?.assemblyDisplayName} without users` : `No ${metaData?.assemblyDisplayName} without users`}>
               <div>
-                <p className="text-xs font-medium text-[var(--text-secondary)]">{t("districtAssembly.Assemblies_Without_Users")}{showAssembliesWithoutUsers && <span className="ml-2 text-red-600 font-semibold">({t("districtAssembly.Filtered")})</span>}</p>
+                <p className="text-xs font-medium text-[var(--text-secondary)]">{metaData?.assemblyDisplayName} without users {showAssembliesWithoutUsers && <span className="ml-2 text-red-600 font-semibold">({t("districtAssembly.Filtered")})</span>}</p>
                 <p className={`text-xl sm:text-2xl font-semibold mt-1 ${assembliesWithoutUsers > 0 ? "text-red-600" : "text-[var(--text-secondary)]"}`}>{formatNumber(assembliesWithoutUsers)}</p>
               </div>
               <div className={`rounded-full p-1.5 ${assembliesWithoutUsers > 0 ? "bg-red-50" : "bg-[var(--bg-main)]"}`}>
@@ -210,7 +210,7 @@ export default function DistrictAssembly() {
           </div>
         </div>
       </div>
-      <HierarchyTable data={paginatedData} loading={loading} error={error ? "Failed to load assemblies" : null} searchInput={searchInput} onSearchChange={handleSearchChange} onSort={handleSort} onPageChange={setCurrentPage} currentPage={currentPageFromAPI} totalItems={totalItems} itemsPerPage={itemsPerPage} title="Assembly List" emptyMessage="No assemblies found" stateName={stateName} districtName={districtName} onAssignUsers={handleAssignUsers} showAssignButton={true} hideHeader={true} hideActiveUsersColumn={true} />
+      <HierarchyTable data={paginatedData} loading={loading} error={error ? "Failed to load assemblies" : null} searchInput={searchInput} onSearchChange={handleSearchChange} onSort={handleSort} onPageChange={setCurrentPage} currentPage={currentPageFromAPI} totalItems={totalItems} itemsPerPage={itemsPerPage} title="Assembly List" emptyMessage="No assemblies found" stateName={stateName} districtName={districtName} onAssignUsers={handleAssignUsers} showAssignButton={true} hideHeader={true} hideActiveUsersColumn={true} stateLabel={metaData?.stateDisplayName} districtLabel={metaData?.districtDisplayName} assemblyLabel={metaData?.assemblyDisplayName} />
     </div>
   );
 }
