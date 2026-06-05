@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { 
   Search, UserCircle, MapPin, ChevronDown, ChevronUp, X, 
-  Loader2, Users, AlertTriangle, Phone, Home, ChevronLeft, ChevronRight 
+  Loader2, Users, Phone, Home, ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { useGetVoterMarkersQuery, useGetParentLevelsQuery } from "../../../store/api/votersApi";
 
@@ -26,7 +25,6 @@ const HierarchyBreadcrumb = ({ levelId }: { levelId: number }) => {
 };
 
 export const VoterCentricPage: React.FC = () => {
-  const { t } = useTranslation();
   
   // States
   const [filterType, setFilterType] = useState<number | null>(null);

@@ -7,8 +7,7 @@ import { VoterListTable } from "../Assembly/voters/VoterListList";
 import type { VoterList } from "../../types/voter";
 import toast from "react-hot-toast";
 import { 
-    useUpdateVoterMutation,
-    useCreateVoterMarkerMutation
+    useUpdateVoterMutation
 } from "../../store/api/votersApi";
 import { useAppSelector } from "../../store/hooks";
 import { useTranslation } from "react-i18next";
@@ -34,7 +33,6 @@ export default function SearchVoter() {
     const [error, setError] = useState<Error | null>(null);
 
     const [updateVoter] = useUpdateVoterMutation();
-    const [createVoterMarker, { isLoading: isMarking }] = useCreateVoterMarkerMutation();
 
     const isBooth = selectedAssignment?.levelType === "Booth" || selectedAssignment?.partyLevelName === "Booth";
     const boothLevelId = selectedAssignment?.level_id;
@@ -116,41 +114,6 @@ export default function SearchVoter() {
 
     const handleCancel = () => {
         setSelectedVoter(null);
-    };
-
-    // --- REFINED MARK VOTER FUNCTION ---
-    const handleMarkVoter = async (voter: any) => {
-        let authState = {};
-        try {
-            authState = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        } catch(e) {}
-
-        const currentStateId = (selectedAssignment as any)?.state_id || (authState as any).state_id;
-        const currentDistrictId = (selectedAssignment as any)?.district_id || (authState as any).district_id;
-        const currentAssemblyId = (selectedAssignment as any)?.assembly_id || (authState as any).assembly_id;
-        
-        // 🔥 THE FIX: Stop guessing. Just grab the ID directly from the URL!
-        // Because the URL looks like /sublevel/1/..., levelId will always be "1".
-        const currentAfterAssemblyId = Number(levelId);
-
-        const payload = {
-            voter_id: voter.id,
-            state_id: currentStateId,
-            district_id: currentDistrictId,
-            assembly_id: currentAssemblyId,
-            after_assembly_id: currentAfterAssemblyId // This will now definitely be a number
-        };
-
-        // This will print to your console. Press F12 to verify it before checking the database!
-        console.log("🚀 Payload dispatching to DB:", payload); 
-
-        try {
-            await createVoterMarker(payload).unwrap();
-            toast.success(t("SearchVoter.voterMarkedSuccess", "Voter marked successfully"));
-        } catch (err: any) {
-            const errMessage = err?.data?.message || err?.message || "Failed to mark voter";
-            toast.error(errMessage);
-        }
     };
 
     if (!levelId) {
@@ -330,8 +293,6 @@ export default function SearchVoter() {
                         <VoterListTable
                             voters={data?.data || []}
                             onEdit={handleEdit}
-                            onMark={handleMarkVoter} 
-                            isMarking={isMarking}
                             language={language}
                         />
                     )}
