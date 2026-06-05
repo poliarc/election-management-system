@@ -6,11 +6,11 @@ import { VoterEditForm } from "../Assembly/voters/VoterListForm";
 import { VoterListTable } from "../Assembly/voters/VoterListList";
 import type { VoterList } from "../../types/voter";
 import toast from "react-hot-toast";
-import { useUpdateVoterMutation } from "../../store/api/votersApi";
+import { 
+    useUpdateVoterMutation
+} from "../../store/api/votersApi";
 import { useAppSelector } from "../../store/hooks";
 import { useTranslation } from "react-i18next";
-
-
 
 export default function SearchVoter() {
     const {t} = useTranslation();
@@ -21,7 +21,6 @@ export default function SearchVoter() {
     const [limit] = useState(25);
     const [language, setLanguage] = useState<"en" | "hi">("en");
 
-    // Search/Filter states
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [gender, setGender] = useState("");
@@ -29,24 +28,20 @@ export default function SearchVoter() {
     const [ageTo, setAgeTo] = useState<number | undefined>();
     const [showFilters, setShowFilters] = useState(false);
 
-    
-
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     const [updateVoter] = useUpdateVoterMutation();
 
-    // Check if current level is Booth type
     const isBooth = selectedAssignment?.levelType === "Booth" || selectedAssignment?.partyLevelName === "Booth";
     const boothLevelId = selectedAssignment?.level_id;
 
-    // Debounce search input
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
-            setPage(1); // Reset to first page on search change
-        }, 500); // 500ms delay
+            setPage(1); 
+        }, 500); 
 
         return () => clearTimeout(timer);
     }, [search]);
@@ -60,7 +55,6 @@ export default function SearchVoter() {
             try {
                 let result;
 
-                // Use booth-level API if it's a booth, otherwise use after-assembly API
                 if (isBooth && boothLevelId) {
                     const apiParams = {
                         page,
@@ -70,17 +64,7 @@ export default function SearchVoter() {
                         ageFrom,
                         ageTo
                     };
-                    console.log('🔍 Fetching booth voters with params:', apiParams);
-                    console.log('📊 Gender filter value:', gender, 'Type:', typeof gender);
-
                     result = await fetchVotersByBoothLevel(boothLevelId, apiParams);
-
-                    console.log('✅ Booth voters result:', {
-                        total: result?.pagination?.total,
-                        returned: result?.data?.length,
-                        hasGenderFilter: !!gender,
-                        genderValue: gender
-                    });
                 } else {
                     result = await fetchVotersByAfterAssembly(Number(levelId), {
                         page,
@@ -173,7 +157,6 @@ export default function SearchVoter() {
                             ))}
                         </div>
                     )}
-                    {/* Active Filters Indicator */}
                     {(debouncedSearch || gender || ageFrom || ageTo) && (
                         <div className="mt-2 flex flex-wrap gap-2">
                             <span className="text-sm text-[var(--text-secondary)]">{t("SearchVoter.Active_Filters")}:</span>
@@ -204,7 +187,6 @@ export default function SearchVoter() {
                             }`}
                     >
                         {t("SearchVoter.English")}
-
                     </button>
                     <button
                         onClick={() => setLanguage("hi")}
@@ -214,7 +196,6 @@ export default function SearchVoter() {
                             }`}
                     >
                         {t("SearchVoter.Regional")}
-
                     </button>
                 </div>
             </div>
@@ -223,7 +204,6 @@ export default function SearchVoter() {
                 <VoterEditForm initialValues={selectedVoter} onSubmit={handleSave} onCancel={handleCancel} />
             ) : (
                 <>
-                    {/* Search and Filters */}
                     <div className="mb-6 bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                         <div className="flex gap-4 items-end">
                             <div className="flex-1">
@@ -317,7 +297,6 @@ export default function SearchVoter() {
                         />
                     )}
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="mt-6 flex items-center justify-between bg-[var(--bg-card)] p-4 rounded-lg border border-[var(--border-color)]">
                             <div className="text-sm text-[var(--text-secondary)]">
@@ -346,5 +325,3 @@ export default function SearchVoter() {
         </div>
     );
 }
-
-

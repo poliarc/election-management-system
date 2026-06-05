@@ -147,8 +147,10 @@ export default function AfterAssemblyPanelSidebar({
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
   const [childLevelLabel, setChildLevelLabel] = useState("Below");
   const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
+  const [voterDropdownOpen, setVoterDropdownOpen] = useState(false);
   const switchDropdownRef = useRef<HTMLDivElement>(null);
   const vicDropdownRef = useRef<HTMLDivElement>(null);
+  const voterDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (selectedAssignment) {
@@ -365,6 +367,15 @@ export default function AfterAssemblyPanelSidebar({
     }
   }, [vicDropdownOpen]);
 
+  useEffect(() => {
+    if (voterDropdownOpen && voterDropdownRef.current) {
+      voterDropdownRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      });
+    }
+  }, [voterDropdownOpen]);
+
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
     dispatch(setSelectedAssignment(assignment));
     window.dispatchEvent(new Event("assignmentChanged"));
@@ -411,8 +422,12 @@ export default function AfterAssemblyPanelSidebar({
     { to: "booths", label: "Booths", icon: Icons.booths },
   ];
 
+  // Exclude 'team' and 'search' from dynamic modules
   const dynamicModuleItems: NavItem[] = sidebarModules
-    .filter(module => !module.moduleName.toLowerCase().includes('team'))
+    .filter(module => {
+      const lowerName = module.moduleName.toLowerCase();
+      return !lowerName.includes('team') && !lowerName.includes('search');
+    })
     .map((module) => ({
       to: getModuleRoute(module.moduleName),
       label: module.displayName,
@@ -423,6 +438,11 @@ export default function AfterAssemblyPanelSidebar({
     ...staticNavItems,
     ...dynamicModuleItems,
   ];
+
+  // Find the search module if it exists
+  const searchModule = sidebarModules.find(module =>
+    module.moduleName.toLowerCase().includes('search')
+  );
 
   const vicMenuItems = [
     { to: "vic/send-report", label: "Send Report" },
@@ -577,6 +597,7 @@ export default function AfterAssemblyPanelSidebar({
             onClick={() => {
               onNavigate?.();
               setVicDropdownOpen(false); 
+              setVoterDropdownOpen(false);
             }}
             className={({ isActive }) =>
               [
@@ -601,6 +622,7 @@ export default function AfterAssemblyPanelSidebar({
           onClick={() => {
             onNavigate?.();
             setVicDropdownOpen(false); 
+            setVoterDropdownOpen(false);
           }}
           className={({ isActive }) =>
             [
@@ -617,6 +639,90 @@ export default function AfterAssemblyPanelSidebar({
           <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
           <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
         </NavLink>
+
+        {/* Voter Dropdown */}
+        <div ref={voterDropdownRef}>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={voterDropdownOpen}
+            onClick={() => setVoterDropdownOpen(!voterDropdownOpen)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+              "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+              voterDropdownOpen
+                ? "bg-[var(--bg-color)] ring-1 ring-indigo-400/40 "
+                : "border border-transparent hover:border-[var(--border-color)]",
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              <svg className="h-5 w-5 stroke-[1.6]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+              </svg>
+              <span className="text-[var(--text-color)]">Voter</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                voterDropdownOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {voterDropdownOpen && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              
+              {searchModule && (
+                <NavLink
+                  to={`${base}/${getModuleRoute(searchModule.moduleName)}`}
+                  onClick={() => {
+                    onNavigate?.();
+                  }}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 "
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{getIconForModule(searchModule.moduleName)}</span>
+                  <span className="truncate">{searchModule.displayName}</span>
+                </NavLink>
+              )}
+
+              <NavLink
+                to={`${base}/After-Assembly-Mark-Voter`}
+                onClick={() => {
+                  onNavigate?.();
+                }}
+                className={({ isActive }) =>
+                  [
+                    "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                    "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 "
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600">{Icons.team}</span>
+                <span className="truncate">Mark Voter</span>
+              </NavLink>
+            </div>
+          )}
+        </div>
 
         {/* VIC Dropdown */}
         <div ref={vicDropdownRef}>
@@ -693,6 +799,7 @@ export default function AfterAssemblyPanelSidebar({
             onClick={() => {
               onNavigate?.();
               setVicDropdownOpen(false); 
+              setVoterDropdownOpen(false);
             }}
             className={({ isActive }) =>
               [
@@ -721,6 +828,7 @@ export default function AfterAssemblyPanelSidebar({
           <button
             onClick={() => {
               setVicDropdownOpen(false);
+              setVoterDropdownOpen(false);
               dispatch(logout());
               navigate("/login");
             }}
