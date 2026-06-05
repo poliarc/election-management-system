@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Users, Search, X } from "lucide-react";
 import { useGetVoterMarkersQuery, useGetParentLevelsQuery } from "../../../store/api/votersApi";
 import { useAppSelector } from "../../../store/hooks";
@@ -24,7 +23,6 @@ const HierarchyBreadcrumb = ({ levelId }: { levelId: number }) => {
 };
 
 export const MarkedVotersPage: React.FC = () => {
-  const { t } = useTranslation();
   const { levelId } = useParams<{ levelId: string }>();
   
   // 🔥 NEW: Added language state for the toggle

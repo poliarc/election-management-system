@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 export default function SearchVoter() {
     const {t} = useTranslation();
     const { levelId } = useParams<{ levelId: string }>();
-    const { selectedAssignment, user } = useAppSelector((state) => state.auth);
+    const { selectedAssignment } = useAppSelector((state) => state.auth);
     const [selectedVoter, setSelectedVoter] = useState<VoterList | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(25);
@@ -125,9 +125,9 @@ export default function SearchVoter() {
             authState = JSON.parse(localStorage.getItem('auth_user') || '{}');
         } catch(e) {}
 
-        const currentStateId = selectedAssignment?.state_id || (authState as any).state_id;
-        const currentDistrictId = selectedAssignment?.district_id || (authState as any).district_id;
-        const currentAssemblyId = selectedAssignment?.assembly_id || (authState as any).assembly_id;
+        const currentStateId = (selectedAssignment as any)?.state_id || (authState as any).state_id;
+        const currentDistrictId = (selectedAssignment as any)?.district_id || (authState as any).district_id;
+        const currentAssemblyId = (selectedAssignment as any)?.assembly_id || (authState as any).assembly_id;
         
         // 🔥 THE FIX: Stop guessing. Just grab the ID directly from the URL!
         // Because the URL looks like /sublevel/1/..., levelId will always be "1".

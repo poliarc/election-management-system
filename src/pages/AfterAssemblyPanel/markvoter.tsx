@@ -34,7 +34,7 @@ export const MarkedVoter: React.FC = () => {
   const currentStateId = selectedAssignment?.state_id || (authUser as any).state_id;
   const currentAfterAssemblyId = levelId ? Number(levelId) : undefined;
 
-  const { data: levelUsersData, isLoading: isLevelLoading } =
+  const { data: levelUsersData } =
     useGetAfterAssemblyLevelUsersQuery(currentAfterAssemblyId!, {
       skip: !currentAfterAssemblyId,
     });
