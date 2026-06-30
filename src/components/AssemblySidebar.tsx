@@ -983,8 +983,8 @@ const programItems: NavItem[] = [
 // New Voters Dropdown Items
 const votersDropdownItems: NavItem[] = [
   { to: "search-voter", label: "Search Voter", icon: Icons.search },
-  { to: "marked-voters", label: "Marked Voters", icon: Icons.team },
-  { to: "marked-users", label: "Marked Users", icon: Icons.supporters },
+  { to: "marked-voters", label: "Users Marked", icon: Icons.team },
+  { to: "marked-users", label: "Voters Marked", icon: Icons.supporters },
 ];
 
 // Dropdown items under "List" - These will be replaced by dynamic levels from API

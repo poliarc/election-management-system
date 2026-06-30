@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, useMemo, type ChangeEvent } from "react";
 import { useAppSelector } from "../../../store/hooks";
 import {
   useGetUsersByAssemblyIdQuery,
@@ -50,8 +50,6 @@ export default function UserCommunication() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
-  const [userStateId, setUserStateId] = useState<number | null>(null);
-  const [userPartyId, setUserPartyId] = useState<number | null>(null);
 
   // Communication history state
   const [communications, setCommunications] = useState<CommunicationRecord[]>(
@@ -83,52 +81,49 @@ export default function UserCommunication() {
   const { data: stateMasterData, isLoading: stateLoading } =
     useGetAllStateMasterDataQuery();
 
-  // Get party_id and state_id from user profile and state master data
-  useEffect(() => {
-    // Get party_id from auth user
-    const partyId = user?.partyId;
-
-    if (partyId) {
-      setUserPartyId(partyId);
+  // 1. Derive Party ID instantly
+  const derivedPartyId = useMemo(() => {
+    if (user?.partyId) return user.partyId;
+    
+    const authUser = localStorage.getItem("auth_user");
+    if (authUser) {
+      try {
+        const parsed = JSON.parse(authUser);
+        return parsed.party_id || parsed.partyId || null;
+      } catch (error) {
+        console.error("Failed to parse auth_user from localStorage:", error);
+      }
     }
+    return null;
+  }, [user]);
 
-    // Try to get state_id from localStorage auth_user first
+  // 2. Derive State ID instantly
+  const derivedStateId = useMemo(() => {
+    // Try localStorage first
     const authUser = localStorage.getItem("auth_user");
     if (authUser) {
       try {
         const parsedUser = JSON.parse(authUser);
-
-        // Check multiple possible state_id fields
         const possibleStateId =
           parsedUser.state_id || parsedUser.stateId || parsedUser.user_state_id;
         if (possibleStateId) {
-          setUserStateId(possibleStateId);
-          return; // Exit early if we found state_id
-        }
-
-        // Fallback for party_id if not available from auth selector
-        const fallbackPartyId = parsedUser.party_id || parsedUser.partyId;
-        if (fallbackPartyId && !partyId) {
-          setUserPartyId(fallbackPartyId);
+          return possibleStateId;
         }
       } catch (error) {
         console.error("Failed to parse auth_user from localStorage:", error);
       }
     }
 
-    // Get state_id from profile + state master data
+    // Match profile state with master data
     if (profileData && stateMasterData) {
-      // Find state_id by matching state name from profile with state master data
       const userStateName = profileData.state;
       if (userStateName && userStateName.trim()) {
-        // Try multiple matching strategies
         let matchingState = stateMasterData.find(
           (state) =>
             state.levelName.toLowerCase().trim() ===
             userStateName.toLowerCase().trim(),
         );
 
-        // If exact match not found, try partial matches
         if (!matchingState) {
           matchingState = stateMasterData.find(
             (state) =>
@@ -141,7 +136,6 @@ export default function UserCommunication() {
           );
         }
 
-        // If still not found, try removing common words and matching
         if (!matchingState) {
           const cleanUserState = userStateName
             .toLowerCase()
@@ -161,17 +155,15 @@ export default function UserCommunication() {
         }
 
         if (matchingState) {
-          const stateId = matchingState.stateMasterData_id || matchingState.id;
-          setUserStateId(stateId);
+          return matchingState.stateMasterData_id || matchingState.id;
         } else if (stateMasterData.length > 0) {
-          // Fallback: use the first available state if no match found
-          const fallbackStateId =
-            stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
-          setUserStateId(fallbackStateId);
+          return stateMasterData[0].stateMasterData_id || stateMasterData[0].id;
         }
       }
     }
-  }, [user, profileData, stateMasterData]);
+    
+    return null;
+  }, [profileData, stateMasterData]);
 
   // Fetch communication history
   const fetchCommunications = async () => {
@@ -235,42 +227,43 @@ export default function UserCommunication() {
     }
   }, [activeTab, historyPage, historyFilters]);
 
-  // Fetch users with pagination and search - can search all users or filter by party+state
+  // 3. Fetch users with the instantly derived IDs
   const {
     data: partyStateUsersData,
     isLoading: partyStateLoading,
     error: partyStateError,
   } = useGetUsersByPartyAndStateQuery(
     {
-      partyId: userPartyId || undefined,
-      stateId: userStateId || undefined,
+      partyId: derivedPartyId || undefined,
+      stateId: derivedStateId || undefined,
       page: currentPage,
       limit: pageSize,
       search: searchTerm,
     },
     {
-      skip: profileLoading || stateLoading,
+      skip: profileLoading || stateLoading || (!derivedPartyId && !derivedStateId),
+      refetchOnMountOrArgChange: true,
     },
   );
 
-const assemblyId = selectedAssignment?.stateMasterData_id;
+  const assemblyId = selectedAssignment?.stateMasterData_id;
 
-const {
-  data: assemblyUsers,
-  error: assemblyUsersError,
-  isLoading: assemblyUsersLoading,
-  isFetching: assemblyDataFetch
-} = useGetUsersByAssemblyIdQuery(
-  {
-    assemblyId: assemblyId as number,
-    page: currentPage,
-    limit: pageSize,
-    search: searchTerm,
-  },
-  {
-    skip: !assemblyId // prevents invalid API call
-  }
-);
+  const {
+    data: assemblyUsers,
+    error: assemblyUsersError,
+    isLoading: assemblyUsersLoading,
+    isFetching: assemblyDataFetch
+  } = useGetUsersByAssemblyIdQuery(
+    {
+      assemblyId: assemblyId as number,
+      page: currentPage,
+      limit: pageSize,
+      search: searchTerm,
+    },
+    {
+      skip: !assemblyId // prevents invalid API call
+    }
+  );
 
   // Assembly users Data
   const assemblyUsersData = assemblyUsers?.users;
@@ -469,7 +462,7 @@ const {
       </div>
 
       {/* Missing Data Warning - Only show if critical data is missing */}
-      {!userPartyId && (
+      {!derivedPartyId && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex">
             <svg
@@ -1179,7 +1172,3 @@ const {
     </div>
   );
 }
-
-
-
-
