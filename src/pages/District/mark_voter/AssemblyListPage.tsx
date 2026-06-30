@@ -1,19 +1,35 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Loader2, Search, Users, MapPin, BarChart3 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { useGetVoterMarkersQuery } from "../../../store/api/votersApi"; 
+import React, { useState, useMemo } from "react";
+import { ChevronDown, ChevronUp, Users, Search, X, MapPin } from "lucide-react";
+import { useGetVoterMarkersQuery, useGetParentLevelsQuery } from "../../../store/api/votersApi";
 import { useAppSelector } from "../../../store/hooks";
 
-export const MarkedVotersPage: React.FC = () => {
-  const { t } = useTranslation();
-  
-  const [searchInput, setSearchInput] = useState<string>("");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+const HierarchyBreadcrumb = ({ levelId }: { levelId: number }) => {
+  const { data, isLoading } = useGetParentLevelsQuery(levelId, { skip: !levelId });
 
-  // 👉 GRAB USER AND ASSIGNMENT
-  const { selectedAssignment, user } = useAppSelector((state: any) => state.auth);
+  if (isLoading) return <span className="text-[var(--text-secondary)] text-[10px]">Loading path...</span>;
+  if (!data?.data || data.data.length === 0) return null;
+
+  const pathString = [...data.data]
+    .reverse()
+    .map((level: any) => `${level.displayName} (${level.levelName})`)
+    .join(" > ");
+
+  return (
+    <div className="text-[10px] text-[var(--text-secondary)] opacity-80 mt-0.5 truncate w-full" title={pathString}>
+      {pathString}
+    </div>
+  );
+};
+
+export const AssemblyListPage: React.FC = () => {
   
-  // 👉 SMARTER LEVEL EXTRACTION
+  // Language state for the toggle
+  const [language, setLanguage] = useState<"en" | "hi">("en");
+  
+  const { user, selectedAssignment } = useAppSelector((state: any) => state.auth);
+  const currentUserId = user?.user_id || user?.id;
+
+  // 👉 DISTRICT LEVEL VARIABLE EXTRACTION
   let currentDistrictId = undefined;
   
   if (selectedAssignment?.levelType === "District") {
@@ -22,214 +38,292 @@ export const MarkedVotersPage: React.FC = () => {
     currentDistrictId = selectedAssignment.parentId;
   }
 
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  // Ensure we at least have a state_id to prevent cross-state data leaks
+  const hasValidScope = !!user?.state_id;
 
-  // 👉 FETCH DATA (Securely locked to the User's state_id)
-  const { data, error, isLoading, isFetching } = useGetVoterMarkersQuery(
+  // 👉 FETCH DISTRICT DATA
+  const { data, isLoading } = useGetVoterMarkersQuery(
     { 
       page: 1, 
-      limit: 5000, 
-      state_id: user?.state_id, // Securely locks data to prevent cross-state leaks
-      district_id: currentDistrictId, // Only applied if viewing a district
-      search: debouncedSearch 
+      limit: 1000, 
+      state_id: user?.state_id, 
+      district_id: currentDistrictId
     },
-    { skip: !user?.state_id } 
+    { skip: !currentUserId || !hasValidScope } 
   );
-  
+
   const voters = data?.data || [];
 
-  // Summary Grouping Logic
-  const summaryData = useMemo(() => {
-    const groups: Record<string, { 
-      userId: number; 
-      userName: string; 
-      assemblyId: number;
-      assemblyName: string; 
-      markedCount: number; 
-      totalCount: number; 
-    }> = {};
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [searchInput, setSearchInput] = useState("");
+
+  const toggleRow = (key: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const filteredVoters = useMemo(() => {
+    if (!searchInput.trim()) return voters;
     
-    voters.forEach((voter: any) => {
-      const key = `${voter.user_id}_${voter.assembly_id}`;
+    const term = searchInput.toLowerCase();
+    
+    return voters.filter((v: any) => {
+      return (
+        v.marked_by_user_name?.toLowerCase().includes(term) ||
+        v.assembly_name?.toLowerCase().includes(term) ||
+        v.after_assembly_name?.toLowerCase().includes(term) ||
+        v.voter_full_name_en?.toLowerCase().includes(term) ||
+        v.voter_full_name_hi?.toLowerCase().includes(term) ||
+        v.relative_full_name_en?.toLowerCase().includes(term) ||
+        v.voter_id_epic_no?.toLowerCase().includes(term) ||
+        v.contact_number1?.includes(term) ||
+        v.part_no?.includes(term)
+      );
+    });
+  }, [voters, searchInput]);
+
+  // 👉 FIXED GROUPING LOGIC (Group by BOTH User and Assembly)
+  const groupedData = useMemo(() => {
+    const groups: Record<string, any> = {};
+
+    filteredVoters.forEach((voter: any) => {
+      // Grouping by User ID and Assembly ID so a single user gets multiple cards if they marked across multiple assemblies
+      const key = `${voter.user_id}_${voter.assembly_id}`; 
       
       if (!groups[key]) {
         groups[key] = {
+          key: key,
           userId: voter.user_id,
-          userName: voter.marked_by_user_name || `User ID: ${voter.user_id}`,
+          userName: voter.marked_by_user_name,
           assemblyId: voter.assembly_id,
-          assemblyName: voter.assembly_name || `Assembly ${voter.assembly_id || "-"}`,
+          assemblyName: voter.assembly_name,
+          totalAssemblyVoters: voter.total_assembly_voters,
           markedCount: 0,
-          totalCount: voter.total_assembly_voters || 0
+          votersList: []
         };
       }
       
       groups[key].markedCount += 1;
+      groups[key].votersList.push(voter);
     });
-    
-    return Object.values(groups).sort((a, b) => b.markedCount - a.markedCount);
-  }, [voters]);
 
-  if (!user?.state_id) {
+    return Object.values(groups);
+  }, [filteredVoters]);
+
+  if (!hasValidScope) {
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-xl flex items-center gap-3">
-                <MapPin className="w-5 h-5" />
-                No state context found. Please log in again.
+        <div className="p-6">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
+                Loading context... Please ensure you are logged in and have a valid state assignment.
             </div>
         </div>
     );
   }
 
+  if (isLoading) {
+    return <div className="p-6 animate-pulse text-[var(--text-secondary)]">Loading district marked voters data...</div>;
+  }
+
+  const SummaryGroup = ({ group, isCurrentUser }: { group: any, isCurrentUser: boolean }) => {
+    const isExpanded = expandedRows.has(group.key) || searchInput.trim().length > 0;
+    
+    const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
+
+    const displayedVoters = useMemo(() => {
+      return [...group.votersList].sort((a, b) => {
+        const partA = String(a.part_no || "");
+        const partB = String(b.part_no || "");
+        const compare = partA.localeCompare(partB, undefined, { numeric: true, sensitivity: 'base' });
+        return sortOrder === "ASC" ? compare : -compare;
+      });
+    }, [group.votersList, sortOrder]);
+
+    // Helper functions to toggle localized names
+    const getLocalizedName = (voter: any) => {
+        return language === "hi" 
+            ? (voter.voter_full_name_hi || voter.voter_full_name_en || "-")
+            : (voter.voter_full_name_en || "-");
+    };
+
+    const getLocalizedRelative = (voter: any) => {
+        return language === "hi" 
+            ? (voter.relative_full_name_hi || voter.relative_full_name_en || "-")
+            : (voter.relative_full_name_en || "-");
+    };
+
+    return (
+      <div className="mb-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg overflow-hidden shadow-sm">
+        <div 
+          onClick={() => toggleRow(group.key)}
+          className={`flex items-center justify-between p-3 sm:p-4 cursor-pointer transition ${isCurrentUser ? 'bg-indigo-500/5 hover:bg-indigo-500/10' : 'hover:bg-[var(--text-color)]/5'}`}
+        >
+          {/* UPDATED HEADER: Now shows District and Assembly context perfectly */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 flex-1 items-center">
+            <div className="font-semibold text-[var(--text-color)] flex items-center gap-2">
+              <Users className={`w-4 h-4 ${isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : 'text-[var(--text-secondary)]'}`} />
+              <span className="truncate">{group.userName}</span>
+              {isCurrentUser && <span className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full shrink-0">(You)</span>}
+            </div>
+            
+            <div className="text-sm text-[var(--text-secondary)] hidden md:block">
+              <span className="block text-[10px] uppercase opacity-70">District</span>
+              <div className="font-medium truncate text-[var(--text-color)]">{selectedAssignment?.displayName || selectedAssignment?.levelName || "-"}</div>
+            </div>
+
+            <div className="text-sm text-[var(--text-secondary)]">
+              <span className="block text-[10px] uppercase opacity-70">Assembly</span>
+              <div className="font-medium truncate text-[var(--text-color)]">{group.assemblyName || "-"}</div>
+            </div>
+            
+            <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="block text-[10px] uppercase text-[var(--text-secondary)] opacity-70">Marked Voters</span>
+              {group.markedCount}
+            </div>
+            
+            <div className="text-sm text-[var(--text-secondary)]">
+              <span className="block text-[10px] uppercase opacity-70">Total Voters</span>
+              <div className="text-[var(--text-color)]">{group.totalAssemblyVoters?.toLocaleString() || "N/A"}</div>
+            </div>
+          </div>
+          <div className="ml-4 text-[var(--text-secondary)]">
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-[var(--border-color)] bg-[var(--bg-card)] p-0 sm:p-2">
+            <div className="overflow-x-auto sm:rounded border-x-0 sm:border border-y-0 sm:border-[var(--border-color)]">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-[var(--bg-main)] text-[var(--text-secondary)] text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold w-1/4">Location / Sub-Level</th>
+                    
+                    <th 
+                      className="px-3 py-2 font-semibold cursor-pointer hover:bg-[var(--text-color)]/5 transition select-none group"
+                      onClick={() => setSortOrder(prev => prev === "ASC" ? "DESC" : "ASC")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Part No
+                        <div className="text-indigo-500 opacity-50 group-hover:opacity-100 transition-opacity">
+                          {sortOrder === "ASC" ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        </div>
+                      </div>
+                    </th>
+
+                    <th className="px-3 py-2 font-semibold">Voter Name</th>
+                    <th className="px-3 py-2 font-semibold">Father/Husband</th>
+                    <th className="px-3 py-2 font-semibold whitespace-nowrap">Gender / Age</th>
+                    <th className="px-3 py-2 font-semibold whitespace-nowrap">Voter ID</th>
+                    <th className="px-3 py-2 font-semibold">Mobile</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedVoters.map((voter: any) => (
+                    <tr key={voter.id} className="border-t border-[var(--border-color)] text-[var(--text-color)] hover:bg-[var(--text-color)]/5 transition-colors">
+                      <td className="px-3 py-2 min-w-0">
+                        <div className="font-medium text-[var(--text-color)] text-xs flex items-center gap-1.5">
+                          {/* If no sub-level is attached, it will say "Assembly Level" to avoid repeating the assembly name confusingly */}
+                          <MapPin className="w-3 h-3 text-[var(--text-secondary)]" />
+                          {voter.after_assembly_name || "Assembly Level"}
+                        </div>
+                        {voter.after_assembly_id && (
+                          <HierarchyBreadcrumb levelId={voter.after_assembly_id} />
+                        )}
+                      </td>
+                      <td className="px-3 py-2 font-medium">{voter.part_no || "-"}</td>
+                      
+                      <td className="px-3 py-2 font-medium">{getLocalizedName(voter)}</td>
+                      <td className="px-3 py-2">{getLocalizedRelative(voter)}</td>
+                      
+                      <td className="px-3 py-2 whitespace-nowrap">{voter.gender || "-"} / {voter.age || "-"}</td>
+                      <td className="px-3 py-2 whitespace-nowrap">{voter.voter_id_epic_no || "-"}</td>
+                      <td className="px-3 py-2">{voter.contact_number1 || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header Area */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-color)] flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-indigo-600" />
-            {t("markedVoters.title", "Marked Voters Summary")}
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Overview of marked voters per user across all assemblies in your current view.
-          </p>
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-[var(--text-color)] mb-1">District Marked Voters</h2>
+            <p className="text-[var(--text-secondary)] text-sm">View marked voter statistics across all assemblies in your district.</p>
+          </div>
+          
+          <div className="relative inline-flex items-center bg-gray-200 rounded-full p-1 w-max">
+             <button
+                 onClick={() => setLanguage("en")}
+                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${language === "en"
+                     ? "bg-white text-indigo-600 shadow-sm"
+                     : "text-gray-600 hover:text-gray-900"
+                     }`}
+             >
+                 English
+             </button>
+             <button
+                 onClick={() => setLanguage("hi")}
+                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${language === "hi"
+                     ? "bg-white text-indigo-600 shadow-sm"
+                     : "text-gray-600 hover:text-gray-900"
+                     }`}
+             >
+                 Native
+             </button>
+          </div>
         </div>
         
-        <div className="relative w-full sm:max-w-md">
+        <div className="relative w-full md:max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            {isFetching && searchInput ? (
-              <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
-            ) : (
-              <Search className="h-4 w-4 text-[var(--text-secondary)]" />
-            )}
+            <Search className="h-4 w-4 text-[var(--text-secondary)]" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-[var(--border-color)] rounded-lg leading-5 bg-[var(--bg-card)] text-[var(--text-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-shadow"
-            placeholder="Search by user or assembly..."
+            className="block w-full pl-10 pr-10 py-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+            placeholder="Search team member, assembly, or voter info..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput("")}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-secondary)] hover:text-[var(--text-color)] transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-200">
-          Failed to load marked voters data.
+      {groupedData.length === 0 ? (
+        <div className="text-[var(--text-secondary)] italic bg-[var(--bg-card)] p-8 text-center rounded-lg border border-[var(--border-color)]">
+          {searchInput ? "No matching voters found." : "No marked voters found in this district yet."}
         </div>
-      )}
-
-      {/* Summary Table */}
-      <div className="overflow-hidden w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] shadow-sm">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-indigo-50/50 dark:bg-gray-800/50 text-[var(--text-secondary)] text-xs uppercase border-b border-[var(--border-color)]">
-            <tr>
-              <th className="px-6 py-4 font-semibold w-1/3">Marked By</th>
-              <th className="px-6 py-4 font-semibold">Assembly</th>
-              <th className="px-6 py-4 font-semibold text-center">Marked Voters</th>
-              <th className="px-6 py-4 font-semibold text-center">Total Assembly Voters</th>
-              <th className="px-6 py-4 font-semibold">Progress</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--border-color)]">
-            {(isLoading || isFetching) ? (
-              <tr>
-                <td colSpan={5} className="text-center py-16">
-                  <div className="flex flex-col justify-center items-center space-y-3 text-indigo-600">
-                    <Loader2 className="w-8 h-8 animate-spin" />
-                    <span className="text-sm font-medium">Calculating summary...</span>
-                  </div>
-                </td>
-              </tr>
-            ) : summaryData.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-16 text-[var(--text-secondary)]">
-                  <div className="flex flex-col items-center">
-                    <Users className="w-12 h-12 opacity-20 mb-3" />
-                    <p className="text-lg font-medium text-[var(--text-color)]">No Data Found</p>
-                    <p>{debouncedSearch ? "No users match your search." : "No voters have been marked here yet."}</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              summaryData.map((row) => {
-                const percent = row.totalCount > 0 ? Math.min(100, (row.markedCount / row.totalCount) * 100) : 0;
-                
-                return (
-                  <tr key={`${row.userId}-${row.assemblyId}`} className="hover:bg-[var(--text-color)]/5 transition-colors duration-150">
-                    
-                    {/* User Name */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2  text-indigo-600 dark:bg-indigo-100 dark:text-indigo-400 rounded-lg">
-                          <Users className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-base text-[var(--text-color)]">{row.userName}</p>
-                        </div>
-                      </div>
-                    </td>
-                    
-                    {/* Assembly Name */}
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-50 dark:border-blue-800/50 dark:text-blue-700">
-                        {row.assemblyName}
-                      </span>
-                    </td>
-
-                    {/* Marked Count */}
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                        {row.markedCount.toLocaleString()}
-                      </span>
-                    </td>
-
-                    {/* Total Count */}
-                    <td className="px-6 py-4 text-center">
-                      <span className="font-medium text-[var(--text-secondary)]">
-                        {row.totalCount > 0 ? row.totalCount.toLocaleString() : "—"}
-                      </span>
-                    </td>
-
-                    {/* Progress Bar */}
-                    <td className="px-6 py-4 w-48">
-                      {row.totalCount > 0 ? (
-                        <div className="w-full flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-indigo-500 rounded-full"
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-[var(--text-secondary)] w-8 text-right">
-                            {percent.toFixed(1)}%
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-[var(--text-secondary)] italic">Awaiting Total</span>
-                      )}
-                    </td>
-
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-      
-      {!isLoading && !isFetching && summaryData.length > 0 && (
-        <div className="text-sm text-[var(--text-secondary)] text-right">
-          Showing summary for <span className="font-semibold text-[var(--text-color)]">{summaryData.length}</span> marking assignments.
+      ) : (
+        <div className="space-y-3">
+          {groupedData.map(group => (
+            <SummaryGroup 
+              key={group.key} 
+              group={group} 
+              isCurrentUser={group.userId === currentUserId} 
+            />
+          ))}
         </div>
       )}
     </div>
   );
 };
 
-export default MarkedVotersPage;
+export default AssemblyListPage;
