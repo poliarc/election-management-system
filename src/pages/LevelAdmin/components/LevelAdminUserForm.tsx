@@ -35,6 +35,8 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
     const [showPassword, setShowPassword] = React.useState(false);
     const [districts, setDistricts] = React.useState<HierarchyChild[]>([]);
     const [isLoadingDistricts, setIsLoadingDistricts] = React.useState(false);
+    const [stateLabel, setStateLabel] = React.useState("State");
+    const [districtLabel, setDistrictLabel] = React.useState("District");
     const isEditing = !!user;
 
     const {
@@ -87,6 +89,13 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
 
                 if (response.success && response.data?.children) {
                     setDistricts(response.data.children);
+                    // Set dynamic labels from API response
+                    if (response.data.parent?.location_type) {
+                        setStateLabel(response.data.parent.location_type);
+                    }
+                    if (response.data.children.length > 0 && response.data.children[0].location_type) {
+                        setDistrictLabel(response.data.children[0].location_type);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load districts:", error);
@@ -308,7 +317,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
 
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                {t("LevelAdminUserForm.State")}
+                                {stateLabel}
                             </label>
                             <input
                                 type="text"
@@ -326,7 +335,7 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                {t("LevelAdminUserForm.District")}
+                                {districtLabel}
                             </label>
                             {isLoadingDistricts ? (
                                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
@@ -335,14 +344,14 @@ export const LevelAdminUserForm: React.FC<LevelAdminUserFormProps> = ({
                             ) : (
                                 <select
                                     {...register("district_id", {
-                                        required: "District is required",
+                                        required: `${districtLabel} is required`,
                                         setValueAs: (value) => {
                                             const numValue = Number(value);
                                             return numValue === 0 || !value ? undefined : numValue;
                                         },
                                         validate: (value) => {
                                             if (!value) {
-                                                return "Please select a district";
+                                                return `Please select a ${districtLabel.toLowerCase()}`;
                                             }
                                             return true;
                                         },

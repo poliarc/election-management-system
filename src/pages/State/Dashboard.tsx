@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDashboard } from "../../hooks/useDashboard";
-import { getDashboardNavigation, getDynamicIconType, getIconSvgPath, getDynamicCardColor } from "../../utils/dashboardNavigation";
+import { getDynamicIconType, getIconSvgPath, getDynamicCardColor } from "../../utils/dashboardNavigation";
 import { useTranslation } from "react-i18next";
+import { useGetSidebarLevelsQuery } from "../../store/api/partyWiseLevelApi";
+import { useAppSelector } from "../../store/hooks";
 
 interface UserStats {
   totalUsers: number;
@@ -16,6 +18,40 @@ export default function StateOverview() {
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateName, setStateName] = useState("");
   const [partyId, setPartyId] = useState<number | null>(null);
+
+  // Get sidebar levels to resolve card titles → correct sidebar routes
+  const reduxUser = useAppSelector((s) => s.auth.user);
+  const reduxAssignment = useAppSelector((s) => s.auth.selectedAssignment);
+  const sidebarPartyId = reduxUser?.partyId || 0;
+  const sidebarStateId = reduxAssignment?.stateMasterData_id || 0;
+
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId: sidebarPartyId, stateId: sidebarStateId },
+    { skip: !sidebarPartyId || !sidebarStateId },
+  );
+
+  // Dynamic base path — same logic as StateSidebar
+  const stateBase = useMemo(() => {
+    const stateLevel = sidebarLevels.find((l) => l.level_name === "State");
+    if (stateLevel?.display_level_name) {
+      return `/${stateLevel.display_level_name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
+    }
+    return "/state";
+  }, [sidebarLevels]);
+
+  // Build a map from display_level_name slug → sidebar route
+  const cardRouteMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    sidebarLevels.forEach((level) => {
+      const displayKey = level.display_level_name.toLowerCase().replace(/\s+/g, "");
+      if (level.level_name === "District" || level.level_name === "Assembly") {
+        map[displayKey] = `${stateBase}/${displayKey}`;
+      } else {
+        map[displayKey] = `${stateBase}/dynamic-level/${level.level_name}`;
+      }
+    });
+    return map;
+  }, [sidebarLevels, stateBase]);
   const [userStats, setUserStats] = useState<UserStats>({
     totalUsers: 0,
     loading: false,
@@ -132,9 +168,18 @@ export default function StateOverview() {
 
   // Dynamic navigation function for stats cards
   const handleStatsCardClick = (title: string) => {
-    const navigationPath = getDashboardNavigation(title, 'State');
-    if (navigationPath) {
-      navigate(navigationPath);
+    // Match card title against sidebarLevels display_level_name → use exact sidebar route
+    const key = title.toLowerCase().replace(/\s+/g, "");
+    if (cardRouteMap[key]) {
+      navigate(cardRouteMap[key]);
+      return;
+    }
+    // Fallback: try partial match in case of slight naming differences
+    const fallbackEntry = Object.entries(cardRouteMap).find(([k]) =>
+      k.includes(key) || key.includes(k)
+    );
+    if (fallbackEntry) {
+      navigate(fallbackEntry[1]);
     }
   };
 
@@ -188,7 +233,7 @@ export default function StateOverview() {
       <header className="mb-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-color)]">
-            {levelInfo?.name || stateName} 
+            {levelInfo?.name || stateName} {t("stateDashboard.Title")}
           </h1>
         </div>
       </header>

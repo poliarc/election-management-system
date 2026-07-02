@@ -102,6 +102,15 @@ import DistrictBoothList from "./pages/District/booth/BoothList";
 import DistrictPollingCenterList from "./pages/District/pollingCenter/PollingCenterList";
 import StateKaryakartaListing from "./pages/State/karyakarta";
 import DynamicLevelPage from "./pages/State/DynamicLevelPage";
+import StateGeoLevelPage from "./pages/State/StateGeoLevelPage";
+import DynamicPanelRouter from "./pages/DynamicPanelRouter";
+import DynamicDashboard from "./pages/DynamicDashboard";
+import DynamicMarkedVoters from "./pages/DynamicMarkedVoters";
+import DynamicBoothManagement from "./pages/DynamicBoothManagement";
+import DynamicDynamicLevel from "./pages/DynamicDynamicLevel";
+import DynamicProfile from "./pages/DynamicProfile";
+// import DynamicAssembly from "./pages/DynamicAssembly";
+import DynamicGeoLevel from "./pages/DynamicGeoLevel";
 import DistrictDynamicLevelPage from "./pages/District/DynamicLevelPage";
 import { VisitorsPage } from "./pages/Assembly/visitors";
 import { SupportersPage, AddSupporterPage, EditSupporterPage } from "./pages/Assembly/supporters";
@@ -278,10 +287,13 @@ export default function App() {
             <Route path="booth-management" element={<StateBoothManagementDashboard />} />
             <Route path="profile" element={<StateProfile />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
+            {/* Dynamic geo-level: must be last — URL uses display_level_name slug */}
+            <Route path=":geoSlug" element={<StateGeoLevelPage />} />
           </Route>
+          {/* Legacy /district route — backward compatibility */}
           <Route path="district" element={<DistrictLayout />}>
             <Route index element={<DistrictDashboard />} />
-             <Route path="Social-Media" element={<SocialMediaManager />} />
+            <Route path="Social-Media" element={<SocialMediaManager />} />
             <Route path="marked-voters" element={<AssemblyListPage />} />
             <Route path="dashboard" element={<DistrictDashboard />} />
             <Route path="chat" element={<ChatPage />} />
@@ -293,10 +305,7 @@ export default function App() {
             <Route path="block" element={<DistrictBlock />} />
             <Route path="block/users" element={<ViewDistrictBlockUsers />} />
             <Route path="mandal" element={<DistrictMandal />} />
-            <Route
-              path="polling-center"
-              element={<DistrictPollingCenterList />}
-            />
+            <Route path="polling-center" element={<DistrictPollingCenterList />} />
             <Route path="booth" element={<DistrictBoothList />} />
             <Route path="dynamic-level/:levelName" element={<DistrictDynamicLevelPage />} />
             <Route path="karyakarta" element={<DistrictKaryakarta />} />
@@ -306,6 +315,39 @@ export default function App() {
             <Route path="booth-management" element={<DistrictBoothManagementDashboard />} />
             <Route path="profile" element={<DistrictProfile />} />
             <Route path="update-password" element={<UpdatePasswordPage />} />
+          </Route>
+          {/* Unified dynamic panel slug router — handles both State and District slugs */}          <Route path=":panelSlug" element={<DynamicPanelRouter />}>
+            <Route index element={<DynamicDashboard />} />
+            <Route path="Social-Media" element={<SocialMediaManager />} />
+            <Route path="marked-voters" element={<DynamicMarkedVoters />} />
+            <Route path="dashboard" element={<DynamicDashboard />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="search-voter" element={<VoterListPage />} />
+            <Route path="team" element={<StateTeamListing />} />
+            <Route path="districts" element={<StateDistrictsListing />} />
+            <Route path="districts/create" element={<CreateDistrict />} />
+            <Route path="districts/assign" element={<AssignDistrict />} />
+            {/* <Route path="assembly" element={<DynamicAssembly />} /> */}
+            <Route path="assembly/create" element={<CreateAssembly />} />
+            <Route path="assembly/assign" element={<AssignAssembly />} />
+            <Route path="block" element={<StateBlockListing />} />
+            <Route path="block/users" element={<ViewDistrictBlockUsers />} />
+            <Route path="mandal" element={<StateMandalListing />} />
+            <Route path="polling-center" element={<StatePollingCenterList />} />
+            <Route path="booth" element={<StateBoothList />} />
+            <Route path="dynamic-level/:levelName" element={<DynamicDynamicLevel />} />
+            <Route path="karyakarta" element={<StateKaryakartaListing />} />
+            <Route path="supporters" element={<StateSupportersPage />} />
+            <Route path="user-wise-supporters" element={<StateUserWiseSupportersPage />} />
+            <Route path="campaigns" element={<CampaignsStatePage />} />
+            <Route path="campaigns/reports" element={<CampaignReportsPage />} />
+            <Route path="booth-management" element={<DynamicBoothManagement />} />
+            <Route path="district-team" element={<DistrictTeam />} />
+            <Route path="initiatives" element={<DistrictInitiatives />} />
+            <Route path="profile" element={<DynamicProfile />} />
+            <Route path="update-password" element={<UpdatePasswordPage />} />
+            {/* Dynamic geo-level: must be last — handles Assembly slug for District, District/Assembly slug for State */}
+            <Route path=":geoSlug" element={<DynamicGeoLevel />} />
           </Route>
           <Route path="assembly" element={<AssemblyLayout />}>
             <Route index element={<AssemblyDashboard />} />

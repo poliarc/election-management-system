@@ -6,6 +6,7 @@ import type { DistrictChild } from "../../../store/api/stateMasterApi";
 import HierarchyTable from "../../../components/HierarchyTable";
 import type { HierarchyChild, HierarchyUser } from "../../../types/hierarchy";
 import { useTranslation } from "react-i18next";
+import { useGetSidebarLevelsQuery } from "../../../store/api/partyWiseLevelApi";
 
 export default function StateDistricts() {
   const { t } = useTranslation();
@@ -24,6 +25,20 @@ export default function StateDistricts() {
 
   const stateId = user?.state_id || selectedAssignment?.stateMasterData_id || 0;
   const stateName = selectedAssignment?.levelName || "";
+  const partyId = user?.partyId || 0;
+
+  // Fetch sidebar levels for dynamic display names
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    { skip: !partyId || !stateId }
+  );
+
+  const getSidebarDisplayName = (levelName: string, fallback: string) => {
+    const found = sidebarLevels.find(
+      (l) => l.level_name.toLowerCase() === levelName.toLowerCase()
+    );
+    return found?.display_level_name || fallback;
+  };
 
   // Fetch data using Redux
   const {
@@ -51,26 +66,18 @@ export default function StateDistricts() {
   const parentName = dashboardData?.data?.data?.parent?.location_name || "";
   const totalCount = dashboardData?.data?.totalCount;
 
-  const getLevelLabels = (data: any) => {
-    const parent = data?.parent;
+  // Detect actual level type names from the data (dynamic — not hardcoded "District"/"Assembly")
+  const parentLocationType = dashboardData?.data?.data?.parent?.location_type || 'State';
+  const childLocationType = dashboardData?.data?.data?.children?.[0]?.location_type
+    || allDistricts?.[0]?.levelType
+    || 'District';
 
-    const children = data?.children || [];
-
-    return {
-      stateLabel:
-        parent?.location_type === "State" ? parent.location_display_name : "",
-
-      districtLabel:
-        children.find((child: any) => child.location_type === "District")
-          ?.location_display_name || "",
-
-      assemblyLabel:
-        children.find((child: any) => child.location_type === "Assembly")
-          ?.location_display_name || "",
-    };
+  // Use sidebar API for display names
+  const levelLabels = {
+    stateLabel: getSidebarDisplayName('State', parentLocationType),
+    districtLabel: getSidebarDisplayName('District', childLocationType),
+    assemblyLabel: getSidebarDisplayName('Assembly', 'Assembly'),
   };
-
-  const levelLabels = getLevelLabels(dashboardData?.data?.data);
   
 
   // Transform DistrictChild[] to HierarchyChild[]

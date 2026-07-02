@@ -74,6 +74,15 @@ export default function DistrictDynamicLevelList({
     Record<string, any[]>
   >({});
 
+  const [levelNameDisplayMap, setLevelNameDisplayMap] = useState<Record<string, string>>({
+    State: "State",
+    District: "District",
+    Assembly: "Assembly",
+  });
+
+  const getLevelDisplayName = (level: string) =>
+    levelNameDisplayMap[level] || level;
+
   // State for parent information
   const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
 
@@ -130,15 +139,24 @@ export default function DistrictDynamicLevelList({
     if (sidebarLevels && sidebarLevels.length > 0) {
       // Extract level names from API response and create hierarchy order
       const apiHierarchy = ["State", "District", "Assembly"]; // Always start with these
+      const displayMap: Record<string, string> = {
+        State: "State",
+        District: "District",
+        Assembly: "Assembly",
+      };
 
       // Add levels from API response in order
       sidebarLevels.forEach((level: any) => {
         if (level.level_name && !apiHierarchy.includes(level.level_name)) {
           apiHierarchy.push(level.level_name);
         }
+        if (level.level_name) {
+          displayMap[level.level_name] = level.display_level_name || level.level_name;
+        }
       });
 
       setHierarchyOrder(apiHierarchy);
+      setLevelNameDisplayMap(displayMap);
     }
   }, [sidebarLevels]);
 
@@ -692,8 +710,7 @@ export default function DistrictDynamicLevelList({
                   {displayLevelName} {t("DistrictDynamic.List")}
                 </h1>
                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                  {t("DistrictDynamic.District")}: {districtInfo.districtName} | {t("DistrictDynamic.State")}:{" "}
-                  {districtInfo.stateName}
+                  {getLevelDisplayName("District")} : {districtInfo.districtName} | {getLevelDisplayName("State")} : {districtInfo.stateName}
                 </p>
               </div>
 
@@ -863,7 +880,7 @@ export default function DistrictDynamicLevelList({
               {/* District Filter - Always shown and disabled (current context) */}
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  {t("DistrictDynamic.District")}
+                  {getLevelDisplayName("District")}
                 </label>
                 <input
                   type="text"
@@ -889,7 +906,7 @@ export default function DistrictDynamicLevelList({
                 return (
                   <div key={filterLevel}>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                      {filterLevel}
+                      {getLevelDisplayName(filterLevel)}
                     </label>
                     <select
                       value={selectedId}
@@ -899,7 +916,7 @@ export default function DistrictDynamicLevelList({
                       disabled={!isPreviousSelected}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
-                      <option value={0}>All {filterLevel}s</option>
+                      <option value={0}>All {getLevelDisplayName(filterLevel)}s</option>
                       {filterData.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.displayName || item.location_name || item.name}
@@ -1046,12 +1063,14 @@ export default function DistrictDynamicLevelList({
                                   : null;
 
                                 if (parent && parent.levelName) {
-                                  return parent.levelName;
+                                  return getLevelDisplayName(parent.levelName);
                                 }
 
                                 // Try to get parent level from item's parentLevelType
                                 if (firstItem.parentLevelType) {
-                                  return firstItem.parentLevelType;
+                                  return getLevelDisplayName(
+                                    firstItem.parentLevelType
+                                  );
                                 }
                               }
 
@@ -1059,13 +1078,15 @@ export default function DistrictDynamicLevelList({
                               const currentLevelIndex =
                                 hierarchyOrder.indexOf(levelName);
                               if (currentLevelIndex > 0) {
-                                return hierarchyOrder[currentLevelIndex - 1];
+                                return getLevelDisplayName(
+                                  hierarchyOrder[currentLevelIndex - 1]
+                                );
                               }
 
                               // Fallback to last visible filter
-                              return (
+                              return getLevelDisplayName(
                                 visibleFilters[visibleFilters.length - 1] ||
-                                "Parent"
+                                  "Parent"
                               );
                             })()}
                           </th>

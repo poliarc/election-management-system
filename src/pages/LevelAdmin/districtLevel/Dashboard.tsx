@@ -96,7 +96,7 @@ export default function DistrictLevelDashboard() {
                         <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.display_level_name || currentPanel.metadata?.stateLevelType}</p>
                     </div>
                     <div>
-                        <p className="text-sm text-[var(--text-secondary)]">{t("DistrictLevelDashboard.State")}</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{levelInfo?.state_level_type || t("DistrictLevelDashboard.State")}</p>
                         <p className="text-lg font-semibold text-[var(--text-color)]">{levelInfo?.state_name || currentPanel.metadata?.stateName}</p>
                     </div>
                     <div>

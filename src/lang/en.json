@@ -1,6 +1,7 @@
 {
     "stateDashboard": {
         "Users": "Users",
+        "Title": "Dashboard",
         "User_Statistics": "User Distribution by Level",
         "User_Level": "By Level",
         "Assigned_Users": "Assigned Users",
@@ -395,7 +396,7 @@
         "Close": "Close"
     },
     "districtDash": {
-        "Title": "District Dashboard",
+        "Title": "Dashboard",
         "User_Distribution_Level": "User Distribution by Level",
         "By_Level": "By Level",
         "Assign_Users": "Assign Users",
@@ -627,7 +628,7 @@
         "Error": "Error",
         "No_Data_Available": "No Data Available",
         "No_hierarchy_levels": "No hierarchy levels have been set up yet for this assembly.",
-        "Assembly_Dashboard": "Assembly Dashboard",
+        "Assembly_Dashboard": "Dashboard",
         "User_Distribution_by_Level": "User Distribution by Level",
         "Level_Activity_Overview": "Level Activity Overview",
         "Total_Locations": "Total Locations",

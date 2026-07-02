@@ -102,7 +102,9 @@ export const LevelAdminCreateUser: React.FC = () => {
       district_id: user.district_id ?? undefined,
       partyName: user.partyName,
       stateName: user.stateName,
+      stateType: (user as any).stateType as string | undefined,
       districtName: user.districtName ?? undefined,
+      districtType: (user as any).districtType as string | undefined,
       isActive: Boolean(user.isActive),
       created_at: new Date().toISOString(),
     }));

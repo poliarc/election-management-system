@@ -11,7 +11,9 @@ export type User = {
   partyName?: string;
   role?: string;
   stateName?: string;
+  stateType?: string;
   districtName?: string;
+  districtType?: string;
   isActive: boolean;
   created_at: string;
   last_login_time?: string;

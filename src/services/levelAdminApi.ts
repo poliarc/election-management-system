@@ -24,7 +24,9 @@ export interface User {
   district_id: number | null;
   partyName: string;
   stateName: string;
+  stateType?: string;
   districtName: string | null;
+  districtType?: string;
   isActive: number;
   isSuperAdmin?: number | boolean;
 }

@@ -13,7 +13,14 @@ export default function RoleRedirect() {
   }
 
   // Check for dynamic level assignments (after-assembly levels)
+  const hasLevelsByType = permissions?.accessibleLevelsByType &&
+    typeof permissions.accessibleLevelsByType === 'object' &&
+    Object.values(permissions.accessibleLevelsByType).some(
+      (arr) => Array.isArray(arr) && arr.length > 0
+    );
+
   const hasDynamicLevelAssignments = permissions && (
+    hasLevelsByType ||
     (permissions.accessibleBlocks && permissions.accessibleBlocks.length > 0) ||
     (permissions.accessibleMandals && permissions.accessibleMandals.length > 0) ||
     (permissions.accessiblePollingCenters && permissions.accessiblePollingCenters.length > 0) ||

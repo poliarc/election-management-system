@@ -77,6 +77,7 @@ const createEmptySelector = (): SelectorState => ({
 const convertHierarchySelectionsToSelectors = (
   selections?: CampaignHierarchyScopeSelection[],
   afterAssemblyHierarchy?: AfterAssemblyHierarchyNode[],
+  stateHierarchyNodes?: StateHierarchyNode[],
 ): SelectorState[] => {
   if (!selections || selections.length === 0) {
     return [createEmptySelector()];
@@ -113,22 +114,30 @@ const convertHierarchySelectionsToSelectors = (
     }
 
     const idString = String(selection.hierarchy_id);
-    const normalizedLevel = selection.hierarchy_level_type
-      ? selection.hierarchy_level_type.replace(/\s+/g, "_").toUpperCase()
-      : null;
 
-    // Handle stateMasterData (District, Assembly)
+    // Handle stateMasterData (District = level 1, Assembly = level 2)
     if (selection.hierarchy_type === "stateMasterData") {
-      switch (normalizedLevel) {
-        case "DISTRICT":
+      // Use stateHierarchyNodes level field for dynamic detection
+      const node = stateHierarchyNodes?.find((n) => n.id === selection.hierarchy_id);
+      if (node) {
+        if (node.level === 1) {
           pushIfMissing(selector.district_ids, idString);
-          break;
-        case "ASSEMBLY":
+        } else if (node.level === 2) {
           pushIfMissing(selector.assembly_ids, idString);
-          break;
-        default:
-          // Fallback: if no level type, assume district
+        } else {
+          // Fallback: assume district
           pushIfMissing(selector.district_ids, idString);
+        }
+      } else {
+        // Fallback: use normalized level type string matching
+        const normalizedLevel = selection.hierarchy_level_type
+          ? selection.hierarchy_level_type.replace(/\s+/g, "_").toUpperCase()
+          : null;
+        if (normalizedLevel === "ASSEMBLY") {
+          pushIfMissing(selector.assembly_ids, idString);
+        } else {
+          pushIfMissing(selector.district_ids, idString);
+        }
       }
     }
     // Handle afterAssemblyData (Mandal, Block, PollingCenter, etc.)
@@ -151,6 +160,9 @@ const convertHierarchySelectionsToSelectors = (
       }
 
       // Also populate legacy fields for backward compatibility
+      const normalizedLevel = selection.hierarchy_level_type
+        ? selection.hierarchy_level_type.replace(/\s+/g, "_").toUpperCase()
+        : null;
       switch (normalizedLevel) {
         case "BLOCK":
           pushIfMissing(selector.block_ids, idString);
@@ -304,6 +316,18 @@ export const CampaignForm = ({
     () => hierarchy?.stateHierarchy ?? [],
     [hierarchy],
   );
+
+  // Dynamically detect the levelType names for district (level=1) and assembly (level=2)
+  const districtLevelTypeName = React.useMemo(() => {
+    const node = stateHierarchy.find((n) => n.level === 1);
+    return node?.levelType ?? "District";
+  }, [stateHierarchy]);
+
+  const assemblyLevelTypeName = React.useMemo(() => {
+    const node = stateHierarchy.find((n) => n.level === 2);
+    return node?.levelType ?? "Assembly";
+  }, [stateHierarchy]);
+
   const districtsData = React.useMemo(() => {
     // For District-level users, we need to fetch districts under the parent state (parentId)
     // For State-level users, fetch districts under their state (stateId)
@@ -313,7 +337,7 @@ export const CampaignForm = ({
         : stateId;
 
     const allDistricts = stateHierarchy.filter(
-      (n) => n.levelType === "District" && n.ParentId === parentStateId,
+      (n) => n.level === 1 && n.ParentId === parentStateId,
     );
 
     // If user is at District level, only show their own district (stateMasterData_id)
@@ -350,7 +374,7 @@ export const CampaignForm = ({
   const assembliesByDistrict = React.useCallback(
     (districtId: string) =>
       stateHierarchy.filter(
-        (n) => n.levelType === "Assembly" && n.ParentId === Number(districtId),
+        (n) => n.level === 2 && n.ParentId === Number(districtId),
       ),
     [stateHierarchy],
   );
@@ -630,6 +654,7 @@ export const CampaignForm = ({
       convertHierarchySelectionsToSelectors(
         initialData.hierarchy_selections,
         afterAssemblyHierarchy,
+        stateHierarchy,
       ),
     );
   }, [initialData, afterAssemblyHierarchy]);
@@ -778,10 +803,10 @@ export const CampaignForm = ({
     const targetScopes: { levelType: string; level_id: string }[] = [];
     districtSelectors.forEach((selector) => {
       selector.district_ids.forEach((id) => {
-        targetScopes.push({ levelType: "DISTRICT", level_id: id });
+        targetScopes.push({ levelType: districtLevelTypeName.toUpperCase(), level_id: id });
       });
       selector.assembly_ids.forEach((id) => {
-        targetScopes.push({ levelType: "ASSEMBLY", level_id: id });
+        targetScopes.push({ levelType: assemblyLevelTypeName.toUpperCase(), level_id: id });
       });
       // New dynamic fields - determine level type from hierarchy data
       selector.assembly_child_ids.forEach((id) => {
@@ -1062,7 +1087,7 @@ export const CampaignForm = ({
                       userLevelType !== "Assembly" && (
                         <div className="relative ">
                           <label className="block text-sm font-medium  text-[var(--text-secondary)] mb-2">
-                            {t("stateCampaign.District")} (
+                            {districtLevelTypeName} (
                             {sel.district_ids.length})
                           </label>
                           <button
@@ -1174,7 +1199,7 @@ export const CampaignForm = ({
                     {userLevelType !== "Assembly" && (
                       <div className="relative">
                         <label className="block text-sm font-medium  text-[var(--text-secondary)] mb-2">
-                          {t("stateCampaign.Assembly")} (
+                          {assemblyLevelTypeName} (
                           {sel.assembly_ids.length})
                         </label>
                         <button

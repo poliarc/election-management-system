@@ -60,7 +60,7 @@ export interface Campaign {
 export interface StateHierarchyNode {
   id: number;
   levelName: string; // e.g., Assam, Bajali, Abhayapuri
-  levelType: "State" | "District" | "Assembly";
+  levelType: string; // e.g., "State", "District", "Assembly", or custom types like "testDistrict"
   ParentId: number | null;
   level: number; // 0 state, 1 district, 2 assembly
 }

@@ -27,6 +27,11 @@ export const UserList: React.FC<UserListProps> = ({
   onViewContact,
 }) => {
   const [openUserId, setOpenUserId] = useState<number | null>(null);
+
+  // Derive dynamic column header from first user's type fields
+  const stateColHeader = users[0]?.stateType || "State";
+  const districtColHeader = users[0]?.districtType || "District";
+  const stateDistrictHeader = `${stateColHeader} & ${districtColHeader}`;
   if (isLoading) {
     return (
       <div className="bg-[var(--bg-card)] rounded-lg shadow-md overflow-hidden">
@@ -153,7 +158,7 @@ export const UserList: React.FC<UserListProps> = ({
                 User ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                State & District
+                {stateDistrictHeader}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 User Name

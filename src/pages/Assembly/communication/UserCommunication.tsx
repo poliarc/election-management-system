@@ -682,10 +682,10 @@ const {
                             />
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            {t("userCommunication.thState")}
+                            {users[0]?.stateType || t("userCommunication.thState")}
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            {t("userCommunication.thDistrict")}
+                            {users[0]?.districtType || t("userCommunication.thDistrict")}
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {t("userCommunication.thName")}

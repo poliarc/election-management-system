@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import {
   useUpdateSupporterMutation,
   useGetHierarchyQuery
 } from '../../../store/api/supportersApi';
+import { useGetSidebarLevelsQuery } from '../../../store/api/partyWiseLevelApi';
 import { useAppSelector } from '../../../store/hooks';
 import type { UpdateSupporterRequest } from '../../../types/supporter';
 
@@ -287,22 +288,71 @@ export default function EditSupporterPage() {
   // Get blocks, mandals, and booths from afterAssemblyHierarchy
   const afterAssemblyData = hierarchyData?.data?.afterAssemblyHierarchy || [];
 
-  // Filter blocks under the selected assembly
-  const blocks = afterAssemblyData.filter(h =>
-    h.levelName === 'Block' && h.parentAssemblyId === formData.assembly_id
+  // Fetch sidebar levels for dynamic display names
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId: formData.party_id, stateId: formData.state_id },
+    { skip: !formData.party_id || !formData.state_id }
+  );
+
+  const getSidebarDisplayName = (levelName: string, fallback: string) => {
+    const found = sidebarLevels.find(
+      (l) => l.level_name.toLowerCase() === levelName.toLowerCase()
+    );
+    return found ? found.display_level_name : fallback;
+  };
+
+  // Dynamically detect depth-based level names from afterAssemblyHierarchy
+  const afterAssemblyLevelNames = useMemo(() => {
+    const depthMap = new Map<number, string>();
+    const nodeMap = new Map<number, any>();
+    afterAssemblyData.forEach((n: any) => nodeMap.set(n.id, n));
+
+    const getDepth = (node: any): number => {
+      if (node.parentId === null) return 0;
+      const parent = nodeMap.get(node.parentId);
+      return parent ? getDepth(parent) + 1 : 0;
+    };
+
+    afterAssemblyData.forEach((node: any) => {
+      const depth = getDepth(node);
+      if (!depthMap.has(depth) && node.levelName) {
+        depthMap.set(depth, node.levelName);
+      }
+    });
+
+    return {
+      depth0: depthMap.get(0) || null,
+      depth1: depthMap.get(1) || null,
+      depth2: depthMap.get(2) || null,
+    };
+  }, [afterAssemblyData]);
+
+  const level0DisplayName = afterAssemblyLevelNames.depth0
+    ? getSidebarDisplayName(afterAssemblyLevelNames.depth0, afterAssemblyLevelNames.depth0)
+    : 'Block';
+  const level1DisplayName = afterAssemblyLevelNames.depth1
+    ? getSidebarDisplayName(afterAssemblyLevelNames.depth1, afterAssemblyLevelNames.depth1)
+    : 'Mandal';
+  const level2DisplayName = afterAssemblyLevelNames.depth2
+    ? getSidebarDisplayName(afterAssemblyLevelNames.depth2, afterAssemblyLevelNames.depth2)
+    : 'Booth';
+
+  // Filter depth-0 nodes (parentId === null) under selected assembly
+  const blocks = afterAssemblyData.filter((h: any) =>
+    h.parentId === null && h.parentAssemblyId === formData.assembly_id
   ) || [];
 
-  // Filter mandals under the selected block or assembly
-  const mandals = afterAssemblyData.filter(h =>
-    h.levelName === 'Mandal' && (
+  // Filter depth-1 nodes: children of selected block
+  const mandals = afterAssemblyData.filter((h: any) =>
+    h.parentId !== null && (
       h.parentId === formData.block_id ||
-      (h.parentAssemblyId === formData.assembly_id && !formData.block_id)
+      (formData.block_id === 0 && afterAssemblyData.some((p: any) => p.id === h.parentId && p.parentId === null && p.parentAssemblyId === formData.assembly_id))
     )
   ) || [];
 
-  // Filter booths under the selected mandal
-  const booths = afterAssemblyData.filter(h =>
-    h.levelName === 'Booth' && h.parentId === formData.mandal_id
+  // Filter depth-2 nodes: children of selected mandal
+  const booths = afterAssemblyData.filter((h: any) =>
+    h.parentId === formData.mandal_id && formData.mandal_id !== 0
   ) || [];
 
   // Check if dropdowns should be enabled - Always enable when not loading
@@ -837,7 +887,7 @@ export default function EditSupporterPage() {
               <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Location Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">State</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{getSidebarDisplayName('State', 'State')}</label>
                   <input
                     type="text"
                     value={supporter?.state_name || ''}
@@ -846,7 +896,7 @@ export default function EditSupporterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">District</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{getSidebarDisplayName('District', 'District')}</label>
                   <input
                     type="text"
                     value={supporter?.district_name || ''}
@@ -855,7 +905,7 @@ export default function EditSupporterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Assembly</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{getSidebarDisplayName('Assembly', 'Assembly')}</label>
                   <input
                     type="text"
                     value={supporter?.assembly_name || ''}
@@ -864,10 +914,10 @@ export default function EditSupporterPage() {
                   />
                 </div>
 
-                {/* Block Dropdown */}
+                {/* Level-0 After Assembly Dropdown */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Block
+                    {level0DisplayName}
                   </label>
                   <select
                     name="block_id"
@@ -875,72 +925,76 @@ export default function EditSupporterPage() {
                     onChange={handleInputChange}
                     disabled={!isBlockDropdownEnabled}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("editSupporter.lblBlock")}
-                    title={t("editSupporter.lblBlock")}
+                    aria-label={level0DisplayName}
+                    title={level0DisplayName}
                     data-testid="block_id"
                   >
-                    <option value={0}>Select Block</option>
-                    {blocks.map((block) => (
+                    <option value={0}>Select {level0DisplayName}</option>
+                    {blocks.map((block: any) => (
                       <option key={block.id} value={block.id}>
                         {block.displayName || block.levelName}
                       </option>
                     ))}
                   </select>
-                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading blocks...</p>}
-                  {hierarchyData && blocks.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No blocks available</p>}
+                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading {level0DisplayName}...</p>}
+                  {hierarchyData && blocks.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No {level0DisplayName} available</p>}
                 </div>
 
-                {/* Mandal Dropdown - Optional */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Mandal <span className="text-[var(--text-secondary)]">(Optional)</span>
-                  </label>
-                  <select
-                    name="mandal_id"
-                    value={formData.mandal_id}
-                    onChange={handleInputChange}
-                    disabled={!isMandalDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("editSupporter.lblMandalOptional")}
-                    title={t("editSupporter.lblMandalOptional")}
-                    data-testid="mandal_id"
-                  >
-                    <option value={0}>Select Mandal</option>
-                    {mandals.map((mandal) => (
-                      <option key={mandal.id} value={mandal.id}>
-                        {mandal.displayName || mandal.levelName}
-                      </option>
-                    ))}
-                  </select>
-                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading mandals...</p>}
-                  {hierarchyData && mandals.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No mandals available</p>}
-                </div>
+                {/* Level-1 After Assembly Dropdown - Optional */}
+                {afterAssemblyLevelNames.depth1 && (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      {level1DisplayName} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                    </label>
+                    <select
+                      name="mandal_id"
+                      value={formData.mandal_id}
+                      onChange={handleInputChange}
+                      disabled={!isMandalDropdownEnabled}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                      aria-label={level1DisplayName}
+                      title={level1DisplayName}
+                      data-testid="mandal_id"
+                    >
+                      <option value={0}>Select {level1DisplayName}</option>
+                      {mandals.map((mandal: any) => (
+                        <option key={mandal.id} value={mandal.id}>
+                          {mandal.displayName || mandal.levelName}
+                        </option>
+                      ))}
+                    </select>
+                    {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading {level1DisplayName}...</p>}
+                    {hierarchyData && mandals.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No {level1DisplayName} available</p>}
+                  </div>
+                )}
 
-                {/* Booth Dropdown - Optional */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Booth <span className="text-[var(--text-secondary)]">(Optional)</span>
-                  </label>
-                  <select
-                    name="booth_id"
-                    value={formData.booth_id}
-                    onChange={handleInputChange}
-                    disabled={!isBoothDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("editSupporter.lblBoothOptional")}
-                    title={t("editSupporter.lblBoothOptional")}
-                    data-testid="booth_id"
-                  >
-                    <option value={0}>Select Booth</option>
-                    {booths.map((booth) => (
-                      <option key={booth.id} value={booth.id}>
-                        {booth.displayName || booth.levelName}
-                      </option>
-                    ))}
-                  </select>
-                  {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading booths...</p>}
-                  {hierarchyData && booths.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available</p>}
-                </div>
+                {/* Level-2 After Assembly Dropdown - Optional */}
+                {afterAssemblyLevelNames.depth2 && (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      {level2DisplayName} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                    </label>
+                    <select
+                      name="booth_id"
+                      value={formData.booth_id}
+                      onChange={handleInputChange}
+                      disabled={!isBoothDropdownEnabled}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                      aria-label={level2DisplayName}
+                      title={level2DisplayName}
+                      data-testid="booth_id"
+                    >
+                      <option value={0}>Select {level2DisplayName}</option>
+                      {booths.map((booth: any) => (
+                        <option key={booth.id} value={booth.id}>
+                          {booth.displayName || booth.levelName}
+                        </option>
+                      ))}
+                    </select>
+                    {!hierarchyData && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading {level2DisplayName}...</p>}
+                    {hierarchyData && booths.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No {level2DisplayName} available</p>}
+                  </div>
+                )}
               </div>
             </div>
 

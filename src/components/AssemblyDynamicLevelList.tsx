@@ -175,8 +175,33 @@ export default function AssemblyDynamicLevelList({
     // State for dynamic hierarchy order (actual parent-child chain for current level)
     const [actualHierarchyChain, setActualHierarchyChain] = useState<string[]>([]);
 
+    const [levelNameDisplayMap, setLevelNameDisplayMap] = useState<Record<string, string>>({
+        Assembly: "Assembly",
+        District: "District",
+    });
+
+    const getLevelDisplayName = (level: string) =>
+        levelNameDisplayMap[level] || level;
+
     // State for parent information
     const [parentInfo, setParentInfo] = useState<Record<number, any>>({});
+
+    useEffect(() => {
+        if (sidebarLevels && sidebarLevels.length > 0) {
+            const displayMap: Record<string, string> = {
+                Assembly: "Assembly",
+                District: "District",
+            };
+
+            sidebarLevels.forEach((level) => {
+                if (level.level_name) {
+                    displayMap[level.level_name] = level.display_level_name || level.level_name;
+                }
+            });
+
+            setLevelNameDisplayMap(displayMap);
+        }
+    }, [sidebarLevels]);
 
     const selectedAssignment = useSelector(
         (state: RootState) => state.auth.selectedAssignment
@@ -1140,7 +1165,7 @@ export default function AssemblyDynamicLevelList({
                                     {displayLevelName} {t("AssemblyDynamic.List")}
                                 </h1>
                                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                                    {t("AssemblyDynamic.Assembly")}: {assemblyInfo.assemblyName} | {t("AssemblyDynamic.District")}: {assemblyInfo.districtName}
+                                    {getLevelDisplayName("Assembly")}: {assemblyInfo.assemblyName} | {getLevelDisplayName("District")}: {assemblyInfo.districtName}
                                 </p>
                             </div>
 
@@ -1299,7 +1324,7 @@ export default function AssemblyDynamicLevelList({
                             {/* Assembly Filter - Always shown and disabled (current context) */}
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {t("AssemblyDynamic.Assembly")}
+                                    {getLevelDisplayName("Assembly")}
                                 </label>
                                 <input
                                     type="text"
@@ -1323,7 +1348,7 @@ export default function AssemblyDynamicLevelList({
                                     return (
                                         <div key={filterLevel}>
                                             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                                {filterLevel}
+                                                {getLevelDisplayName(filterLevel)}
                                             </label>
                                             <select
                                                 value={currentValue}
@@ -1331,7 +1356,7 @@ export default function AssemblyDynamicLevelList({
                                                 disabled={isDisabled}
                                                 className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                             >
-                                                <option value={0}>{t("AssemblyDynamic.All")} {filterLevel}s</option>
+                                                <option value={0}>{t("AssemblyDynamic.All")} {getLevelDisplayName(filterLevel)}s</option>
                                                 {filterItems.map((item: any) => (
                                                     <option key={item.id} value={item.id}>
                                                         {item.displayName}
@@ -1471,7 +1496,7 @@ export default function AssemblyDynamicLevelList({
                                                     </th>
                                                     {/* Show Assembly column always */}
                                                     <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                                                        {t("AssemblyDynamic.Assembly")}
+                                                        {getLevelDisplayName("Assembly")}
                                                     </th>
                                                     {/* Dynamic parent level columns - show all levels in hierarchy */}
                                                     {effectiveVisibleFilters.map((filterLevel) => {
@@ -1490,7 +1515,7 @@ export default function AssemblyDynamicLevelList({
                                                                 className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider cursor-pointer select-none"
                                                             >
                                                                 <span className="inline-flex items-center gap-1">
-                                                                    {filterLevel}
+                                                                    {getLevelDisplayName(filterLevel)}
                                                                     <span>{sortIcon}</span>
                                                                 </span>
                                                             </th>

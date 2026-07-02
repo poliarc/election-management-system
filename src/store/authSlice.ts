@@ -7,6 +7,7 @@ import type {
 import type { LoginResponseData, StateAssignment } from "../types/api";
 import { storage } from "../utils/storage";
 import { isTokenValid } from "../utils/tokenValidator";
+import { normalizeFixedLevelAssignment } from "../utils/panelHelpers";
 import * as authApi from "../services/authApi";
 
 // Try to restore auth state from localStorage
@@ -90,9 +91,16 @@ const ensureSelectedAssignmentPartyLevelId = (
 
 const restoredStateAssignments = isValidToken ? (savedAuthState?.stateAssignments || []) : [];
 const restoredPermissions = isValidToken ? (savedAuthState?.permissions || null) : null;
-const restoredSelectedAssignment = isValidToken ?
-  ensureSelectedAssignmentPartyLevelId(savedAuthState?.selectedAssignment || null, restoredStateAssignments, restoredPermissions) :
-  null;
+const restoredSelectedAssignment = isValidToken
+  ? (() => {
+      const ensured = ensureSelectedAssignmentPartyLevelId(
+        savedAuthState?.selectedAssignment || null,
+        restoredStateAssignments,
+        restoredPermissions
+      );
+      return ensured ? normalizeFixedLevelAssignment(ensured, savedAuthState?.levelAdminPanels || []) : null;
+    })()
+  : null;
 
 const initialState: AuthState = {
   user: isValidToken ? (savedAuthState?.user || storage.getUser()) : null,
@@ -184,6 +192,7 @@ const authSlice = createSlice({
 
       // Store permissions
       state.permissions = data.permissions;
+      state.selectedAssignment = null;
 
       // Persist to storage
       storage.setToken('access', data.accessToken);
@@ -224,7 +233,7 @@ const authSlice = createSlice({
       storage.clearAuthState();
     },
     setSelectedAssignment: (state, action: PayloadAction<StateAssignment>) => {
-      let assignment = action.payload;
+      let assignment = normalizeFixedLevelAssignment(action.payload, state.levelAdminPanels);
 
       // Ensure partyLevelId is populated from stateAssignments or permissions if missing
       // This handles cases where some assignments from API don't have partyLevelId
@@ -381,6 +390,7 @@ const authSlice = createSlice({
 
           // Store permissions
           state.permissions = data.permissions;
+          state.selectedAssignment = null;
 
           // Persist to storage (tokens and user for backward compatibility)
           storage.setToken('access', data.accessToken);

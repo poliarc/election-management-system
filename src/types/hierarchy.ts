@@ -16,22 +16,29 @@ export interface HierarchyUser {
   };
   party_name: string;
   user_state: string;
+  user_state_type?: string;
   user_district: string;
+  user_district_type?: string;
+  assigned_location?: {
+    location_id: number;
+    location_name: string;
+    location_type: string;
+  };
   party_id: number;
   is_active: boolean;
   assignment_active: boolean;
   assigned_at: string;
   assignment_updated_at: string;
   user_created_at: string;
-  role?: string; // Designation/Role field
-  role_name?: string; // Role name from API
+  role?: string;
+  role_name?: string;
   contact_no?: string;
   phone?: string;
   designation?: string;
   partyName?: string;
   status?: string | number | boolean;
   active?: boolean;
-  user_active?: number | boolean | string; // Common field variation
+  user_active?: number | boolean | string;
 }
 
 export interface HierarchyChild {

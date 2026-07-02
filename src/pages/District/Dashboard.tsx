@@ -1,13 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store";
 import { useDashboard } from "../../hooks/useDashboard";
 import {
-  getDashboardNavigation,
   getDynamicIconType,
   getIconSvgPath,
   getDynamicCardColor,
 } from "../../utils/dashboardNavigation";
 import { useTranslation } from "react-i18next";
+import { useGetSidebarLevelsQuery } from "../../store/api/partyWiseLevelApi";
+import { toDistrictSlug } from "./DistrictDynamicLayout";
 
 interface UserStats {
   totalUsers: number;
@@ -16,8 +19,11 @@ interface UserStats {
 }
 
 export default function DistrictDashboard() {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const selectedAssignment = useSelector(
+    (state: RootState) => state.auth.selectedAssignment
+  );
   const [districtId, setDistrictId] = useState<number | null>(null);
   const [stateId, setStateId] = useState<number | null>(null);
   const [partyId, setPartyId] = useState<number | null>(null);
@@ -142,11 +148,63 @@ export default function DistrictDashboard() {
     level_type: "District",
   });
 
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId: partyId || 0, stateId: stateId || 0 },
+    { skip: !partyId || !stateId }
+  );
+
+  const displayNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    sidebarLevels.forEach((level) => {
+      map.set(level.level_name, level.display_level_name);
+    });
+    return map;
+  }, [sidebarLevels]);
+
+  const headerLevelName = useMemo(() => {
+    const fallbackName = selectedAssignment?.displayName || selectedAssignment?.levelName || districtName || levelInfo?.name || "District";
+    return displayNameMap.get(fallbackName) || fallbackName;
+  }, [selectedAssignment?.displayName, selectedAssignment?.levelName, districtName, levelInfo?.name, displayNameMap]);
+
+  // Build route map from sidebarLevels display_level_name → actual sidebar route
+  // Mirrors exactly what DistrictSidebar does in dynamicDistrictItems & dynamicListItems
+  // Dynamic base path — same logic as DistrictSidebar
+  const districtBase = useMemo(() => {
+    const districtLevel = sidebarLevels.find((l) => l.level_name === "District");
+    if (districtLevel?.display_level_name) {
+      return `/${toDistrictSlug(districtLevel.display_level_name)}`;
+    }
+    return "/district";
+  }, [sidebarLevels]);
+
+  // Build route map from sidebarLevels display_level_name → actual sidebar route
+  const cardRouteMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    sidebarLevels.forEach((level) => {
+      const key = level.display_level_name.toLowerCase().replace(/\s+/g, "");
+      if (level.level_name === "Assembly") {
+        // URL uses slugified display_level_name — mirrors DistrictSidebar dynamicDistrictItems
+        map[key] = `${districtBase}/${key}`;
+      } else if (!["State", "District"].includes(level.level_name)) {
+        map[key] = `${districtBase}/dynamic-level/${level.level_name.toLowerCase()}`;
+      }
+    });
+    return map;
+  }, [sidebarLevels, districtBase]);
+
   // Dynamic navigation function for stats cards
   const handleStatsCardClick = (title: string) => {
-    const navigationPath = getDashboardNavigation(title, "District");
-    if (navigationPath) {
-      navigate(navigationPath);
+    const key = title.toLowerCase().replace(/\s+/g, "");
+    if (cardRouteMap[key]) {
+      navigate(cardRouteMap[key]);
+      return;
+    }
+    // Fallback: partial match
+    const fallback = Object.entries(cardRouteMap).find(
+      ([k]) => k.includes(key) || key.includes(k)
+    );
+    if (fallback) {
+      navigate(fallback[1]);
     }
   };
 
@@ -218,7 +276,7 @@ export default function DistrictDashboard() {
       <header className="mb-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-color)]">
-            {levelInfo?.name || districtName} {t("districtDash.Title")}
+            {headerLevelName} {levelInfo?.name} {t("districtDash.Title")}
           </h1>
         </div>
       </header>

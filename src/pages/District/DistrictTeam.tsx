@@ -262,6 +262,10 @@ export default function DistrictTeam() {
     );
   }
 
+  // Derive dynamic column headers from first user's type fields
+  const stateColHeader = districtData.users[0]?.user_state_type || "State";
+  const districtColHeader = districtData.users[0]?.user_district_type || districtData.location.location_type || "District";
+
   return (
     <div className="p-2 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
@@ -401,10 +405,10 @@ export default function DistrictTeam() {
                   {t("districtTeam.User_ID")}
                 </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[100px]">
-                  {t("districtTeam.State_Name")}
+                  {stateColHeader}
                 </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">
-                  {t("districtTeam.District_Name")}
+                  {districtColHeader}
                 </th>
                 <th className="px-2 sm:px-3 lg:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[100px]">
                   {t("districtTeam.Designation")}

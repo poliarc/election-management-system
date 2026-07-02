@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
+import { useMemo } from 'react';
 import type { RootState } from '../../store';
 import { useDashboard } from "../../hooks/useDashboard";
 import { getDashboardNavigation, getDynamicIconType, getIconSvgPath, getDynamicCardColor } from "../../utils/dashboardNavigation";
 import { useTranslation } from "react-i18next";
+import { useGetSidebarLevelsQuery } from "../../store/api/partyWiseLevelApi";
 
 export default function AssemblyDashboard() {
     const navigate = useNavigate();
@@ -26,6 +28,27 @@ export default function AssemblyDashboard() {
         level_id: assemblyId || undefined,
         level_type: 'Assembly',
     });
+
+    // Fetch sidebar levels for dynamic display names
+    const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+        { partyId: partyId || 0, stateId: stateId || 0 },
+        { skip: !partyId || !stateId }
+    );
+
+    // Create display name mapping from level_name to display_level_name
+    const displayNameMap = useMemo(() => {
+        const map = new Map<string, string>();
+        sidebarLevels.forEach(level => {
+            map.set(level.level_name, level.display_level_name);
+        });
+        return map;
+    }, [sidebarLevels]);
+
+    // Get dynamic level name for header
+    const headerLevelName = useMemo(() => {
+        const fallbackName = selectedAssignment?.displayName || selectedAssignment?.levelName || assemblyName || levelInfo?.name || "Assembly";
+        return displayNameMap.get(fallbackName) || fallbackName;
+    }, [selectedAssignment?.displayName, selectedAssignment?.levelName, assemblyName, levelInfo?.name, displayNameMap]);
 
     // Dynamic navigation function for stats cards
     const handleStatsCardClick = (title: string) => {
@@ -85,7 +108,7 @@ export default function AssemblyDashboard() {
             <header className="mb-6">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-color)]">
-                        {levelInfo?.name || assemblyName} {t('assemblyDashboard.Assembly_Dashboard')}
+                       {headerLevelName} {levelInfo?.name} {t('assemblyDashboard.Assembly_Dashboard')}
                     </h1>
                 </div>
             </header>

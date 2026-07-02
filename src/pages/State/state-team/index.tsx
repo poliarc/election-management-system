@@ -255,6 +255,10 @@ export default function StateTeamListing() {
     );
   }
 
+  // Derive dynamic column headers from first user's type fields
+  const stateColHeader = stateData.users[0]?.user_state_type || stateData.location.location_type || "State";
+  const districtColHeader = stateData.users[0]?.user_district_type || "District";
+
   return (
     <div className="p-1 bg-[var(--bg-main)] min-h-screen">
       {/* Header with Stats Cards */}
@@ -340,8 +344,8 @@ export default function StateTeamListing() {
               <tr>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.S_NO")}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.User_ID")}</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.State")}</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.District")}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{stateColHeader}</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{districtColHeader}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Designation")}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Name")}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("state_Team.Email")}</th>

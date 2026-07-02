@@ -8,7 +8,13 @@ import {
   getPanelRoute,
   getLevelIcon,
   getAllDynamicLevelAssignments,
+  getAssignmentPanelRoute,
+  getCanonicalFixedLevelType,
+  normalizeFixedLevelAssignment,
 } from "../utils/panelHelpers";
+import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
+import { toStateSlug } from "./State/StateDynamicLayout";
+import { toDistrictSlug } from "./District/DistrictDynamicLayout";
 
 // Fixed level types (State → District → Assembly)
 const FIXED_LEVELS = [
@@ -16,7 +22,6 @@ const FIXED_LEVELS = [
   { type: 'District', route: '/district', icon: '🏙️' },
   { type: 'Assembly', route: '/assembly', icon: '🏢' },
 ];
-
 // Panel Card Component
 
 interface PanelCardProps {
@@ -154,7 +159,38 @@ export default function PanelSelect() {
     stateAssignments,
     selectedAssignment,
     permissions,
+    user,
   } = useAppSelector((s) => s.auth);
+
+  // Fetch state display name for dynamic base URL
+  const partyId = user?.partyId || 0;
+  const stateAssignment = stateAssignments.find(
+    (a) => getCanonicalFixedLevelType(a, levelAdminPanels) === "State"
+  );
+  const stateId = stateAssignment?.stateMasterData_id || 0;
+
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    { skip: !partyId || !stateId },
+  );
+
+  /** Returns the base path for State level — dynamic slug if available, else "/state" */
+  const getStateBasePath = () => {
+    const stateLevel = sidebarLevels.find((l) => l.level_name === "State");
+    if (stateLevel?.display_level_name) {
+      return `/${toStateSlug(stateLevel.display_level_name)}`;
+    }
+    return "/state";
+  };
+
+  /** Returns the base path for District level — dynamic slug if available, else "/district" */
+  const getDistrictBasePath = () => {
+    const districtLevel = sidebarLevels.find((l) => l.level_name === "District");
+    if (districtLevel?.display_level_name) {
+      return `/${toDistrictSlug(districtLevel.display_level_name)}`;
+    }
+    return "/district";
+  };
 
   // No auto-redirect - let users see and choose their panels even if they have only one
 
@@ -163,44 +199,40 @@ export default function PanelSelect() {
   };
 
   const handleLevelClick = (levelType: string, route: string) => {
-    // Get all assignments for this level type from stateAssignments
-    let levelAssignments = stateAssignments.filter((a) => a.levelType === levelType);
+    // For State/District level, use dynamic slug path
+    const effectiveRoute =
+      levelType === "State" ? getStateBasePath() :
+      levelType === "District" ? getDistrictBasePath() :
+      route;
 
-    // For Block level, also check permissions.accessibleBlocks
+    let levelAssignments = stateAssignments.filter(
+      (a) => getCanonicalFixedLevelType(a, levelAdminPanels) === levelType
+    );
+
     if (levelType === 'Block' && permissions?.accessibleBlocks && permissions.accessibleBlocks.length > 0) {
-      // Transform Block assignments to match StateAssignment structure
       levelAssignments = permissions.accessibleBlocks.map((block) => ({
         ...block,
         levelType: 'Block',
         stateMasterData_id: block.afterAssemblyData_id || 0,
-        // displayName comes from API (e.g., "Badli Block")
       }));
     }
 
     if (levelAssignments.length === 0) return;
 
-    // If only one assignment, select it and navigate
-    if (levelAssignments.length === 1) {
-      dispatch(setSelectedAssignment(levelAssignments[0]));
-      navigate(route);
-    } else {
-      // If multiple assignments, select the first one and navigate
-      // User can switch via topbar dropdown
-      dispatch(setSelectedAssignment(levelAssignments[0]));
-      navigate(route);
-    }
+    dispatch(setSelectedAssignment(normalizeFixedLevelAssignment(levelAssignments[0], levelAdminPanels)));
+    navigate(effectiveRoute);
   };
 
   const handleDynamicLevelClick = (_levelType: string, assignments: StateAssignment[]) => {
     // If only one assignment, navigate directly
     if (assignments.length === 1) {
       dispatch(setSelectedAssignment(assignments[0]));
-      const route = getPanelRoute(assignments[0]);
+      const route = getAssignmentPanelRoute(assignments[0], levelAdminPanels);
       navigate(route);
     } else {
       // Multiple assignments - select first one and navigate (user can switch in topbar)
       dispatch(setSelectedAssignment(assignments[0]));
-      const route = getPanelRoute(assignments[0]);
+      const route = getAssignmentPanelRoute(assignments[0], levelAdminPanels);
       navigate(route);
     }
   };
@@ -214,7 +246,10 @@ export default function PanelSelect() {
 
   // Group fixed state assignments by level type and count them
   const levelAssignmentCounts = stateAssignments.reduce((acc, assignment) => {
-    acc[assignment.levelType] = (acc[assignment.levelType] || 0) + 1;
+    const canonicalType = getCanonicalFixedLevelType(assignment, levelAdminPanels);
+    if (canonicalType) {
+      acc[canonicalType] = (acc[canonicalType] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
@@ -230,7 +265,7 @@ export default function PanelSelect() {
           stateMasterData_id: item.afterAssemblyData_id || item.level_id || 0,
           afterAssemblyData_id: item.afterAssemblyData_id,
           levelName: item.levelName || levelType,
-          levelType: item.levelName || levelType,
+          levelType,
           displayName: item.displayName || item.levelName || levelType,
           level_id: item.level_id,
           parentId: item.parentId ?? null,
@@ -271,11 +306,18 @@ export default function PanelSelect() {
     if (stateAssignments && stateAssignments.length > 0) {
       // Find the highest-priority fixed level we support (order in FIXED_LEVELS)
       for (const levelInfo of FIXED_LEVELS) {
-        const found = stateAssignments.find((a) => a.levelType === levelInfo.type);
+        const found = stateAssignments.find(
+          (a) => getCanonicalFixedLevelType(a, levelAdminPanels) === levelInfo.type
+        );
         if (found) {
           didAutoRedirectRef.current = true;
-          dispatch(setSelectedAssignment(found));
-          navigate(levelInfo.route);
+          dispatch(setSelectedAssignment(normalizeFixedLevelAssignment(found, levelAdminPanels)));
+          // For State/District, use dynamic slug path
+          const targetRoute =
+            levelInfo.type === "State" ? getStateBasePath() :
+            levelInfo.type === "District" ? getDistrictBasePath() :
+            levelInfo.route;
+          navigate(targetRoute);
           return;
         }
       }
@@ -283,10 +325,18 @@ export default function PanelSelect() {
       const first = stateAssignments[0];
       if (first) {
         didAutoRedirectRef.current = true;
-        dispatch(setSelectedAssignment(first));
-        const fixed = FIXED_LEVELS.find((l) => l.type === first.levelType);
-        if (fixed) navigate(fixed.route);
-        else navigate(getPanelRoute(first));
+        const normalizedFirst = normalizeFixedLevelAssignment(first, levelAdminPanels);
+        dispatch(setSelectedAssignment(normalizedFirst));
+        const fixed = FIXED_LEVELS.find((l) => l.type === normalizedFirst.levelType);
+        if (fixed) {
+          const targetRoute =
+            fixed.type === "State" ? getStateBasePath() :
+            fixed.type === "District" ? getDistrictBasePath() :
+            fixed.route;
+          navigate(targetRoute);
+        } else {
+          navigate(getAssignmentPanelRoute(first, levelAdminPanels));
+        }
         return;
       }
     }

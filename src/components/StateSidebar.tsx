@@ -6,6 +6,7 @@ import { logout } from "../store/authSlice";
 import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
+import { toStateSlug } from "../pages/State/StateDynamicLayout";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -291,8 +292,7 @@ export default function StateSidebar({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const base = ROLE_DASHBOARD_PATH["State"] || "/state";
-  const firstName = user?.firstName || user?.username || "State";
+  const firstName = user?.firstName || user?.username || "";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName,
   )}&background=6366f1&color=fff&bold=true`;
@@ -307,6 +307,16 @@ export default function StateSidebar({
     { partyId, stateId },
     { skip: !partyId || !stateId },
   );
+
+  // Dynamic base path: use State display_level_name slug if available
+  // e.g. "Teste Level" → "/teste-level", fallback to "/state"
+  const base = useMemo(() => {
+    const stateLevel = sidebarLevels.find((l) => l.level_name === "State");
+    if (stateLevel?.display_level_name) {
+      return `/${toStateSlug(stateLevel.display_level_name)}`;
+    }
+    return ROLE_DASHBOARD_PATH["State"] || "/state";
+  }, [sidebarLevels]);
 
   // Fetch dynamic sidebar modules from API
   const { data: sidebarModules = [] } = useGetSidebarModulesQuery(
@@ -329,10 +339,9 @@ export default function StateSidebar({
     return sidebarLevels
       .filter((level) => ["District", "Assembly"].includes(level.level_name))
       .map((level) => ({
-        to: level.level_name === "District" ? "districts" : "assembly",
-
+        // Use slugified display_level_name as URL so it matches the dynamic route
+        to: level.display_level_name.toLowerCase().replace(/\s+/g, ""),
         label: level.display_level_name,
-
         icon: level.level_name === "District" ? Icons.district : Icons.assembly,
       }));
   }, [sidebarLevels]);

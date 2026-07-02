@@ -7,6 +7,8 @@ import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
 import type { StateAssignment } from "../types/api";
+import { getCanonicalFixedLevelType, normalizeFixedLevelAssignment } from "../utils/panelHelpers";
+import { toDistrictSlug } from "../pages/District/DistrictDynamicLayout";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -285,13 +287,12 @@ export default function AssemblyListPage({
 }: {
   onNavigate?: () => void;
 }) {
-  const { user, stateAssignments, selectedAssignment, permissions } =
+  const { user, stateAssignments, selectedAssignment, permissions, levelAdminPanels } =
     useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const base = ROLE_DASHBOARD_PATH["District"] || "/district";
   const firstName = user?.firstName || user?.username || "District";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     firstName,
@@ -316,10 +317,24 @@ export default function AssemblyListPage({
     },
   );
 
+  // Dynamic base path: use District display_level_name slug if available
+  // e.g. "Saharanpur District" → "/saharanpur-district", fallback to "/district"
+  const base = useMemo(() => {
+    const districtLevel = sidebarLevels.find((l) => l.level_name === "District");
+    if (districtLevel?.display_level_name) {
+      return `/${toDistrictSlug(districtLevel.display_level_name)}`;
+    }
+    return ROLE_DASHBOARD_PATH["District"] || "/district";
+  }, [sidebarLevels]);
+
   const dynamicDistrictItems: NavItem[] = useMemo(() => {
     const assemblyLevel = sidebarLevels.find(
       (level) => level.level_name === "Assembly",
     );
+
+    const assemblySlug = assemblyLevel
+      ? assemblyLevel.display_level_name.toLowerCase().replace(/\s+/g, "")
+      : "assembly";
 
     return [
       {
@@ -328,7 +343,7 @@ export default function AssemblyListPage({
         icon: Icons.dashboard,
       },
       {
-        to: "assembly",
+        to: assemblySlug,
         label: assemblyLevel?.display_level_name || "Assembly",
         icon: Icons.assembly,
       },
@@ -455,7 +470,7 @@ export default function AssemblyListPage({
 
   // Get districts from stateAssignments
   const districtAssignments = stateAssignments.filter(
-    (a) => a.levelType === "District",
+    (a) => getCanonicalFixedLevelType(a, levelAdminPanels) === "District",
   );
 
   // Get districts from permissions
@@ -492,15 +507,15 @@ export default function AssemblyListPage({
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
-    dispatch(setSelectedAssignment(assignment));
+    dispatch(setSelectedAssignment(normalizeFixedLevelAssignment(assignment, levelAdminPanels)));
     setSwitchDropdownOpen(false);
 
     // Dispatch custom event to trigger data refresh
     window.dispatchEvent(new Event("districtChanged"));
     window.dispatchEvent(new Event("assignmentChanged"));
 
-    // Navigate to district dashboard
-    navigate("/district/dashboard");
+    // Navigate to district dashboard using dynamic base
+    navigate(`${base}/dashboard`);
   };
   const campaignModules = sidebarModules.filter((m) =>
     m.moduleName.toLowerCase().includes("campaign"),

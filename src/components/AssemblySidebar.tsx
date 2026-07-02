@@ -621,6 +621,7 @@ import { ROLE_DASHBOARD_PATH } from "../constants/routes";
 import { useGetSidebarLevelsQuery } from "../store/api/partyWiseLevelApi";
 import { useGetSidebarModulesQuery } from "../store/api/modulesApi";
 import type { StateAssignment } from "../types/api";
+import { getCanonicalFixedLevelType, normalizeFixedLevelAssignment } from "../utils/panelHelpers";
 
 type NavItem = { to: string; label: string; icon: ReactNode };
 
@@ -1135,7 +1136,7 @@ export default function AssemblySidebar({
 }: {
   onNavigate?: () => void;
 }) {
-  const { user, stateAssignments, selectedAssignment, permissions } =
+  const { user, stateAssignments, selectedAssignment, permissions, levelAdminPanels } =
     useAppSelector((s) => s.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -1382,7 +1383,7 @@ export default function AssemblySidebar({
 
   // Get assemblies from stateAssignments
   const assemblyAssignments = stateAssignments.filter(
-    (a) => a.levelType === "Assembly"
+    (a) => getCanonicalFixedLevelType(a, levelAdminPanels) === "Assembly"
   );
 
   // Get assemblies from permissions
@@ -1418,7 +1419,7 @@ export default function AssemblySidebar({
   const hasMultipleAssignments = sameTypeAssignments.length > 1;
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
-    dispatch(setSelectedAssignment(assignment));
+    dispatch(setSelectedAssignment(normalizeFixedLevelAssignment(assignment, levelAdminPanels)));
     setSwitchDropdownOpen(false);
 
     // Dispatch custom event to trigger data refresh

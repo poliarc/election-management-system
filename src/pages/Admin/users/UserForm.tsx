@@ -124,6 +124,10 @@ export const UserForm: React.FC<UserFormProps> = ({
     }
   };
 
+  // Derive dynamic labels from stateMasterData
+  const stateLabel = states[0]?.levelType || "State";
+  const districtLabel = districts[0]?.levelType || "District";
+
   const activeParties = parties.filter((party) => party.isActive === 1);
   const activeRoles = roles.filter((role) => role.isActive === 1);
 
@@ -374,11 +378,11 @@ export const UserForm: React.FC<UserFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  State {!isEditing && "*"}
+                  {stateLabel} {!isEditing && "*"}
                 </label>
                 {isLoadingStates ? (
                   <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                    <span className="text-[var(--text-secondary)]">Loading states...</span>
+                    <span className="text-[var(--text-secondary)]">Loading {stateLabel.toLowerCase()}s...</span>
                   </div>
                 ) : (
                   <select
@@ -390,10 +394,10 @@ export const UserForm: React.FC<UserFormProps> = ({
                       ...(isEditing
                         ? {}
                         : {
-                          required: "State selection is required",
+                          required: `${stateLabel} selection is required`,
                           validate: (value) => {
                             if (!value) {
-                              return "Please select a state";
+                              return `Please select a ${stateLabel.toLowerCase()}`;
                             }
                             return true;
                           },
@@ -403,7 +407,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                       }`}
                   >
                     <option value="">
-                      {isEditing ? "Select a state (optional)" : "Select a state"}
+                      {isEditing ? `Select a ${stateLabel.toLowerCase()} (optional)` : `Select a ${stateLabel.toLowerCase()}`}
                     </option>
                     {states.map((state) => (
                       <option key={state.id} value={state.id}>
@@ -421,11 +425,11 @@ export const UserForm: React.FC<UserFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  District {!isEditing && "*"}
+                  {districtLabel} {!isEditing && "*"}
                 </label>
                 {isLoadingStates ? (
                   <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-[var(--bg-main)]">
-                    <span className="text-[var(--text-secondary)]">Loading districts...</span>
+                    <span className="text-[var(--text-secondary)]">Loading {districtLabel.toLowerCase()}s...</span>
                   </div>
                 ) : (
                   <select
@@ -437,10 +441,10 @@ export const UserForm: React.FC<UserFormProps> = ({
                       ...(isEditing
                         ? {}
                         : {
-                          required: "District selection is required",
+                          required: `${districtLabel} selection is required`,
                           validate: (value) => {
                             if (!value) {
-                              return "Please select a district";
+                              return `Please select a ${districtLabel.toLowerCase()}`;
                             }
                             return true;
                           },
@@ -451,7 +455,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     disabled={!watchStateId}
                   >
                     <option value="">
-                      {isEditing ? "Select a district (optional)" : "Select a district"}
+                      {isEditing ? `Select a ${districtLabel.toLowerCase()} (optional)` : `Select a ${districtLabel.toLowerCase()}`}
                     </option>
                     {districts.map((district) => (
                       <option key={district.id} value={district.id}>
@@ -467,7 +471,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 )}
                 {!watchStateId && !isEditing && (
                   <p className="text-[var(--text-secondary)] text-xs mt-1">
-                    Please select a state first
+                    Please select a {stateLabel.toLowerCase()} first
                   </p>
                 )}
               </div>

@@ -3,12 +3,6 @@ import { useAppSelector } from "../../store/hooks";
 import { useGetSidebarLevelsQuery } from "../../store/api/partyWiseLevelApi";
 import DynamicLevelList from "../../components/DynamicLevelList";
 
-type StateLevelMap = {
-  State: string;
-  District: string;
-  Assembly: string;
-};
-
 export default function DynamicLevelPage() {
     const { levelName } = useParams<{ levelName: string }>();
     const user = useAppSelector((s) => s.auth.user);
@@ -57,19 +51,16 @@ export default function DynamicLevelPage() {
         level => level.level_name.toLowerCase() === levelName.toLowerCase()
     );
 
-   const stateLevels: StateLevelMap = sidebarLevels.reduce(
+   const stateLevels: Record<string, string> = sidebarLevels.reduce(
      (acc, level) => {
-       if (["State", "District", "Assembly"].includes(level.level_name)) {
-         acc[level.level_name as keyof StateLevelMap] =
-           level.display_level_name;
-       }
+       acc[level.level_name] = level.display_level_name;
        return acc;
      },
      {
        State: "State",
        District: "District",
        Assembly: "Assembly",
-     } as StateLevelMap,
+     } as Record<string, string>,
    );
    
     

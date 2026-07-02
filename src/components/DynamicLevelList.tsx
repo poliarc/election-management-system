@@ -7,23 +7,23 @@ import * as XLSX from "xlsx";
 import InlineUserDisplay from "./InlineUserDisplay";
 import { useTranslation } from "react-i18next";
 
-export interface StateLevelNameProps {
-    State: string
-    District: string
-    Assembly: string
-}
+export type StateLevelNameProps = Record<string, string>;
 
 interface DynamicLevelListProps {
     levelName: string;
     displayLevelName: string;
-    stateLevels: StateLevelNameProps
+    stateLevels: StateLevelNameProps;
     parentLevelName?: string;
 }
 
 export default function DynamicLevelList({
     levelName,
-    displayLevelName, stateLevels }: DynamicLevelListProps) {
-    const {t} = useTranslation();
+    displayLevelName,
+    stateLevels,
+}: DynamicLevelListProps) {
+    const { t } = useTranslation();
+
+    const getLevelDisplayName = (level: string) => stateLevels[level] || level;
     const [searchTerm, setSearchTerm] = useState("");
     // Dynamic filters instead of hardcoded ones
     const [selectedFilters, setSelectedFilters] = useState<Record<string, number>>({});
@@ -622,7 +622,7 @@ export default function DynamicLevelList({
                 }
                 
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevel/${stateId}?` +
+                    `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevelV2/${stateId}?` +
                     new URLSearchParams(queryParams),
                     {
                         headers: {
@@ -801,7 +801,10 @@ export default function DynamicLevelList({
             // Fetch all pages
             const allItems: any[] = [];
             
-            for (let page = 1; page <= totalPagesNeeded; page++) {
+            // If no items found, try to fetch at least the first page
+            const pagesToFetch = Math.max(1, totalPagesNeeded);
+            
+            for (let page = 1; page <= pagesToFetch; page++) {
                 // Build query parameters dynamically
                 const queryParams: Record<string, string> = {
                     partyId: partyId.toString(),
@@ -810,22 +813,37 @@ export default function DynamicLevelList({
                     limit: limit.toString(),
                 };
                 
-                // Add district and assembly filters
+                // Add district filter
                 if (selectedFilters["District"] && selectedFilters["District"] > 0) {
                     queryParams.districtId = selectedFilters["District"].toString();
                 }
+                
+                // Add assembly filter
                 if (selectedFilters["Assembly"] && selectedFilters["Assembly"] > 0) {
                     queryParams.assemblyId = selectedFilters["Assembly"].toString();
                 }
                 
-                // Add afterAssemblyId for any level after Assembly (dynamic)
-                const afterAssemblyId = getAfterAssemblyId();
+                // Add afterAssemblyId for any level after Assembly - this is the key to getting proper data
+                // This needs to be the DEEPEST selected filter that is after Assembly but before current level
+                const assemblyIndex = hierarchyOrder.indexOf("Assembly");
+                const currentLevelIndex = hierarchyOrder.indexOf(levelName);
+                let afterAssemblyId: number | null = null;
+                
+                // Find the deepest (closest to current level) selected filter after Assembly
+                for (let i = currentLevelIndex - 1; i > assemblyIndex; i--) {
+                    const filterLevel = hierarchyOrder[i];
+                    if (selectedFilters[filterLevel] && selectedFilters[filterLevel] > 0) {
+                        afterAssemblyId = selectedFilters[filterLevel];
+                        break;
+                    }
+                }
+                
                 if (afterAssemblyId) {
                     queryParams.afterAssemblyId = afterAssemblyId.toString();
                 }
                 
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevel/${stateId}?` +
+                    `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevelV2/${stateId}?` +
                     new URLSearchParams(queryParams),
                     {
                         headers: {
@@ -834,13 +852,108 @@ export default function DynamicLevelList({
                         },
                     }
                 );
-                
+
                 const data = await response.json();
-                if (data.success && data.data.items) {
+                const items = (data?.data?.items || []) as any[];
+                if (!response.ok || !items.length) {
+                    console.warn("[Booth Export] export fetch returned empty or failed", {
+                        status: response.status,
+                        ok: response.ok,
+                        responseData: data,
+                        queryParams,
+                    });
+                }
+
+                if (items.length) {
                     // Filter items for current level and map to component format
-                    const pageItems = data.data.items
+                    const pageItems = items
                         .filter((item: any) => item.itemLevelType === levelName)
-                        .map((item: any) => ({
+                        .map((item: any) => {
+                            // Map all hierarchy levels dynamically
+                            const ancestorMap: Record<string, string> = {};
+                            if (item.ancestors && item.ancestors.length > 0) {
+                                item.ancestors.forEach((ancestor: any) => {
+                                    if (ancestor.levelType) {
+                                        ancestorMap[ancestor.levelType] = ancestor.name;
+                                    }
+                                });
+                            }
+
+                            const mappedItem: any = {
+                                id: item.itemId,
+                                displayName: item.itemName,
+                                levelName: item.itemLevelType,
+                                parentId: item.parentItemId,
+                                parentLevelName: item.parentItemName,
+                                districtId: item.districtId,
+                                districtName: item.districtName,
+                                assemblyId: item.assemblyId,
+                                assemblyName: item.assemblyName,
+                            };
+
+                            // Dynamically map parent level names based on parentItemLevelType
+                            const parentLevelType = item.parentItemLevelType;
+                            if (parentLevelType && item.parentItemName) {
+                                mappedItem[`${parentLevelType.toLowerCase()}Name`] = item.parentItemName;
+                            }
+
+                            // Also map all hierarchy level names from the item and fallback to ancestor names.
+                            hierarchyOrder.forEach((level) => {
+                                const levelKey = `${level.toLowerCase()}Name`;
+                                if (item[levelKey]) {
+                                    mappedItem[levelKey] = item[levelKey];
+                                } else if (ancestorMap[level]) {
+                                    mappedItem[levelKey] = ancestorMap[level];
+                                }
+                            });
+
+                            return mappedItem;
+                        });
+                    allItems.push(...pageItems);
+                }
+            }
+
+            // Add logging for booth export debugging
+            if (levelName === "Booth") {
+                console.log(`[Booth Export] Total items fetched: ${allItems.length}`, {
+                    levelName,
+                    totalPagesNeeded,
+                    totalItems,
+                    pagesFetched: pagesToFetch,
+                    selectedFilters,
+                    hierarchyOrder,
+                    firstItemSample: allItems[0],
+                    sampleAPICall: {
+                        endpoint: `${import.meta.env.VITE_API_BASE_URL}/api/v2/dash/dynamicLevelV2/${stateId}`,
+                        params: {
+                            partyId,
+                            levelName,
+                            selectedFilters,
+                        }
+                    }
+                });
+            }
+
+            // If the raw API fetch returns no items, fall back to the loaded dynamicLevelData if possible.
+            if (allItems.length === 0) {
+                const fallbackItems = dynamicLevelData?.items?.filter((item: any) => item.itemLevelType === levelName) || [];
+                if (fallbackItems.length > 0) {
+                    console.warn("[Booth Export] Falling back to currently loaded page data because full export fetch returned no items.", {
+                        fallbackCount: fallbackItems.length,
+                        totalItems,
+                        selectedFilters,
+                    });
+                    allItems.push(...fallbackItems.map((item: any) => {
+                        const ancestorMap: Record<string, string> = {};
+                        if (item.ancestors && item.ancestors.length > 0) {
+                            item.ancestors.forEach((ancestor: any) => {
+                                if (ancestor.levelType) {
+                                    ancestorMap[ancestor.levelType] = ancestor.name;
+                                }
+                            });
+                        }
+
+                        const mappedItem: any = {
                             id: item.itemId,
                             displayName: item.itemName,
                             levelName: item.itemLevelType,
@@ -850,14 +963,40 @@ export default function DynamicLevelList({
                             districtName: item.districtName,
                             assemblyId: item.assemblyId,
                             assemblyName: item.assemblyName,
-                            blockName: item.parentItemLevelType === 'Block' ? item.parentItemName : '',
-                            mandalName: item.parentItemLevelType === 'Mandal' ? item.parentItemName : '',
-                        }));
-                    allItems.push(...pageItems);
+                        };
+
+                        const parentLevelType = item.parentItemLevelType;
+                        if (parentLevelType && item.parentItemName) {
+                            mappedItem[`${parentLevelType.toLowerCase()}Name`] = item.parentItemName;
+                        }
+
+                        hierarchyOrder.forEach((level) => {
+                            const levelKey = `${level.toLowerCase()}Name`;
+                            if (item[levelKey]) {
+                                mappedItem[levelKey] = item[levelKey];
+                            } else if (ancestorMap[level]) {
+                                mappedItem[levelKey] = ancestorMap[level];
+                            }
+                        });
+
+                        return mappedItem;
+                    }));
                 }
             }
 
-            // Create export data
+            if (allItems.length === 0) {
+                alert(`No ${displayLevelName} data found to export. Please check your filters and try again.`);
+                if (exportButton) {
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = `
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export Excel (0)
+                    `;
+                }
+                return;
+            }
             const exportData = allItems.map((item, index) => {
                 const exportRow: any = {
                     "S.No": index + 1,
@@ -956,7 +1095,7 @@ export default function DynamicLevelList({
                                     {displayLevelName} {t("StateDynamic.List")}
                                 </h1>
                                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                                    {stateLevels.State}: {stateInfo.stateName}
+                                    {getLevelDisplayName("State")}: {stateInfo.stateName}
                                 </p>
                             </div>
 
@@ -1157,7 +1296,7 @@ export default function DynamicLevelList({
                             {/* State Filter - Always shown */}
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {stateLevels.State}
+                                    {getLevelDisplayName("State")}
                                 </label>
                                 <input
                                     type="text"
@@ -1177,10 +1316,7 @@ export default function DynamicLevelList({
                                 return (
                                     <div key={filterLevel}>
                                         <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                        {
-                                        stateLevels[filterLevel as keyof StateLevelNameProps] ||
-                                        filterLevel
-                                        }
+                                            {getLevelDisplayName(filterLevel)}
                                         </label>
                                         <select
                                             value={selectedFilters[filterLevel] || 0}
@@ -1188,10 +1324,7 @@ export default function DynamicLevelList({
                                             disabled={isDisabled}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
-                                            <option value={0}>All {
-                                                stateLevels[filterLevel as keyof StateLevelNameProps] ||
-                                                filterLevel
-                                            }s</option>
+                                            <option value={0}>All {getLevelDisplayName(filterLevel)}s</option>
                                             {filterOptions.map((option: any) => (
                                                 <option
                                                     key={option.id}
@@ -1334,8 +1467,8 @@ export default function DynamicLevelList({
                                                             // Special handling for Booth - show Mandal or PollingCenter
                                                             if (levelName === "Booth" && paginatedItems.length > 0) {
                                                                 const firstItem = paginatedItems[0];
-                                                                if (firstItem.pollingCenterName) return "PollingCenter";
-                                                                if (firstItem.mandalName) return "Mandal";
+                                                                if (firstItem.pollingCenterName) return getLevelDisplayName("PollingCenter");
+                                                                if (firstItem.mandalName) return getLevelDisplayName("Mandal");
                                                             }
 
                                                             // Get the actual parent level name from first item's parent info
@@ -1345,18 +1478,12 @@ export default function DynamicLevelList({
                                                                 const parent = parentId ? parentInfo[parentId] : null;
 
                                                                 if (parent && parent.levelName) {
-                                                                   return (
-                                                                stateLevels[parent.levelName as keyof StateLevelNameProps] ||
-                                                                parent.levelName
-                                                                );
+                                                                    return getLevelDisplayName(parent.levelName);
                                                                 }
 
                                                                 // Try to get parent level from item's parentLevelType
                                                                 if (firstItem.parentLevelType) {
-                                                                    return (
-                                                                stateLevels[firstItem.parentLevelType as keyof StateLevelNameProps] ||
-                                                                firstItem.parentLevelType
-                                                                );
+                                                                    return getLevelDisplayName(firstItem.parentLevelType);
                                                                 }
                                                             }
 
@@ -1365,14 +1492,11 @@ export default function DynamicLevelList({
                                                             if (currentLevelIndex > 0) {
                                                                 const parentLevel = hierarchyOrder[currentLevelIndex - 1];
 
-                                                                return (
-                                                                stateLevels[parentLevel as keyof StateLevelNameProps] ||
-                                                                parentLevel
-                                                                );
+                                                                return getLevelDisplayName(parentLevel);
                                                             }
 
                                                             // Fallback to last visible filter
-                                                            return visibleFilters[visibleFilters.length - 1] || "Parent";
+                                                            return getLevelDisplayName(visibleFilters[visibleFilters.length - 1] || "Parent");
                                                         })()}
                                                     </th>
                                                 )}
@@ -1456,13 +1580,7 @@ export default function DynamicLevelList({
                                                         )}
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                                {
-                                                            stateLevels[
-                                                                (item.levelName || levelName) as keyof StateLevelNameProps
-                                                            ] ||
-                                                            item.levelName ||
-                                                            levelName
-                                                            }
+                                                                {getLevelDisplayName(item.levelName || levelName)}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1637,10 +1755,7 @@ export default function DynamicLevelList({
                                                                 const parent = parentId ? parentInfo[parentId] : null;
 
                                                                 if (parent) {
-                                                                    return (
-                                                                    stateLevels[parent.levelName as keyof StateLevelNameProps] ||
-                                                                    parent.levelName
-                                                                    );
+                                                                    return getLevelDisplayName(parent.levelName);
                                                                 }
 
                                                                 // Try parentLevelType if available
@@ -1650,16 +1765,16 @@ export default function DynamicLevelList({
 
                                                                 // Fallback to hierarchy-based approach
                                                                 if (visibleFilters.length > 0) {
-                                                                    return visibleFilters[visibleFilters.length - 1];
+                                                                    return getLevelDisplayName(visibleFilters[visibleFilters.length - 1]);
                                                                 }
 
                                                                 // Last resort: try to determine from available fields
-                                                                if (item.pollingCenterName) return "PollingCenter";
-                                                                if (item.mandalName) return "Mandal";
-                                                                if (item.blockName) return "Block";
-                                                                if (item.wardName) return "Ward";
-                                                                if (item.zoneName) return "Zone";
-                                                                return "Unknown";
+                                                                if (item.pollingCenterName) return getLevelDisplayName("PollingCenter");
+                                                                if (item.mandalName) return getLevelDisplayName("Mandal");
+                                                                if (item.blockName) return getLevelDisplayName("Block");
+                                                                if (item.wardName) return getLevelDisplayName("Ward");
+                                                                if (item.zoneName) return getLevelDisplayName("Zone");
+                                                                return getLevelDisplayName("Unknown");
                                                             })()}
                                                             onUserDeleted={() => {
                                                                 // Refresh user counts after deletion

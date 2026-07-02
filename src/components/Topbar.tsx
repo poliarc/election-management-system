@@ -4,7 +4,13 @@ import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { logout, setSelectedAssignment, clearSelectedAssignment } from "../store/authSlice";
 import type { StateAssignment } from "../types/api";
 import type { PanelAssignment } from "../types/auth";
-import { getAllDynamicLevelAssignments, getAllDynamicLevelTypes } from "../utils/panelHelpers";
+import {
+  getAllDynamicLevelAssignments,
+  getAllDynamicLevelTypes,
+  getAssignmentPanelRoute,
+  getCanonicalFixedLevelType,
+  normalizeFixedLevelAssignment,
+} from "../utils/panelHelpers";
 import GoogleTranslate from "./GoogleTranslate";
 import { fetchWhatsAppLinks, fetchWhatsAppLinksByUser, type WhatsAppLinkData } from "../services/levelAdminApi";
 
@@ -269,35 +275,24 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   const hasAnyAdminPanels = (partyAdminPanels && partyAdminPanels.length > 0) || (levelAdminPanels && levelAdminPanels.length > 0);
 
   const handleAssignmentSwitch = (assignment: StateAssignment) => {
-    dispatch(setSelectedAssignment(assignment));
+    const normalizedAssignment = normalizeFixedLevelAssignment(assignment, levelAdminPanels);
+    dispatch(setSelectedAssignment(normalizedAssignment));
     setPartyPanelsOpen(false);
     setLevelAdminPanelsOpen(false);
     setLevelAccessOpen(false);
     window.dispatchEvent(new Event('districtChanged'));
     window.dispatchEvent(new Event('assignmentChanged'));
 
-    if (assignment.afterAssemblyData_id) {
-      if (assignment.parentId === null || assignment.parentLevelType === 'Assembly') {
-        navigate(`/afterassembly/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+    if (normalizedAssignment.afterAssemblyData_id) {
+      if (normalizedAssignment.parentId === null || normalizedAssignment.parentLevelType === 'Assembly') {
+        navigate(`/afterassembly/${normalizedAssignment.afterAssemblyData_id || normalizedAssignment.stateMasterData_id}/dashboard`);
       } else {
-        navigate(`/sublevel/${assignment.afterAssemblyData_id || assignment.stateMasterData_id}/dashboard`);
+        navigate(`/sublevel/${normalizedAssignment.afterAssemblyData_id || normalizedAssignment.stateMasterData_id}/dashboard`);
       }
       return;
     }
 
-    const levelTypeRoutes: Record<string, string> = {
-      State: "/state",
-      District: "/district",
-      Assembly: "/assembly",
-    };
-
-    const route = levelTypeRoutes[assignment.levelType];
-    if (route) {
-      navigate(route);
-    } else {
-      const dynamicRoute = `/${assignment.levelType.toLowerCase()}`;
-      navigate(dynamicRoute);
-    }
+    navigate(getAssignmentPanelRoute(normalizedAssignment, levelAdminPanels));
   };
 
   const handleAdminPanelNavigate = (panel: PanelAssignment) => {
@@ -328,7 +323,8 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       Assembly: "/assembly/profile",
     };
 
-    const route = profileRoutes[currentLevelType];
+    const fixedLevel = getCanonicalFixedLevelType(selectedAssignment, levelAdminPanels);
+    const route = fixedLevel ? profileRoutes[fixedLevel] : profileRoutes[currentLevelType];
     if (route) {
       return route;
     } else {
@@ -442,7 +438,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
                   {levelAccessOpen && (
                     <div className="topbar-menu-surface absolute left-0 right-0 sm:right-auto mt-2 w-55 sm:w-55 rounded-2xl border border-[var(--border-color)] p-2 text-sm shadow-xl max-h-80 overflow-y-auto z-50">
-                      <div className="px-3 py-2 text-xs font-semibold text-var(--text-secondary) uppercase tracking-wide">Team Levels</div>
+                      <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Team Levels</div>
 
                       {allAssignments.length > 0 && (() => {
                         const FIXED = [
@@ -452,11 +448,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         ];
 
                         const available = FIXED.filter(f => {
-                          const inState = allAssignments.some(a => a.levelType === f.type);
+                          const inState = allAssignments.some(a => getCanonicalFixedLevelType(a, levelAdminPanels) === f.type);
                           const inPermissions = (
                             (f.type === 'District' && permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) ||
                             (f.type === 'Assembly' && permissions?.accessibleAssemblies && permissions.accessibleAssemblies.length > 0) ||
-                            (f.type === 'State' && allAssignments.some(a => a.levelType === 'State'))
+                            (f.type === 'State' && allAssignments.some(a => getCanonicalFixedLevelType(a, levelAdminPanels) === 'State'))
                           );
                           
                           return inState || inPermissions;
@@ -465,7 +461,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                         return (
                           <div>
                             {available.map(f => {
-                              let repr = allAssignments.find(a => a.levelType === f.type);
+                              let repr = allAssignments.find(a => getCanonicalFixedLevelType(a, levelAdminPanels) === f.type);
                               if (!repr) {
                                 if (f.type === 'District' && permissions?.accessibleDistricts && permissions.accessibleDistricts.length > 0) {
                                   repr = mapPermissionToAssignment(permissions.accessibleDistricts[0], 'District');
@@ -473,28 +469,37 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                                   repr = mapPermissionToAssignment(permissions.accessibleAssemblies[0], 'Assembly');
                                 }
                               }
+                              const label =
+                                repr?.partyLevelName ||
+                                repr?.levelType ||
+                                repr?.partyLevelDisplayName ||
+                                repr?.displayName ||
+                                repr?.levelName ||
+                                f.type;
 
                               return (
                                 <button
                                   key={`fixed-${f.type}`}
                                   onClick={() => {
                                     if (repr) {
-                                      dispatch(setSelectedAssignment(repr));
+                                      dispatch(setSelectedAssignment(normalizeFixedLevelAssignment(repr, levelAdminPanels)));
                                       navigate(f.route);
                                       setLevelAccessOpen(false);
                                     }
                                   }}
                                   className={[
                                     "flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left transition-colors duration-300 ease-in-out",
-                                    selectedAssignment?.levelType === f.type
+                                    getCanonicalFixedLevelType(selectedAssignment, levelAdminPanels) === f.type
                                       ? "bg-[var(--text-color)]/5 text-[var(--text-color)] dark:bg-blue-900/30 dark:text-blue-400"
                                       : "topbar-menu-item group text-[var(--text-color)] hover:bg-[var(--text-color)]/5 hover:text-[var(--text-color)]",
                                   ].join(' ')}
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate text-xs sm:text-sm group-hover:text-[var(--text-color)]">{repr?.displayName || repr?.partyLevelDisplayName}</div>
+                                    <div className="font-medium truncate text-xs sm:text-sm text-[var(--text-color)] group-hover:text-[var(--text-color)]">
+                                      {label}
+                                    </div>
                                   </div>
-                                  {selectedAssignment?.levelType === f.type && (
+                                  {getCanonicalFixedLevelType(selectedAssignment, levelAdminPanels) === f.type && (
                                     <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                     </svg>

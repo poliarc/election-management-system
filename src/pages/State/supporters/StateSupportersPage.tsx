@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAppSelector } from '../../../store/hooks';
 import { useGetAssemblyByStateQuery } from '../../../store/api/assemblyApi';
 import { useGetSupportersByStateQuery, useGetSupportersByDistrictQuery, useGetSupportersByAssemblyQuery } from '../../../store/api/supportersApi';
+import { useGetSidebarLevelsQuery } from '../../../store/api/partyWiseLevelApi';
 import type { Supporter } from '../../../types/supporter';
 import { useTranslation } from "react-i18next";
 
@@ -39,6 +40,26 @@ export default function StateSupportersPage() {
 
   const stateId = user?.state_id || selectedAssignment?.stateMasterData_id || 0;
   const partyId = user?.partyId || 0;
+
+  // Fetch sidebar levels to get dynamic display names
+  const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
+    { partyId, stateId },
+    { skip: !partyId || !stateId }
+  );
+
+  // Helper: get display name for a level_name key
+  const getLevelDisplayName = (levelName: string, fallback: string) => {
+    const found = sidebarLevels.find(
+      (l) => l.level_name.toLowerCase() === levelName.toLowerCase()
+    );
+    return found ? found.display_level_name : fallback;
+  };
+
+  // Dynamically determine which level_name corresponds to district (level=1) and assembly (level=2)
+  // by using the stateHierarchy data after it loads.
+  // We use sidebar levels order: skip State (index 0), next = district-equivalent, then assembly-equivalent
+  // Sidebar order from API: State, District, Assembly, Locality, PollingCenter, Booth
+  // We find the 3rd-level-after-Assembly dynamic levels from afterAssemblyHierarchy for the 4th+ filter
 
   // Get hierarchy data for the state
   const { data: hierarchyData, isLoading: hierarchyLoading, error: hierarchyError } = useGetAssemblyByStateQuery({
@@ -104,18 +125,18 @@ export default function StateSupportersPage() {
       ? refetchDistrict
       : refetchState;
 
-  // Extract districts from hierarchy
+  // Extract districts from hierarchy (level=1 nodes)
   const districts: DistrictOption[] = hierarchyData?.data?.stateHierarchy?.filter(
-    (item: any) => item.levelType === 'District'
+    (item: any) => item.level === 1
   ).map((item: any) => ({
     id: item.id,
     levelName: item.levelName,
     displayName: item.levelName,
   })) || [];
 
-  // Extract assemblies filtered by selected district
+  // Extract assemblies filtered by selected district (level=2 nodes)
   const assemblies: AssemblyOption[] = hierarchyData?.data?.stateHierarchy?.filter(
-    (item: any) => item.levelType === 'Assembly' && (!selectedDistrictId || item.ParentId === selectedDistrictId)
+    (item: any) => item.level === 2 && (!selectedDistrictId || item.ParentId === selectedDistrictId)
   ).map((item: any) => ({
     id: item.stateMasterData_id || item.id,
     levelName: item.levelName,
@@ -124,20 +145,26 @@ export default function StateSupportersPage() {
     parentId: item.ParentId
   })) || [];
 
-  // Extract blocks - show all blocks or filter by assembly/district
+  // Determine the first after-assembly level dynamically (depth=0 in afterAssemblyHierarchy)
+  // This replaces hardcoded 'Block' filter
+  const firstAfterAssemblyLevelName: string | null = (() => {
+    const firstNode = hierarchyData?.data?.afterAssemblyHierarchy?.find(
+      (item: any) => item.parentId === null
+    );
+    return firstNode?.levelName ?? null;
+  })();
+
+  // Extract first-level after-assembly items (replaces blocks)
   const blocks: BlockOption[] = hierarchyData?.data?.afterAssemblyHierarchy?.filter(
     (item: any) => {
-      if (item.levelName !== 'Block') return false;
-      // If assembly is selected, show only blocks from that assembly
+      if (item.parentId !== null) return false; // only depth-0 nodes
       if (selectedAssemblyId > 0) {
         return item.parentAssemblyId === selectedAssemblyId;
       }
-      // If district is selected (but no assembly), show blocks from assemblies in that district
       if (selectedDistrictId > 0) {
         const assembly = assemblies.find(a => a.id === item.parentAssemblyId);
         return assembly && assembly.parentId === selectedDistrictId;
       }
-      // Otherwise show all blocks
       return true;
     }
   ).map((item: any) => ({
@@ -221,7 +248,9 @@ export default function StateSupportersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-xs font-medium">
-                  {selectedDistrictId ? 'District(Supp)' : t("stateSupporter.District")}
+                  {selectedDistrictId
+                    ? `${getLevelDisplayName('District', 'District')} (Supp)`
+                    : getLevelDisplayName('District', t("stateSupporter.District"))}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedDistrictId ? (pagination?.total || 0) : districts.length}
@@ -240,7 +269,9 @@ export default function StateSupportersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-xs font-medium">
-                  {selectedAssemblyId ? 'Assembly(Supp)' : t("stateSupporter.Assembly")}
+                  {selectedAssemblyId
+                    ? `${getLevelDisplayName('Assembly', 'Assembly')} (Supp)`
+                    : getLevelDisplayName('Assembly', t("stateSupporter.Assembly"))}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedAssemblyId ? (pagination?.total || 0) : assemblies.length}
@@ -254,12 +285,16 @@ export default function StateSupportersPage() {
             </div>
           </div>
 
-          {/* Block Count Card */}
+          {/* After-Assembly Level Count Card */}
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs font-medium">
-                  {selectedBlockId ? 'Block(Supp)' : t("stateSupporter.Block")}
+                  {selectedBlockId
+                    ? `${firstAfterAssemblyLevelName ? getLevelDisplayName(firstAfterAssemblyLevelName, firstAfterAssemblyLevelName) : getLevelDisplayName('Locality', t("stateSupporter.Block"))} (Supp)`
+                    : firstAfterAssemblyLevelName
+                      ? getLevelDisplayName(firstAfterAssemblyLevelName, firstAfterAssemblyLevelName)
+                      : getLevelDisplayName('Locality', t("stateSupporter.Block"))}
                 </p>
                 <p className="text-2xl font-bold mt-1">
                   {selectedBlockId ? (pagination?.total || 0) : blocks.length}
@@ -286,7 +321,7 @@ export default function StateSupportersPage() {
             {/* State Dropdown (Disabled) */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.State")}
+                {getLevelDisplayName('State', t("stateSupporter.State"))}
               </label>
               <select
                 value={stateId}
@@ -302,7 +337,7 @@ export default function StateSupportersPage() {
             {/* District Dropdown */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_District")}
+                {t("stateSupporter.Select_District").replace('District', getLevelDisplayName('District', 'District'))}
               </label>
               <select
                 value={selectedDistrictId}
@@ -312,12 +347,12 @@ export default function StateSupportersPage() {
               >
                 <option value={0}>
                   {hierarchyLoading
-                    ? 'Loading districts...'
+                    ? `Loading ${getLevelDisplayName('District', 'districts')}...`
                     : hierarchyError
-                      ? 'Error loading districts'
+                      ? `Error loading ${getLevelDisplayName('District', 'districts')}`
                       : districts.length === 0
-                        ? 'No districts found'
-                        : 'All Districts'}
+                        ? `No ${getLevelDisplayName('District', 'districts')} found`
+                        : `All ${getLevelDisplayName('District', 'Districts')}`}
                 </option>
                 {districts.map((district) => (
                   <option key={district.id} value={district.id}>
@@ -330,7 +365,7 @@ export default function StateSupportersPage() {
             {/* Assembly Dropdown */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_Assembly")}
+                {t("stateSupporter.Select_Assembly").replace('Assembly', getLevelDisplayName('Assembly', 'Assembly'))}
               </label>
               <select
                 value={selectedAssemblyId}
@@ -340,12 +375,12 @@ export default function StateSupportersPage() {
               >
                 <option value={0}>
                   {hierarchyLoading
-                    ? 'Loading assemblies...'
+                    ? `Loading ${getLevelDisplayName('Assembly', 'assemblies')}...`
                     : hierarchyError
-                      ? 'Error loading assemblies'
+                      ? `Error loading ${getLevelDisplayName('Assembly', 'assemblies')}`
                       : assemblies.length === 0
-                        ? selectedDistrictId ? 'No assemblies in district' : 'All Assemblies'
-                        : 'All Assemblies'}
+                        ? selectedDistrictId ? `No ${getLevelDisplayName('Assembly', 'assemblies')} in ${getLevelDisplayName('District', 'district')}` : `All ${getLevelDisplayName('Assembly', 'Assemblies')}`
+                        : `All ${getLevelDisplayName('Assembly', 'Assemblies')}`}
                 </option>
                 {assemblies.map((assembly) => (
                   <option key={assembly.id} value={assembly.id}>
@@ -360,10 +395,10 @@ export default function StateSupportersPage() {
               )}
             </div>
 
-            {/* Block Dropdown */}
+            {/* After-Assembly Level Dropdown (replaces Block) */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_Block")}
+                {`Select ${firstAfterAssemblyLevelName ? getLevelDisplayName(firstAfterAssemblyLevelName, firstAfterAssemblyLevelName) : getLevelDisplayName('Locality', 'Locality')}`}
               </label>
               <select
                 value={selectedBlockId}
@@ -373,8 +408,8 @@ export default function StateSupportersPage() {
               >
                 <option value={0}>
                   {blocks.length === 0
-                    ? 'No blocks available'
-                    : 'All Blocks'}
+                    ? `No ${firstAfterAssemblyLevelName ? getLevelDisplayName(firstAfterAssemblyLevelName, firstAfterAssemblyLevelName) : 'levels'} available`
+                    : `All ${firstAfterAssemblyLevelName ? getLevelDisplayName(firstAfterAssemblyLevelName, firstAfterAssemblyLevelName) : 'Levels'}`}
                 </option>
                 {blocks.map((block) => (
                   <option key={block.id} value={block.id}>

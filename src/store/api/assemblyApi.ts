@@ -44,6 +44,25 @@ export interface UserByParty {
   role: string;
   isActive: number;
   stateName: string;
+  stateType?: string;
+  districtType?: string;
+  isSuperAdmin?: number;
+}
+
+export interface UserByAssembly {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  contact_no: string;
+  party_id: number;
+  role_id: number | null;
+  userRole: string | null;
+  stateName: string;
+  stateType?: string;
+  districtName: string;
+  districtType?: string;
+  isActive: number;
   isSuperAdmin?: number;
 }
 
@@ -217,7 +236,7 @@ export const assemblyApi = createApi({
 
     getUsersByAssemblyId: builder.query<
       {
-        users: any[];
+        users: UserByAssembly[];
         pagination: {
           page: number;
           limit: number;

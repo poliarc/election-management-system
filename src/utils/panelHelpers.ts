@@ -1,4 +1,77 @@
 import type { StateAssignment } from "../types/api";
+import type { PanelAssignment } from "../types/auth";
+
+export type FixedLevelType = "State" | "District" | "Assembly";
+
+export const FIXED_LEVEL_ROUTES: Record<FixedLevelType, string> = {
+  State: "/state",
+  District: "/district",
+  Assembly: "/assembly",
+};
+
+const FIXED_LEVEL_TYPES: FixedLevelType[] = ["State", "District", "Assembly"];
+
+const normalizeLevelKey = (value?: string | null): string =>
+  String(value || "").toLowerCase().replace(/[\s_-]+/g, "");
+
+const toFixedLevelType = (value?: string | null): FixedLevelType | null => {
+  const normalized = normalizeLevelKey(value);
+  return FIXED_LEVEL_TYPES.find((level) => normalizeLevelKey(level) === normalized) || null;
+};
+
+export function getCanonicalFixedLevelType(
+  assignmentOrType?: StateAssignment | string | null,
+  levelAdminPanels: PanelAssignment[] = [],
+): FixedLevelType | null {
+  const rawType =
+    typeof assignmentOrType === "string"
+      ? assignmentOrType
+      : assignmentOrType?.levelType || assignmentOrType?.partyLevelName || assignmentOrType?.levelName;
+
+  const directMatch = toFixedLevelType(rawType);
+  if (directMatch) return directMatch;
+
+  const normalizedType = normalizeLevelKey(rawType);
+  if (!normalizedType) return null;
+
+  const panelMatch = levelAdminPanels.find((panel) => {
+    const possibleNames = [
+      panel.name,
+      panel.displayName,
+      panel.metadata?.stateLevelType,
+      panel.metadata?.state_level_type,
+    ];
+    return possibleNames.some((name) => normalizeLevelKey(name) === normalizedType);
+  });
+
+  const panelCanonical =
+    toFixedLevelType(panelMatch?.name) ||
+    toFixedLevelType(panelMatch?.metadata?.stateLevelType) ||
+    toFixedLevelType(panelMatch?.metadata?.state_level_type);
+
+  if (panelCanonical) return panelCanonical;
+
+  if (normalizedType.includes("assembly")) return "Assembly";
+  if (normalizedType.includes("district")) return "District";
+  if (normalizedType.includes("state")) return "State";
+
+  return null;
+}
+
+export function normalizeFixedLevelAssignment(
+  assignment: StateAssignment,
+  levelAdminPanels: PanelAssignment[] = [],
+): StateAssignment {
+  const fixedLevel = getCanonicalFixedLevelType(assignment, levelAdminPanels);
+  if (!fixedLevel) return assignment;
+
+  return {
+    ...assignment,
+    levelType: fixedLevel,
+    partyLevelName: assignment.partyLevelName || assignment.levelType,
+    partyLevelDisplayName: assignment.partyLevelDisplayName || assignment.displayName,
+  };
+}
 
 /**
  * Determines if a level assignment is an after-assembly level
@@ -38,6 +111,11 @@ export function isSubLevel(assignment: StateAssignment): boolean {
  * Gets the appropriate panel route for a level assignment
  */
 export function getPanelRoute(assignment: StateAssignment): string {
+    const fixedLevel = getCanonicalFixedLevelType(assignment);
+    if (fixedLevel) {
+        return FIXED_LEVEL_ROUTES[fixedLevel];
+    }
+
     if (isFirstAfterAssemblyLevel(assignment)) {
         return `/afterassembly/${assignment.afterAssemblyData_id}`;
     }
@@ -49,6 +127,15 @@ export function getPanelRoute(assignment: StateAssignment): string {
     // Standard fixed levels
     const levelType = assignment.levelType.toLowerCase();
     return `/${levelType}`;
+}
+
+export function getAssignmentPanelRoute(
+  assignment: StateAssignment,
+  levelAdminPanels: PanelAssignment[] = [],
+): string {
+  const fixedLevel = getCanonicalFixedLevelType(assignment, levelAdminPanels);
+  if (fixedLevel) return FIXED_LEVEL_ROUTES[fixedLevel];
+  return getPanelRoute(assignment);
 }
 
 /**
@@ -145,7 +232,7 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
           stateMasterData_id: item.afterAssemblyData_id || item.level_id || 0,
           afterAssemblyData_id: item.afterAssemblyData_id,
           levelName: item.levelName || levelType,
-          levelType: item.levelName || levelType,
+          levelType,
           displayName: item.displayName || item.levelName || levelType,
           level_id: item.level_id,
           parentId: item.parentId ?? null,
@@ -183,7 +270,7 @@ export function getAllDynamicLevelAssignments(permissions: any): StateAssignment
           stateMasterData_id: item.afterAssemblyData_id || 0,
           afterAssemblyData_id: item.afterAssemblyData_id,
           levelName: item.displayName || item.levelName || levelType,
-          levelType: item.levelName || levelType,
+          levelType,
           displayName: item.displayName || item.levelName,
           level_id: item.level_id,
           parentId: item.parentId,

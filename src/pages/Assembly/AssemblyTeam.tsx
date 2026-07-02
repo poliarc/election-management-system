@@ -244,6 +244,10 @@ export default function AssemblyTeam() {
         );
     }
 
+    // Derive dynamic column headers from API response
+    const districtColHeader = assemblyData.users[0]?.user_district_type || "District";
+    const assemblyColHeader = assemblyData.users[0]?.assigned_location?.location_type || assemblyData.location.location_type || "Assembly";
+
     return (
         <div className="p-2 bg-[var(--bg-main)] min-h-screen">
             {/* Header */}
@@ -335,8 +339,8 @@ export default function AssemblyTeam() {
                             <tr>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thSNo")}</th>
                                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thUserId")}</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thDistrict")}</th>
-                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thAssembly")}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{districtColHeader}</th>
+                                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{assemblyColHeader}</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thDesignation")}</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thName")}</th>
                                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap">{t("assemblyTeam.thEmail")}</th>
