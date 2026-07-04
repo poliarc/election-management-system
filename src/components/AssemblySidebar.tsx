@@ -1440,8 +1440,7 @@ export default function AssemblySidebar({
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              {sidebarLevels.find(({ level_name }) => level_name === "Assembly")
-                ?.display_level_name ?? "Assembly"}{" "} Level
+              Assembly Level
             </p>
           </div>
         </div>

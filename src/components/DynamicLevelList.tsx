@@ -7,22 +7,15 @@ import * as XLSX from "xlsx";
 import InlineUserDisplay from "./InlineUserDisplay";
 import { useTranslation } from "react-i18next";
 
-export interface StateLevelNameProps {
-    State: string
-    District: string
-    Assembly: string
-}
-
 interface DynamicLevelListProps {
     levelName: string;
     displayLevelName: string;
-    stateLevels: StateLevelNameProps
     parentLevelName?: string;
 }
 
 export default function DynamicLevelList({
     levelName,
-    displayLevelName, stateLevels }: DynamicLevelListProps) {
+    displayLevelName }: DynamicLevelListProps) {
     const {t} = useTranslation();
     const [searchTerm, setSearchTerm] = useState("");
     // Dynamic filters instead of hardcoded ones
@@ -956,7 +949,7 @@ export default function DynamicLevelList({
                                     {displayLevelName} {t("StateDynamic.List")}
                                 </h1>
                                 <p className="text-blue-100 mt-1 text-xs sm:text-sm">
-                                    {stateLevels.State}: {stateInfo.stateName}
+                                    {t("StateDynamic.State")}: {stateInfo.stateName}
                                 </p>
                             </div>
 
@@ -1157,7 +1150,7 @@ export default function DynamicLevelList({
                             {/* State Filter - Always shown */}
                             <div>
                                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                    {stateLevels.State}
+                                    {t("StateDynamic.State")}
                                 </label>
                                 <input
                                     type="text"
@@ -1177,10 +1170,7 @@ export default function DynamicLevelList({
                                 return (
                                     <div key={filterLevel}>
                                         <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                                        {
-                                        stateLevels[filterLevel as keyof StateLevelNameProps] ||
-                                        filterLevel
-                                        }
+                                            {filterLevel}
                                         </label>
                                         <select
                                             value={selectedFilters[filterLevel] || 0}
@@ -1188,10 +1178,7 @@ export default function DynamicLevelList({
                                             disabled={isDisabled}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
-                                            <option value={0}>All {
-                                                stateLevels[filterLevel as keyof StateLevelNameProps] ||
-                                                filterLevel
-                                            }s</option>
+                                            <option value={0}>All {filterLevel}s</option>
                                             {filterOptions.map((option: any) => (
                                                 <option
                                                     key={option.id}
@@ -1345,30 +1332,19 @@ export default function DynamicLevelList({
                                                                 const parent = parentId ? parentInfo[parentId] : null;
 
                                                                 if (parent && parent.levelName) {
-                                                                   return (
-                                                                stateLevels[parent.levelName as keyof StateLevelNameProps] ||
-                                                                parent.levelName
-                                                                );
+                                                                    return parent.levelName;
                                                                 }
 
                                                                 // Try to get parent level from item's parentLevelType
                                                                 if (firstItem.parentLevelType) {
-                                                                    return (
-                                                                stateLevels[firstItem.parentLevelType as keyof StateLevelNameProps] ||
-                                                                firstItem.parentLevelType
-                                                                );
+                                                                    return firstItem.parentLevelType;
                                                                 }
                                                             }
 
                                                             // Determine parent level based on current level in hierarchy
                                                             const currentLevelIndex = hierarchyOrder.indexOf(levelName);
                                                             if (currentLevelIndex > 0) {
-                                                                const parentLevel = hierarchyOrder[currentLevelIndex - 1];
-
-                                                                return (
-                                                                stateLevels[parentLevel as keyof StateLevelNameProps] ||
-                                                                parentLevel
-                                                                );
+                                                                return hierarchyOrder[currentLevelIndex - 1];
                                                             }
 
                                                             // Fallback to last visible filter
@@ -1456,13 +1432,7 @@ export default function DynamicLevelList({
                                                         )}
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                                {
-                                                            stateLevels[
-                                                                (item.levelName || levelName) as keyof StateLevelNameProps
-                                                            ] ||
-                                                            item.levelName ||
-                                                            levelName
-                                                            }
+                                                                {item.levelName || levelName}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1637,10 +1607,7 @@ export default function DynamicLevelList({
                                                                 const parent = parentId ? parentInfo[parentId] : null;
 
                                                                 if (parent) {
-                                                                    return (
-                                                                    stateLevels[parent.levelName as keyof StateLevelNameProps] ||
-                                                                    parent.levelName
-                                                                    );
+                                                                    return parent.levelName;
                                                                 }
 
                                                                 // Try parentLevelType if available

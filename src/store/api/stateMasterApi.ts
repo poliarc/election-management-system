@@ -93,7 +93,6 @@ export interface DistrictChild {
   location_id: number;
   location_name: string;
   location_type: string;
-  location_display_name: string;
   parent_id: number;
   total_users: number;
   active_users: number;
@@ -115,7 +114,6 @@ export interface StateLevelDashboardResponse {
         location_id: number;
         location_name: string;
         location_type: string;
-        location_display_name: string;
         parent_id: number | null;
       };
       children: DistrictChild[];
@@ -195,9 +193,6 @@ export interface AssemblyLevelDashboardResponse {
       totalAssemblies: number;
       totalUsers: number;
       totalActiveUsers: number;
-      stateDisplayName: string,
-      districtDisplayName: string,
-      assemblyDisplayName: string,
       totalInactiveUsers: number;
       assembliesWithoutUsers: number;
     };

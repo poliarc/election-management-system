@@ -3,12 +3,6 @@ import { useAppSelector } from "../../store/hooks";
 import { useGetSidebarLevelsQuery } from "../../store/api/partyWiseLevelApi";
 import DynamicLevelList from "../../components/DynamicLevelList";
 
-type StateLevelMap = {
-  State: string;
-  District: string;
-  Assembly: string;
-};
-
 export default function DynamicLevelPage() {
     const { levelName } = useParams<{ levelName: string }>();
     const user = useAppSelector((s) => s.auth.user);
@@ -23,9 +17,6 @@ export default function DynamicLevelPage() {
         { partyId, stateId },
         { skip: !partyId || !stateId }
     );
-
-    console.log(sidebarLevels, 'sidebar');
-    
 
     if (isLoading) {
         return (
@@ -57,22 +48,6 @@ export default function DynamicLevelPage() {
         level => level.level_name.toLowerCase() === levelName.toLowerCase()
     );
 
-   const stateLevels: StateLevelMap = sidebarLevels.reduce(
-     (acc, level) => {
-       if (["State", "District", "Assembly"].includes(level.level_name)) {
-         acc[level.level_name as keyof StateLevelMap] =
-           level.display_level_name;
-       }
-       return acc;
-     },
-     {
-       State: "State",
-       District: "District",
-       Assembly: "Assembly",
-     } as StateLevelMap,
-   );
-   
-    
     if (!levelConfig) {
         return (
             <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-blue-50 p-1">
@@ -92,7 +67,6 @@ export default function DynamicLevelPage() {
         <DynamicLevelList
             levelName={levelConfig.level_name}
             displayLevelName={levelConfig.display_level_name}
-            stateLevels = {stateLevels}
         />
     );
 }

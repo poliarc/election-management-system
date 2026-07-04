@@ -184,20 +184,8 @@ const Icons = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle
-        cx="9"
-        cy="7"
-        r="4"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <circle cx="9" cy="7" r="4" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   profile: (
@@ -227,20 +215,8 @@ const Icons = {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle
-        cx="9"
-        cy="7"
-        r="4"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m22 21-3-3m0 0a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z"
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <circle cx="9" cy="7" r="4" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m22 21-3-3m0 0a2 2 0 1 1-2.83-2.83 2 2 0 0 1 2.83 2.83Z" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   logout: (
@@ -267,10 +243,10 @@ const stateItemsTop: NavItem[] = [
 
 
 // Second group: District & Assembly
-// const stateItemsGeo: NavItem[] = [
-//   { to: "districts", label: "District", icon: Icons.district },
-//   { to: "assembly", label: "Assembly", icon: Icons.assembly },
-// ];
+const stateItemsGeo: NavItem[] = [
+  { to: "districts", label: "District", icon: Icons.district },
+  { to: "assembly", label: "Assembly", icon: Icons.assembly },
+];
 
 // Dropdown items - These will be replaced by dynamic levels from API
 const staticListItems: NavItem[] = [
@@ -294,7 +270,7 @@ export default function StateSidebar({
   const base = ROLE_DASHBOARD_PATH["State"] || "/state";
   const firstName = user?.firstName || user?.username || "State";
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    firstName,
+    firstName
   )}&background=6366f1&color=fff&bold=true`;
 
   // Get party and state info for API call
@@ -305,7 +281,7 @@ export default function StateSidebar({
   // Fetch dynamic sidebar levels from API
   const { data: sidebarLevels = [] } = useGetSidebarLevelsQuery(
     { partyId, stateId },
-    { skip: !partyId || !stateId },
+    { skip: !partyId || !stateId }
   );
 
   // Fetch dynamic sidebar modules from API
@@ -313,49 +289,29 @@ export default function StateSidebar({
     {
       state_id: stateId,
       party_id: partyId,
-      party_level_id: partyLevelId,
+      party_level_id: partyLevelId
     },
-    { skip: !partyId || !stateId || !partyLevelId },
+    { skip: !partyId || !stateId || !partyLevelId }
   );
-
-  const dynamicGeoItems: NavItem[] = useMemo(() => {
-    if (!sidebarLevels.length) {
-      return [
-        { to: "districts", label: "District", icon: Icons.district },
-        { to: "assembly", label: "Assembly", icon: Icons.assembly },
-      ];
-    }
-
-    return sidebarLevels
-      .filter((level) => ["District", "Assembly"].includes(level.level_name))
-      .map((level) => ({
-        to: level.level_name === "District" ? "districts" : "assembly",
-
-        label: level.display_level_name,
-
-        icon: level.level_name === "District" ? Icons.district : Icons.assembly,
-      }));
-  }, [sidebarLevels]);
 
   // Check if State Team module is accessible
   const hasStateTeamAccess = useMemo(() => {
-    return sidebarModules.some(
-      (module) =>
-        module.moduleName.toLowerCase().includes("state team") ||
-        module.moduleName.toLowerCase().includes("team"),
+    return sidebarModules.some(module => 
+      module.moduleName.toLowerCase().includes('state team') ||
+      module.moduleName.toLowerCase().includes('team')
     );
-  }, [sidebarModules]);  
+  }, [sidebarModules]);
 
   // Create dynamic list items from API response
   const dynamicListItems: NavItem[] = useMemo(() => {
     if (!sidebarLevels.length) return staticListItems;
 
     // Filter levels that come after Assembly
-    const afterAssemblyLevels = sidebarLevels.filter(
-      (level) => !["State", "District", "Assembly"].includes(level.level_name),
+    const afterAssemblyLevels = sidebarLevels.filter(level =>
+      !["State", "District", "Assembly"].includes(level.level_name)
     );
 
-    return afterAssemblyLevels.map((level) => ({
+    return afterAssemblyLevels.map(level => ({
       to: `dynamic-level/${level.level_name.toLowerCase()}`,
       label: level.display_level_name,
       icon: getIconForLevel(level.level_name),
@@ -363,19 +319,17 @@ export default function StateSidebar({
   }, [sidebarLevels]);
 
   // Use dynamic levels if available, otherwise fall back to static
-  const listItems =
-    dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
+  const listItems = dynamicListItems.length > 0 ? dynamicListItems : staticListItems;
 
   // Helper function to get appropriate icon for level
   function getIconForLevel(levelName: string): ReactNode {
     const lowerLevelName = levelName.toLowerCase();
 
-    if (lowerLevelName.includes("block")) return Icons.block;
-    if (lowerLevelName.includes("mandal")) return Icons.mandal;
-    if (lowerLevelName.includes("polling") || lowerLevelName.includes("center"))
-      return Icons.polling;
-    if (lowerLevelName.includes("booth")) return Icons.booths;
-    if (lowerLevelName.includes("ward")) return Icons.district; // Use district icon for ward
+    if (lowerLevelName.includes('block')) return Icons.block;
+    if (lowerLevelName.includes('mandal')) return Icons.mandal;
+    if (lowerLevelName.includes('polling') || lowerLevelName.includes('center')) return Icons.polling;
+    if (lowerLevelName.includes('booth')) return Icons.booths;
+    if (lowerLevelName.includes('ward')) return Icons.district; // Use district icon for ward
 
     // Default icon for unknown levels
     return Icons.mandal;
@@ -385,19 +339,15 @@ export default function StateSidebar({
   function getIconForModule(moduleName: string): ReactNode {
     const lowerModuleName = moduleName.toLowerCase();
 
-    if (lowerModuleName.includes("campaign")) return Icons.campaigns;
-    if (lowerModuleName.includes("user")) return Icons.team;
-    if (lowerModuleName.includes("district")) return Icons.district;
-    if (lowerModuleName.includes("assembly")) return Icons.assembly;
-    if (lowerModuleName.includes("block")) return Icons.block;
-    if (lowerModuleName.includes("mandal")) return Icons.mandal;
-    if (
-      lowerModuleName.includes("polling") ||
-      lowerModuleName.includes("center")
-    )
-      return Icons.polling;
-    if (lowerModuleName.includes("booth")) return Icons.booths;
-    if (lowerModuleName.includes("vic")) return Icons.vic;
+    if (lowerModuleName.includes('campaign')) return Icons.campaigns;
+    if (lowerModuleName.includes('user')) return Icons.team;
+    if (lowerModuleName.includes('district')) return Icons.district;
+    if (lowerModuleName.includes('assembly')) return Icons.assembly;
+    if (lowerModuleName.includes('block')) return Icons.block;
+    if (lowerModuleName.includes('mandal')) return Icons.mandal;
+    if (lowerModuleName.includes('polling') || lowerModuleName.includes('center')) return Icons.polling;
+    if (lowerModuleName.includes('booth')) return Icons.booths;
+    if (lowerModuleName.includes('vic')) return Icons.vic;
 
     // Default icon for unknown modules
     return Icons.campaigns;
@@ -408,20 +358,12 @@ export default function StateSidebar({
     const lowerModuleName = moduleName.toLowerCase();
 
     // Map specific module names to their correct routes
-    if (lowerModuleName.includes("campaign")) return "campaigns";
-    if (
-      lowerModuleName.includes("assigned event") ||
-      lowerModuleName.includes("event")
-    )
-      return "initiatives";
-    if (
-      lowerModuleName.includes("user management") ||
-      lowerModuleName.includes("user")
-    )
-      return "users";
+    if (lowerModuleName.includes('campaign')) return 'campaigns';
+    if (lowerModuleName.includes('assigned event') || lowerModuleName.includes('event')) return 'initiatives';
+    if (lowerModuleName.includes('user management') || lowerModuleName.includes('user')) return 'users';
 
     // Default: convert module name to kebab-case
-    return moduleName.toLowerCase().replace(/\s+/g, "-");
+    return moduleName.toLowerCase().replace(/\s+/g, '-');
   }
 
   const onLogout = () => {
@@ -433,7 +375,7 @@ export default function StateSidebar({
   const isListPathActive = useMemo(
     () =>
       listItems.some((li) => location.pathname.startsWith(`${base}/${li.to}`)),
-    [location.pathname, base],
+    [location.pathname, base]
   );
   const [listOpen, setListOpen] = useState<boolean>(isListPathActive);
 
@@ -452,8 +394,7 @@ export default function StateSidebar({
               {firstName}
             </p>
             <p className="text-xs font-medium tracking-wide text-indigo-600 uppercase">
-              {sidebarLevels.find(({ level_name }) => level_name === "State")
-                ?.display_level_name ?? "State"}{" "} Level
+              State Level
             </p>
           </div>
         </div>
@@ -463,27 +404,28 @@ export default function StateSidebar({
       <div className="flex-1">
         <nav className="px-4 py-5 space-y-2">
           {/* Dashboard */}
-          {stateItemsTop.map((item) => (
-            <NavLink
-              key={item.to}
-              to={`${base}/${item.to}`}
-              onClick={() => onNavigate?.()}
-              className={({ isActive }) =>
-                [
-                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  isActive
-                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                    : "border border-transparent hover:border-[var(--border-color)]",
-                ].join(" ")
-              }
-            >
-              <span className="text-indigo-600 shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-            </NavLink>
-          ))}
+            {stateItemsTop.map((item) => (
+              <NavLink
+                key={item.to}
+                to={`${base}/${item.to}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            ))}
+
 
           {/* State Team - Dynamic based on module access */}
           {hasStateTeamAccess && (
@@ -509,28 +451,28 @@ export default function StateSidebar({
             </NavLink>
           )}
 
-          {/* District & Assembly */}
-          {dynamicGeoItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={`${base}/${item.to}`}
-              onClick={() => onNavigate?.()}
-              className={({ isActive }) =>
-                [
-                  "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                  "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                  isActive
-                    ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                    : "border border-transparent hover:border-[var(--border-color)]",
-                ].join(" ")
-              }
-            >
-              <span className="text-indigo-600 shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-              <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-            </NavLink>
-          ))}
+            {/* District & Assembly */}
+            {stateItemsGeo.map((item) => (
+              <NavLink
+                key={item.to}
+                to={`${base}/${item.to}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            ))}
 
           {/* List dropdown */}
           <div>
@@ -580,7 +522,7 @@ export default function StateSidebar({
                 />
               </svg>
             </button>
-
+            
             {listOpen && (
               <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
                 {listItems.map((li) => (
@@ -607,24 +549,24 @@ export default function StateSidebar({
           </div>
 
           {/* Supporters */}
-          <NavLink
-            to={`${base}/supporters`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{Icons.supporters}</span>
-            <span className="truncate">Supporters</span>
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
+            <NavLink
+                to={`${base}/supporters`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.supporters}</span>
+                <span className="truncate">Supporters</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
 
 
                 {/* Marked Voters */}
@@ -667,75 +609,72 @@ export default function StateSidebar({
                 <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
               </NavLink>
 
-          {/* Booth Management */}
-          <NavLink
-            to={`${base}/booth-management`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{Icons.boothMgmt}</span>
-            <span className="truncate">Booth Management</span>
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
+              {/* Booth Management */}
+              <NavLink
+                to={`${base}/booth-management`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.boothMgmt}</span>
+                <span className="truncate">Booth Management</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
 
-          {/* --- ADDED SOCIAL MEDIA BUTTON --- */}
-          <NavLink
-            to={`${base}/Social-Media`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{Icons.team}</span>
-            <span className="truncate">Social Media</span>
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
+              {/* --- ADDED SOCIAL MEDIA BUTTON --- */}
+              <NavLink
+                to={`${base}/Social-Media`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{Icons.team}</span>
+                <span className="truncate">Social Media</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+
 
           {/* Dynamic Modules */}
           {sidebarModules
-            .filter(
-              (module) => !module.moduleName.toLowerCase().includes("team"),
-            ) // Filter out Team modules as they're handled separately
+            .filter(module => !module.moduleName.toLowerCase().includes('team')) // Filter out Team modules as they're handled separately
             .map((module) => (
-              <div key={module.module_id} className="mt-2">
-                <NavLink
-                  to={`${base}/${getModuleRoute(module.moduleName)}`}
-                  onClick={() => onNavigate?.()}
-                  className={({ isActive }) =>
-                    [
-                      "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
-                      "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                      isActive
-                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                        : "border border-transparent hover:border-[var(--border-color)]",
-                    ].join(" ")
-                  }
-                >
-                  <span className="text-indigo-600 shrink-0">
-                    {getIconForModule(module.moduleName)}
-                  </span>
-                  <span className="truncate">{module.displayName}</span>
-                  <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-                  <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-                </NavLink>
-              </div>
-            ))}
+            <div key={module.module_id} className="mt-2">
+              <NavLink
+                to={`${base}/${getModuleRoute(module.moduleName)}`}
+                onClick={() => onNavigate?.()}
+                className={({ isActive }) =>
+                  [
+                    "no-underline group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm",
+                    "text-[var(--text-color)] hover:bg-[var(--bg-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                    isActive
+                      ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                      : "border border-transparent hover:border-[var(--border-color)]",
+                  ].join(" ")
+                }
+              >
+                <span className="text-indigo-600 shrink-0">{getIconForModule(module.moduleName)}</span>
+                <span className="truncate">{module.displayName}</span>
+                <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+              </NavLink>
+            </div>
+          ))}
         </nav>
       </div>
 
