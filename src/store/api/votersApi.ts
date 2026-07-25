@@ -172,47 +172,131 @@ export const votersApi = createApi({
   tagTypes: ["Voters"],
   endpoints: (builder) => ({
     uploadVoters: builder.mutation<UploadVotersResponse, UploadVotersRequest>({
-      query: ({ state_id, district_id, assembly_id, file }) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("state_id", state_id.toString());
-        formData.append("district_id", district_id.toString());
-        formData.append("assembly_id", assembly_id.toString());
+      queryFn: async ({ state_id, district_id, assembly_id, file }) => {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("state_id", state_id.toString());
+          formData.append("district_id", district_id.toString());
+          formData.append("assembly_id", assembly_id.toString());
 
-        return {
-          url: `/voters/upload-excel?state_id=${state_id}&district_id=${district_id}&assembly_id=${assembly_id}`,
-          method: "POST",
-          body: formData,
-        };
+          const token = localStorage.getItem("auth_access_token");
+
+          // 10 minute timeout for large Excel uploads
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
+
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/voters/upload-excel?state_id=${state_id}&district_id=${district_id}&assembly_id=${assembly_id}`,
+            {
+              method: "POST",
+              headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body: formData,
+              signal: controller.signal,
+            }
+          );
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+            return {
+              error: {
+                status: response.status,
+                data: errorData,
+              },
+            };
+          }
+
+          const data = await response.json();
+          return { data: data.data ?? data };
+        } catch (err: any) {
+          if (err?.name === "AbortError") {
+            return {
+              error: {
+                status: "TIMEOUT_ERROR" as const,
+                error: "Upload timed out. The file may be too large. Please try again.",
+              },
+            };
+          }
+          return {
+            error: {
+              status: "FETCH_ERROR" as const,
+              error: err?.message || "Upload failed",
+            },
+          };
+        }
       },
-      transformResponse: (response: ApiResponse<UploadVotersResponse>) =>
-        response.data,
       invalidatesTags: ["Voters"],
     }),
     uploadDraftVoters: builder.mutation<
       UploadVotersResponse,
       UploadDraftVotersRequest
     >({
-      query: ({ state_id, district_id, assembly_id, party_id, file }) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("state_id", state_id.toString());
-        if (district_id !== undefined) {
-          formData.append("district_id", district_id.toString());
-        }
-        formData.append("assembly_id", assembly_id.toString());
-        formData.append("party_id", party_id.toString());
+      queryFn: async ({ state_id, district_id, assembly_id, party_id, file }) => {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("state_id", state_id.toString());
+          if (district_id !== undefined) {
+            formData.append("district_id", district_id.toString());
+          }
+          formData.append("assembly_id", assembly_id.toString());
+          formData.append("party_id", party_id.toString());
 
-        return {
-          url: `/draft-voters/upload?party_id=${party_id}&assembly_id=${assembly_id}&state_id=${state_id}${
-            district_id ? `&district_id=${district_id}` : ""
-          }`,
-          method: "POST",
-          body: formData,
-        };
+          const token = localStorage.getItem("auth_access_token");
+
+          const queryString = `party_id=${party_id}&assembly_id=${assembly_id}&state_id=${state_id}${district_id ? `&district_id=${district_id}` : ""}`;
+
+          // 10 minute timeout for large draft uploads
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
+
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/draft-voters/upload?${queryString}`,
+            {
+              method: "POST",
+              headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body: formData,
+              signal: controller.signal,
+            }
+          );
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+            return {
+              error: {
+                status: response.status,
+                data: errorData,
+              },
+            };
+          }
+
+          const data = await response.json();
+          return { data: data.data ?? data };
+        } catch (err: any) {
+          if (err?.name === "AbortError") {
+            return {
+              error: {
+                status: "TIMEOUT_ERROR" as const,
+                error: "Upload timed out. The file may be too large. Please try again.",
+              },
+            };
+          }
+          return {
+            error: {
+              status: "FETCH_ERROR" as const,
+              error: err?.message || "Upload failed",
+            },
+          };
+        }
       },
-      transformResponse: (response: ApiResponse<UploadVotersResponse>) =>
-        response.data,
     }),
     getDistinctFields: builder.query<VoterApiResponse, GetDistinctFieldsParams>(
       {
