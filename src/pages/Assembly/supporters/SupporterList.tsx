@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MoreVertical } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MoreVertical, Eye, Edit2, Phone } from 'lucide-react';
 import {
   useGetSupportersByCreatedByQuery
 } from '../../../store/api/supportersApi';
@@ -35,6 +35,25 @@ export default function SupporterList({ onEdit, onView, onShowPhone }: Supporter
   });
 
   const [showFilters, setShowFilters] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  // Close open action menu on outside click only (not on scroll)
+  useEffect(() => {
+    if (openMenuId === null) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(`[data-actions-menu="${openMenuId}"]`)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openMenuId]);
 
   // Use the created-by endpoint as specified in the API documentation
   // Get user ID from localStorage if not available in Redux state
@@ -194,10 +213,10 @@ export default function SupporterList({ onEdit, onView, onShowPhone }: Supporter
   return (
     <div className="bg-[var(--bg-card)] rounded-lg shadow">
       {/* Header with search and filters */}
-      <div className="p-6 border-b border-[var(--border-color)]">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex-1 max-w-md">
+      <div className="p-3.5 sm:p-6 border-b border-[var(--border-color)]">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
+            <div className="flex-1 w-full sm:max-w-md">
               <div className="relative">
                 <input
                   type="text"
@@ -449,42 +468,52 @@ export default function SupporterList({ onEdit, onView, onShowPhone }: Supporter
                   </div>
                 </td>
                 <td className="px-3 py-4 text-center">
-                  <div className="relative inline-block text-left">
+                  <div className="relative inline-block text-left" data-actions-menu={supporter.supporter_id}>
                     <button
-                      className="text-[var(--text-color)] hover:text-[var(--text-secondary)] focus:outline-none"
+                      className="p-1.5 rounded-lg text-[var(--text-color)] hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 focus:outline-none transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const menu = e.currentTarget.nextElementSibling as HTMLElement;
-                        menu.classList.toggle('hidden');
+                        setOpenMenuId(openMenuId === supporter.supporter_id ? null : supporter.supporter_id);
                       }}
                       aria-label={t("supporterList.btnActions")}
                       title={t("supporterList.btnActions")}
                     >
                       <MoreVertical className="h-5 w-5" />
                     </button>
-                    <div className="hidden absolute right-0 z-10 mt-2 w-48 bg-[var(--bg-card)] rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
-                      <div className="py-1">
+                    {openMenuId === supporter.supporter_id && (
+                      <div className="absolute right-0 z-30 mt-1 w-44 bg-[var(--bg-card)] rounded-xl shadow-xl ring-1 ring-black/10 py-1.5 border border-[var(--border-color)] animate-in fade-in zoom-in-95 duration-150">
                         <button
-                          onClick={() => onView(supporter)}
-                          className="block w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            onView(supporter);
+                          }}
+                          className="flex items-center gap-2.5 w-full text-left px-3.5 py-2 text-xs sm:text-sm text-[var(--text-color)] hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 transition-colors font-medium"
                         >
+                          <Eye className="w-4 h-4 text-indigo-500 shrink-0" />
                           {t("supporterList.btnViewDetails")}
                         </button>
                         <button
-                          onClick={() => onEdit(supporter)}
-                          className="block w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            onEdit(supporter);
+                          }}
+                          className="flex items-center gap-2.5 w-full text-left px-3.5 py-2 text-xs sm:text-sm text-[var(--text-color)] hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 transition-colors font-medium"
                         >
+                          <Edit2 className="w-4 h-4 text-amber-500 shrink-0" />
                           {t("supporterList.btnEdit")}
                         </button>
                         <button
-                          onClick={() => onShowPhone(supporter)}
-                          className="block w-full text-left px-4 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            onShowPhone(supporter);
+                          }}
+                          className="flex items-center gap-2.5 w-full text-left px-3.5 py-2 text-xs sm:text-sm text-[var(--text-color)] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors font-medium"
                         >
+                          <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
                           {t("supporterList.btnPhone")}
                         </button>
-
                       </div>
-                    </div>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -495,8 +524,8 @@ export default function SupporterList({ onEdit, onView, onShowPhone }: Supporter
 
       {/* Pagination */}
       {pagination && pagination.pages > 1 && (
-        <div className="px-6 py-3 border-t border-[var(--border-color)] flex items-center justify-between">
-          <div className="text-sm text-[var(--text-secondary)]">
+        <div className="px-4 sm:px-6 py-3 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-3 sm:gap-0 items-center justify-between">
+          <div className="text-xs sm:text-sm text-[var(--text-secondary)]">
             {t("supporterList.showingResultsRange", {
               from: ((pagination.page - 1) * pagination.limit) + 1,
               to: Math.min(pagination.page * pagination.limit, pagination.total),

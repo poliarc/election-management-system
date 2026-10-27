@@ -61,11 +61,11 @@ export default function SupporterStats() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-[var(--bg-card)] rounded-lg shadow p-6 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          <div key={i} className="bg-[var(--bg-card)] rounded-xl shadow-sm p-3.5 sm:p-5 border border-[var(--border-color)] animate-pulse">
+            <div className="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+            <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
           </div>
         ))}
       </div>
@@ -136,16 +136,16 @@ export default function SupporterStats() {
 
   return (
     <div className="space-y-6">
-      {/* All Stats Cards in One Row - Responsive */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* All Stats Cards in One Row - Responsive 2x2 on mobile, 4 in a row on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Total Supporters Card */}
-        <div className="bg-[var(--bg-card)] rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-[var(--bg-card)] rounded-xl shadow-sm p-3.5 sm:p-5 border border-[var(--border-color)]">
+          <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-medium text-[var(--text-secondary)]">{t("supporterStats.totalSupporters")}</p>
-              <p className="text-3xl font-bold text-[var(--text-color)]">{stats.total_supporters.toLocaleString()}</p>
+              <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] truncate">{t("supporterStats.totalSupporters")}</p>
+              <p className="text-xl sm:text-3xl font-bold text-[var(--text-color)] mt-0.5">{stats.total_supporters.toLocaleString()}</p>
             </div>
-            <div className="bg-blue-500 rounded-full p-3 text-white text-xl">
+            <div className="bg-blue-500 rounded-full p-2 sm:p-3 text-white text-base sm:text-xl shrink-0">
               👥
             </div>
           </div>
@@ -153,13 +153,13 @@ export default function SupporterStats() {
 
         {/* Time-based Stats Cards */}
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-[var(--bg-card)] rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          <div key={index} className="bg-[var(--bg-card)] rounded-xl shadow-sm p-3.5 sm:p-5 border border-[var(--border-color)]">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-medium text-[var(--text-secondary)]">{stat.title}</p>
-                <p className="text-2xl font-bold text-[var(--text-color)]">{stat.value.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] truncate">{stat.title}</p>
+                <p className="text-xl sm:text-2xl font-bold text-[var(--text-color)] mt-0.5">{stat.value.toLocaleString()}</p>
               </div>
-              <div className={`${stat.color} rounded-full p-3 text-white text-xl`}>
+              <div className={`${stat.color} rounded-full p-2 sm:p-3 text-white text-base sm:text-xl shrink-0`}>
                 {stat.icon}
               </div>
             </div>

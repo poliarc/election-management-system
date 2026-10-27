@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -8,6 +8,7 @@ import {
 import { useGetProfileQuery, useUpdateWhatsAppUrlMutation } from '../../../store/api/profileApi';
 import { useAppSelector } from '../../../store/hooks';
 import type { CreateSupporterRequest } from '../../../types/supporter';
+import type { AfterAssemblyHierarchyNode } from '../../../types/campaign';
 import { useTranslation } from "react-i18next";
 
 // Constants for dropdown options
@@ -73,6 +74,9 @@ export default function AddSupporterPage() {
     mandal_id: 0,
     booth_id: 0,
   });
+
+  // Dynamic after-assembly selections: index = depth, value = selected afterAssemblyData id
+  const [afterAssemblySelections, setAfterAssemblySelections] = useState<number[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -212,8 +216,7 @@ export default function AddSupporterPage() {
         ...prev,
         [name]: parseInt(value) || 0
       }));
-    } else if (name === 'religion') {
-      // Reset category and caste when religion changes
+    } else if (name === 'religion') {      // Reset category and caste when religion changes
       setFormData(prev => ({
         ...prev,
         [name]: value,
@@ -342,9 +345,13 @@ export default function AddSupporterPage() {
         whatsapp_no: formData.whatsapp_no || undefined,
         voter_epic_id: formData.voter_epic_id || undefined,
         remarks: formData.remarks || undefined,
-        block_id: formData.block_id || undefined,
-        mandal_id: formData.mandal_id || undefined,
-        booth_id: formData.booth_id || undefined,
+        block_id: deepestSelectedId || undefined,
+        mandal_id: undefined,
+        booth_id: undefined,
+        after_assembly_levels: Array.from(
+          { length: afterAssemblySelections.length },
+          (_, i) => afterAssemblySelections[i] || 0
+        ).filter(id => id > 0).map(Number),
         caste: formData.caste || undefined,
       };
       await createSupporter(createData).unwrap();
@@ -397,28 +404,48 @@ export default function AddSupporterPage() {
   const stateData = hierarchyData?.data?.stateHierarchy?.find(h => h.id === formData.state_id);
   const districtData = hierarchyData?.data?.stateHierarchy?.find(h => h.id === formData.district_id);
 
-  // Get blocks, mandals, and booths from afterAssemblyHierarchy
-  const afterAssemblyData = hierarchyData?.data?.afterAssemblyHierarchy || [];
+  // All after-assembly nodes for this party/assembly
+  const afterAssemblyData: AfterAssemblyHierarchyNode[] =
+    (hierarchyData?.data?.afterAssemblyHierarchy || []) as AfterAssemblyHierarchyNode[];
 
-  // Filter blocks under the selected assembly
-  const blocks = afterAssemblyData.filter(h =>
-    h.levelName === 'Block' && h.parentAssemblyId === formData.assembly_id
-  ) || [];
+  // ── Dynamic levels: compute ordered depth structure ──────────────────────
+  const dynamicLevels = useMemo(() => {
+    if (!afterAssemblyData.length) return [];
+    const depthMap = new Map<number, number>();
+    const getDepth = (node: AfterAssemblyHierarchyNode): number => {
+      if (depthMap.has(node.id)) return depthMap.get(node.id)!;
+      if (node.parentId === null) { depthMap.set(node.id, 0); return 0; }
+      const parent = afterAssemblyData.find(n => n.id === node.parentId);
+      const d = parent ? getDepth(parent) + 1 : 0;
+      depthMap.set(node.id, d);
+      return d;
+    };
+    afterAssemblyData.forEach(getDepth);
+    const byDepth = new Map<number, { label: string; nodes: AfterAssemblyHierarchyNode[] }>();
+    afterAssemblyData.forEach(node => {
+      const d = depthMap.get(node.id) ?? 0;
+      if (!byDepth.has(d)) byDepth.set(d, { label: node.display_level_name || node.levelName, nodes: [] });
+      byDepth.get(d)!.nodes.push(node);
+    });
+    return Array.from(byDepth.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([depth, { label, nodes }]) => ({ depth, label, nodes }));
+  }, [afterAssemblyData]);
 
-  // Filter mandals under the selected block or assembly
-  const mandals = afterAssemblyData.filter(h =>
-    h.levelName === 'Mandal' && (
-      h.parentId === formData.block_id ||
-      (h.parentAssemblyId === formData.assembly_id && !formData.block_id)
-    )
-  ) || [];
+  // Options at each depth, cascaded from assembly → depth 0 → depth 1 → …
+  const visibleOptions = useMemo(() => {
+    return dynamicLevels.map(({ depth, nodes }) => {
+      if (depth === 0) return nodes.filter(n => n.parentAssemblyId === formData.assembly_id);
+      const parentId = afterAssemblySelections[depth - 1];
+      if (!parentId) return [];
+      return nodes.filter(n => n.parentId === parentId);
+    });
+  }, [dynamicLevels, afterAssemblySelections, formData.assembly_id]);
 
-  // Filter booths under the selected mandal
-  const booths = afterAssemblyData.filter(h =>
-    h.levelName === 'Booth' && h.parentId === formData.mandal_id
-  ) || [];
+  // Deepest selected id sent as block_id (existing API contract)
+  const deepestSelectedId = [...afterAssemblySelections].reverse().find(id => id > 0) || 0;
 
-  // Get display names - use selectedAssignment data when available
+  // Get display names
   const getStateName = () => {
     if (hierarchyLoading) return 'Loading...';
     return stateData?.levelName || selectedAssignment?.stateName || 'Unknown State';
@@ -431,14 +458,8 @@ export default function AddSupporterPage() {
 
   const getAssemblyName = () => {
     if (hierarchyLoading) return 'Loading...';
-    // For Assembly level users, selectedAssignment represents the assembly itself
     return selectedAssignment?.levelName || selectedAssignment?.displayName || 'Unknown Assembly';
   };
-
-  // Check if dropdowns should be enabled - Always enable when not loading
-  const isBlockDropdownEnabled = !hierarchyLoading;
-  const isMandalDropdownEnabled = !hierarchyLoading;
-  const isBoothDropdownEnabled = !hierarchyLoading;
 
   // Get available categories based on religion
   const getAvailableCategories = () => {
@@ -925,80 +946,51 @@ export default function AddSupporterPage() {
                   />
                 </div>
 
-                {/* Block Dropdown */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Block
-                  </label>
-                  <select
-                    name="block_id"
-                    value={formData.block_id}
-                    onChange={handleInputChange}
-                    disabled={!isBlockDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("addSupporter.lblBlock")}
-                    title={t("addSupporter.lblBlock")}
-                  >
-                    <option value={0}>Select Block</option>
-                    {blocks.map((block) => (
-                      <option key={block.id} value={block.id}>
-                        {block.displayName || block.levelName}
-                      </option>
-                    ))}
-                  </select>
-                  {hierarchyLoading && <p className="text-xs text-[var(--text-secondary)] mt-1">Loading blocks...</p>}
-                  {!hierarchyLoading && blocks.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No blocks available</p>}
-                </div>
-
-                {/* Mandal Dropdown - Optional */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Mandal <span className="text-[var(--text-secondary)]">(Optional)</span>
-                  </label>
-                  <select
-                    name="mandal_id"
-                    value={formData.mandal_id}
-                    onChange={handleInputChange}
-                    disabled={!isMandalDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("addSupporter.lblMandalOptional")}
-                    title={t("addSupporter.lblMandalOptional")}
-                  >
-                    <option value={0}>Select Mandal</option>
-                    {mandals.map((mandal) => (
-                      <option key={mandal.id} value={mandal.id}>
-                        {mandal.displayName || mandal.levelName}
-                      </option>
-                    ))}
-                  </select>
-                  {!hierarchyLoading && !formData.block_id && <p className="text-xs text-[var(--text-secondary)] mt-1">Select a block first (or leave empty)</p>}
-                  {/* {!hierarchyLoading && formData.block_id && mandals.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No mandals available for selected block</p>} */}
-                </div>
-
-                {/* Booth Dropdown - Optional */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Booth <span className="text-[var(--text-secondary)]">(Optional)</span>
-                  </label>
-                  <select
-                    name="booth_id"
-                    value={formData.booth_id}
-                    onChange={handleInputChange}
-                    disabled={!isBoothDropdownEnabled}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    aria-label={t("addSupporter.lblBoothOptional")}
-                    title={t("addSupporter.lblBoothOptional")}
-                  >
-                    <option value={0}>Select Booth</option>
-                    {booths.map((booth) => (
-                      <option key={booth.id} value={booth.id}>
-                        {booth.displayName || booth.levelName}
-                      </option>
-                    ))}
-                  </select>
-                  {!hierarchyLoading && !formData.mandal_id && <p className="text-xs text-[var(--text-secondary)] mt-1">Select a mandal first</p>}
-                  {/* {!hierarchyLoading && formData.mandal_id && booths.length === 0 && <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available for selected mandal</p>} */}
-                </div>
+                {/* Dynamic after-assembly dropdowns — all levels after assembly */}
+                {dynamicLevels.map((level, idx) => {
+                  const opts = visibleOptions[idx] || [];
+                  const parentSelected = level.depth === 0 || (afterAssemblySelections[level.depth - 1] || 0) > 0;
+                  const isOptional = true; // all after-assembly levels are optional
+                  return (
+                    <div key={level.depth}>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        {level.label}
+                        {isOptional && <span className="text-[var(--text-secondary)] ml-1">(Optional)</span>}
+                      </label>
+                      <select
+                        value={afterAssemblySelections[level.depth] || 0}
+                        onChange={e => {
+                          const val = parseInt(e.target.value) || 0;
+                          setAfterAssemblySelections(prev => {
+                            const next = [...prev];
+                            next[level.depth] = val;
+                            // reset deeper levels
+                            for (let i = level.depth + 1; i < dynamicLevels.length; i++) next[i] = 0;
+                            return next;
+                          });
+                        }}
+                        disabled={hierarchyLoading || !parentSelected}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                      >
+                        <option value={0}>
+                          {hierarchyLoading
+                            ? `Loading ${level.label}s...`
+                            : !parentSelected
+                            ? `Select ${dynamicLevels[level.depth - 1]?.label} first`
+                            : opts.length === 0
+                            ? `No ${level.label} available`
+                            : `Select ${level.label}`}
+                        </option>
+                        {opts.map(n => (
+                          <option key={n.id} value={n.id}>{n.displayName}</option>
+                        ))}
+                      </select>
+                      {!hierarchyLoading && level.depth === 0 && opts.length === 0 && (
+                        <p className="text-xs text-[var(--text-secondary)] mt-1">No {level.label} available</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

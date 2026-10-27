@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CheckCircle, AlertTriangle, UserPlus } from 'lucide-react';
+import { API_CONFIG } from '../../../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend.assamnyay.com';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 // Constants for dropdown options
 const INITIALS_OPTIONS = ['Mr', 'Ms', 'Mrs', 'Dr'];
@@ -51,10 +52,23 @@ export default function PublicAddSupporterPage() {
   const assemblyName = searchParams.get('assembly_name');
   const blockId = searchParams.get('block_id');
   const blockName = searchParams.get('block_name');
+  const blockLabel = searchParams.get('block_label') || 'Block';
   const mandalId = searchParams.get('mandal_id');
-  const mandalName = searchParams.get('mandal_name');
   const boothId = searchParams.get('booth_id');
-  const boothName = searchParams.get('booth_name');
+
+  // Generic deeper levels: level_1_id/name/label, level_2_id/name/label, ...
+  // These correspond to depth 1, 2, 3... after assembly (depth-0 = block)
+  const deeperLevels = useMemo(() => {
+    const levels: { id: number; name: string; label: string }[] = [];
+    for (let i = 1; i <= 10; i++) {
+      const id = searchParams.get(`level_${i}_id`);
+      const name = searchParams.get(`level_${i}_name`);
+      const label = searchParams.get(`level_${i}_label`);
+      if (!id || parseInt(id) === 0) break;
+      levels.push({ id: parseInt(id), name: name || '', label: label || `Level ${i}` });
+    }
+    return levels;
+  }, [searchParams]);
   const createdBy = searchParams.get('created_by');
   const createdByName = searchParams.get('created_by_name');
 
@@ -88,11 +102,11 @@ export default function PublicAddSupporterPage() {
 
   // Validate URL parameters on mount
   useEffect(() => {
-    if (!partyId || !partyName || !stateId || !stateName || !districtId || !districtName || !assemblyId || !assemblyName || !blockId || !blockName) {
+    if (!partyId || !partyName || !stateId || !stateName || !districtId || !districtName || !assemblyId || !assemblyName) {
       toast.error('Invalid registration link. Missing required parameters.');
       navigate('/login');
     }
-  }, [partyId, partyName, stateId, stateName, districtId, districtName, assemblyId, assemblyName, blockId, blockName, navigate]);
+  }, [partyId, partyName, stateId, stateName, districtId, districtName, assemblyId, assemblyName, navigate]);
 
   // Fetch hierarchy data for Block/Mandal/Booth dropdowns (only if not pre-filled from URL)
   useEffect(() => {
@@ -169,18 +183,6 @@ export default function PublicAddSupporterPage() {
         block_id: newBlockId,
         mandal_id: 0,
         booth_id: 0
-      }));
-    } else if (name === 'mandal_id') {
-      const newMandalId = parseInt(value) || 0;
-      setFormData(prev => ({
-        ...prev,
-        mandal_id: newMandalId,
-        booth_id: 0
-      }));
-    } else if (name === 'booth_id') {
-      setFormData(prev => ({
-        ...prev,
-        booth_id: parseInt(value) || 0
       }));
     } else if (name === 'religion') {
       setFormData(prev => ({ ...prev, [name]: value, category: '', caste: '' }));
@@ -272,17 +274,40 @@ export default function PublicAddSupporterPage() {
         created_by_name: createdByName || 'Public Registration'
       });
 
-      // Add optional mandal and booth if present
-      if (formData.mandal_id > 0 && mandalName) {
-        queryParams.append('mandal_id', formData.mandal_id.toString());
-        queryParams.append('mandal_name', mandalName);
-      }
-      if (formData.booth_id > 0 && boothName) {
-        queryParams.append('booth_id', formData.booth_id.toString());
-        queryParams.append('booth_name', boothName);
+      // Collect all after-assembly levels ordered by depth
+      const allAfterAssemblyLevels: number[] = [];
+      if (formData.block_id && formData.block_id > 0) {
+        allAfterAssemblyLevels.push(formData.block_id);
       }
 
-      // Only send personal details in body (no location/party info)
+      // Add all deeper levels (both to queryParams and to allAfterAssemblyLevels)
+      // 1. Prefilled from URL (deeperLevels)
+      deeperLevels.forEach((lvl, idx) => {
+        if (lvl.id > 0) {
+          allAfterAssemblyLevels.push(lvl.id);
+          queryParams.append(`level_${idx + 1}_id`, lvl.id.toString());
+          queryParams.append(`level_${idx + 1}_name`, lvl.name || '');
+          queryParams.append(`level_${idx + 1}_label`, lvl.label || `Level ${idx + 1}`);
+        }
+      });
+
+      // 2. Extra selections beyond deeperLevels if user picked any in dropdowns
+      if (subBlockLevels.length > deeperLevels.length) {
+        subBlockLevels.slice(deeperLevels.length).forEach((level, relIdx) => {
+          const idx = deeperLevels.length + relIdx;
+          const selectedId = subSelections[idx] || 0;
+          if (selectedId > 0) {
+            allAfterAssemblyLevels.push(selectedId);
+            const node = afterAssemblyData.find((n: any) => n.id === selectedId);
+            const label = level.label || `Level ${idx + 1}`;
+            queryParams.append(`level_${idx + 1}_id`, selectedId.toString());
+            queryParams.append(`level_${idx + 1}_name`, node?.displayName || node?.levelName || '');
+            queryParams.append(`level_${idx + 1}_label`, label);
+          }
+        });
+      }
+
+      // Send personal details and after_assembly_levels in body
       const createData = {
         initials: formData.initials,
         first_name: formData.first_name,
@@ -300,6 +325,7 @@ export default function PublicAddSupporterPage() {
         voter_epic_id: formData.voter_epic_id || undefined,
         address: formData.address,
         remarks: formData.remarks || undefined,
+        after_assembly_levels: allAfterAssemblyLevels,
       };
 
       const response = await fetch(`${API_BASE_URL}/api/supporters/register?${queryParams.toString()}`, {
@@ -367,22 +393,70 @@ export default function PublicAddSupporterPage() {
 
   const shouldShowCaste = formData.religion === 'Hindu' && formData.category && getAvailableCastes().length > 0;
 
-  // Get filtered hierarchy levels
+  // All after-assembly nodes
   const afterAssemblyData = hierarchyData?.afterAssemblyHierarchy || [];
 
-  // Filter mandals under the block (from URL)
-  const mandals = !mandalId && formData.block_id > 0 ? afterAssemblyData.filter((h: any) =>
-    h.levelName === 'Mandal' && h.parentId === formData.block_id
-  ) : [];
+  // ── Dynamic levels after the pre-filled block (depth 0) ──────────────────
+  // block_id from URL = depth-0 selection.
+  // depth-1 nodes (children of block) → shown as first optional dropdown
+  // depth-2 nodes (children of depth-1) → shown as second optional dropdown, etc.
 
-  // Filter booths under the mandal (either from URL or selected)
-  const effectiveMandalId = mandalId ? parseInt(mandalId) : formData.mandal_id;
-  const booths = !boothId && effectiveMandalId > 0 ? afterAssemblyData.filter((h: any) =>
-    h.levelName === 'Booth' && h.parentId === effectiveMandalId
-  ) : [];
+  // Build depth map
+  const depthMap = useMemo(() => {
+    const map = new Map<number, number>();
+    const getDepth = (node: any): number => {
+      if (map.has(node.id)) return map.get(node.id)!;
+      if (node.parentId === null) { map.set(node.id, 0); return 0; }
+      const parent = afterAssemblyData.find((n: any) => n.id === node.parentId);
+      const d = parent ? getDepth(parent) + 1 : 0;
+      map.set(node.id, d);
+      return d;
+    };
+    afterAssemblyData.forEach((n: any) => getDepth(n));
+    return map;
+  }, [afterAssemblyData]);
 
-  // Show error state for invalid parameters
-  if (!partyId || !stateId || !districtId || !assemblyId || !blockId) {
+  // Depth-1+ levels (children of block and deeper) as ordered array
+  const subBlockLevels = useMemo(() => {
+    if (!afterAssemblyData.length) return [];
+    const byDepth = new Map<number, { label: string; nodes: any[] }>();
+    afterAssemblyData.forEach((node: any) => {
+      const d = depthMap.get(node.id) ?? 0;
+      if (d < 1) return; // skip depth-0 (block level)
+      if (!byDepth.has(d)) byDepth.set(d, { label: node.display_level_name || node.levelName, nodes: [] });
+      byDepth.get(d)!.nodes.push(node);
+    });
+    return Array.from(byDepth.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([depth, { label, nodes }]) => ({ depth, label, nodes }));
+  }, [afterAssemblyData, depthMap]);
+
+  // selections[i] = selected id at subBlockLevels[i]
+  const [subSelections, setSubSelections] = useState<number[]>(() => {
+    // Pre-fill from deeperLevels (level_1_id → index 0, level_2_id → index 1, ...)
+    // We read directly from searchParams here since deeperLevels isn't available yet
+    const pre: number[] = [];
+    for (let i = 1; i <= 10; i++) {
+      const id = searchParams.get(`level_${i}_id`);
+      if (!id || parseInt(id) === 0) break;
+      pre[i - 1] = parseInt(id);
+    }
+    return pre;
+  });
+
+  // Cascaded options per sub-level
+  const subVisibleOptions = useMemo(() => {
+    const blockIdNum = parseInt(blockId || '0');
+    return subBlockLevels.map(({ depth, nodes }) => {
+      if (depth === 1) return nodes.filter((n: any) => n.parentId === blockIdNum);
+      const parentId = subSelections[depth - 2]; // depth-1 → index 0, depth-2 → index 1
+      if (!parentId) return [];
+      return nodes.filter((n: any) => n.parentId === parentId);
+    });
+  }, [subBlockLevels, subSelections, blockId]);
+
+  // Show error state for invalid parameters — block is now optional
+  if (!partyId || !stateId || !districtId || !assemblyId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
@@ -746,91 +820,84 @@ export default function PublicAddSupporterPage() {
                   />
                 </div>
 
-                {/* Block - Always Disabled (Required from URL) */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Block
-                  </label>
-                  <input
-                    type="text"
-                    value={blockName || 'Unknown Block'}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
-                  />
-                </div>
-
-                {/* Mandal - Disabled if provided in URL, otherwise optional dropdown */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Mandal {mandalId && <span className="text-[var(--text-secondary)]">(Pre-filled)</span>}
-                    {!mandalId && <span className="text-[var(--text-secondary)]">(Optional)</span>}
-                  </label>
-                  {mandalId ? (
+                {/* Block/Zone/etc — only show if provided in URL */}
+                {blockId && (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      {blockLabel}
+                    </label>
                     <input
                       type="text"
-                      value={mandalName || 'Unknown Mandal'}
+                      value={blockName || `Unknown ${blockLabel}`}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
-                  ) : (
-                    <select
-                      name="mandal_id"
-                      value={formData.mandal_id}
-                      onChange={handleInputChange}
-                      disabled={hierarchyLoading || mandals.length === 0}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    >
-                      <option value={0}>Select Mandal</option>
-                      {mandals.map((mandal: any) => (
-                        <option key={mandal.id} value={mandal.id}>
-                          {mandal.displayName || mandal.levelName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {!mandalId && !hierarchyLoading && mandals.length === 0 && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      No mandals available
-                    </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Booth - Disabled if provided in URL, otherwise optional dropdown */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Booth {boothId && <span className="text-[var(--text-secondary)]">(Pre-filled)</span>}
-                    {!boothId && <span className="text-[var(--text-secondary)]">(Optional)</span>}
-                  </label>
-                  {boothId ? (
+                {/* Dynamic sub-block level dropdowns (depth 1+) */}
+                {/* Strategy: show pre-filled URL levels as disabled inputs first,
+                    then show remaining hierarchy-based dropdowns if hierarchy loaded */}
+
+                {/* Pre-filled levels from URL — always show, no API needed */}
+                {deeperLevels.map((lvl, idx) => (
+                  <div key={`prefilled-${idx}`}>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      {lvl.label}
+                    </label>
                     <input
                       type="text"
-                      value={boothName || 'Unknown Booth'}
+                      value={lvl.name || `Unknown ${lvl.label}`}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
-                  ) : (
-                    <select
-                      name="booth_id"
-                      value={formData.booth_id}
-                      onChange={handleInputChange}
-                      disabled={hierarchyLoading || booths.length === 0}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                    >
-                      <option value={0}>Select Booth</option>
-                      {booths.map((booth: any) => (
-                        <option key={booth.id} value={booth.id}>
-                          {booth.displayName || booth.levelName}
+                  </div>
+                ))}
+
+                {/* Additional optional dropdowns from hierarchy — only if hierarchy loaded
+                    and the user hasn't pre-filled all levels */}
+                {subBlockLevels.slice(deeperLevels.length).map((level, relIdx) => {
+                  const idx = deeperLevels.length + relIdx;
+                  const opts = subVisibleOptions[idx] || [];
+                  const displayLabel = level.label;
+                  const currentVal = subSelections[idx] || 0;
+                  const parentSelected = idx === 0 || (subSelections[idx - 1] || 0) > 0;
+
+                  return (
+                    <div key={`dynamic-${level.depth}`}>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        {displayLabel} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                      </label>
+                      <select
+                        value={currentVal}
+                        onChange={e => {
+                          const val = parseInt(e.target.value) || 0;
+                          setSubSelections(prev => {
+                            const next = [...prev];
+                            next[idx] = val;
+                            for (let i = idx + 1; i < subBlockLevels.length; i++) next[i] = 0;
+                            return next;
+                          });
+                        }}
+                        disabled={hierarchyLoading || !parentSelected || opts.length === 0}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                      >
+                        <option value={0}>
+                          {hierarchyLoading
+                            ? `Loading ${displayLabel}s...`
+                            : !parentSelected
+                            ? `Select ${subBlockLevels[idx - 1]?.label || 'previous level'} first`
+                            : opts.length === 0
+                            ? `No ${displayLabel} available`
+                            : `Select ${displayLabel}`}
                         </option>
-                      ))}
-                    </select>
-                  )}
-                  {!boothId && !hierarchyLoading && booths.length === 0 && !formData.mandal_id && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">Select a mandal first</p>
-                  )}
-                  {!boothId && !hierarchyLoading && booths.length === 0 && formData.mandal_id && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">No booths available for this mandal</p>
-                  )}
-                </div>
+                        {opts.map((n: any) => (
+                          <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
