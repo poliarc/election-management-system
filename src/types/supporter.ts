@@ -36,6 +36,13 @@ export interface Supporter {
   mandal_name?: string;
   booth_name?: string;
   created_by_name?: string;
+  after_assembly_levels?: Array<{
+    depth: number;
+    after_assembly_data_id: number;
+    level_name: string;
+    level_type: string;
+    level_label: string;
+  }>;
 }
 
 export interface CreateSupporterRequest {
@@ -46,6 +53,7 @@ export interface CreateSupporterRequest {
   block_id?: number;
   mandal_id?: number;
   booth_id?: number;
+  after_assembly_levels?: number[];
   initials: string;
   first_name: string;
   last_name: string;
@@ -86,9 +94,10 @@ export interface UpdateSupporterRequest {
   state_id?: number;
   district_id?: number;
   assembly_id?: number;
-  block_id?: number;
-  mandal_id?: number;
-  booth_id?: number;
+  block_id?: number | null;
+  mandal_id?: number | null;
+  booth_id?: number | null;
+  after_assembly_levels?: number[];
 }
 
 export interface SupporterFilters {
