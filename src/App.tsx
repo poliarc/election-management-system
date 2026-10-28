@@ -179,11 +179,38 @@ import AssemblyListPage from "./pages/District/mark_voter/AssemblyListPage";
 import StateMarkedVotersPage from "./pages/State/marker_voter/StateMarkedVotersPage";
 import MarkedVoter from "./pages/AfterAssemblyPanel/markvoter";
 import SubLevelMarkedVoter from "./pages/SubLevelPanel/markvoter";
+import PublicWhatsAppDirectory from "./pages/PublicWhatsAppDirectory";
+import WhatsAppManager from "./pages/WhatsAppManager";
 
 export default function App() {
+  const isWhatsAppSubdomain =
+    typeof window !== "undefined" &&
+    (window.location.hostname.startsWith("whatsapp.") ||
+      window.location.hostname.startsWith("groups."));
+
+  // If visited via whatsapp.peopleconnect.in or groups.*, immediately serve the Public Directory
+  if (isWhatsAppSubdomain) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<PublicWhatsAppDirectory />} />
+        </Routes>
+        <Toaster
+          position="top-right"
+          gutter={8}
+          toastOptions={{
+            duration: 3000,
+            style: { background: "#1f2937", color: "#fff" },
+          }}
+        />
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/whatsapp-groups" element={<PublicWhatsAppDirectory />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<PublicRegistration />} />
         <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
@@ -194,6 +221,7 @@ export default function App() {
           <Route path="dashboard" element={<RoleRedirect />} />
           <Route path="panels" element={<PanelSelect />} />
           <Route path="profile" element={<GeneralProfile />} />
+          <Route path="whatsapp-manager" element={<WhatsAppManager />} />
           {/* <Route path="settings/theme" element={<ThemeSettings />} /> */}
           <Route path="admin/panel/:panelRole" element={<PanelAdminLayout />} />
 
@@ -220,6 +248,7 @@ export default function App() {
             <Route index element={<LevelAdminDashboardRouter />} />
             <Route path="dashboard" element={<LevelAdminDashboardRouter />} />
             <Route path="whatsapp" element={<WhatsAppPage />} />
+            <Route path="whatsapp-groups" element={<WhatsAppManager />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />
             <Route path="users" element={<UserManagementRouter />} />

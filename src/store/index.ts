@@ -26,9 +26,7 @@ import { supportersApi } from "./api/supportersApi";
 import { loginSessionApi } from "./api/loginSessionApi";
 import { electionSetupApi } from "./api/electionSetupApi";
 import { dynamicLevelApi } from "./api/dynamicLevelApi";
-
-
-
+import { whatsappManagerApi } from "./api/whatsappManagerApi";
 
 export const store = configureStore({
   reducer: {
@@ -59,6 +57,7 @@ export const store = configureStore({
     [loginSessionApi.reducerPath]: loginSessionApi.reducer,
     [electionSetupApi.reducerPath]: electionSetupApi.reducer,
     [dynamicLevelApi.reducerPath]: dynamicLevelApi.reducer,
+    [whatsappManagerApi.reducerPath]: whatsappManagerApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -84,7 +83,8 @@ export const store = configureStore({
       .concat(supportersApi.middleware)
       .concat(loginSessionApi.middleware)
       .concat(electionSetupApi.middleware)
-      .concat(dynamicLevelApi.middleware),
+      .concat(dynamicLevelApi.middleware)
+      .concat(whatsappManagerApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -59,14 +59,14 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         setWhatsappMenuOpen(false);
       }
     };
-    
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
         setPartyPanelsOpen(false);
         setLevelAdminPanelsOpen(false);
         setLevelAccessOpen(false);
-        setWhatsappMenuOpen(false); 
+        setWhatsappMenuOpen(false);
       }
     };
 
@@ -77,7 +77,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
       document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
     };
-  }, []); 
+  }, []);
 
   useEffect(() => {
     if (!whatsappMenuOpen) {
@@ -112,7 +112,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
   useEffect(() => {
     const currentUserId = user?.id ?? (user as any)?.user_id ?? null;
     if (!currentUserId) {
-      setWhatsAppLinks([]); 
+      setWhatsAppLinks([]);
       return;
     }
 
@@ -125,23 +125,23 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         // 1. Establish the known Frontend Family Tree
         const assignmentMap = new Map<number, any>();
         allAssignments.forEach(a => {
-            const id = a.afterAssemblyData_id || a.assignment_id || a.level_id;
-            if (id) assignmentMap.set(Number(id), a);
+          const id = a.afterAssemblyData_id || a.assignment_id || a.level_id;
+          if (id) assignmentMap.set(Number(id), a);
         });
 
         const hierarchyIds = new Set<number>();
         const currentLocId = selectedAssignment?.afterAssemblyData_id || selectedAssignment?.assignment_id || selectedAssignment?.level_id;
-        
+
         if (currentLocId) hierarchyIds.add(Number(currentLocId));
         if (selectedAssignment?.parentId) hierarchyIds.add(Number(selectedAssignment.parentId));
 
         let currNode = assignmentMap.get(Number(currentLocId)) || assignmentMap.get(Number(selectedAssignment?.parentId));
-        
-        for (let i = 0; i < 5; i++) { 
-            if (currNode && currNode.parentId) {
-                hierarchyIds.add(Number(currNode.parentId));
-                currNode = assignmentMap.get(Number(currNode.parentId));
-            } else { break; }
+
+        for (let i = 0; i < 5; i++) {
+          if (currNode && currNode.parentId) {
+            hierarchyIds.add(Number(currNode.parentId));
+            currNode = assignmentMap.get(Number(currNode.parentId));
+          } else { break; }
         }
 
         // 2. Fetch Explicit User Links AND Backend Family Tree Links
@@ -152,11 +152,11 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           const userFetchPromise = fetchApi(currentUserId, backendSearchId)
             .then((res: any) => {
               if (!Array.isArray(res)) return [];
-              
+
               res.forEach((link: any) => {
-                  if (link.afterAssemblyData_id) {
-                      hierarchyIds.add(Number(link.afterAssemblyData_id));
-                  }
+                if (link.afterAssemblyData_id) {
+                  hierarchyIds.add(Number(link.afterAssemblyData_id));
+                }
               });
 
               return res.map((link: any) => ({
@@ -165,13 +165,13 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               }));
             })
             .catch(() => []);
-            
+
           fetchPromises.push(userFetchPromise);
         }
 
         // 3. Fetch all known parent/grandparent links
         hierarchyIds.forEach(id => {
-            fetchPromises.push(fetchWhatsAppLinks({ afterAssemblyData_id: id }).catch(() => []));
+          fetchPromises.push(fetchWhatsAppLinks({ afterAssemblyData_id: id }).catch(() => []));
         });
 
         const currentLevelType = selectedAssignment?.levelType || '';
@@ -195,19 +195,19 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         const uniqueLinksMap = new Map<number, WhatsAppLinkData>();
         allLinks.forEach(link => {
           if (link && link.id) {
-             if (!uniqueLinksMap.has(link.id)) {
-                 uniqueLinksMap.set(link.id, { ...link });
-             } else {
-                 const existing = uniqueLinksMap.get(link.id)!;
-                 const existingUsers = existing.users || [];
-                 const newUsers = link.users || [];
-                 
-                 const combinedUsersMap = new Map();
-                 existingUsers.forEach((u: any) => combinedUsersMap.set(Number(u.user_id), u));
-                 newUsers.forEach((u: any) => combinedUsersMap.set(Number(u.user_id), u));
-                 
-                 existing.users = Array.from(combinedUsersMap.values());
-             }
+            if (!uniqueLinksMap.has(link.id)) {
+              uniqueLinksMap.set(link.id, { ...link });
+            } else {
+              const existing = uniqueLinksMap.get(link.id)!;
+              const existingUsers = existing.users || [];
+              const newUsers = link.users || [];
+
+              const combinedUsersMap = new Map();
+              existingUsers.forEach((u: any) => combinedUsersMap.set(Number(u.user_id), u));
+              newUsers.forEach((u: any) => combinedUsersMap.set(Number(u.user_id), u));
+
+              existing.users = Array.from(combinedUsersMap.values());
+            }
           }
         });
 
@@ -215,9 +215,9 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
         // 🌟 IDENTIFY KNOWN ASSEMBLIES 🌟
         const knownAssemblyIds = new Set(
-            allAssignments
-                .filter(a => a.levelType === 'Assembly')
-                .map(a => Number(a.afterAssemblyData_id || a.stateMasterData_id || a.assignment_id || a.level_id || 0))
+          allAssignments
+            .filter(a => a.levelType === 'Assembly')
+            .map(a => Number(a.afterAssemblyData_id || a.stateMasterData_id || a.assignment_id || a.level_id || 0))
         );
 
         // 🌟 THE FINAL SMART FILTER 🌟
@@ -228,21 +228,21 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
           // RULE 1: ASSEMBLY DASHBOARD
           if (isAssemblyDash) {
-              if (linkLocationId === Number(currentDashId)) {
-                  return true;
-              }
-              return false; 
+            if (linkLocationId === Number(currentDashId)) {
+              return true;
+            }
+            return false;
           }
 
           // RULE 2: SUB-LEVEL DASHBOARDS (Mandal, Polling Center, Booth)
           if (isSubLevelDash) {
-              const inHierarchy = hierarchyIds.has(linkLocationId);
-              const isKnownAssemblyLink = knownAssemblyIds.has(linkLocationId);
-              
-              if (inHierarchy && !isKnownAssemblyLink) {
-                  return true;
-              }
-              return false; 
+            const inHierarchy = hierarchyIds.has(linkLocationId);
+            const isKnownAssemblyLink = knownAssemblyIds.has(linkLocationId);
+
+            if (inHierarchy && !isKnownAssemblyLink) {
+              return true;
+            }
+            return false;
           }
 
           // RULE 3: STATE / DISTRICT DASHBOARDS
@@ -257,7 +257,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
     void load();
     return () => { cancelled = true; };
-  }, [user, selectedAssignment, allAssignments]); 
+  }, [user, selectedAssignment, allAssignments]);
 
   const isAdminPanel = location.pathname.startsWith('/admin');
   const isLevelAdminPanel = location.pathname.startsWith('/leveladmin');
@@ -388,10 +388,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
 
   return (
     <header className="topbar-surface sticky top-0 z-50 border-b border-[var(--border-color)]/50 bg-[var(--bg-card)] backdrop-blur-md text-[var(--text-color)] transition-all duration-300 ease-in-out [will-change:background-color,color]">
-      
+
       {/* 🌟 CHANGED: flex-nowrap, reduced gaps and paddings 🌟 */}
       <div className="container-page flex flex-nowrap items-center justify-between py-2 sm:py-3 px-2 sm:px-4 gap-1 sm:gap-4 w-full">
-        
+
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           <button
             type="button"
@@ -510,7 +510,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                       {(() => {
                         const dynamicLevelTypes = getAllDynamicLevelTypes(permissions);
                         const allDynamicAssignments = getAllDynamicLevelAssignments(permissions);
-                        
+
                         const groupedByType = dynamicLevelTypes.map(levelType => {
                           const fromSource = permissions?.accessibleLevelsByType?.[levelType];
                           const items = fromSource
@@ -649,7 +649,17 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
-          
+          {/* <NavLink
+            to="/whatsapp-manager"
+            className="topbar-control flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400 transition-colors"
+            title="Manage Community WhatsApp Groups"
+          >
+            <svg className="h-4 w-4 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.423-14.416c-6.627 0-12 5.373-12 12 0 2.15.57 4.168 1.564 5.914l-1.656 6.05 6.224-1.633c1.7 1.002 3.684 1.579 5.868 1.579 6.627 0 12-5.373 12-12s-5.373-12-12-12z" />
+            </svg>
+            <span className="hidden sm:inline">WhatsApp Hub</span>
+          </NavLink> */}
+
           <div className="hidden md:block">
             <GoogleTranslate />
           </div>
@@ -670,9 +680,9 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                 title="WhatsApp Groups"
               >
                 <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741 1.001 1.011-3.762-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741 1.001 1.011-3.762-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
-                
+
                 {whatsAppLinks.length > 1 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--bg-card)]">
                     {whatsAppLinks.length}
@@ -685,7 +695,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                   <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
                     Join WhatsApp Groups
                   </div>
-                  
+
                   <div className="space-y-1">
                     {Object.entries(groupedWhatsAppLinks).map(([type, links]) => (
                       <div key={type} className="flex flex-col">
@@ -695,11 +705,10 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                             e.stopPropagation();
                             setActiveWhatsAppCategory(activeWhatsAppCategory === type ? null : type);
                           }}
-                          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-colors duration-200 ${
-                            activeWhatsAppCategory === type 
-                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
-                            : "text-[var(--text-color)] hover:bg-[var(--bg-main)]"
-                          }`}
+                          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl transition-colors duration-200 ${activeWhatsAppCategory === type
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "text-[var(--text-color)] hover:bg-[var(--bg-main)]"
+                            }`}
                         >
                           <div className="flex items-center gap-2">
                             <svg className="h-4 w-4 shrink-0 text-emerald-500" viewBox="0 0 24 24" fill="currentColor">
@@ -707,15 +716,15 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                             </svg>
                             <span className="font-medium text-sm">{type}</span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[var(--bg-main)] text-[10px] font-bold text-[var(--text-secondary)]">
                               {links.length}
                             </span>
-                            <svg 
-                              className={`h-4 w-4 text-[var(--text-secondary)] transition-transform duration-200 ${activeWhatsAppCategory === type ? "rotate-180" : "rotate-0"}`} 
-                              viewBox="0 0 20 20" 
-                              fill="none" 
+                            <svg
+                              className={`h-4 w-4 text-[var(--text-secondary)] transition-transform duration-200 ${activeWhatsAppCategory === type ? "rotate-180" : "rotate-0"}`}
+                              viewBox="0 0 20 20"
+                              fill="none"
                               stroke="currentColor"
                             >
                               <path d="M6 8l4 4 4-4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -753,7 +762,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
               )}
             </div>
           )}
-          
+
           <button
             type="button"
             onClick={() => setDarkMode((prev) => !prev)}
@@ -867,7 +876,7 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
                     </svg>
                     <span className="text-xs sm:text-sm">Update Password</span>
                   </NavLink>
-                  
+
                   <div className="my-2 border-t border-[var(--border-color)]" />
 
                   <button
