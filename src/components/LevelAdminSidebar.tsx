@@ -29,9 +29,9 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
 
       const panelFromAssignment = selectedAssignment?.levelType
         ? levelAdminPanels.find(
-            (p: any) =>
-              p.name?.toLowerCase() === selectedAssignment.levelType.toLowerCase()
-          )
+          (p: any) =>
+            p.name?.toLowerCase() === selectedAssignment.levelType.toLowerCase()
+        )
         : null;
 
       const assemblyPanel = levelAdminPanels.find(
@@ -126,38 +126,38 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
       ),
       label:
         selectedPanel.name !== "State" &&
-        selectedPanel.name !== "District" &&
-        selectedPanel.name !== "Assembly"
+          selectedPanel.name !== "District" &&
+          selectedPanel.name !== "Assembly"
           ? "Manage Levels"
           : "User Management",
     },
     ...(isBoothLevel
       ? [
-          {
-            to: `${baseUrl}/manage-booths`,
-            icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            ),
-            label: "Manage Booths",
-          },
-        ]
+        {
+          to: `${baseUrl}/manage-booths`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          ),
+          label: "Manage Booths",
+        },
+      ]
       : []),
     ...(selectedPanel.name !== "State" &&
-    selectedPanel.name !== "District" &&
-    selectedPanel.name !== "Assembly"
+      selectedPanel.name !== "District" &&
+      selectedPanel.name !== "Assembly"
       ? [
-          {
-            to: `${baseUrl}/assign-users`,
-            icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            ),
-            label: "Assign Users",
-          },
-        ]
+        {
+          to: `${baseUrl}/assign-users`,
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+          ),
+          label: "Assign Users",
+        },
+      ]
       : []),
     {
       to: `${baseUrl}/create-user`,
@@ -170,18 +170,28 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
     },
     ...(showWhatsApp
       ? [
-          {
-            to: whatsappRoute,
-            state: { levelId: selectedPanel.id },
-            icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h8M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-              </svg>
-            ),
-            label: "WhatsApp",
-          },
-        ]
+        {
+          to: whatsappRoute,
+          state: { levelId: selectedPanel.id },
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 4h8M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+            </svg>
+          ),
+          label: "WhatsApp",
+        },
+      ]
       : []),
+    {
+      to: `${baseUrl}/whatsapp-groups`,
+      state: { levelId: selectedPanel.id },
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+      label: "Supporters WhatsApp ",
+    },
   ];
 
   return (
@@ -208,10 +218,9 @@ export default function LevelAdminSidebar({ onNavigate }: LevelAdminSidebarProps
             state={(item as { state?: { levelId: number } }).state}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActive
-                  ? "bg-[var(--bg-color)] text-blue-700 font-semibold shadow-sm"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
+                ? "bg-[var(--bg-color)] text-blue-700 font-semibold shadow-sm"
+                : "text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
               }`
             }
           >
