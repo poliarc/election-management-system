@@ -6,7 +6,10 @@ import { API_CONFIG } from '../../../config/api';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
-// Constants for dropdown options
+/* =========================================================================
+   COMMENTED OUT: Dropdown Constants for Hidden Fields
+   (Uncomment these if you re-enable the respective fields below)
+   =========================================================================
 const INITIALS_OPTIONS = ['Mr', 'Ms', 'Mrs', 'Dr'];
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
 const LANGUAGE_OPTIONS = [
@@ -32,6 +35,7 @@ const RELIGION_CATEGORIES = {
   Sikhism: ['Khalsa', 'Namdhari', 'Nirankari', 'Udasi', 'Nirmala', 'Others'],
   Others: ['Others']
 };
+========================================================================= */
 
 export default function PublicAddSupporterPage() {
   const navigate = useNavigate();
@@ -72,6 +76,9 @@ export default function PublicAddSupporterPage() {
   const createdBy = searchParams.get('created_by');
   const createdByName = searchParams.get('created_by_name');
 
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(parseInt(districtId || '0'));
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(parseInt(assemblyId || '0'));
+
   const [formData, setFormData] = useState({
     initials: '',
     first_name: '',
@@ -100,26 +107,23 @@ export default function PublicAddSupporterPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Validate URL parameters on mount
+  // Validate URL parameters on mount — party and state are required; district/assembly optional for state-wide links
   useEffect(() => {
-    if (!partyId || !partyName || !stateId || !stateName || !districtId || !districtName || !assemblyId || !assemblyName) {
+    if (!partyId || !stateId) {
       toast.error('Invalid registration link. Missing required parameters.');
       navigate('/login');
     }
-  }, [partyId, partyName, stateId, stateName, districtId, districtName, assemblyId, assemblyName, navigate]);
+  }, [partyId, stateId, navigate]);
 
-  // Fetch hierarchy data for Block/Mandal/Booth dropdowns (only if not pre-filled from URL)
+  // Fetch hierarchy data from public endpoint (no login token required)
   useEffect(() => {
-    // Skip if all hierarchy levels are already provided in URL
-    if (blockId && mandalId && boothId) return;
-    
     if (!stateId || !partyId) return;
 
     setHierarchyLoading(true);
     const fetchHierarchy = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/campaigns/hierarchy?state_id=${stateId}&party_id=${partyId}`
+          `${API_BASE_URL}/api/supporters/public-hierarchy?state_id=${stateId}&party_id=${partyId}`
         );
         
         if (response.ok) {
@@ -128,20 +132,160 @@ export default function PublicAddSupporterPage() {
             setHierarchyData(result.data);
           }
         } else {
-          // API requires authentication - silently fail
-          console.log('Hierarchy API requires authentication - optional fields will remain disabled');
+          console.log('Failed to fetch public hierarchy');
         }
       } catch (error) {
-        // Silently fail - optional fields will remain disabled
-        console.log('Failed to fetch hierarchy - optional fields will remain disabled');
+        console.log('Failed to fetch public hierarchy:', error);
       } finally {
         setHierarchyLoading(false);
       }
     };
 
     fetchHierarchy();
-  }, [stateId, partyId, blockId, mandalId, boothId]);
+  }, [stateId, partyId]);
 
+  // District options for state-wide link
+  const districtOptions = useMemo(() => {
+    if (!hierarchyData?.stateHierarchy) return [];
+    return hierarchyData.stateHierarchy.filter(
+      (item: any) =>
+        (item.levelType === 'District' || item.levelType?.toLowerCase() === 'district') &&
+        item.ParentId === parseInt(stateId || '0')
+    );
+  }, [hierarchyData, stateId]);
+
+  // Assembly options for state-wide link based on selected district
+  const assemblyOptions = useMemo(() => {
+    if (!hierarchyData?.stateHierarchy || !selectedDistrictId) return [];
+    return hierarchyData.stateHierarchy.filter(
+      (item: any) =>
+        (item.levelType === 'Assembly' || item.levelType?.toLowerCase() === 'assembly') &&
+        item.ParentId === selectedDistrictId
+    );
+  }, [hierarchyData, selectedDistrictId]);
+
+  const currentDistrictName = useMemo(() => {
+    if (districtName) return districtName;
+    const found = hierarchyData?.stateHierarchy?.find((i: any) => i.id === selectedDistrictId);
+    return found?.levelName || '';
+  }, [districtName, hierarchyData, selectedDistrictId]);
+
+  const currentAssemblyName = useMemo(() => {
+    if (assemblyName) return assemblyName;
+    const found = hierarchyData?.stateHierarchy?.find((i: any) => i.id === selectedAssemblyId);
+    return found?.levelName || '';
+  }, [assemblyName, hierarchyData, selectedAssemblyId]);
+
+  const locationSubtitle = useMemo(() => {
+    const locParts: string[] = [];
+    const asm = assemblyName || currentAssemblyName;
+    const dist = districtName || currentDistrictName;
+    if (asm) locParts.push(asm);
+    if (dist) locParts.push(dist);
+    if (stateName) locParts.push(stateName);
+
+    if (locParts.length > 0) {
+      return partyName ? `${partyName} - ${locParts.join(', ')}` : locParts.join(', ');
+    }
+    return partyName || '';
+  }, [partyName, assemblyName, currentAssemblyName, districtName, currentDistrictName, stateName]);
+
+  const effectiveDistrictId = parseInt(districtId || '0') || selectedDistrictId;
+  const effectiveAssemblyId = parseInt(assemblyId || '0') || selectedAssemblyId;
+  const hasPreFilledBlock = !!(blockId && parseInt(blockId) > 0);
+
+  // All after-assembly nodes from public hierarchy
+  const afterAssemblyData = hierarchyData?.afterAssemblyHierarchy || [];
+
+  // Filter afterAssemblyData to nodes belonging to the selected/effective assembly
+  const currentAssemblyAfterData = useMemo(() => {
+    if (!effectiveAssemblyId) return [];
+    // Depth-0 nodes directly under this assembly
+    const rootNodes = afterAssemblyData.filter(
+      (n: any) => n.parentAssemblyId === effectiveAssemblyId && (!n.parentId || n.parentId === 0)
+    );
+    const result: any[] = [...rootNodes];
+    let parentIds = new Set(rootNodes.map((n: any) => n.id));
+
+    while (parentIds.size > 0) {
+      const children = afterAssemblyData.filter((n: any) => parentIds.has(n.parentId));
+      if (children.length === 0) break;
+      result.push(...children);
+      parentIds = new Set(children.map((n: any) => n.id));
+    }
+    return result;
+  }, [afterAssemblyData, effectiveAssemblyId]);
+
+  // Build depth map for current assembly's after-assembly nodes
+  const depthMap = useMemo(() => {
+    const map = new Map<number, number>();
+    const getDepth = (node: any): number => {
+      if (map.has(node.id)) return map.get(node.id)!;
+      if (!node.parentId || node.parentId === 0) {
+        map.set(node.id, 0);
+        return 0;
+      }
+      const parent = currentAssemblyAfterData.find((n: any) => n.id === node.parentId);
+      const d = parent ? getDepth(parent) + 1 : 0;
+      map.set(node.id, d);
+      return d;
+    };
+    currentAssemblyAfterData.forEach((n: any) => getDepth(n));
+    return map;
+  }, [currentAssemblyAfterData]);
+
+  // Dynamic levels as ordered array
+  const dynamicLevels = useMemo(() => {
+    if (!currentAssemblyAfterData.length) return [];
+    const byDepth = new Map<number, { label: string; nodes: any[] }>();
+    currentAssemblyAfterData.forEach((node: any) => {
+      const d = depthMap.get(node.id) ?? 0;
+      if (hasPreFilledBlock && d < 1) return; // skip depth-0 only if block was pre-filled from URL
+      if (!byDepth.has(d)) byDepth.set(d, { label: node.display_level_name || node.levelName, nodes: [] });
+      byDepth.get(d)!.nodes.push(node);
+    });
+    return Array.from(byDepth.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([depth, { label, nodes }]) => ({ depth, label, nodes }));
+  }, [currentAssemblyAfterData, depthMap, hasPreFilledBlock]);
+
+  // Selections for after-assembly levels
+  const [subSelections, setSubSelections] = useState<number[]>(() => {
+    const pre: number[] = [];
+    for (let i = 1; i <= 10; i++) {
+      const id = searchParams.get(`level_${i}_id`);
+      if (!id || parseInt(id) === 0) break;
+      pre[i - 1] = parseInt(id);
+    }
+    return pre;
+  });
+
+  // Cascaded options per level
+  const visibleOptions = useMemo(() => {
+    if (hasPreFilledBlock) {
+      const blockIdNum = parseInt(blockId || '0');
+      return dynamicLevels.map(({ depth, nodes }) => {
+        if (depth === 1) return nodes.filter((n: any) => n.parentId === blockIdNum);
+        const parentId = subSelections[depth - 2];
+        if (!parentId) return [];
+        return nodes.filter((n: any) => n.parentId === parentId);
+      });
+    } else {
+      return dynamicLevels.map(({ depth, nodes }) => {
+        if (depth === 0) {
+          return nodes.filter((n: any) => n.parentAssemblyId === effectiveAssemblyId && (!n.parentId || n.parentId === 0));
+        }
+        const parentId = subSelections[depth - 1];
+        if (!parentId) return [];
+        return nodes.filter((n: any) => n.parentId === parentId);
+      });
+    }
+  }, [dynamicLevels, subSelections, hasPreFilledBlock, blockId, effectiveAssemblyId]);
+
+  /* =========================================================================
+     COMMENTED OUT: Helper functions for hidden fields
+     (Uncomment these if you re-enable Date of Birth / Languages / Categories)
+     =========================================================================
   const calculateAge = (dateOfBirth: string): number => {
     if (!dateOfBirth) return 0;
     const today = new Date();
@@ -153,6 +297,34 @@ export default function PublicAddSupporterPage() {
     }
     return age;
   };
+
+  const handleLanguageChange = (language: string) => {
+    setFormData(prev => ({
+      ...prev,
+      language: prev.language.includes(language)
+        ? prev.language.filter(l => l !== language)
+        : [...prev.language, language]
+    }));
+  };
+
+  const getAvailableCategories = () => {
+    if (formData.religion === 'Hindu') {
+      return HINDU_CATEGORIES;
+    } else if (RELIGION_CATEGORIES[formData.religion as keyof typeof RELIGION_CATEGORIES]) {
+      return RELIGION_CATEGORIES[formData.religion as keyof typeof RELIGION_CATEGORIES];
+    }
+    return [];
+  };
+
+  const getAvailableCastes = () => {
+    if (formData.religion === 'Hindu' && CASTE_OPTIONS[formData.category as keyof typeof CASTE_OPTIONS]) {
+      return CASTE_OPTIONS[formData.category as keyof typeof CASTE_OPTIONS];
+    }
+    return [];
+  };
+
+  const shouldShowCaste = formData.religion === 'Hindu' && formData.category && getAvailableCastes().length > 0;
+  ========================================================================= */
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -184,13 +356,6 @@ export default function PublicAddSupporterPage() {
         mandal_id: 0,
         booth_id: 0
       }));
-    } else if (name === 'religion') {
-      setFormData(prev => ({ ...prev, [name]: value, category: '', caste: '' }));
-    } else if (name === 'category') {
-      setFormData(prev => ({ ...prev, [name]: value, caste: '' }));
-    } else if (name === 'date_of_birth') {
-      const age = calculateAge(value);
-      setFormData(prev => ({ ...prev, [name]: value, age: age }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -200,39 +365,52 @@ export default function PublicAddSupporterPage() {
     }
   };
 
-  const handleLanguageChange = (language: string) => {
-    setFormData(prev => ({
-      ...prev,
-      language: prev.language.includes(language)
-        ? prev.language.filter(l => l !== language)
-        : [...prev.language, language]
-    }));
-  };
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.initials.trim()) newErrors.initials = 'Initials is required';
-    if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
-    if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
-    if (!formData.father_name.trim()) newErrors.father_name = 'Father name is required';
-    if (!formData.date_of_birth.trim()) newErrors.date_of_birth = 'Date of birth is required';
-    if (!formData.gender.trim()) newErrors.gender = 'Gender is required';
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    }
+
+    if (!formData.father_name.trim()) {
+      newErrors.father_name = 'Father name is required';
+    }
+
     if (!formData.phone_no.trim()) {
       newErrors.phone_no = 'Phone number is required';
     } else if (!/^\d{10}$/.test(formData.phone_no)) {
       newErrors.phone_no = 'Phone number must be exactly 10 digits';
     }
+
     if (formData.whatsapp_no && !/^\d{10}$/.test(formData.whatsapp_no)) {
       newErrors.whatsapp_no = 'WhatsApp number must be exactly 10 digits';
     }
+
     if (formData.voter_epic_id && !/^[A-Z0-9]{10}$/.test(formData.voter_epic_id)) {
       newErrors.voter_epic_id = 'EPIC ID must be exactly 10 alphanumeric characters';
     }
+
+    /* =========================================================================
+       COMMENTED OUT VALIDATIONS:
+       (Uncomment these if you re-enable the respective fields)
+       =========================================================================
+    if (!formData.initials.trim()) newErrors.initials = 'Initials is required';
+    if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
+    if (!formData.date_of_birth.trim()) newErrors.date_of_birth = 'Date of birth is required';
+    if (!formData.gender.trim()) newErrors.gender = 'Gender is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (formData.language.length === 0) newErrors.language = 'At least one language must be selected';
     if (!formData.religion.trim()) newErrors.religion = 'Religion is required';
     if (!formData.category.trim()) newErrors.category = 'Category is required';
+    ========================================================================= */
+
+    if (!effectiveDistrictId) {
+      newErrors.district_id = 'District is required';
+    }
+
+    if (!effectiveAssemblyId) {
+      newErrors.assembly_id = 'Assembly is required';
+    }
 
     setErrors(newErrors);
 
@@ -258,73 +436,104 @@ export default function PublicAddSupporterPage() {
     setIsCreating(true);
 
     try {
+      const finalDistrictId = effectiveDistrictId;
+      const finalAssemblyId = effectiveAssemblyId;
+      const finalDistrictName = districtName || currentDistrictName || 'District';
+      const finalAssemblyName = assemblyName || currentAssemblyName || 'Assembly';
+
       // Build query parameters for public registration endpoint
       const queryParams = new URLSearchParams({
         party_id: formData.party_id.toString(),
         party_name: partyName || 'Party',
         state_id: formData.state_id.toString(),
         state_name: stateName || 'State',
-        district_id: formData.district_id.toString(),
-        district_name: districtName || 'District',
-        assembly_id: formData.assembly_id.toString(),
-        assembly_name: assemblyName || 'Assembly',
-        block_id: formData.block_id.toString(),
-        block_name: blockName || 'Block',
+        district_id: finalDistrictId.toString(),
+        district_name: finalDistrictName,
+        assembly_id: finalAssemblyId.toString(),
+        assembly_name: finalAssemblyName,
         created_by: createdBy || '0',
         created_by_name: createdByName || 'Public Registration'
       });
 
       // Collect all after-assembly levels ordered by depth
       const allAfterAssemblyLevels: number[] = [];
-      if (formData.block_id && formData.block_id > 0) {
-        allAfterAssemblyLevels.push(formData.block_id);
-      }
 
-      // Add all deeper levels (both to queryParams and to allAfterAssemblyLevels)
-      // 1. Prefilled from URL (deeperLevels)
-      deeperLevels.forEach((lvl, idx) => {
-        if (lvl.id > 0) {
-          allAfterAssemblyLevels.push(lvl.id);
-          queryParams.append(`level_${idx + 1}_id`, lvl.id.toString());
-          queryParams.append(`level_${idx + 1}_name`, lvl.name || '');
-          queryParams.append(`level_${idx + 1}_label`, lvl.label || `Level ${idx + 1}`);
-        }
-      });
+      if (hasPreFilledBlock) {
+        // Block was pre-filled in URL
+        queryParams.append('block_id', blockId!);
+        queryParams.append('block_name', blockName || 'Block');
+        queryParams.append('block_label', blockLabel || 'Block');
+        allAfterAssemblyLevels.push(parseInt(blockId!));
 
-      // 2. Extra selections beyond deeperLevels if user picked any in dropdowns
-      if (subBlockLevels.length > deeperLevels.length) {
-        subBlockLevels.slice(deeperLevels.length).forEach((level, relIdx) => {
-          const idx = deeperLevels.length + relIdx;
-          const selectedId = subSelections[idx] || 0;
-          if (selectedId > 0) {
-            allAfterAssemblyLevels.push(selectedId);
-            const node = afterAssemblyData.find((n: any) => n.id === selectedId);
-            const label = level.label || `Level ${idx + 1}`;
-            queryParams.append(`level_${idx + 1}_id`, selectedId.toString());
-            queryParams.append(`level_${idx + 1}_name`, node?.displayName || node?.levelName || '');
-            queryParams.append(`level_${idx + 1}_label`, label);
+        // 1. Prefilled from URL (deeperLevels)
+        deeperLevels.forEach((lvl, idx) => {
+          if (lvl.id > 0) {
+            allAfterAssemblyLevels.push(lvl.id);
+            queryParams.append(`level_${idx + 1}_id`, lvl.id.toString());
+            queryParams.append(`level_${idx + 1}_name`, lvl.name || '');
+            queryParams.append(`level_${idx + 1}_label`, lvl.label || `Level ${idx + 1}`);
           }
         });
+
+        // 2. Extra selections beyond deeperLevels if user picked any in dropdowns
+        if (dynamicLevels.length > deeperLevels.length) {
+          dynamicLevels.slice(deeperLevels.length).forEach((level, relIdx) => {
+            const idx = deeperLevels.length + relIdx;
+            const selectedId = subSelections[idx] || 0;
+            if (selectedId > 0) {
+              allAfterAssemblyLevels.push(selectedId);
+              const node = currentAssemblyAfterData.find((n: any) => n.id === selectedId) || afterAssemblyData.find((n: any) => n.id === selectedId);
+              queryParams.append(`level_${idx + 1}_id`, selectedId.toString());
+              queryParams.append(`level_${idx + 1}_name`, node?.displayName || node?.levelName || '');
+              queryParams.append(`level_${idx + 1}_label`, level.label || `Level ${idx + 1}`);
+            }
+          });
+        }
+      } else {
+        // No blockId in URL (e.g. State-Wide):
+        // subSelections[0] is depth 0 (Zone / Block)
+        if (subSelections[0] && subSelections[0] > 0) {
+          const depth0Id = subSelections[0];
+          const node0 = currentAssemblyAfterData.find((n: any) => n.id === depth0Id) || afterAssemblyData.find((n: any) => n.id === depth0Id);
+          allAfterAssemblyLevels.push(depth0Id);
+          queryParams.append('block_id', depth0Id.toString());
+          queryParams.append('block_name', node0?.displayName || node0?.levelName || 'Block');
+          queryParams.append('block_label', dynamicLevels[0]?.label || 'Block');
+        }
+
+        // subSelections[1..N] are depth 1..N
+        for (let i = 1; i < subSelections.length; i++) {
+          const sId = subSelections[i];
+          if (sId && sId > 0) {
+            allAfterAssemblyLevels.push(sId);
+            const node = currentAssemblyAfterData.find((n: any) => n.id === sId) || afterAssemblyData.find((n: any) => n.id === sId);
+            queryParams.append(`level_${i}_id`, sId.toString());
+            queryParams.append(`level_${i}_name`, node?.displayName || node?.levelName || '');
+            queryParams.append(`level_${i}_label`, dynamicLevels[i]?.label || `Level ${i}`);
+          }
+        }
       }
 
-      // Send personal details and after_assembly_levels in body
+      // Send personal details, district, assembly, and after_assembly_levels in body
       const createData = {
-        initials: formData.initials,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        father_name: formData.father_name,
-        phone_no: formData.phone_no,
-        date_of_birth: formData.date_of_birth,
+        initials: formData.initials || undefined,
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name?.trim() || undefined,
+        father_name: formData.father_name?.trim() || undefined,
+        phone_no: formData.phone_no.trim(),
+        date_of_birth: formData.date_of_birth || undefined,
         age: formData.age > 0 ? formData.age : undefined,
-        gender: formData.gender as 'Male' | 'Female' | 'Other',
-        language: formData.language,
-        religion: formData.religion,
-        category: formData.category,
+        gender: (formData.gender as 'Male' | 'Female' | 'Other') || undefined,
+        language: formData.language && formData.language.length > 0 ? formData.language : undefined,
+        religion: formData.religion || undefined,
+        category: formData.category || undefined,
         caste: formData.caste || undefined,
-        whatsapp_no: formData.whatsapp_no || undefined,
-        voter_epic_id: formData.voter_epic_id || undefined,
-        address: formData.address,
-        remarks: formData.remarks || undefined,
+        whatsapp_no: formData.whatsapp_no?.trim() || undefined,
+        voter_epic_id: formData.voter_epic_id?.trim() || undefined,
+        address: formData.address?.trim() || undefined,
+        remarks: formData.remarks?.trim() || undefined,
+        district_id: finalDistrictId,
+        assembly_id: finalAssemblyId,
         after_assembly_levels: allAfterAssemblyLevels,
       };
 
@@ -375,88 +584,8 @@ export default function PublicAddSupporterPage() {
     }
   };
 
-  const getAvailableCategories = () => {
-    if (formData.religion === 'Hindu') {
-      return HINDU_CATEGORIES;
-    } else if (RELIGION_CATEGORIES[formData.religion as keyof typeof RELIGION_CATEGORIES]) {
-      return RELIGION_CATEGORIES[formData.religion as keyof typeof RELIGION_CATEGORIES];
-    }
-    return [];
-  };
-
-  const getAvailableCastes = () => {
-    if (formData.religion === 'Hindu' && CASTE_OPTIONS[formData.category as keyof typeof CASTE_OPTIONS]) {
-      return CASTE_OPTIONS[formData.category as keyof typeof CASTE_OPTIONS];
-    }
-    return [];
-  };
-
-  const shouldShowCaste = formData.religion === 'Hindu' && formData.category && getAvailableCastes().length > 0;
-
-  // All after-assembly nodes
-  const afterAssemblyData = hierarchyData?.afterAssemblyHierarchy || [];
-
-  // ── Dynamic levels after the pre-filled block (depth 0) ──────────────────
-  // block_id from URL = depth-0 selection.
-  // depth-1 nodes (children of block) → shown as first optional dropdown
-  // depth-2 nodes (children of depth-1) → shown as second optional dropdown, etc.
-
-  // Build depth map
-  const depthMap = useMemo(() => {
-    const map = new Map<number, number>();
-    const getDepth = (node: any): number => {
-      if (map.has(node.id)) return map.get(node.id)!;
-      if (node.parentId === null) { map.set(node.id, 0); return 0; }
-      const parent = afterAssemblyData.find((n: any) => n.id === node.parentId);
-      const d = parent ? getDepth(parent) + 1 : 0;
-      map.set(node.id, d);
-      return d;
-    };
-    afterAssemblyData.forEach((n: any) => getDepth(n));
-    return map;
-  }, [afterAssemblyData]);
-
-  // Depth-1+ levels (children of block and deeper) as ordered array
-  const subBlockLevels = useMemo(() => {
-    if (!afterAssemblyData.length) return [];
-    const byDepth = new Map<number, { label: string; nodes: any[] }>();
-    afterAssemblyData.forEach((node: any) => {
-      const d = depthMap.get(node.id) ?? 0;
-      if (d < 1) return; // skip depth-0 (block level)
-      if (!byDepth.has(d)) byDepth.set(d, { label: node.display_level_name || node.levelName, nodes: [] });
-      byDepth.get(d)!.nodes.push(node);
-    });
-    return Array.from(byDepth.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([depth, { label, nodes }]) => ({ depth, label, nodes }));
-  }, [afterAssemblyData, depthMap]);
-
-  // selections[i] = selected id at subBlockLevels[i]
-  const [subSelections, setSubSelections] = useState<number[]>(() => {
-    // Pre-fill from deeperLevels (level_1_id → index 0, level_2_id → index 1, ...)
-    // We read directly from searchParams here since deeperLevels isn't available yet
-    const pre: number[] = [];
-    for (let i = 1; i <= 10; i++) {
-      const id = searchParams.get(`level_${i}_id`);
-      if (!id || parseInt(id) === 0) break;
-      pre[i - 1] = parseInt(id);
-    }
-    return pre;
-  });
-
-  // Cascaded options per sub-level
-  const subVisibleOptions = useMemo(() => {
-    const blockIdNum = parseInt(blockId || '0');
-    return subBlockLevels.map(({ depth, nodes }) => {
-      if (depth === 1) return nodes.filter((n: any) => n.parentId === blockIdNum);
-      const parentId = subSelections[depth - 2]; // depth-1 → index 0, depth-2 → index 1
-      if (!parentId) return [];
-      return nodes.filter((n: any) => n.parentId === parentId);
-    });
-  }, [subBlockLevels, subSelections, blockId]);
-
-  // Show error state for invalid parameters — block is now optional
-  if (!partyId || !stateId || !districtId || !assemblyId) {
+  // Show error state for invalid parameters — party and state are required; district/assembly are selectable if not in URL
+  if (!partyId || !stateId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
@@ -511,7 +640,7 @@ export default function PublicAddSupporterPage() {
             <div>
               <h1 className="text-2xl font-bold">Supporter Registration</h1>
               <p className="text-blue-100">
-                {partyName} - {assemblyName}, {districtName}, {stateName}
+                {locationSubtitle}
               </p>
               {createdByName && (
                 <p className="text-blue-200 text-sm mt-1">
@@ -529,7 +658,8 @@ export default function PublicAddSupporterPage() {
             <div>
               <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Initials */}
+
+                {/* --- COMMENTED OUT: Initials (Uncomment to enable) ---
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Initials *</label>
                   <select
@@ -545,8 +675,9 @@ export default function PublicAddSupporterPage() {
                   </select>
                   {errors.initials && <p className="text-red-500 text-xs mt-1">{errors.initials}</p>}
                 </div>
+                ------------------------------------------------------ */}
 
-                {/* First Name */}
+                {/* First Name (Visible & Required) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">First Name *</label>
                   <input
@@ -560,7 +691,7 @@ export default function PublicAddSupporterPage() {
                   {errors.first_name && <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>}
                 </div>
 
-                {/* Last Name */}
+                {/* --- COMMENTED OUT: Last Name (Uncomment to enable) ---
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Last Name *</label>
                   <input
@@ -573,8 +704,9 @@ export default function PublicAddSupporterPage() {
                   />
                   {errors.last_name && <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>}
                 </div>
+                ----------------------------------------------------- */}
 
-                {/* Father's Name */}
+                {/* Father's Name (Visible & Required) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Father's Name *</label>
                   <input
@@ -588,7 +720,7 @@ export default function PublicAddSupporterPage() {
                   {errors.father_name && <p className="text-red-500 text-xs mt-1">{errors.father_name}</p>}
                 </div>
 
-                {/* Date of Birth */}
+                {/* --- COMMENTED OUT: Date of Birth & Age (Uncomment to enable) ---
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date of Birth *</label>
                   <input
@@ -601,7 +733,6 @@ export default function PublicAddSupporterPage() {
                   {errors.date_of_birth && <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>}
                 </div>
 
-                {/* Age - Auto-calculated */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Age</label>
                   <input
@@ -614,8 +745,9 @@ export default function PublicAddSupporterPage() {
                   />
                   <p className="text-xs text-[var(--text-secondary)] mt-1">Automatically calculated from date of birth</p>
                 </div>
+                ----------------------------------------------------------------- */}
 
-                {/* Gender */}
+                {/* --- COMMENTED OUT: Gender (Uncomment to enable) ---
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Gender *</label>
                   <select
@@ -631,8 +763,9 @@ export default function PublicAddSupporterPage() {
                   </select>
                   {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
                 </div>
+                ---------------------------------------------------- */}
 
-                {/* Phone Number */}
+                {/* Phone Number (Visible & Required) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Phone Number *</label>
                   <input
@@ -647,7 +780,7 @@ export default function PublicAddSupporterPage() {
                   {errors.phone_no && <p className="text-red-500 text-xs mt-1">{errors.phone_no}</p>}
                 </div>
 
-                {/* WhatsApp Number */}
+                {/* WhatsApp Number (Visible & Optional) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">WhatsApp Number</label>
                   <input
@@ -662,7 +795,7 @@ export default function PublicAddSupporterPage() {
                   {errors.whatsapp_no && <p className="text-red-500 text-xs mt-1">{errors.whatsapp_no}</p>}
                 </div>
 
-                {/* EPIC ID */}
+                {/* EPIC ID (Visible & Optional) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">EPIC ID</label>
                   <input
@@ -680,11 +813,10 @@ export default function PublicAddSupporterPage() {
               </div>
             </div>
 
-            {/* Language and Religion Information */}
+            {/* --- COMMENTED OUT: Language & Religion Information Section (Uncomment to enable) ---
             <div>
               <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Language & Religion Information</h3>
 
-              {/* Language Selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Languages * <span className="text-[var(--text-secondary)]">(Select multiple)</span>
@@ -706,7 +838,6 @@ export default function PublicAddSupporterPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Religion */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Religion *</label>
                   <select
@@ -723,7 +854,6 @@ export default function PublicAddSupporterPage() {
                   {errors.religion && <p className="text-red-500 text-xs mt-1">{errors.religion}</p>}
                 </div>
 
-                {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Category *</label>
                   <select
@@ -741,7 +871,6 @@ export default function PublicAddSupporterPage() {
                   {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
                 </div>
 
-                {/* Caste (only for Hindu religion) */}
                 {shouldShowCaste && (
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Caste</label>
@@ -759,7 +888,6 @@ export default function PublicAddSupporterPage() {
                   </div>
                 )}
 
-                {/* Custom Category Input for Others */}
                 {formData.religion === 'Others' && formData.category === 'Others' && (
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Specify Category</label>
@@ -775,6 +903,7 @@ export default function PublicAddSupporterPage() {
                 )}
               </div>
             </div>
+            ---------------------------------------------------------------------------------- */}
 
             {/* Location Information */}
             <div>
@@ -794,114 +923,220 @@ export default function PublicAddSupporterPage() {
                   />
                 </div>
 
-                {/* District - Disabled */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    District
-                  </label>
-                  <input
-                    type="text"
-                    value={districtName || 'Unknown District'}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
-                  />
-                </div>
-
-                {/* Assembly - Disabled */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                    Assembly
-                  </label>
-                  <input
-                    type="text"
-                    value={assemblyName || 'Unknown Assembly'}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
-                  />
-                </div>
-
-                {/* Block/Zone/etc — only show if provided in URL */}
-                {blockId && (
+                {/* District */}
+                {districtId ? (
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      {blockLabel}
+                      District
                     </label>
                     <input
                       type="text"
-                      value={blockName || `Unknown ${blockLabel}`}
+                      value={districtName || 'Unknown District'}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      District *
+                    </label>
+                    <select
+                      name="district_id"
+                      value={selectedDistrictId || ''}
+                      onChange={(e) => {
+                        const dId = parseInt(e.target.value) || 0;
+                        setSelectedDistrictId(dId);
+                        setSelectedAssemblyId(0);
+                        setSubSelections([]);
+                        if (errors.district_id) setErrors(prev => ({ ...prev, district_id: '' }));
+                      }}
+                      disabled={hierarchyLoading || districtOptions.length === 0}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 ${errors.district_id ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                      <option value="">{hierarchyLoading ? 'Loading districts...' : 'Select District'}</option>
+                      {districtOptions.map((d: any) => (
+                        <option key={d.id} value={d.id}>{d.levelName}</option>
+                      ))}
+                    </select>
+                    {errors.district_id && <p className="text-red-500 text-xs mt-1">{errors.district_id}</p>}
                   </div>
                 )}
 
-                {/* Dynamic sub-block level dropdowns (depth 1+) */}
-                {/* Strategy: show pre-filled URL levels as disabled inputs first,
-                    then show remaining hierarchy-based dropdowns if hierarchy loaded */}
-
-                {/* Pre-filled levels from URL — always show, no API needed */}
-                {deeperLevels.map((lvl, idx) => (
-                  <div key={`prefilled-${idx}`}>
+                {/* Assembly */}
+                {assemblyId ? (
+                  <div>
                     <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                      {lvl.label}
+                      Assembly
                     </label>
                     <input
                       type="text"
-                      value={lvl.name || `Unknown ${lvl.label}`}
+                      value={assemblyName || 'Unknown Assembly'}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
                     />
                   </div>
-                ))}
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                      Assembly *
+                    </label>
+                    <select
+                      name="assembly_id"
+                      value={selectedAssemblyId || ''}
+                      onChange={(e) => {
+                        const aId = parseInt(e.target.value) || 0;
+                        setSelectedAssemblyId(aId);
+                        setSubSelections([]);
+                        if (errors.assembly_id) setErrors(prev => ({ ...prev, assembly_id: '' }));
+                      }}
+                      disabled={hierarchyLoading || !selectedDistrictId || assemblyOptions.length === 0}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 ${errors.assembly_id ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                      <option value="">
+                        {hierarchyLoading
+                          ? 'Loading assemblies...'
+                          : !selectedDistrictId
+                          ? 'Select District first'
+                          : assemblyOptions.length === 0
+                          ? 'No assemblies found'
+                          : 'Select Assembly'}
+                      </option>
+                      {assemblyOptions.map((a: any) => (
+                        <option key={a.id} value={a.id}>{a.levelName}</option>
+                      ))}
+                    </select>
+                    {errors.assembly_id && <p className="text-red-500 text-xs mt-1">{errors.assembly_id}</p>}
+                  </div>
+                )}
 
-                {/* Additional optional dropdowns from hierarchy — only if hierarchy loaded
-                    and the user hasn't pre-filled all levels */}
-                {subBlockLevels.slice(deeperLevels.length).map((level, relIdx) => {
-                  const idx = deeperLevels.length + relIdx;
-                  const opts = subVisibleOptions[idx] || [];
-                  const displayLabel = level.label;
-                  const currentVal = subSelections[idx] || 0;
-                  const parentSelected = idx === 0 || (subSelections[idx - 1] || 0) > 0;
-
-                  return (
-                    <div key={`dynamic-${level.depth}`}>
+                {/* Dynamic Levels */}
+                {hasPreFilledBlock ? (
+                  <>
+                    {/* Block/Zone pre-filled from URL */}
+                    <div>
                       <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                        {displayLabel} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                        {blockLabel}
                       </label>
-                      <select
-                        value={currentVal}
-                        onChange={e => {
-                          const val = parseInt(e.target.value) || 0;
-                          setSubSelections(prev => {
-                            const next = [...prev];
-                            next[idx] = val;
-                            for (let i = idx + 1; i < subBlockLevels.length; i++) next[i] = 0;
-                            return next;
-                          });
-                        }}
-                        disabled={hierarchyLoading || !parentSelected || opts.length === 0}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
-                      >
-                        <option value={0}>
-                          {hierarchyLoading
-                            ? `Loading ${displayLabel}s...`
-                            : !parentSelected
-                            ? `Select ${subBlockLevels[idx - 1]?.label || 'previous level'} first`
-                            : opts.length === 0
-                            ? `No ${displayLabel} available`
-                            : `Select ${displayLabel}`}
-                        </option>
-                        {opts.map((n: any) => (
-                          <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
-                        ))}
-                      </select>
+                      <input
+                        type="text"
+                        value={blockName || `Unknown ${blockLabel}`}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
+                      />
                     </div>
-                  );
-                })}
+
+                    {/* Pre-filled deeper levels from URL */}
+                    {deeperLevels.map((lvl, idx) => (
+                      <div key={`prefilled-${idx}`}>
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                          {lvl.label}
+                        </label>
+                        <input
+                          type="text"
+                          value={lvl.name || `Unknown ${lvl.label}`}
+                          disabled
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
+                        />
+                      </div>
+                    ))}
+
+                    {/* Additional optional dropdowns beyond deeper levels */}
+                    {dynamicLevels.slice(deeperLevels.length).map((level, relIdx) => {
+                      const idx = deeperLevels.length + relIdx;
+                      const opts = visibleOptions[idx] || [];
+                      const displayLabel = level.label;
+                      const currentVal = subSelections[idx] || 0;
+                      const parentSelected = idx === 0 || (subSelections[idx - 1] || 0) > 0;
+
+                      return (
+                        <div key={`dynamic-${level.depth}`}>
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                            {displayLabel} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                          </label>
+                          <select
+                            value={currentVal}
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              setSubSelections(prev => {
+                                const next = [...prev];
+                                next[idx] = val;
+                                for (let i = idx + 1; i < dynamicLevels.length; i++) next[i] = 0;
+                                return next;
+                              });
+                            }}
+                            disabled={hierarchyLoading || !parentSelected || opts.length === 0}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                          >
+                            <option value={0}>
+                              {hierarchyLoading
+                                ? `Loading ${displayLabel}s...`
+                                : !parentSelected
+                                ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
+                                : opts.length === 0
+                                ? `No ${displayLabel} available`
+                                : `Select ${displayLabel}`}
+                            </option>
+                            {opts.map((n: any) => (
+                              <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <>
+                    {/* Open link: all dynamic levels from depth 0 (Zone / Block, Sector, Booth...) */}
+                    {dynamicLevels.map((level, idx) => {
+                      const opts = visibleOptions[idx] || [];
+                      const displayLabel = level.label;
+                      const currentVal = subSelections[idx] || 0;
+                      const parentSelected = idx === 0 ? !!effectiveAssemblyId : (subSelections[idx - 1] || 0) > 0;
+
+                      return (
+                        <div key={`dynamic-${level.depth}`}>
+                          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                            {displayLabel} <span className="text-[var(--text-secondary)]">(Optional)</span>
+                          </label>
+                          <select
+                            value={currentVal}
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              setSubSelections(prev => {
+                                const next = [...prev];
+                                next[idx] = val;
+                                for (let i = idx + 1; i < dynamicLevels.length; i++) next[i] = 0;
+                                return next;
+                              });
+                            }}
+                            disabled={hierarchyLoading || !parentSelected || opts.length === 0}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                          >
+                            <option value={0}>
+                              {hierarchyLoading
+                                ? `Loading ${displayLabel}s...`
+                                : !effectiveAssemblyId
+                                ? 'Select Assembly first'
+                                : !parentSelected
+                                ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
+                                : opts.length === 0
+                                ? `No ${displayLabel} available`
+                                : `Select ${displayLabel}`}
+                            </option>
+                            {opts.map((n: any) => (
+                              <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Address and Remarks */}
+            {/* --- COMMENTED OUT: Additional Information Section (Address & Remarks) (Uncomment to enable) ---
             <div>
               <h3 className="text-lg font-medium text-[var(--text-color)] mb-4">Additional Information</h3>
               <div className="space-y-4">
@@ -931,6 +1166,7 @@ export default function PublicAddSupporterPage() {
                 </div>
               </div>
             </div>
+            ------------------------------------------------------------------------------------------------- */}
 
             {/* Form Actions */}
             <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--border-color)]">
@@ -954,5 +1190,3 @@ export default function PublicAddSupporterPage() {
     </div>
   );
 }
-
-

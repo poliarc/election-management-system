@@ -24,6 +24,7 @@ export default function SupportersPage() {
   const [phoneModalSupporter, setPhoneModalSupporter] = useState<Supporter | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showBlockSelectionModal, setShowBlockSelectionModal] = useState(false);
+  const [linkType, setLinkType] = useState<'assembly' | 'state_wide'>('assembly');
 
   // Dynamic after-assembly selections for link generation modal
   const [linkSelections, setLinkSelections] = useState<number[]>([]);
@@ -84,47 +85,64 @@ export default function SupportersPage() {
   };
 
   const handleGenerateLink = () => {
+    setLinkType('assembly');
     setLinkSelections([]);
     setShowBlockSelectionModal(true);
   };
 
   const handleConfirmBlockAndGenerateLink = () => {
-    // Find deepest selected node
-    // Build params — block_id optional now; send 0 if not selected
-    const getNodeAt = (depth: number) => {
-      const id = linkSelections[depth];
-      if (!id) return null;
-      return afterAssemblyData.find(n => n.id === id) || null;
-    };
+    let link = '';
 
-    const params = new URLSearchParams({
-      party_id: (user?.partyId || 0).toString(),
-      party_name: user?.partyName || 'Party',
-      state_id: stateId.toString(),
-      state_name: user?.stateName || selectedAssignment?.stateName || 'State',
-      district_id: (selectedAssignment?.parentId || 0).toString(),
-      district_name: selectedAssignment?.parentLevelName || selectedAssignment?.districtName || 'District',
-      assembly_id: assemblyId.toString(),
-      assembly_name: selectedAssignment?.levelName || selectedAssignment?.displayName || 'Assembly',
-      created_by: (user?.id || 0).toString(),
-      created_by_name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
-      // depth-0 = required (Zone/Block/etc)
-      block_id: (linkSelections[0] || 0).toString(),
-      block_name: getNodeAt(0)?.displayName || getNodeAt(0)?.levelName || '',
-      block_label: dynamicLevels[0]?.label || 'Block',
-    });
+    if (linkType === 'state_wide') {
+      // Option 2: State-Wide Open Link (Supporter will select District & Assembly on registration page)
+      const params = new URLSearchParams({
+        party_id: (user?.partyId || 0).toString(),
+        party_name: user?.partyName || 'Party',
+        state_id: stateId.toString(),
+        state_name: user?.stateName || selectedAssignment?.stateName || 'State',
+        created_by: (user?.id || 0).toString(),
+        created_by_name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+        link_type: 'state_wide',
+      });
+      link = `${window.location.origin}/supporter/register?${params.toString()}`;
+    } else {
+      // Option 1: Assembly Specific Link
+      const getNodeAt = (depth: number) => {
+        const id = linkSelections[depth];
+        if (!id) return null;
+        return afterAssemblyData.find(n => n.id === id) || null;
+      };
 
-    // Append ALL deeper selections generically: level_1_id/name/label, level_2_id... etc
-    for (let depth = 1; depth < dynamicLevels.length; depth++) {
-      const id = linkSelections[depth];
-      if (!id || id === 0) break; // stop at first unselected level
-      const n = getNodeAt(depth);
-      params.append(`level_${depth}_id`, id.toString());
-      params.append(`level_${depth}_name`, n?.displayName || n?.levelName || '');
-      params.append(`level_${depth}_label`, dynamicLevels[depth]?.label || `Level ${depth}`);
+      const params = new URLSearchParams({
+        party_id: (user?.partyId || 0).toString(),
+        party_name: user?.partyName || 'Party',
+        state_id: stateId.toString(),
+        state_name: user?.stateName || selectedAssignment?.stateName || 'State',
+        district_id: (selectedAssignment?.parentId || 0).toString(),
+        district_name: selectedAssignment?.parentLevelName || selectedAssignment?.districtName || 'District',
+        assembly_id: assemblyId.toString(),
+        assembly_name: selectedAssignment?.levelName || selectedAssignment?.displayName || 'Assembly',
+        created_by: (user?.id || 0).toString(),
+        created_by_name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+        // depth-0 = required (Zone/Block/etc)
+        block_id: (linkSelections[0] || 0).toString(),
+        block_name: getNodeAt(0)?.displayName || getNodeAt(0)?.levelName || '',
+        block_label: dynamicLevels[0]?.label || 'Block',
+      });
+
+      // Append ALL deeper selections generically: level_1_id/name/label, level_2_id... etc
+      for (let depth = 1; depth < dynamicLevels.length; depth++) {
+        const id = linkSelections[depth];
+        if (!id || id === 0) break; // stop at first unselected level
+        const n = getNodeAt(depth);
+        params.append(`level_${depth}_id`, id.toString());
+        params.append(`level_${depth}_name`, n?.displayName || n?.levelName || '');
+        params.append(`level_${depth}_label`, dynamicLevels[depth]?.label || `Level ${depth}`);
+      }
+
+      link = `${window.location.origin}/supporter/register?${params.toString()}`;
     }
 
-    const link = `${window.location.origin}/supporter/register?${params.toString()}`;
     setGeneratedLink(link);
     setShowBlockSelectionModal(false);
     setShowLinkModal(true);
@@ -284,7 +302,75 @@ export default function SupportersPage() {
             </div>
 
             <div className="space-y-4">
-              {loadingBlocks ? (
+              {/* Link Type Selector Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  onClick={() => setLinkType('assembly')}
+                  className={`cursor-pointer rounded-xl p-3.5 border-2 transition-all flex items-start gap-3 ${
+                    linkType === 'assembly'
+                      ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/30 shadow-sm'
+                      : 'border-[var(--border-color)] hover:border-gray-300 dark:hover:border-gray-700 bg-[var(--bg-main)]'
+                  }`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    linkType === 'assembly' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'
+                  }`}>
+                    {linkType === 'assembly' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-[var(--text-color)]">
+                      {t('SupportersPage.Assembly_Specific', 'Assembly Specific Link')}
+                    </div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                      Pre-filled for <span className="font-semibold text-[var(--text-color)]">{selectedAssignment?.levelName || 'this Assembly'}</span>. Supporter will directly join this assembly.
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setLinkType('state_wide')}
+                  className={`cursor-pointer rounded-xl p-3.5 border-2 transition-all flex items-start gap-3 ${
+                    linkType === 'state_wide'
+                      ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/30 shadow-sm'
+                      : 'border-[var(--border-color)] hover:border-gray-300 dark:hover:border-gray-700 bg-[var(--bg-main)]'
+                  }`}
+                >
+                  <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    linkType === 'state_wide' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'
+                  }`}>
+                    {linkType === 'state_wide' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-[var(--text-color)]">
+                      {t('SupportersPage.State_Wide_Open', 'State-Wide Open Link')}
+                    </div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+                      For all of <span className="font-semibold text-[var(--text-color)]">{user?.stateName || 'State'}</span>. Supporter can choose their own District & Assembly.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {linkType === 'state_wide' ? (
+                /* State-Wide Open Link Information Box */
+                <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-4 text-xs sm:text-sm text-emerald-900 dark:text-emerald-200 space-y-2.5">
+                  <div className="font-bold flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-sm">
+                    <svg className="w-5 h-5 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>Open State Registration: {user?.stateName || selectedAssignment?.stateName || 'State'}</span>
+                  </div>
+                  <p className="leading-relaxed">
+                    Supporters anywhere across the state can use this link to self-register by selecting their respective <strong>District</strong> and <strong>Assembly</strong>.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1 text-xs text-emerald-700 dark:text-emerald-400">
+                    <span className="font-medium">State:</span>
+                    <span className="font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded">
+                      {user?.stateName || selectedAssignment?.stateName || 'State'}
+                    </span>
+                  </div>
+                </div>
+              ) : loadingBlocks ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
                   <p className="mt-2 text-sm text-[var(--text-secondary)]">Loading hierarchy...</p>
@@ -383,26 +469,26 @@ export default function SupportersPage() {
                       </p>
                     </div>
                   </div>
-
-                  <div className="flex justify-end gap-3 pt-2">
-                    <button
-                      onClick={() => {
-                        setShowBlockSelectionModal(false);
-                        setLinkSelections([]);
-                      }}
-                      className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
-                    >
-                      {t('SupportersPage.Cancel')}
-                    </button>
-                    <button
-                      onClick={handleConfirmBlockAndGenerateLink}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                    >
-                      {t('SupportersPage.Generate_Link')}
-                    </button>
-                  </div>
                 </>
               )}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowBlockSelectionModal(false);
+                    setLinkSelections([]);
+                  }}
+                  className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors"
+                >
+                  {t('SupportersPage.Cancel')}
+                </button>
+                <button
+                  onClick={handleConfirmBlockAndGenerateLink}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  {t('SupportersPage.Generate_Link')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -462,7 +548,11 @@ export default function SupportersPage() {
                       <li>{t('SupportersPage.Share_this_link_via_WhatsApp_SMS_or_social_media')}</li>
                       <li>{t('SupportersPage.Anyone_with_the_link_can_register_supporters')}</li>
                       <li>{t('SupportersPage.All_supporters_registered_through_this_link_will_be_credited_to_you')}</li>
-                      <li>{t('SupportersPage.The_link_contains_your_assembly_and_user_information')}</li>
+                      <li>
+                        {linkType === 'state_wide'
+                          ? 'The link allows supporters across the state to select their District and Assembly'
+                          : t('SupportersPage.The_link_contains_your_assembly_and_user_information')}
+                      </li>
                     </ul>
                   </div>
                 </div>
