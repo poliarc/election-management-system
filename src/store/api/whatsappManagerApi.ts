@@ -17,6 +17,7 @@ export interface WhatsAppGroupItem {
   assembly_id?: number | null;
   assembly_name?: string | null;
   sub_level_name?: string | null;
+  created_by?: number | null;
 }
 
 export interface PaginationMeta {
@@ -26,11 +27,25 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+export interface CreatorInfo {
+  user_id: number;
+  name: string;
+  state_id: number;
+  state_name: string;
+  district_id?: number | null;
+  district_name?: string | null;
+  assembly_id?: number | null;
+  assembly_name?: string | null;
+  primary_level_type?: "State" | "District" | "Assembly" | "All";
+  creator_code?: string;
+}
+
 export interface WhatsAppGroupsResponse {
   success: boolean;
   message: string;
   data: WhatsAppGroupItem[];
   pagination: PaginationMeta;
+  creator_info?: CreatorInfo | null;
 }
 
 export interface CreateWhatsAppGroupRequest {
@@ -43,6 +58,7 @@ export interface CreateWhatsAppGroupRequest {
   group_type?: string | null;
   level_type: "State" | "District" | "Assembly";
   description?: string | null;
+  created_by?: number | null;
 }
 
 export interface UpdateWhatsAppGroupRequest {
@@ -62,6 +78,7 @@ export interface WhatsAppFilterParams {
   search?: string | null;
   page?: number | null;
   limit?: number | null;
+  creator?: string | null;
 }
 
 export const whatsappManagerApi = createApi({
@@ -81,6 +98,9 @@ export const whatsappManagerApi = createApi({
         if (params.assembly_id) queryParams.append("assembly_id", params.assembly_id.toString());
         if (params.search && params.search.trim()) {
           queryParams.append("search", params.search.trim());
+        }
+        if (params.creator && params.creator.trim()) {
+          queryParams.append("creator", params.creator.trim());
         }
         if (params.page) queryParams.append("page", params.page.toString());
         if (params.limit) queryParams.append("limit", params.limit.toString());

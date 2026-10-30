@@ -1,12 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Globe,
   PlusCircle,
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Copy,
+  Check,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { encodeCreatorCode } from "../../utils/creatorToken";
 import { useAppSelector } from "../../store/hooks";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import { useGetWhatsappLinksByLevelQuery } from "../../store/api/whatsappManagerApi";
@@ -138,6 +142,31 @@ export default function WhatsAppManager() {
   });
 
   const groups = groupsResponse?.data || [];
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.endsWith(".local"));
+
+  const baseUrl = isLocalhost
+    ? window.location.origin
+    : "https://whatsapp.peopleconnect.in";
+
+  const creatorCode = user?.id ? encodeCreatorCode(Number(user.id)) : "";
+  const publicDirectoryUrl = creatorCode
+    ? `${baseUrl}/u/${creatorCode}`
+    : isLocalhost
+    ? `${baseUrl}/whatsapp-groups`
+    : baseUrl;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(publicDirectoryUrl);
+    setCopiedLink(true);
+    toast.success("Public Directory link copied!");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-[var(--bg-main)] min-h-screen space-y-6">
@@ -162,16 +191,26 @@ export default function WhatsAppManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
-          <Link
-            to="/whatsapp-groups"
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            title="Copy your unique public directory link"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm border border-white/20 backdrop-blur-sm shadow transition-all active:scale-95"
+          >
+            {copiedLink ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
+            <span>{copiedLink ? "Copied" : "Copy Link"}</span>
+          </button>
+
+          <a
+            href={publicDirectoryUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 font-semibold text-xs sm:text-sm shadow transition-all active:scale-95"
           >
-            <Globe className="h-4 w-4 text-[var(--text-color)]" />
-            <span className="text-[var(--text-color)]">Public Directory</span>
-          </Link>
+            <Globe className="h-4 w-4 text-indigo-700" />
+            <span className="text-indigo-700">Public Directory</span>
+          </a>
         </div>
       </div>
 

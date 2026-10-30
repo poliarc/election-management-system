@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, type FC, type FormEvent, type ChangeEvent
 import toast from "react-hot-toast";
 import { Send, MapPin, Link as LinkIcon, Building2, Landmark, HeartHandshake, CheckCircle2 } from "lucide-react";
 import { useCreateWhatsappLinkMutation } from "../../../store/api/whatsappManagerApi";
+import { useAppSelector } from "../../../store/hooks";
 import type { StateMasterData } from "../../../store/api/stateMasterApi";
 
 interface AssemblyLevelFormProps {
@@ -23,6 +24,7 @@ export const AssemblyLevelForm: FC<AssemblyLevelFormProps> = ({
   currentAssemblyId,
   onSuccess,
 }) => {
+  const { user } = useAppSelector((state) => state.auth);
   const [createLink, { isLoading }] = useCreateWhatsappLinkMutation();
 
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | "">("");
@@ -139,6 +141,7 @@ export const AssemblyLevelForm: FC<AssemblyLevelFormProps> = ({
         link: whatsappLink.trim(),
         group_type: "Support",
         description: description.trim() || null,
+        created_by: user?.id ? Number(user.id) : null,
       }).unwrap();
 
       toast.success(

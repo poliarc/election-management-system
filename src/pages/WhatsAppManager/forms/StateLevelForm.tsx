@@ -2,6 +2,7 @@ import { useState, type FC, type FormEvent } from "react";
 import toast from "react-hot-toast";
 import { Send, MapPin, Link as LinkIcon, HeartHandshake, CheckCircle2 } from "lucide-react";
 import { useCreateWhatsappLinkMutation } from "../../../store/api/whatsappManagerApi";
+import { useAppSelector } from "../../../store/hooks";
 
 interface StateLevelFormProps {
   stateId: number;
@@ -14,6 +15,7 @@ export const StateLevelForm: FC<StateLevelFormProps> = ({
   stateName,
   onSuccess,
 }) => {
+  const { user } = useAppSelector((state) => state.auth);
   const [createLink, { isLoading }] = useCreateWhatsappLinkMutation();
 
   const [groupName, setGroupName] = useState("");
@@ -56,6 +58,7 @@ export const StateLevelForm: FC<StateLevelFormProps> = ({
         link: whatsappLink.trim(),
         group_type: "Support",
         description: description.trim() || null,
+        created_by: user?.id ? Number(user.id) : null,
       }).unwrap();
 
       toast.success("State-level Support WhatsApp group created successfully!");
