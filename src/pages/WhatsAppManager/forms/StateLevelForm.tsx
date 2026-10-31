@@ -58,7 +58,7 @@ export const StateLevelForm: FC<StateLevelFormProps> = ({
         link: whatsappLink.trim(),
         group_type: "Support",
         description: description.trim() || null,
-        created_by: user?.id ? Number(user.id) : null,
+        created_by: (user?.id || (user as any)?.user_id) ? Number(user?.id || (user as any)?.user_id) : null,
       }).unwrap();
 
       toast.success("State-level Support WhatsApp group created successfully!");

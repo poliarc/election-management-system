@@ -154,7 +154,8 @@ export default function WhatsAppManager() {
     ? window.location.origin
     : "https://whatsapp.peopleconnect.in";
 
-  const creatorCode = user?.id ? encodeCreatorCode(Number(user.id)) : "";
+  const userId = user?.id || (user as any)?.user_id;
+  const creatorCode = userId ? encodeCreatorCode(Number(userId)) : "";
   const publicDirectoryUrl = creatorCode
     ? `${baseUrl}/u/${creatorCode}`
     : isLocalhost

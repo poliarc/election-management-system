@@ -7,9 +7,40 @@ import { DirectoryFilters } from "./components/DirectoryFilters";
 import { GroupCard } from "./components/GroupCard";
 
 export default function PublicWhatsAppDirectory() {
-  const { creatorCode } = useParams<{ creatorCode?: string }>();
+  const params = useParams<{ creatorCode?: string; "*"?: string }>();
   const [searchParams] = useSearchParams();
-  const effectiveCreator = creatorCode || searchParams.get("u") || searchParams.get("creator") || null;
+
+  const effectiveCreator = useMemo(() => {
+    // 1. From route param :creatorCode
+    if (params.creatorCode && params.creatorCode.trim()) {
+      return params.creatorCode.trim();
+    }
+
+    // 2. From wildcard param (e.g. path="*" matching "u/u_3tg1qm" or "/u/u_3tg1qm")
+    const wildcard = params["*"];
+    if (wildcard) {
+      const match = wildcard.match(/(?:^|\/)(?:u|creator)\/([^/?#]+)/i);
+      if (match && match[1] && match[1] !== "whatsapp-groups") {
+        return match[1].trim();
+      }
+    }
+
+    // 3. Directly from window.location.pathname (/u/<code> or /whatsapp-groups/u/<code>)
+    if (typeof window !== "undefined") {
+      const pathMatch = window.location.pathname.match(/\/(?:u|creator)\/([^/?#]+)/i);
+      if (pathMatch && pathMatch[1]) {
+        return pathMatch[1].trim();
+      }
+    }
+
+    // 4. From search params (?u=... or ?creator=... or ?c=...)
+    const queryParam = searchParams.get("u") || searchParams.get("creator") || searchParams.get("c");
+    if (queryParam && queryParam.trim()) {
+      return queryParam.trim();
+    }
+
+    return null;
+  }, [params, searchParams]);
 
   // Redirect to dedicated public subdomain if accessed via main election domain
   useEffect(() => {
