@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   MapPin,
   HeartHandshake,
+  UserCheck,
 } from "lucide-react";
 import type { WhatsAppGroupItem } from "../../../store/api/whatsappManagerApi";
 import { useDeleteWhatsappLinkMutation } from "../../../store/api/whatsappManagerApi";
@@ -143,6 +144,12 @@ export const WhatsAppLinksTable: FC<WhatsAppLinksTableProps> = ({
                       <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-1">
                         {group.description}
                       </p>
+                    )}
+                    {group.creator_name && (
+                      <div className="flex items-center gap-1 text-[11px] text-[var(--text-secondary)] mt-1">
+                        <UserCheck className="h-3 w-3 text-indigo-500" />
+                        <span>Created by: <span className="font-medium text-[var(--text-color)]">{group.creator_name}</span></span>
+                      </div>
                     )}
                   </td>
                   <td className="px-5 py-4">{getLevelBadge(group.level_type)}</td>

@@ -89,6 +89,7 @@ export const DistrictLevelForm: FC<DistrictLevelFormProps> = ({
         group_type: "Support",
         description: description.trim() || null,
         created_by: (user?.id || (user as any)?.user_id) ? Number(user?.id || (user as any)?.user_id) : null,
+        party_id: user?.partyId || (user as any)?.party_id || null,
       }).unwrap();
 
       toast.success(

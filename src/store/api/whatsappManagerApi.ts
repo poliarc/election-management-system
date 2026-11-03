@@ -18,6 +18,8 @@ export interface WhatsAppGroupItem {
   assembly_name?: string | null;
   sub_level_name?: string | null;
   created_by?: number | null;
+  party_id?: number | null;
+  creator_name?: string | null;
 }
 
 export interface PaginationMeta {
@@ -29,6 +31,7 @@ export interface PaginationMeta {
 
 export interface CreatorInfo {
   user_id: number;
+  party_id?: number | null;
   name: string;
   state_id: number;
   state_name: string;
@@ -59,6 +62,7 @@ export interface CreateWhatsAppGroupRequest {
   level_type: "State" | "District" | "Assembly";
   description?: string | null;
   created_by?: number | null;
+  party_id?: number | null;
 }
 
 export interface UpdateWhatsAppGroupRequest {
@@ -68,6 +72,7 @@ export interface UpdateWhatsAppGroupRequest {
   group_type?: string | null;
   description?: string | null;
   is_active?: boolean | number;
+  party_id?: number | null;
 }
 
 export interface WhatsAppFilterParams {
@@ -75,6 +80,7 @@ export interface WhatsAppFilterParams {
   state_id?: number | null;
   district_id?: number | null;
   assembly_id?: number | null;
+  party_id?: number | null;
   search?: string | null;
   page?: number | null;
   limit?: number | null;
@@ -96,6 +102,7 @@ export const whatsappManagerApi = createApi({
         if (params.state_id) queryParams.append("state_id", params.state_id.toString());
         if (params.district_id) queryParams.append("district_id", params.district_id.toString());
         if (params.assembly_id) queryParams.append("assembly_id", params.assembly_id.toString());
+        if (params.party_id) queryParams.append("party_id", params.party_id.toString());
         if (params.search && params.search.trim()) {
           queryParams.append("search", params.search.trim());
         }
@@ -123,6 +130,7 @@ export const whatsappManagerApi = createApi({
         if (params.state_id) queryParams.append("state_id", params.state_id.toString());
         if (params.district_id) queryParams.append("district_id", params.district_id.toString());
         if (params.assembly_id) queryParams.append("assembly_id", params.assembly_id.toString());
+        if (params.party_id) queryParams.append("party_id", params.party_id.toString());
         if (params.search && params.search.trim()) {
           queryParams.append("search", params.search.trim());
         }
