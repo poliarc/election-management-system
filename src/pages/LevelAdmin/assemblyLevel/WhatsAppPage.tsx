@@ -97,10 +97,11 @@ export default function WhatsAppPage() {
     void loadAssemblies();
   }, [selectedDistrictId, stateId]);
 
-  const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, stateMasterData_id?: number, state_id?: number, levelType?: string }) => {
+  const loadWhatsAppLinks = useCallback(async (params: { afterAssemblyData_id?: number, stateMasterData_id?: number, state_id?: number, levelType?: string, party_id?: number }) => {
     try {
       setWhatsAppLoading(true);
-      const response: any = await fetchWhatsAppLinks(params);
+      const userPartyId = user?.partyId || (user as any)?.party_id;
+      const response: any = await fetchWhatsAppLinks({ ...params, party_id: params.party_id ?? (userPartyId ? Number(userPartyId) : undefined) });
       
       // Extract nested data safely
       const extractedArray = response?.data ? response.data : response;

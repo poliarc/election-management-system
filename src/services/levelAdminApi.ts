@@ -476,6 +476,7 @@ export async function fetchWhatsAppLinks(params: {
   afterAssemblyData_id?: number | null;
   state_id?: number | null;
   levelType?: string;
+  party_id?: number | null;
 }): Promise<WhatsAppLinkData[]> {
   const token = getAuthToken();
   if (!token) throw new Error("Authentication required");
@@ -496,6 +497,7 @@ export async function fetchWhatsAppLinks(params: {
   if (params.state_id) query.append("state_id", params.state_id.toString());
 
   if (params.levelType) query.append("levelType", params.levelType);
+  if (params.party_id) query.append("party_id", params.party_id.toString());
 
   const url = `${API_CONFIG.BASE_URL}/api/whatsapp/get-whatsapp-link?${query.toString()}`;
 

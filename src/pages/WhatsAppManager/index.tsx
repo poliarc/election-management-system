@@ -37,16 +37,19 @@ export default function WhatsAppManager() {
     return null;
   }, [levelAdminPanels, levelId, locationState]);
 
-  // Fixed level strictly resolved from user's panel/role assignment
-  const currentLevel: LevelTab = useMemo(() => {
+  // Initial default level strictly resolved from user's panel/role assignment
+  const initialLevel: LevelTab = useMemo(() => {
     const panelName = currentPanel?.name?.toLowerCase();
     const assignmentLevel = selectedAssignment?.levelType?.toLowerCase();
 
     if (panelName === "district" || assignmentLevel === "district") return "District";
     if (panelName === "assembly" || assignmentLevel === "assembly") return "Assembly";
     if (panelName === "state" || assignmentLevel === "state") return "State";
-    return "State";
+    return "Assembly";
   }, [currentPanel, selectedAssignment]);
+
+  const [selectedLevel, setSelectedLevel] = useState<LevelTab | null>(null);
+  const currentLevel: LevelTab = selectedLevel || initialLevel;
 
   const [showCreateForm, setShowCreateForm] = useState(true);
 
@@ -211,6 +214,42 @@ export default function WhatsAppManager() {
             <Globe className="h-4 w-4 text-indigo-700" />
             <span className="text-indigo-700">Public Directory</span>
           </a>
+        </div>
+      </div>
+
+      {/* Level Selection Bar - Strictly Separate Level Displays (No Mixing, No All Option) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-color)] shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] px-2">
+            Level Scope:
+          </span>
+          {(["State", "District", "Assembly"] as LevelTab[]).map((tab) => {
+            const isActive = currentLevel === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setSelectedLevel(tab)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                  isActive
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25 ring-2 ring-indigo-500/20"
+                    : "bg-[var(--bg-main)] text-[var(--text-secondary)] hover:text-[var(--text-color)] hover:bg-[var(--border-color)]/40"
+                }`}
+              >
+                <span>{tab} Level</span>
+                {isActive && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/25 text-white font-bold">
+                    {groups.length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] px-2">
+          <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+          <span>Showing only links created on {currentLevel} level</span>
         </div>
       </div>
 
