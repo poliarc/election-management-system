@@ -226,16 +226,16 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
           const isSubLevelDash = !isAssemblyDash && !isHighLevelDash;
           const linkLocationId = Number(link.afterAssemblyData_id || link.assembly_id || link.stateMasterData_id || 0);
 
-          // RULE 1: ASSEMBLY DASHBOARD
+          // RULE 1: ASSEMBLY DASHBOARD - Strictly Assembly level links only
           if (isAssemblyDash) {
+            if (link.level_type && link.level_type !== 'Assembly') {
+              return false;
+            }
             if (
               linkLocationId === Number(currentDashId) ||
               link.assembly_id === Number(currentDashId) ||
               link.stateMasterData_id === Number(currentDashId)
             ) {
-              return true;
-            }
-            if (link.level_type === 'State' || link.level_type === 'District') {
               return true;
             }
             return false;
@@ -249,23 +249,24 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
             if (inHierarchy && !isKnownAssemblyLink) {
               return true;
             }
-            if (['Assembly', 'District', 'State'].includes(link.level_type || '')) {
-              return true;
-            }
             return false;
           }
 
-          // RULE 3: STATE / DISTRICT DASHBOARDS
+          // RULE 3: STATE / DISTRICT DASHBOARDS - Strictly District or State links only
           if (isHighLevelDash) {
             if (currentLevelType === 'State') {
-              return link.level_type === 'State' || link.state_id === Number(currentDashId);
+              if (link.level_type && link.level_type !== 'State') return false;
+              return link.state_id === Number(currentDashId) || !link.state_id;
             }
             if (currentLevelType === 'District') {
-              return link.level_type === 'District' || link.district_id === Number(currentDashId) || link.level_type === 'State';
+              if (link.level_type && link.level_type !== 'District') return false;
+              return link.district_id === Number(currentDashId) || linkLocationId === Number(currentDashId);
             }
           }
 
-          return true;
+          // Default: strictly match user assigned level
+          const userLevel = selectedAssignment?.levelType || 'State';
+          return !link.level_type || link.level_type === userLevel;
         });
 
         setWhatsAppLinks(finalLinks);

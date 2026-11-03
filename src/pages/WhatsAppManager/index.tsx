@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import {
   Globe,
   PlusCircle,
@@ -9,7 +9,6 @@ import {
   Copy,
   Check,
   MapPin,
-  Layers,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { encodeCreatorCode } from "../../utils/creatorToken";
@@ -22,43 +21,34 @@ import { AssemblyLevelForm } from "./forms/AssemblyLevelForm";
 import { WhatsAppLinksTable } from "./components/WhatsAppLinksTable";
 
 type LevelTab = "State" | "District" | "Assembly";
-type FilterLevel = "All" | "State" | "District" | "Assembly";
 
 export default function WhatsAppManager() {
   const { levelId } = useParams<{ levelId: string }>();
+  const location = useLocation();
+  const locationState = (location.state as { levelId?: number } | null) ?? null;
   const { user, levelAdminPanels, selectedAssignment } = useAppSelector((state) => state.auth);
 
   // Identify current level panel from URL or authentication state
   const currentPanel = useMemo(() => {
-    if (levelId) {
-      return levelAdminPanels.find((p) => p.id === Number(levelId)) || null;
+    const targetId = levelId ? Number(levelId) : locationState?.levelId;
+    if (targetId) {
+      return levelAdminPanels.find((p) => p.id === Number(targetId)) || null;
     }
     return null;
-  }, [levelAdminPanels, levelId]);
+  }, [levelAdminPanels, levelId, locationState]);
 
-  // Active form creation level
-  const [activeTab, setActiveTab] = useState<LevelTab>(() => {
+  // Fixed level strictly resolved from user's panel/role assignment
+  const currentLevel: LevelTab = useMemo(() => {
     const panelName = currentPanel?.name?.toLowerCase();
     const assignmentLevel = selectedAssignment?.levelType?.toLowerCase();
 
     if (panelName === "district" || assignmentLevel === "district") return "District";
     if (panelName === "assembly" || assignmentLevel === "assembly") return "Assembly";
+    if (panelName === "state" || assignmentLevel === "state") return "State";
     return "State";
-  });
+  }, [currentPanel, selectedAssignment]);
 
-  // Table display filter: Defaults to "All" so all party groups are immediately visible
-  const [levelFilter, setLevelFilter] = useState<FilterLevel>("All");
   const [showCreateForm, setShowCreateForm] = useState(true);
-
-  // Sync activeTab when panel changes
-  useEffect(() => {
-    if (currentPanel) {
-      const name = currentPanel.name?.toLowerCase();
-      if (name === "district") setActiveTab("District");
-      else if (name === "assembly") setActiveTab("Assembly");
-      else if (name === "state") setActiveTab("State");
-    }
-  }, [currentPanel]);
 
   // Fetch all state master records for cascading dropdowns
   const { data: allStateMasterData = [], isLoading: loadingMasterData } =
@@ -71,12 +61,9 @@ export default function WhatsAppManager() {
     );
   }, [allStateMasterData]);
 
-  const [selectedStateId, setSelectedStateId] = useState<number | null>(null);
-
-  // Resolve target State ID and Name
+  // Resolve target State ID and Name - Strictly FIXED for the user from starting
   const resolvedState = useMemo(() => {
     const targetStateId =
-      selectedStateId ||
       currentPanel?.metadata?.stateId ||
       user?.state_id ||
       selectedAssignment?.parentId ||
@@ -88,7 +75,7 @@ export default function WhatsAppManager() {
     const fallbackName =
       currentPanel?.metadata?.stateName || user?.stateName || "State";
     return { id: Number(targetStateId), levelName: fallbackName };
-  }, [selectedStateId, availableStates, currentPanel, user, selectedAssignment]);
+  }, [availableStates, currentPanel, user, selectedAssignment]);
 
   const stateId = resolvedState.id;
   const stateName = resolvedState.levelName;
@@ -134,13 +121,13 @@ export default function WhatsAppManager() {
     return null;
   }, [selectedAssignment, currentPanel]);
 
-  // Query WhatsApp groups for the party and target state
+  // Query WhatsApp groups STRICTLY for the active level and user's state
   const {
     data: groupsResponse,
     isLoading: loadingGroups,
     refetch,
   } = useGetWhatsappLinksByLevelQuery({
-    level_type: levelFilter === "All" ? null : levelFilter,
+    level_type: currentLevel,
     state_id: stateId,
     party_id: user?.partyId || (user as any)?.party_id || undefined,
     limit: 100,
@@ -186,37 +173,24 @@ export default function WhatsAppManager() {
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
               Party Shared Mode
             </span>
-            {currentPanel && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-indigo-100">
-                {currentPanel.displayName || currentPanel.name} Level
-              </span>
-            )}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-indigo-100">
+              {currentLevel} Level
+            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-            Official WhatsApp Support Groups
+            Official {currentLevel} WhatsApp Groups
           </h1>
           <p className="text-xs sm:text-sm text-indigo-100 mt-1 max-w-xl">
-            Manage your party's official WhatsApp support groups. All links created by you and your teammates are shared across your party.
+            Manage your party's official {currentLevel.toLowerCase()} WhatsApp groups for {stateName}.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start sm:self-auto">
-          {availableStates.length > 1 && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-xs font-medium text-white">
-              <MapPin className="h-3.5 w-3.5" />
-              <select
-                value={stateId}
-                onChange={(e) => setSelectedStateId(Number(e.target.value))}
-                className="bg-transparent text-white border-none outline-none cursor-pointer font-semibold"
-              >
-                {availableStates.map((st) => (
-                  <option key={st.id} value={st.id} className="text-gray-900">
-                    {st.levelName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {/* State is fixed for user from starting - no dropdown/select */}
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/15 border border-white/20 text-xs font-bold text-white backdrop-blur-sm shadow-sm">
+            <MapPin className="h-3.5 w-3.5 text-indigo-200" />
+            <span>{stateName}</span>
+          </div>
 
           <button
             type="button"
@@ -240,74 +214,35 @@ export default function WhatsAppManager() {
         </div>
       </div>
 
-      {/* Form Card for Creating Groups */}
+      {/* Form Card for Creating Groups - Strictly for the current level */}
       <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-color)] shadow-sm overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-6 py-4 border-b border-[var(--border-color)] gap-3 bg-[var(--bg-main)]/30">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-color)] bg-[var(--bg-main)]/30">
           <div
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="flex items-center gap-2.5 cursor-pointer select-none"
           >
             <PlusCircle className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             <h2 className="text-base font-bold text-[var(--text-color)]">
-              Create New Support Group
+              Create New {currentLevel} Support Group
             </h2>
             <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-semibold">
-              {activeTab} Level
+              {currentLevel} Level
             </span>
           </div>
 
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            {/* Form Level Switcher */}
-            <div className="inline-flex p-1 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => { setActiveTab("State"); setShowCreateForm(true); }}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === "State"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-                }`}
-              >
-                State
-              </button>
-              <button
-                type="button"
-                onClick={() => { setActiveTab("District"); setShowCreateForm(true); }}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === "District"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-                }`}
-              >
-                District
-              </button>
-              <button
-                type="button"
-                onClick={() => { setActiveTab("Assembly"); setShowCreateForm(true); }}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === "Assembly"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-                }`}
-              >
-                Assembly
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              className="p-1.5 rounded-lg hover:bg-[var(--bg-main)] text-[var(--text-secondary)]"
-              title={showCreateForm ? "Collapse Form" : "Expand Form"}
-            >
-              {showCreateForm ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="p-1.5 rounded-lg hover:bg-[var(--bg-main)] text-[var(--text-secondary)]"
+            title={showCreateForm ? "Collapse Form" : "Expand Form"}
+          >
+            {showCreateForm ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
         </div>
 
         {showCreateForm && (
           <div className="p-6">
-            {activeTab === "State" && (
+            {currentLevel === "State" && (
               <StateLevelForm
                 stateId={stateId}
                 stateName={stateName}
@@ -315,7 +250,7 @@ export default function WhatsAppManager() {
               />
             )}
 
-            {activeTab === "District" && (
+            {currentLevel === "District" && (
               <DistrictLevelForm
                 stateId={stateId}
                 stateName={stateName}
@@ -325,7 +260,7 @@ export default function WhatsAppManager() {
               />
             )}
 
-            {activeTab === "Assembly" && (
+            {currentLevel === "Assembly" && (
               <AssemblyLevelForm
                 stateId={stateId}
                 stateName={stateName}
@@ -340,70 +275,24 @@ export default function WhatsAppManager() {
         )}
       </div>
 
-      {/* Table Section: Existing groups with Level Filter Tabs */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Table Section: Strictly groups for this level */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-indigo-500" />
             <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-color)]">
-              Party WhatsApp Groups in {stateName} ({groups.length})
+              {currentLevel} Level Groups ({groups.length})
             </h3>
           </div>
-
-          {/* Level Filter Tabs */}
-          <div className="inline-flex p-1 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-semibold self-start sm:self-auto shadow-sm">
-            <button
-              type="button"
-              onClick={() => setLevelFilter("All")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                levelFilter === "All"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-              }`}
-            >
-              <Layers className="h-3.5 w-3.5" />
-              <span>All Levels</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLevelFilter("State")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                levelFilter === "State"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-              }`}
-            >
-              State
-            </button>
-            <button
-              type="button"
-              onClick={() => setLevelFilter("District")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                levelFilter === "District"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-              }`}
-            >
-              District
-            </button>
-            <button
-              type="button"
-              onClick={() => setLevelFilter("Assembly")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                levelFilter === "Assembly"
-                  ? "bg-purple-600 text-white shadow-sm"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-color)]"
-              }`}
-            >
-              Assembly
-            </button>
-          </div>
+          <span className="text-xs text-[var(--text-secondary)]">
+            Automatically synchronized with public directory
+          </span>
         </div>
 
         <WhatsAppLinksTable
           groups={groups}
           isLoading={loadingGroups || loadingMasterData}
-          activeLevel={levelFilter}
+          activeLevel={currentLevel}
         />
       </div>
     </div>
