@@ -18,13 +18,13 @@ import { useDeleteWhatsappLinkMutation } from "../../../store/api/whatsappManage
 interface WhatsAppLinksTableProps {
   groups: WhatsAppGroupItem[];
   isLoading: boolean;
-  activeLevel: "State" | "District" | "Assembly";
+  activeLevel?: "State" | "District" | "Assembly" | "All";
 }
 
 export const WhatsAppLinksTable: FC<WhatsAppLinksTableProps> = ({
   groups,
   isLoading,
-  activeLevel,
+  activeLevel = "All",
 }) => {
   const [deleteLink, { isLoading: isDeleting }] = useDeleteWhatsappLinkMutation();
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -95,10 +95,12 @@ export const WhatsAppLinksTable: FC<WhatsAppLinksTableProps> = ({
           <ShieldCheck className="h-7 w-7" />
         </div>
         <h3 className="text-lg font-bold text-[var(--text-color)] mb-1">
-          No {activeLevel} Level Groups Created Yet
+          {activeLevel === "All"
+            ? "No WhatsApp Groups Created Yet"
+            : `No ${activeLevel} Level Groups Created Yet`}
         </h3>
         <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-          Create the first official WhatsApp support group for this level using the form above. Once created, it will be published to the public directory immediately.
+          Create the first official WhatsApp support group using the form above. Once created, it will be visible to your entire party and published to the public directory immediately.
         </p>
       </div>
     );

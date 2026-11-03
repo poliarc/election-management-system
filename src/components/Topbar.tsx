@@ -224,29 +224,48 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
         const finalLinks = mergedLinks.filter(link => {
           const isHighLevelDash = ['State', 'District'].includes(currentLevelType);
           const isSubLevelDash = !isAssemblyDash && !isHighLevelDash;
-          const linkLocationId = Number(link.afterAssemblyData_id || link.stateMasterData_id || 0);
+          const linkLocationId = Number(link.afterAssemblyData_id || link.assembly_id || link.stateMasterData_id || 0);
 
           // RULE 1: ASSEMBLY DASHBOARD
           if (isAssemblyDash) {
-            if (linkLocationId === Number(currentDashId)) {
+            if (
+              linkLocationId === Number(currentDashId) ||
+              link.assembly_id === Number(currentDashId) ||
+              link.stateMasterData_id === Number(currentDashId)
+            ) {
+              return true;
+            }
+            if (link.level_type === 'State' || link.level_type === 'District') {
               return true;
             }
             return false;
           }
 
           // RULE 2: SUB-LEVEL DASHBOARDS (Mandal, Polling Center, Booth)
-          if (isSubLevelDash) {
+          if (isSubLevelDash && currentDashId) {
             const inHierarchy = hierarchyIds.has(linkLocationId);
             const isKnownAssemblyLink = knownAssemblyIds.has(linkLocationId);
 
             if (inHierarchy && !isKnownAssemblyLink) {
               return true;
             }
+            if (['Assembly', 'District', 'State'].includes(link.level_type || '')) {
+              return true;
+            }
             return false;
           }
 
           // RULE 3: STATE / DISTRICT DASHBOARDS
-          return false;
+          if (isHighLevelDash) {
+            if (currentLevelType === 'State') {
+              return link.level_type === 'State' || link.state_id === Number(currentDashId);
+            }
+            if (currentLevelType === 'District') {
+              return link.level_type === 'District' || link.district_id === Number(currentDashId) || link.level_type === 'State';
+            }
+          }
+
+          return true;
         });
 
         setWhatsAppLinks(finalLinks);

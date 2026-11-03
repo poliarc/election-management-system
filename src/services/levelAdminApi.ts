@@ -92,6 +92,14 @@ export interface WhatsAppLinkData {
   link: string;
   group_type: string | null;
   group_name?: string | null;
+  level_type?: string | null;
+  state_id?: number | null;
+  state_name?: string | null;
+  district_id?: number | null;
+  assembly_id?: number | null;
+  party_id?: number | null;
+  created_by?: number | null;
+  creator_name?: string | null;
   stateMasterData_id: number | null;
   afterAssemblyData_id: number | null;
   assembly_name?: string | null;
