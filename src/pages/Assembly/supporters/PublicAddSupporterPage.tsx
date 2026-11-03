@@ -37,6 +37,26 @@ const RELIGION_CATEGORIES = {
 };
 ========================================================================= */
 
+interface LinkDetails {
+  id?: number;
+  code: string;
+  party_id: number;
+  party_name?: string | null;
+  state_id: number;
+  state_name?: string | null;
+  district_id?: number | null;
+  district_name?: string | null;
+  assembly_id?: number | null;
+  assembly_name?: string | null;
+  block_id?: number | null;
+  block_name?: string | null;
+  block_label?: string | null;
+  extra_levels?: { depth: number; id: number; name: string; label: string }[];
+  link_type?: string;
+  created_by: number;
+  created_by_name?: string | null;
+}
+
 export default function PublicAddSupporterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,24 +65,96 @@ export default function PublicAddSupporterPage() {
   const [hierarchyData, setHierarchyData] = useState<any>(null);
   const [hierarchyLoading, setHierarchyLoading] = useState(false);
 
-  // Get URL parameters
-  const partyId = searchParams.get('party_id');
-  const partyName = searchParams.get('party_name');
-  const stateId = searchParams.get('state_id');
-  const stateName = searchParams.get('state_name');
-  const districtId = searchParams.get('district_id');
-  const districtName = searchParams.get('district_name');
-  const assemblyId = searchParams.get('assembly_id');
-  const assemblyName = searchParams.get('assembly_name');
-  const blockId = searchParams.get('block_id');
-  const blockName = searchParams.get('block_name');
-  const blockLabel = searchParams.get('block_label') || 'Block';
+  // Short code support
+  const linkCode = searchParams.get('code');
+  const [isResolvingLink, setIsResolvingLink] = useState(!!linkCode);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkDetails, setLinkDetails] = useState<LinkDetails | null>(null);
+
+  // Resolve short code if present in URL
+  useEffect(() => {
+    if (!linkCode) return;
+
+    let isMounted = true;
+    const fetchLinkDetails = async () => {
+      setIsResolvingLink(true);
+      setLinkError(null);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/supporters/link-details/${linkCode.trim()}`);
+        const result = await response.json();
+
+        if (!isMounted) return;
+
+        if (response.ok && result.success && result.data) {
+          const data: LinkDetails = result.data;
+          setLinkDetails(data);
+          setSelectedDistrictId(data.district_id || 0);
+          setSelectedAssemblyId(data.assembly_id || 0);
+          setFormData(prev => ({
+            ...prev,
+            party_id: data.party_id || 0,
+            state_id: data.state_id || 0,
+            district_id: data.district_id || 0,
+            assembly_id: data.assembly_id || 0,
+            block_id: data.block_id || 0,
+          }));
+
+          if (data.extra_levels && Array.isArray(data.extra_levels)) {
+            const pre: number[] = [];
+            data.extra_levels.forEach((lvl: any) => {
+              if (lvl.depth >= 1 && lvl.id) {
+                pre[lvl.depth - 1] = lvl.id;
+              }
+            });
+            setSubSelections(pre);
+          }
+        } else {
+          setLinkError(result.message || 'Invalid or expired registration link.');
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setLinkError('Failed to load registration link details. Please check your network connection.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsResolvingLink(false);
+        }
+      }
+    };
+
+    fetchLinkDetails();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [linkCode]);
+
+  // Parameters: resolved from short link details OR direct URL query parameters
+  const partyId = linkDetails ? String(linkDetails.party_id) : searchParams.get('party_id');
+  const partyName = linkDetails ? (linkDetails.party_name || '') : searchParams.get('party_name');
+  const stateId = linkDetails ? String(linkDetails.state_id) : searchParams.get('state_id');
+  const stateName = linkDetails ? (linkDetails.state_name || '') : searchParams.get('state_name');
+  const districtId = linkDetails ? (linkDetails.district_id ? String(linkDetails.district_id) : null) : searchParams.get('district_id');
+  const districtName = linkDetails ? (linkDetails.district_name || '') : searchParams.get('district_name');
+  const assemblyId = linkDetails ? (linkDetails.assembly_id ? String(linkDetails.assembly_id) : null) : searchParams.get('assembly_id');
+  const assemblyName = linkDetails ? (linkDetails.assembly_name || '') : searchParams.get('assembly_name');
+  const blockId = linkDetails ? (linkDetails.block_id ? String(linkDetails.block_id) : null) : searchParams.get('block_id');
+  const blockName = linkDetails ? (linkDetails.block_name || '') : searchParams.get('block_name');
+  const blockLabel = linkDetails ? (linkDetails.block_label || 'Block') : (searchParams.get('block_label') || 'Block');
   const mandalId = searchParams.get('mandal_id');
   const boothId = searchParams.get('booth_id');
+  const createdBy = linkDetails ? (linkDetails.created_by ? String(linkDetails.created_by) : null) : searchParams.get('created_by');
+  const createdByName = linkDetails ? (linkDetails.created_by_name || '') : searchParams.get('created_by_name');
 
-  // Generic deeper levels: level_1_id/name/label, level_2_id/name/label, ...
-  // These correspond to depth 1, 2, 3... after assembly (depth-0 = block)
+  // Generic deeper levels: from short link extra_levels or URL parameters
   const deeperLevels = useMemo(() => {
+    if (linkDetails && linkDetails.extra_levels && Array.isArray(linkDetails.extra_levels)) {
+      return linkDetails.extra_levels.map(l => ({
+        id: l.id,
+        name: l.name || '',
+        label: l.label || `Level ${l.depth}`
+      }));
+    }
     const levels: { id: number; name: string; label: string }[] = [];
     for (let i = 1; i <= 10; i++) {
       const id = searchParams.get(`level_${i}_id`);
@@ -72,9 +164,7 @@ export default function PublicAddSupporterPage() {
       levels.push({ id: parseInt(id), name: name || '', label: label || `Level ${i}` });
     }
     return levels;
-  }, [searchParams]);
-  const createdBy = searchParams.get('created_by');
-  const createdByName = searchParams.get('created_by_name');
+  }, [linkDetails, searchParams]);
 
   const [selectedDistrictId, setSelectedDistrictId] = useState<number>(parseInt(districtId || '0'));
   const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(parseInt(assemblyId || '0'));
@@ -107,13 +197,13 @@ export default function PublicAddSupporterPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Validate URL parameters on mount — party and state are required; district/assembly optional for state-wide links
+  // Validate on mount only for direct param URLs (when no code is present)
   useEffect(() => {
-    if (!partyId || !stateId) {
+    if (!linkCode && (!partyId || !stateId)) {
       toast.error('Invalid registration link. Missing required parameters.');
       navigate('/login');
     }
-  }, [partyId, stateId, navigate]);
+  }, [linkCode, partyId, stateId, navigate]);
 
   // Fetch hierarchy data from public endpoint (no login token required)
   useEffect(() => {
@@ -436,6 +526,8 @@ export default function PublicAddSupporterPage() {
     setIsCreating(true);
 
     try {
+      const finalPartyId = formData.party_id || parseInt(partyId || '0');
+      const finalStateId = formData.state_id || parseInt(stateId || '0');
       const finalDistrictId = effectiveDistrictId;
       const finalAssemblyId = effectiveAssemblyId;
       const finalDistrictName = districtName || currentDistrictName || 'District';
@@ -443,9 +535,9 @@ export default function PublicAddSupporterPage() {
 
       // Build query parameters for public registration endpoint
       const queryParams = new URLSearchParams({
-        party_id: formData.party_id.toString(),
+        party_id: finalPartyId.toString(),
         party_name: partyName || 'Party',
-        state_id: formData.state_id.toString(),
+        state_id: finalStateId.toString(),
         state_name: stateName || 'State',
         district_id: finalDistrictId.toString(),
         district_name: finalDistrictName,
@@ -459,13 +551,13 @@ export default function PublicAddSupporterPage() {
       const allAfterAssemblyLevels: number[] = [];
 
       if (hasPreFilledBlock) {
-        // Block was pre-filled in URL
+        // Block was pre-filled in URL/link
         queryParams.append('block_id', blockId!);
         queryParams.append('block_name', blockName || 'Block');
         queryParams.append('block_label', blockLabel || 'Block');
         allAfterAssemblyLevels.push(parseInt(blockId!));
 
-        // 1. Prefilled from URL (deeperLevels)
+        // 1. Prefilled from short link / URL (deeperLevels)
         deeperLevels.forEach((lvl, idx) => {
           if (lvl.id > 0) {
             allAfterAssemblyLevels.push(lvl.id);
@@ -584,8 +676,21 @@ export default function PublicAddSupporterPage() {
     }
   };
 
-  // Show error state for invalid parameters — party and state are required; district/assembly are selectable if not in URL
-  if (!partyId || !stateId) {
+  // Show loading state while resolving short link code
+  if (isResolvingLink) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-[var(--text-color)] mb-2">Verifying Registration Link</h2>
+          <p className="text-sm text-[var(--text-secondary)]">Please wait while we load the registration form...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state for invalid link code or missing required parameters
+  if (linkError || (!partyId || !stateId)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
@@ -594,7 +699,7 @@ export default function PublicAddSupporterPage() {
           </div>
           <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">Invalid Registration Link</h1>
           <p className="text-[var(--text-secondary)] mb-6">
-            This registration link is invalid or missing required parameters.
+            {linkError || 'This registration link is invalid or missing required parameters.'}
           </p>
           <button
             onClick={() => navigate('/login')}
