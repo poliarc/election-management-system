@@ -14,7 +14,7 @@ import { baseQueryWithAuth } from '../baseQuery';
 export const supportersApi = createApi({
   reducerPath: 'supportersApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Supporter', 'SupporterStats'],
+  tagTypes: ['Supporter', 'SupporterStats', 'SupporterLink'],
   endpoints: (builder) => ({
     // Get all supporters with filters
     getSupporters: builder.query<
@@ -316,6 +316,35 @@ export const supportersApi = createApi({
       },
     }),
 
+    // Generate short link for supporters registration
+    generateShortLink: builder.mutation<{ success: boolean; data: any }, any>({
+      query: (data) => ({
+        url: 'supporters/generate-short-link',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['SupporterLink'],
+    }),
+
+    // Get user's generated short links
+    getGeneratedLinks: builder.query<
+      { success: boolean; data: any[] },
+      { party_id?: number; state_id?: number; assembly_id?: number; link_type?: string } | void
+    >({
+      query: (filters) => {
+        const params = new URLSearchParams();
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+              params.append(key, String(value));
+            }
+          });
+        }
+        return `supporters/my-generated-links?${params.toString()}`;
+      },
+      providesTags: ['SupporterLink'],
+    }),
+
     // Get hierarchy for form dropdowns
     getHierarchy: builder.query<HierarchyResponse, { state_id: number; party_id: number }>({
       query: ({ state_id, party_id }) => `campaigns/hierarchy?state_id=${state_id}&party_id=${party_id}`,
@@ -341,4 +370,6 @@ export const {
   useGetSupporterStatsQuery,
   useBulkOperationMutation,
   useGetHierarchyQuery,
+  useGenerateShortLinkMutation,
+  useGetGeneratedLinksQuery,
 } = supportersApi;

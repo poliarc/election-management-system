@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAppSelector } from '../../../store/hooks';
 import { useGetAssemblyByStateQuery } from '../../../store/api/assemblyApi';
-import { useGetSupportersByStateQuery, useGetSupportersByDistrictQuery, useGetSupportersByAssemblyQuery } from '../../../store/api/supportersApi';
+import {
+  useGetSupportersByStateQuery,
+  useGetSupportersByDistrictQuery,
+  useGetSupportersByAssemblyQuery,
+  useGetHierarchyQuery,
+} from '../../../store/api/supportersApi';
+import type { AfterAssemblyHierarchyNode } from '../../../types/campaign';
 import type { Supporter } from '../../../types/supporter';
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 
+// ── Types ────────────────────────────────────────────────────────────────────
 
 interface AssemblyOption {
   id: number;
@@ -20,137 +27,150 @@ interface DistrictOption {
   displayName: string;
 }
 
-interface BlockOption {
-  id: number;
-  levelName: string;
-  displayName: string;
-  parentAssemblyId?: number;
-}
+// One dynamic level dropdown: label + list of options — reserved for future use
+// interface DynamicLevel { label: string; depth: number; options: AfterAssemblyHierarchyNode[]; }
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function StateSupportersPage() {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const { user, selectedAssignment } = useAppSelector((s) => s.auth);
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
-  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
-  const [selectedBlockId, setSelectedBlockId] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewingSupporter, setViewingSupporter] = useState<Supporter | null>(null);
 
   const stateId = user?.state_id || selectedAssignment?.stateMasterData_id || 0;
   const partyId = user?.partyId || 0;
 
-  // Get hierarchy data for the state
-  const { data: hierarchyData, isLoading: hierarchyLoading, error: hierarchyError } = useGetAssemblyByStateQuery({
-    state_id: stateId,
-    party_id: partyId,
-  }, {
-    skip: !stateId || !partyId,
-  });
+  // Geographic filters
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(0);
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number>(0);
 
-  // Get supporters for state, district or assembly with filters
-  const { data: stateSupportersData, isLoading: stateSupportersLoading, refetch: refetchState } = useGetSupportersByStateQuery({
-    stateId: stateId,
-    page: currentPage,
-    limit: 10,
-    search: searchTerm,
-    districtId: selectedDistrictId || undefined,
-    assemblyId: selectedAssemblyId || undefined,
-    blockId: selectedBlockId || undefined,
-    partyId: partyId || undefined,
-  }, {
-    skip: !stateId || selectedDistrictId > 0 || selectedAssemblyId > 0,
-  });
+  // Dynamic after-assembly filter: sirf depth-0 level (assembly ka direct child)
+  const [selectedAfterAssembly0, setSelectedAfterAssembly0] = useState<number>(0);
 
-  const { data: districtSupportersData, isLoading: districtSupportersLoading, refetch: refetchDistrict } = useGetSupportersByDistrictQuery({
-    districtId: selectedDistrictId,
-    page: currentPage,
-    limit: 10,
-    search: searchTerm,
-    assemblyId: selectedAssemblyId || undefined,
-    blockId: selectedBlockId || undefined,
-    partyId: partyId || undefined,
-  }, {
-    skip: !selectedDistrictId || selectedAssemblyId > 0,
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewingSupporter, setViewingSupporter] = useState<Supporter | null>(null);
 
-  const { data: assemblySupportersData, isLoading: assemblySupportersLoading, refetch: refetchAssembly } = useGetSupportersByAssemblyQuery({
-    assemblyId: selectedAssemblyId,
-    page: currentPage,
-    limit: 10,
-    search: searchTerm,
-    blockId: selectedBlockId || undefined,
-    partyId: partyId || undefined,
-  }, {
-    skip: !selectedAssemblyId,
-  });
+  // ── State / assembly hierarchy ───────────────────────────────────────────
+  const { data: hierarchyData, isLoading: hierarchyLoading, error: hierarchyError } =
+    useGetAssemblyByStateQuery({ state_id: stateId, party_id: partyId }, { skip: !stateId || !partyId });
 
-  // Use state, district or assembly data based on selection
-  const supportersData = selectedAssemblyId > 0
-    ? assemblySupportersData
-    : selectedDistrictId > 0
+  // ── After-assembly hierarchy (same endpoint as campaign form) ────────────
+  const { data: campaignHierarchyData, isLoading: campaignHierarchyLoading } =
+    useGetHierarchyQuery({ state_id: stateId, party_id: partyId }, { skip: !stateId || !partyId });
+
+  const afterAssemblyHierarchy: AfterAssemblyHierarchyNode[] =
+    (campaignHierarchyData?.data?.afterAssemblyHierarchy || []) as AfterAssemblyHierarchyNode[];
+
+  // ── Build only depth-0 dynamic level (direct child of assembly) ────────
+  // Assembly ke baad jo pehla level hai wahi dikhana hai (e.g. Zone, Block, Mandal)
+  const firstDynamicLevel = useMemo(() => {
+    if (!afterAssemblyHierarchy.length) return null;
+    // depth-0 = parentId === null
+    const depth0Nodes = afterAssemblyHierarchy.filter((n) => n.parentId === null);
+    if (!depth0Nodes.length) return null;
+    return {
+      label: depth0Nodes[0].display_level_name || depth0Nodes[0].levelName,
+      options: depth0Nodes,
+    };
+  }, [afterAssemblyHierarchy]);
+
+  // ── Geographic option lists ──────────────────────────────────────────────
+  const districts: DistrictOption[] =
+    hierarchyData?.data?.stateHierarchy
+      ?.filter((item: any) => item.levelType === 'District')
+      .map((item: any) => ({ id: item.id, levelName: item.levelName, displayName: item.levelName })) || [];
+
+  const assemblies: AssemblyOption[] =
+    hierarchyData?.data?.stateHierarchy
+      ?.filter(
+        (item: any) =>
+          item.levelType === 'Assembly' &&
+          (!selectedDistrictId || item.ParentId === selectedDistrictId),
+      )
+      .map((item: any) => ({
+        id: item.stateMasterData_id || item.id,
+        levelName: item.levelName,
+        displayName: item.levelName,
+        stateMasterData_id: item.stateMasterData_id || item.id,
+        parentId: item.ParentId,
+      })) || [];
+
+  // Options for depth-0 dropdown, filtered by selected assembly/district
+  const firstLevelOptions = useMemo((): AfterAssemblyHierarchyNode[] => {
+    if (!firstDynamicLevel) return [];
+    return firstDynamicLevel.options.filter((n) => {
+      if (selectedAssemblyId > 0) return n.parentAssemblyId === selectedAssemblyId;
+      if (selectedDistrictId > 0) {
+        const asm = assemblies.find((a) => a.id === n.parentAssemblyId);
+        return asm?.parentId === selectedDistrictId;
+      }
+      return true;
+    });
+  }, [firstDynamicLevel, selectedAssemblyId, selectedDistrictId, assemblies]);
+
+  // The deepest selected after-assembly ID passed as blockId to supporters API
+  const deepestAfterAssemblyId = selectedAfterAssembly0;
+
+  // ── Supporters queries ───────────────────────────────────────────────────
+  const { data: stateSupportersData, isLoading: stateLoading, refetch: refetchState } =
+    useGetSupportersByStateQuery(
+      {
+        stateId,
+        page: currentPage,
+        limit: 10,
+        search: searchTerm,
+        districtId: selectedDistrictId || undefined,
+        assemblyId: selectedAssemblyId || undefined,
+        blockId: deepestAfterAssemblyId || undefined,
+        partyId: partyId || undefined,
+      },
+      { skip: !stateId || selectedDistrictId > 0 || selectedAssemblyId > 0 },
+    );
+
+  const { data: districtSupportersData, isLoading: districtLoading, refetch: refetchDistrict } =
+    useGetSupportersByDistrictQuery(
+      {
+        districtId: selectedDistrictId,
+        page: currentPage,
+        limit: 10,
+        search: searchTerm,
+        assemblyId: selectedAssemblyId || undefined,
+        blockId: deepestAfterAssemblyId || undefined,
+        partyId: partyId || undefined,
+      },
+      { skip: !selectedDistrictId || selectedAssemblyId > 0 },
+    );
+
+  const { data: assemblySupportersData, isLoading: assemblyLoading, refetch: refetchAssembly } =
+    useGetSupportersByAssemblyQuery(
+      {
+        assemblyId: selectedAssemblyId,
+        page: currentPage,
+        limit: 10,
+        search: searchTerm,
+        blockId: deepestAfterAssemblyId || undefined,
+        partyId: partyId || undefined,
+      },
+      { skip: !selectedAssemblyId },
+    );
+
+  const supportersData =
+    selectedAssemblyId > 0
+      ? assemblySupportersData
+      : selectedDistrictId > 0
       ? districtSupportersData
       : stateSupportersData;
 
-  const supportersLoading = selectedAssemblyId > 0
-    ? assemblySupportersLoading
-    : selectedDistrictId > 0
-      ? districtSupportersLoading
-      : stateSupportersLoading;
+  const supportersLoading =
+    selectedAssemblyId > 0 ? assemblyLoading : selectedDistrictId > 0 ? districtLoading : stateLoading;
 
-  const refetch = selectedAssemblyId > 0
-    ? refetchAssembly
-    : selectedDistrictId > 0
-      ? refetchDistrict
-      : refetchState;
-
-  // Extract districts from hierarchy
-  const districts: DistrictOption[] = hierarchyData?.data?.stateHierarchy?.filter(
-    (item: any) => item.levelType === 'District'
-  ).map((item: any) => ({
-    id: item.id,
-    levelName: item.levelName,
-    displayName: item.levelName,
-  })) || [];
-
-  // Extract assemblies filtered by selected district
-  const assemblies: AssemblyOption[] = hierarchyData?.data?.stateHierarchy?.filter(
-    (item: any) => item.levelType === 'Assembly' && (!selectedDistrictId || item.ParentId === selectedDistrictId)
-  ).map((item: any) => ({
-    id: item.stateMasterData_id || item.id,
-    levelName: item.levelName,
-    displayName: item.levelName,
-    stateMasterData_id: item.stateMasterData_id || item.id,
-    parentId: item.ParentId
-  })) || [];
-
-  // Extract blocks - show all blocks or filter by assembly/district
-  const blocks: BlockOption[] = hierarchyData?.data?.afterAssemblyHierarchy?.filter(
-    (item: any) => {
-      if (item.levelName !== 'Block') return false;
-      // If assembly is selected, show only blocks from that assembly
-      if (selectedAssemblyId > 0) {
-        return item.parentAssemblyId === selectedAssemblyId;
-      }
-      // If district is selected (but no assembly), show blocks from assemblies in that district
-      if (selectedDistrictId > 0) {
-        const assembly = assemblies.find(a => a.id === item.parentAssemblyId);
-        return assembly && assembly.parentId === selectedDistrictId;
-      }
-      // Otherwise show all blocks
-      return true;
-    }
-  ).map((item: any) => ({
-    id: item.id,
-    levelName: item.levelName,
-    displayName: item.displayName || item.levelName,
-    parentAssemblyId: item.parentAssemblyId
-  })) || [];
+  const refetch =
+    selectedAssemblyId > 0 ? refetchAssembly : selectedDistrictId > 0 ? refetchDistrict : refetchState;
 
   const supporters = supportersData?.data || [];
   const pagination = supportersData?.pagination;
 
-  // Handle search with debounce
+  // ── Search debounce ──────────────────────────────────────────────────────
   useEffect(() => {
     const timer = setTimeout(() => {
       if (stateId || selectedDistrictId || selectedAssemblyId) {
@@ -158,288 +178,265 @@ export default function StateSupportersPage() {
         refetch();
       }
     }, 500);
-
     return () => clearTimeout(timer);
-  }, [searchTerm, stateId, selectedDistrictId, selectedAssemblyId, refetch]);
+  }, [searchTerm]);
 
-  const handleDistrictChange = (districtId: number) => {
-    setSelectedDistrictId(districtId);
+  // ── Handlers ─────────────────────────────────────────────────────────────
+  const handleDistrictChange = (id: number) => {
+    setSelectedDistrictId(id);
     setSelectedAssemblyId(0);
-    setSelectedBlockId(0);
+    setSelectedAfterAssembly0(0);
     setCurrentPage(1);
     setSearchTerm('');
   };
 
-  const handleAssemblyChange = (assemblyId: number) => {
-    setSelectedAssemblyId(assemblyId);
-    setSelectedBlockId(0);
+  const handleAssemblyChange = (id: number) => {
+    setSelectedAssemblyId(id);
+    setSelectedAfterAssembly0(0);
     setCurrentPage(1);
     setSearchTerm('');
   };
 
-  const handleBlockChange = (blockId: number) => {
-    setSelectedBlockId(blockId);
+  const handleAfterAssembly0Change = (id: number) => {
+    setSelectedAfterAssembly0(id);
     setCurrentPage(1);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
 
-  const getFullName = (supporter: Supporter) => {
-    return `${supporter.initials || ''} ${supporter.first_name || ''} ${supporter.last_name || ''}`.trim();
-  };
 
+  const getFullName = (s: Supporter) =>
+    `${s.initials || ''} ${s.first_name || ''} ${s.last_name || ''}`.trim();
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[var(--text-color)]">{t("stateSupporter.Title")}</h1>
-          <p className="text-[var(--text-secondary)]">{t("stateSupporter.disc")}</p>
+          <h1 className="text-2xl font-bold text-[var(--text-color)]">{t('stateSupporter.Title')}</h1>
+          <p className="text-[var(--text-secondary)]">{t('stateSupporter.disc')}</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-          {/* Total Supporters Card */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {/* Total */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-xs font-medium">{t("stateSupporter.Total_Supporter")}</p>
+                <p className="text-blue-100 text-xs font-medium">{t('stateSupporter.Total_Supporter')}</p>
                 <p className="text-2xl font-bold mt-1">{pagination?.total || 0}</p>
               </div>
-              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
+              <div className="bg-white/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* District Count Card */}
+          {/* Districts */}
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-xs font-medium">
-                  {selectedDistrictId ? 'District(Supp)' : t("stateSupporter.District")}
-                </p>
+                <p className="text-green-100 text-xs font-medium">{t('stateSupporter.District')}</p>
                 <p className="text-2xl font-bold mt-1">
-                  {selectedDistrictId ? (pagination?.total || 0) : districts.length}
+                  {selectedDistrictId ? pagination?.total || 0 : districts.length}
                 </p>
               </div>
-              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
+              <div className="bg-white/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Assembly Count Card */}
+          {/* Assemblies */}
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-xs font-medium">
-                  {selectedAssemblyId ? 'Assembly(Supp)' : t("stateSupporter.Assembly")}
-                </p>
+                <p className="text-purple-100 text-xs font-medium">{t('stateSupporter.Assembly')}</p>
                 <p className="text-2xl font-bold mt-1">
-                  {selectedAssemblyId ? (pagination?.total || 0) : assemblies.length}
+                  {selectedAssemblyId ? pagination?.total || 0 : assemblies.length}
                 </p>
               </div>
-              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
+              <div className="bg-white/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Block Count Card */}
+          {/* First dynamic level stat card (Zone / Block / Mandal …) */}
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs font-medium">
-                  {selectedBlockId ? 'Block(Supp)' : t("stateSupporter.Block")}
+                  {firstDynamicLevel?.label || t('stateSupporter.Block')}
                 </p>
                 <p className="text-2xl font-bold mt-1">
-                  {selectedBlockId ? (pagination?.total || 0) : blocks.length}
+                  {selectedAfterAssembly0 ? pagination?.total || 0 : firstLevelOptions.length}
                 </p>
               </div>
-              <div className="bg-[var(--bg-card)]/20 rounded-full p-2">
+              <div className="bg-white/20 rounded-full p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
             </div>
           </div>
-
-          {/* User Count Card */}
         </div>
 
-        {/* Hierarchy Filters */}
+        {/* Filters */}
         <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)] p-6 mb-6">
-          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">{t("stateSupporter.Filter_Supporter")}</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-color)] mb-4">
+            {t('stateSupporter.Filter_Supporter')}
+          </h2>
 
-          {/* First Row: State, District, Assembly, and Block */}
+          {/* Row 1: State + District + Assembly + dynamic levels */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            {/* State Dropdown (Disabled) */}
+
+            {/* State (disabled) */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.State")}
+                {t('stateSupporter.State')}
               </label>
               <select
                 value={stateId}
-                disabled={true}
+                disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
               >
                 <option value={stateId}>
-                  {hierarchyData?.data?.stateHierarchy?.find((item: any) => item.id === stateId)?.levelName || 'Current State'}
+                  {hierarchyData?.data?.stateHierarchy?.find((i: any) => i.id === stateId)?.levelName ||
+                    'Current State'}
                 </option>
               </select>
             </div>
 
-            {/* District Dropdown */}
+            {/* District */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_District")}
+                {t('stateSupporter.Select_District')}
               </label>
               <select
                 value={selectedDistrictId}
                 onChange={(e) => handleDistrictChange(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 disabled={hierarchyLoading}
               >
                 <option value={0}>
-                  {hierarchyLoading
-                    ? 'Loading districts...'
-                    : hierarchyError
-                      ? 'Error loading districts'
-                      : districts.length === 0
-                        ? 'No districts found'
-                        : 'All Districts'}
+                  {hierarchyLoading ? 'Loading…' : hierarchyError ? 'Error' : 'All Districts'}
                 </option>
-                {districts.map((district) => (
-                  <option key={district.id} value={district.id}>
-                    {district.displayName || district.levelName}
-                  </option>
+                {districts.map((d) => (
+                  <option key={d.id} value={d.id}>{d.displayName}</option>
                 ))}
               </select>
             </div>
 
-            {/* Assembly Dropdown */}
+            {/* Assembly */}
             <div>
               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_Assembly")}
+                {t('stateSupporter.Select_Assembly')}
               </label>
               <select
                 value={selectedAssemblyId}
                 onChange={(e) => handleAssemblyChange(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 disabled={hierarchyLoading}
               >
-                <option value={0}>
-                  {hierarchyLoading
-                    ? 'Loading assemblies...'
-                    : hierarchyError
-                      ? 'Error loading assemblies'
-                      : assemblies.length === 0
-                        ? selectedDistrictId ? 'No assemblies in district' : 'All Assemblies'
-                        : 'All Assemblies'}
-                </option>
-                {assemblies.map((assembly) => (
-                  <option key={assembly.id} value={assembly.id}>
-                    {assembly.displayName || assembly.levelName}
-                  </option>
-                ))}
-              </select>
-              {hierarchyError && (
-                <p className="text-red-500 text-xs mt-1">
-                  Error: {(hierarchyError as any)?.message || 'Failed to load hierarchy'}
-                </p>
-              )}
-            </div>
-
-            {/* Block Dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t("stateSupporter.Select_Block")}
-              </label>
-              <select
-                value={selectedBlockId}
-                onChange={(e) => handleBlockChange(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                disabled={blocks.length === 0}
-              >
-                <option value={0}>
-                  {blocks.length === 0
-                    ? 'No blocks available'
-                    : 'All Blocks'}
-                </option>
-                {blocks.map((block) => (
-                  <option key={block.id} value={block.id}>
-                    {block.displayName || block.levelName}
-                  </option>
+                <option value={0}>All Assemblies</option>
+                {assemblies.map((a) => (
+                  <option key={a.id} value={a.id}>{a.displayName}</option>
                 ))}
               </select>
             </div>
 
-
+            {/* Dynamic level 0 (Zone / Block / Mandal — assembly ke baad pehla level) */}
+            {firstDynamicLevel && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Select {firstDynamicLevel.label}
+                </label>
+                <select
+                  value={selectedAfterAssembly0}
+                  onChange={(e) => handleAfterAssembly0Change(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  disabled={campaignHierarchyLoading || firstLevelOptions.length === 0}
+                >
+                  <option value={0}>
+                    {campaignHierarchyLoading
+                      ? 'Loading…'
+                      : firstLevelOptions.length === 0
+                      ? `No ${firstDynamicLevel.label} available`
+                      : `All ${firstDynamicLevel.label}s`}
+                  </option>
+                  {firstLevelOptions.map((n) => (
+                    <option key={n.id} value={n.id}>{n.displayName}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
-          {/* Second Row: Search */}
-          <div className="flex-1">
+          {/* Search */}
+          <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-              {t("stateSupporter.Search_Supporter")}
+              {t('stateSupporter.Search_Supporter')}
             </label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, phone, or EPIC ID..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Search by name, phone, or EPIC ID…"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
 
         {/* Supporters List */}
         <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
-          {/* Header */}
           <div className="px-6 py-4 border-b border-[var(--border-color)]">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--text-color)]">
-                {t("stateSupporter.Supporters_List")}
-                {pagination && (
-                  <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
-                    ({pagination.total} total)
-                  </span>
-                )}
-              </h2>
-            </div>
+            <h2 className="text-lg font-semibold text-[var(--text-color)]">
+              {t('stateSupporter.Supporters_List')}
+              {pagination && (
+                <span className="ml-2 text-sm font-normal text-[var(--text-secondary)]">
+                  ({pagination.total} total)
+                </span>
+              )}
+            </h2>
           </div>
 
-          {/* Loading State */}
+          {/* Loading */}
           {supportersLoading && (
             <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="text-[var(--text-secondary)] mt-2">{t("stateSupporter.Loading_Supporters")}</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto" />
+              <p className="text-[var(--text-secondary)] mt-2">{t('stateSupporter.Loading_Supporters')}</p>
             </div>
           )}
 
-          {/* Empty State */}
+          {/* Empty */}
           {!supportersLoading && supporters.length === 0 && (
             <div className="p-8 text-center">
               <svg className="mx-auto h-12 w-12 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t("stateSupporter.No_Supporters")}</h3>
+              <h3 className="mt-2 text-sm font-medium text-[var(--text-color)]">{t('stateSupporter.No_Supporters')}</h3>
               <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                {searchTerm ? 'Try adjusting your search criteria.' : 'No supporters have been added for this assembly yet.'}
+                {searchTerm ? 'Try adjusting your search criteria.' : 'No supporters found for the selected filters.'}
               </p>
             </div>
           )}
 
-          {/* Supporters Table */}
+          {/* Table */}
           {!supportersLoading && supporters.length > 0 && (
             <>
               <div className="overflow-x-auto">
@@ -447,22 +444,22 @@ export default function StateSupportersPage() {
                   <thead className="bg-[var(--bg-main)]">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Supporter")}                        
+                        {t('stateSupporter.Supporter')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Contact")}
+                        {t('stateSupporter.Contact')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Demographics")}
+                        {t('stateSupporter.Demographics')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Location")}
+                        {t('stateSupporter.Location')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Created")}
+                        {t('stateSupporter.Created')}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {t("stateSupporter.Actions")}
+                        {t('stateSupporter.Actions')}
                       </th>
                     </tr>
                   </thead>
@@ -470,19 +467,11 @@ export default function StateSupportersPage() {
                     {supporters.map((supporter) => (
                       <tr key={supporter.supporter_id} className="hover:bg-[var(--text-color)]/5">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-[var(--text-color)]">
-                              {getFullName(supporter)}
-                            </div>
-                            <div className="text-sm text-[var(--text-secondary)]">
-                              {t("stateSupporter.Father")} {supporter.father_name}
-                            </div>
-                            {supporter.voter_epic_id && (
-                              <div className="text-xs text-[var(--text-secondary)]">
-                                {t("stateSupporter.EPIC")} {supporter.voter_epic_id}
-                              </div>
-                            )}
-                          </div>
+                          <div className="text-sm font-medium text-[var(--text-color)]">{getFullName(supporter)}</div>
+                          <div className="text-sm text-[var(--text-secondary)]">{t('stateSupporter.Father')} {supporter.father_name}</div>
+                          {supporter.voter_epic_id && (
+                            <div className="text-xs text-[var(--text-secondary)]">{t('stateSupporter.EPIC')} {supporter.voter_epic_id}</div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-[var(--text-color)]">{supporter.phone_no}</div>
@@ -491,12 +480,8 @@ export default function StateSupportersPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-[var(--text-color)]">
-                            {supporter.gender}, {t("stateSupporter.Age")} {supporter.age}
-                          </div>
-                          <div className="text-sm text-[var(--text-secondary)]">
-                            {supporter.religion} - {supporter.category}
-                          </div>
+                          <div className="text-sm text-[var(--text-color)]">{supporter.gender}, {t('stateSupporter.Age')} {supporter.age}</div>
+                          <div className="text-sm text-[var(--text-secondary)]">{supporter.religion} - {supporter.category}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-[var(--text-color)]">{supporter.assembly_name}</div>
@@ -515,7 +500,7 @@ export default function StateSupportersPage() {
                             onClick={() => setViewingSupporter(supporter)}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
                           >
-                            {t("stateSupporter.View")}
+                            {t('stateSupporter.View')}
                           </button>
                         </td>
                       </tr>
@@ -529,39 +514,38 @@ export default function StateSupportersPage() {
                 <div className="px-6 py-4 border-t border-[var(--border-color)]">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-[var(--text-secondary)]">
-                      {t("stateSupporter.Showing")} {((pagination.page - 1) * pagination.limit) + 1} {t("stateSupporter.to")} {' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} {t("stateSupporter.of")}{' '}
-                      {pagination.total} {t("stateSupporter.results")}
+                      {t('stateSupporter.Showing')} {(pagination.page - 1) * pagination.limit + 1}{' '}
+                      {t('stateSupporter.to')}{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)}{' '}
+                      {t('stateSupporter.of')} {pagination.total} {t('stateSupporter.results')}
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handlePageChange(pagination.page - 1)}
+                        onClick={() => setCurrentPage(pagination.page - 1)}
                         disabled={pagination.page <= 1}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {t("stateSupporter.Previous")}
+                        {t('stateSupporter.Previous')}
                       </button>
-                      {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                        const page = i + 1;
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`px-3 py-1 text-sm border rounded-md ${page === pagination.page
+                      {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1 text-sm border rounded-md ${
+                            page === pagination.page
                               ? 'bg-indigo-600 text-white border-indigo-600'
                               : 'border-gray-300 hover:bg-[var(--text-color)]/5'
-                              }`}
-                          >
-                            {page}
-                          </button>
-                        );
-                      })}
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
                       <button
-                        onClick={() => handlePageChange(pagination.page + 1)}
+                        onClick={() => setCurrentPage(pagination.page + 1)}
                         disabled={pagination.page >= pagination.pages}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-[var(--text-color)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {t("stateSupporter.Next")}
+                        {t('stateSupporter.Next')}
                       </button>
                     </div>
                   </div>
@@ -573,14 +557,13 @@ export default function StateSupportersPage() {
 
         {/* Supporter Details Modal */}
         {viewingSupporter && (
-          <div className="fixed inset-0 bg-black/50 backgrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--text-color)]">{t("stateSupporter.Supporter_Details")}</h3>
-                <button
-                  onClick={() => setViewingSupporter(null)}
-                  className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
-                >
+                <h3 className="text-lg font-semibold text-[var(--text-color)]">
+                  {t('stateSupporter.Supporter_Details')}
+                </h3>
+                <button onClick={() => setViewingSupporter(null)} className="text-[var(--text-secondary)] hover:opacity-70 transition-opacity">
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -588,167 +571,33 @@ export default function StateSupportersPage() {
               </div>
 
               <div className="px-6 py-4 space-y-6">
-                {/* Personal Information */}
                 <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Personal_Information")}</h4>
+                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t('stateSupporter.Personal_Information')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Full_Name")}</label>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Full_Name')}</label>
                       <p className="text-sm text-[var(--text-color)]">{getFullName(viewingSupporter)}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Father_Name")}</label>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Father_Name')}</label>
                       <p className="text-sm text-[var(--text-color)]">{viewingSupporter.father_name}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Age")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.age} {t("stateSupporter.years")}</p>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Age')}</label>
+                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.age} {t('stateSupporter.years')}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Gender")}</label>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Gender')}</label>
                       <p className="text-sm text-[var(--text-color)]">{viewingSupporter.gender}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Date_of_Birth")}</label>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Date_of_Birth')}</label>
                       <p className="text-sm text-[var(--text-color)]">
                         {new Date(viewingSupporter.date_of_birth).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                 </div>
-
-                {/* Contact Information */}
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Contact_Information")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Phone_Number")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.phone_no}</p>
-                    </div>
-                    {viewingSupporter.whatsapp_no && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.WhatsApp_Number")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.whatsapp_no}</p>
-                      </div>
-                    )}
-                    {viewingSupporter.voter_epic_id && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.EPIC")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.voter_epic_id}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Demographics */}
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Demographics")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Religion")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.religion}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Category")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.category}</p>
-                    </div>
-                    {viewingSupporter.caste && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Caste")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.caste}</p>
-                      </div>
-                    )}
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Languages")}</label>
-                      <p className="text-sm text-[var(--text-color)]">
-                        {Array.isArray(viewingSupporter.language)
-                          ? viewingSupporter.language.join(', ')
-                          : typeof viewingSupporter.language === 'object' && viewingSupporter.language !== null
-                            ? `${(viewingSupporter.language as any).primary}${(viewingSupporter.language as any).secondary ? `, ${(viewingSupporter.language as any).secondary.join(', ')}` : ''}`
-                            : viewingSupporter.language || 'Not specified'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location Information */}
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Location_Information")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.State")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.state_name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.District")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.district_name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Assembly")}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.assembly_name}</p>
-                    </div>
-                    {viewingSupporter.block_name && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Block")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.block_name}</p>
-                      </div>
-                    )}
-                    {viewingSupporter.mandal_name && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Mandal")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.mandal_name}</p>
-                      </div>
-                    )}
-                    {viewingSupporter.booth_name && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Booth")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.booth_name}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Address")}</h4>
-                  <p className="text-sm text-[var(--text-color)]">{viewingSupporter.address}</p>
-                </div>
-
-                {/* Additional Information */}
-                {viewingSupporter.remarks && (
-                  <div>
-                    <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Remarks")}</h4>
-                    <p className="text-sm text-[var(--text-color)]">{viewingSupporter.remarks}</p>
-                  </div>
-                )}
-
-                {/* Created Information */}
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t("stateSupporter.Record_Information")}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Created_At")}</label>
-                      <p className="text-sm text-[var(--text-color)]">
-                        {new Date(viewingSupporter.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                    {viewingSupporter.created_by_name && (
-                      <div>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)]">{t("stateSupporter.Created_By")}</label>
-                        <p className="text-sm text-[var(--text-color)]">{viewingSupporter.created_by_name}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 py-4 border-t border-[var(--border-color)] flex justify-end">
-                <button
-                  onClick={() => setViewingSupporter(null)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  {t("stateSupporter.Close")}
-                </button>
               </div>
             </div>
           </div>
@@ -757,7 +606,3 @@ export default function StateSupportersPage() {
     </div>
   );
 }
-
-
-
-
