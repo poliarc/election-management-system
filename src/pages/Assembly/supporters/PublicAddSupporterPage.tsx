@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { CheckCircle, AlertTriangle, UserPlus } from 'lucide-react';
+import { CheckCircle, AlertTriangle, UserPlus, Copy, Check } from 'lucide-react';
 import { API_CONFIG } from '../../../config/api';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
@@ -64,6 +64,26 @@ export default function PublicAddSupporterPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [hierarchyData, setHierarchyData] = useState<any>(null);
   const [hierarchyLoading, setHierarchyLoading] = useState(false);
+
+  // WhatsApp groups state for confirmation screen
+  const [whatsappGroups, setWhatsappGroups] = useState<Array<{
+    id?: number;
+    link: string;
+    group_name: string;
+    group_type?: string;
+    description?: string;
+    level_type?: string;
+    matched_level?: string;
+    is_fallback?: boolean;
+    assembly_name?: string;
+    district_name?: string;
+    state_name?: string;
+  }>>([]);
+  const [copiedLinkId, setCopiedLinkId] = useState<number | string | null>(null);
+  const [submittedLocation, setSubmittedLocation] = useState<{
+    assemblyName?: string;
+    districtName?: string;
+  }>({});
 
   // Short code support
   const linkCode = searchParams.get('code');
@@ -215,7 +235,7 @@ export default function PublicAddSupporterPage() {
         const response = await fetch(
           `${API_BASE_URL}/api/supporters/public-hierarchy?state_id=${stateId}&party_id=${partyId}`
         );
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
@@ -643,6 +663,42 @@ export default function PublicAddSupporterPage() {
         throw result;
       }
 
+      let waGroups: any[] = result.data?.whatsapp_groups || [];
+      if (waGroups.length === 0 && result.data?.whatsapp_group) {
+        waGroups = [result.data.whatsapp_group];
+      }
+
+      // Fallback: If not returned directly in registration response, query GET /api/whatsapp/assembly-link
+      if (waGroups.length === 0 && finalAssemblyId) {
+        try {
+          const waQuery = new URLSearchParams({
+            assembly_id: finalAssemblyId.toString(),
+            district_id: finalDistrictId ? finalDistrictId.toString() : '',
+            state_id: finalStateId ? finalStateId.toString() : '',
+            party_id: finalPartyId ? finalPartyId.toString() : '',
+            fallback: 'true',
+          });
+          const waRes = await fetch(`${API_BASE_URL}/api/whatsapp/assembly-link?${waQuery.toString()}`);
+          if (waRes.ok) {
+            const waJson = await waRes.json();
+            if (waJson.success) {
+              if (Array.isArray(waJson.data?.groups) && waJson.data.groups.length > 0) {
+                waGroups = waJson.data.groups;
+              } else if (waJson.data?.link) {
+                waGroups = [waJson.data];
+              }
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Could not fetch assembly WhatsApp link:', fetchErr);
+        }
+      }
+
+      setWhatsappGroups(waGroups);
+      setSubmittedLocation({
+        assemblyName: finalAssemblyName,
+        districtName: finalDistrictName,
+      });
       setIsSuccess(true);
       toast.success('Supporter registration successful!');
     } catch (error: any) {
@@ -714,22 +770,112 @@ export default function PublicAddSupporterPage() {
 
   // Show success state
   if (isSuccess) {
+    const primaryGroup = whatsappGroups[0];
+    const displayAssemblyName = primaryGroup?.assembly_name || submittedLocation.assemblyName || 'your Assembly';
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[var(--bg-card)] rounded-lg shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="max-w-lg w-full bg-[var(--bg-card)] rounded-2xl shadow-xl border border-[var(--border-color)] overflow-hidden">
+          {/* Header Banner */}
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white text-center">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registration Successful!</h1>
+            <p className="text-emerald-100 text-xs sm:text-sm mt-1">
+              Thank you for registering as a supporter in {displayAssemblyName}. Your details have been submitted.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-[var(--text-color)] mb-2">Registration Successful!</h1>
-          <p className="text-[var(--text-secondary)] mb-6">
-            Thank you for registering as a supporter. Your information has been submitted successfully.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Register Another Supporter
-          </button>
+
+          <div className="p-6 space-y-5">
+            {/* WhatsApp Community Join Card(s) */}
+            {whatsappGroups.length > 0 && (
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider text-center">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>
+                    {whatsappGroups.length > 1
+                      ? `Official Community Groups (${whatsappGroups.length} Available)`
+                      : primaryGroup?.is_fallback
+                        ? `${primaryGroup.matched_level || 'District'} Community Group`
+                        : 'Official Assembly WhatsApp Group'}
+                  </span>
+                </div>
+
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-0.5">
+                  {whatsappGroups.map((group, idx) => (
+                    <div
+                      key={group.id || idx}
+                      className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-left space-y-3 transition-all hover:border-emerald-500/50"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                            {group.group_type || 'Support'}
+                          </span>
+                          {group.matched_level && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-500/10 text-[var(--text-secondary)]">
+                              {group.matched_level}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-sm sm:text-base font-bold text-[var(--text-color)]">
+                          {group.group_name || 'Official WhatsApp Group'}
+                        </h3>
+                        {group.description && (
+                          <p className="text-xs text-[var(--text-secondary)] mt-0.5 line-clamp-2">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
+                        <a
+                          href={group.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 w-full sm:flex-1 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow transition-all active:scale-[0.99]"
+                        >
+                          <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741 1.001 1.011-3.762-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                          </svg>
+                          <span>Join Group</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (group.link) {
+                              navigator.clipboard.writeText(group.link);
+                              setCopiedLinkId(group.id || idx);
+                              toast.success('WhatsApp invite link copied!');
+                              setTimeout(() => setCopiedLinkId(null), 2000);
+                            }
+                          }}
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-main)] hover:bg-[var(--border-color)]/20 text-xs font-semibold text-[var(--text-secondary)] transition-colors w-full sm:w-auto"
+                        >
+                          {copiedLinkId === (group.id || idx) ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                          <span>{copiedLinkId === (group.id || idx) ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Actions */}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="w-full bg-[var(--bg-main)] hover:bg-[var(--border-color)]/30 border border-[var(--border-color)] text-[var(--text-color)] px-5 py-3 rounded-xl font-semibold text-sm transition-colors"
+            >
+              Register Another Supporter
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1102,10 +1248,10 @@ export default function PublicAddSupporterPage() {
                         {hierarchyLoading
                           ? 'Loading assemblies...'
                           : !selectedDistrictId
-                          ? 'Select District first'
-                          : assemblyOptions.length === 0
-                          ? 'No assemblies found'
-                          : 'Select Assembly'}
+                            ? 'Select District first'
+                            : assemblyOptions.length === 0
+                              ? 'No assemblies found'
+                              : 'Select Assembly'}
                       </option>
                       {assemblyOptions.map((a: any) => (
                         <option key={a.id} value={a.id}>{a.levelName}</option>
@@ -1177,10 +1323,10 @@ export default function PublicAddSupporterPage() {
                               {hierarchyLoading
                                 ? `Loading ${displayLabel}s...`
                                 : !parentSelected
-                                ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
-                                : opts.length === 0
-                                ? `No ${displayLabel} available`
-                                : `Select ${displayLabel}`}
+                                  ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
+                                  : opts.length === 0
+                                    ? `No ${displayLabel} available`
+                                    : `Select ${displayLabel}`}
                             </option>
                             {opts.map((n: any) => (
                               <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
@@ -1222,12 +1368,12 @@ export default function PublicAddSupporterPage() {
                               {hierarchyLoading
                                 ? `Loading ${displayLabel}s...`
                                 : !effectiveAssemblyId
-                                ? 'Select Assembly first'
-                                : !parentSelected
-                                ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
-                                : opts.length === 0
-                                ? `No ${displayLabel} available`
-                                : `Select ${displayLabel}`}
+                                  ? 'Select Assembly first'
+                                  : !parentSelected
+                                    ? `Select ${dynamicLevels[idx - 1]?.label || 'previous level'} first`
+                                    : opts.length === 0
+                                      ? `No ${displayLabel} available`
+                                      : `Select ${displayLabel}`}
                             </option>
                             {opts.map((n: any) => (
                               <option key={n.id} value={n.id}>{n.displayName || n.levelName}</option>
