@@ -1,17 +1,81 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
+import { encodeCreatorCode, getActiveUserId } from "../../utils/creatorToken";
 import { useGetAllStateMasterDataQuery } from "../../store/api/stateMasterApi";
 import { useGetPublicWhatsappLinksQuery } from "../../store/api/whatsappManagerApi";
 import { DirectoryFilters } from "./components/DirectoryFilters";
 import { GroupCard } from "./components/GroupCard";
 
 export default function PublicWhatsAppDirectory() {
+  const { creatorCode } = useParams<{ creatorCode?: string }>();
+  const [searchParams] = useSearchParams();
+
+  // Extract creator token from URL params, query (?u= or ?creator=), or pathname regex
+  const activeCreatorCode = useMemo(() => {
+    if (creatorCode) return creatorCode;
+    const queryCode = searchParams.get("u") || searchParams.get("creator");
+    if (queryCode) return queryCode;
+
+    if (typeof window !== "undefined") {
+      const match = window.location.pathname.match(/(?:\/u\/|\/creator\/)([^/?#]+)/i);
+      if (match && match[1]) return match[1];
+    }
+
+    // Fallback: Check if user is logged in
+    const activeUid = getActiveUserId();
+    if (activeUid) return encodeCreatorCode(activeUid);
+
+    return "";
+  }, [creatorCode, searchParams]);
+
+  // If visited on election.peopleconnect.in/whatsapp-groups, redirect to whatsapp.peopleconnect.in preserving query params
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.includes("election.peopleconnect.in")) {
+      const code = activeCreatorCode || (getActiveUserId() ? encodeCreatorCode(getActiveUserId()!) : "");
+      const search = window.location.search || "";
+      const dest = code
+        ? `https://whatsapp.peopleconnect.in/u/${code}${search}`
+        : `https://whatsapp.peopleconnect.in/${search}`;
+      window.location.replace(dest);
+    }
+  }, [activeCreatorCode]);
+
   const [search, setSearch] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("All");
-  const [selectedStateId, setSelectedStateId] = useState<number | "">("");
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number | "">("");
-  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number | "">("");
+  const [selectedLevel, setSelectedLevel] = useState<string>(() => {
+    const lvl = searchParams.get("level");
+    if (lvl && ["State", "District", "Assembly", "All"].includes(lvl)) return lvl;
+    return "All";
+  });
+  const [selectedStateId, setSelectedStateId] = useState<number | "">(() => {
+    const s = searchParams.get("state_id") || searchParams.get("stateId");
+    return s && !isNaN(Number(s)) ? Number(s) : "";
+  });
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | "">(() => {
+    const d = searchParams.get("district_id") || searchParams.get("districtId");
+    return d && !isNaN(Number(d)) ? Number(d) : "";
+  });
+  const [selectedAssemblyId, setSelectedAssemblyId] = useState<number | "">(() => {
+    const a = searchParams.get("assembly_id") || searchParams.get("assemblyId");
+    return a && !isNaN(Number(a)) ? Number(a) : "";
+  });
   const [page, setPage] = useState(1);
+
+  // Sync URL search params if they change
+  useEffect(() => {
+    const lvl = searchParams.get("level");
+    if (lvl && ["State", "District", "Assembly", "All"].includes(lvl)) {
+      setSelectedLevel(lvl);
+    }
+    const distId = searchParams.get("district_id") || searchParams.get("districtId");
+    if (distId && !isNaN(Number(distId))) {
+      setSelectedDistrictId(Number(distId));
+    }
+    const asmId = searchParams.get("assembly_id") || searchParams.get("assemblyId");
+    if (asmId && !isNaN(Number(asmId))) {
+      setSelectedAssemblyId(Number(asmId));
+    }
+  }, [searchParams]);
 
   // Fetch geographic hierarchy for cascading filters
   const { data: allStateMasterData = [] } = useGetAllStateMasterDataQuery();
@@ -44,26 +108,36 @@ export default function PublicWhatsAppDirectory() {
     );
   }, [allStateMasterData, selectedDistrictId]);
 
-  // Query public groups with current filters
+  // Query public groups with current filters and creator code
   const { data: publicResponse, isLoading } = useGetPublicWhatsappLinksQuery({
     level_type: selectedLevel,
     state_id: selectedStateId ? Number(selectedStateId) : null,
     district_id: selectedDistrictId ? Number(selectedDistrictId) : null,
     assembly_id: selectedAssemblyId ? Number(selectedAssemblyId) : null,
     search: search.trim() || null,
+    creator: activeCreatorCode || null,
+    u: activeCreatorCode || null,
     page,
     limit: 30,
   });
 
   const groups = publicResponse?.data || [];
   const pagination = publicResponse?.pagination;
+  const creatorInfo = publicResponse?.creator_info;
 
-  const handleStateChange = (id: number | "") => {
-    setSelectedStateId(id);
-    setSelectedDistrictId("");
-    setSelectedAssemblyId("");
-    setPage(1);
-  };
+  // Lock state to creator's state once creator info loads
+  useEffect(() => {
+    if (creatorInfo?.state_id) {
+      setSelectedStateId(Number(creatorInfo.state_id));
+    }
+  }, [creatorInfo?.state_id]);
+
+  const resolvedStateName = useMemo(() => {
+    if (creatorInfo?.state_name) return creatorInfo.state_name;
+    const match = states.find((s) => s.id === selectedStateId);
+    if (match) return match.levelName;
+    return selectedStateId ? `State #${selectedStateId}` : "State";
+  }, [creatorInfo?.state_name, states, selectedStateId]);
 
   const handleDistrictChange = (id: number | "") => {
     setSelectedDistrictId(id);
@@ -92,6 +166,9 @@ export default function PublicWhatsAppDirectory() {
     setSelectedLevel("All");
     setSelectedDistrictId("");
     setSelectedAssemblyId("");
+    if (creatorInfo?.state_id) {
+      setSelectedStateId(Number(creatorInfo.state_id));
+    }
     setPage(1);
   };
 
@@ -104,7 +181,11 @@ export default function PublicWhatsAppDirectory() {
         <div className="relative max-w-5xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-emerald-100 text-xs font-semibold border border-white/15">
             <ShieldCheck className="h-4 w-4 text-emerald-300" />
-            <span>Official Community Portal</span>
+            <span>
+              {creatorInfo
+                ? `Official Community Portal • Curated by ${creatorInfo.name}${creatorInfo.state_name ? ` (${creatorInfo.state_name})` : ""}`
+                : "Official Community Portal"}
+            </span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
@@ -129,7 +210,7 @@ export default function PublicWhatsAppDirectory() {
           selectedLevel={selectedLevel}
           onLevelChange={handleLevelChange}
           selectedStateId={selectedStateId}
-          onStateChange={handleStateChange}
+          selectedStateName={resolvedStateName}
           selectedDistrictId={selectedDistrictId}
           onDistrictChange={handleDistrictChange}
           selectedAssemblyId={selectedAssemblyId}
