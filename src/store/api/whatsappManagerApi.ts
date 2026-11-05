@@ -26,11 +26,26 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+export interface CreatorInfo {
+  user_id: number;
+  party_id?: number | null;
+  name: string;
+  state_id?: number | null;
+  state_name?: string | null;
+  district_id?: number | null;
+  district_name?: string | null;
+  assembly_id?: number | null;
+  assembly_name?: string | null;
+  primary_level_type?: string | null;
+  creator_code?: string | null;
+}
+
 export interface WhatsAppGroupsResponse {
   success: boolean;
   message: string;
   data: WhatsAppGroupItem[];
   pagination: PaginationMeta;
+  creator_info?: CreatorInfo | null;
 }
 
 export interface CreateWhatsAppGroupRequest {
@@ -62,6 +77,8 @@ export interface WhatsAppFilterParams {
   search?: string | null;
   page?: number | null;
   limit?: number | null;
+  creator?: string | null;
+  u?: string | null;
 }
 
 export const whatsappManagerApi = createApi({
@@ -84,6 +101,8 @@ export const whatsappManagerApi = createApi({
         }
         if (params.page) queryParams.append("page", params.page.toString());
         if (params.limit) queryParams.append("limit", params.limit.toString());
+        if (params.creator) queryParams.append("creator", params.creator);
+        if (params.u) queryParams.append("u", params.u);
 
         return {
           url: `/whatsapp/public-links?${queryParams.toString()}`,

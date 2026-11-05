@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Globe,
   PlusCircle,
@@ -14,6 +14,7 @@ import { StateLevelForm } from "./forms/StateLevelForm";
 import { DistrictLevelForm } from "./forms/DistrictLevelForm";
 import { AssemblyLevelForm } from "./forms/AssemblyLevelForm";
 import { WhatsAppLinksTable } from "./components/WhatsAppLinksTable";
+import { getPublicDirectoryUrl } from "../../utils/creatorToken";
 
 type LevelTab = "State" | "District" | "Assembly";
 
@@ -126,6 +127,29 @@ export default function WhatsAppManager() {
     return null;
   }, [selectedAssignment, currentPanel]);
 
+  // Public directory link with creator code and contextual level/district
+  const publicDirectoryHref = useMemo(() => {
+    return getPublicDirectoryUrl(user, {
+      district_id:
+        activeTab === "Assembly" || activeTab === "District"
+          ? currentDistrictId
+          : undefined,
+      level: activeTab,
+    });
+  }, [user, activeTab, currentDistrictId]);
+
+  const handleOpenPublicDirectory = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const targetUrl = getPublicDirectoryUrl(user, {
+      district_id:
+        activeTab === "Assembly" || activeTab === "District"
+          ? currentDistrictId
+          : undefined,
+      level: activeTab,
+    });
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
+  };
+
   // Query WhatsApp groups for the active level
   const {
     data: groupsResponse,
@@ -163,15 +187,16 @@ export default function WhatsAppManager() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
-          <Link
-            to="/whatsapp-groups"
+          <a
+            href={publicDirectoryHref}
+            onClick={handleOpenPublicDirectory}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 font-semibold text-xs sm:text-sm shadow transition-all active:scale-95"
           >
-            <Globe className="h-4 w-4 text-[var(--text-color)]" />
-            <span className="text-[var(--text-color)]">Public Directory</span>
-          </Link>
+            <Globe className="h-4 w-4 text-indigo-700" />
+            <span className="text-indigo-700 font-bold">Public Directory</span>
+          </a>
         </div>
       </div>
 

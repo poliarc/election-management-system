@@ -193,6 +193,7 @@ export default function App() {
     return (
       <BrowserRouter>
         <Routes>
+          <Route path="/u/:creatorCode" element={<PublicWhatsAppDirectory />} />
           <Route path="*" element={<PublicWhatsAppDirectory />} />
         </Routes>
         <Toaster
@@ -211,6 +212,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/whatsapp-groups" element={<PublicWhatsAppDirectory />} />
+        <Route path="/whatsapp-groups/u/:creatorCode" element={<PublicWhatsAppDirectory />} />
+        <Route path="/u/:creatorCode" element={<PublicWhatsAppDirectory />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<PublicRegistration />} />
         <Route path="/supporter/register" element={<PublicAddSupporterPage />} />
