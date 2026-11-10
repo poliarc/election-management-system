@@ -460,13 +460,15 @@ export default function SupportersPage() {
                     onClick={() => setLinkType('assembly')}
                     className={`cursor-pointer rounded-xl p-3.5 border-2 transition-all flex items-start gap-3 ${
                       linkType === 'assembly'
-                        ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/30 shadow-sm'
-                        : 'border-[var(--border-color)] hover:border-gray-300 dark:hover:border-gray-700 bg-[var(--bg-main)]'
+                        ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/50 shadow-sm'
+                        : 'border-[var(--border-color)] hover:border-indigo-500/40 bg-[var(--bg-main)]'
                     }`}
                   >
                     <div
                       className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        linkType === 'assembly' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'
+                        linkType === 'assembly'
+                          ? 'border-indigo-600 bg-indigo-600 dark:border-indigo-400 dark:bg-indigo-500'
+                          : 'border-[var(--border-color)]'
                       }`}
                     >
                       {linkType === 'assembly' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -489,13 +491,15 @@ export default function SupportersPage() {
                     onClick={() => setLinkType('state_wide')}
                     className={`cursor-pointer rounded-xl p-3.5 border-2 transition-all flex items-start gap-3 ${
                       linkType === 'state_wide'
-                        ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/30 shadow-sm'
-                        : 'border-[var(--border-color)] hover:border-gray-300 dark:hover:border-gray-700 bg-[var(--bg-main)]'
+                        ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/50 shadow-sm'
+                        : 'border-[var(--border-color)] hover:border-indigo-500/40 bg-[var(--bg-main)]'
                     }`}
                   >
                     <div
                       className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        linkType === 'state_wide' ? 'border-indigo-600 bg-indigo-600' : 'border-gray-400'
+                        linkType === 'state_wide'
+                          ? 'border-indigo-600 bg-indigo-600 dark:border-indigo-400 dark:bg-indigo-500'
+                          : 'border-[var(--border-color)]'
                       }`}
                     >
                       {linkType === 'state_wide' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -541,10 +545,10 @@ export default function SupportersPage() {
 
                 {linkType === 'state_wide' ? (
                   /* State-Wide Open Link Information Box */
-                  <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-4 text-xs sm:text-sm text-emerald-900 dark:text-emerald-200 space-y-2.5">
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-4 text-xs sm:text-sm text-emerald-900 dark:text-emerald-200 space-y-2.5">
                     <div className="font-bold flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-sm">
                       <svg
-                        className="w-5 h-5 shrink-0 text-emerald-600"
+                        className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -560,13 +564,13 @@ export default function SupportersPage() {
                         Open State Registration: {user?.stateName || selectedAssignment?.stateName || 'State'}
                       </span>
                     </div>
-                    <p className="leading-relaxed">
+                    <p className="leading-relaxed text-emerald-800/90 dark:text-emerald-200/90">
                       Supporters anywhere across the state can use this link to self-register by selecting
-                      their respective <strong>District</strong> and <strong>Assembly</strong>.
+                      their respective <strong className="font-semibold text-emerald-950 dark:text-emerald-100">District</strong> and <strong className="font-semibold text-emerald-950 dark:text-emerald-100">Assembly</strong>.
                     </p>
                     <div className="flex items-center gap-2 pt-1 text-xs text-emerald-700 dark:text-emerald-400">
                       <span className="font-medium">State:</span>
-                      <span className="font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded">
+                      <span className="font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 rounded">
                         {user?.stateName || selectedAssignment?.stateName || 'State'}
                       </span>
                     </div>
@@ -592,7 +596,7 @@ export default function SupportersPage() {
                             type="text"
                             value={user?.stateName || selectedAssignment?.stateName || 'State'}
                             disabled
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
+                            className="w-full px-3 py-2 text-sm border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] opacity-80"
                           />
                         </div>
                         <div>
@@ -607,7 +611,7 @@ export default function SupportersPage() {
                               'District'
                             }
                             disabled
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
+                            className="w-full px-3 py-2 text-sm border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] opacity-80"
                           />
                         </div>
                         <div>
@@ -622,7 +626,7 @@ export default function SupportersPage() {
                               'Assembly'
                             }
                             disabled
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-gray-100 text-[var(--text-secondary)]"
+                            className="w-full px-3 py-2 text-sm border border-[var(--border-color)] rounded-lg bg-[var(--bg-card)] text-[var(--text-color)] opacity-80"
                           />
                         </div>
                       </div>
@@ -644,7 +648,7 @@ export default function SupportersPage() {
                               <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                                 {level.label}
                                 {isRequired ? (
-                                  <span className="text-red-500 ml-1">*</span>
+                                   <span className="text-red-500 ml-1">*</span>
                                 ) : (
                                   <span className="text-[var(--text-secondary)] ml-1">(Optional)</span>
                                 )}
@@ -662,7 +666,7 @@ export default function SupportersPage() {
                                   });
                                 }}
                                 disabled={!parentSelected || opts.length === 0}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-[var(--text-secondary)]"
+                                className="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-[var(--bg-card)] text-[var(--text-color)] disabled:opacity-50 disabled:bg-[var(--bg-main)]"
                               >
                                 <option value={0}>
                                   {!parentSelected
@@ -683,10 +687,10 @@ export default function SupportersPage() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-lg p-3">
                       <div className="flex items-start gap-2">
                         <svg
-                          className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0"
+                          className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -699,7 +703,7 @@ export default function SupportersPage() {
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
                           All hierarchy levels are optional. You can generate the link for just the
                           assembly level.
                         </p>
@@ -716,7 +720,7 @@ export default function SupportersPage() {
                       setLinksFilter(linkType === 'state_wide' ? 'state_wide' : 'assembly');
                       setModalTab('history');
                     }}
-                    className="w-full sm:w-auto px-4 py-2 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/60 rounded-lg text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full sm:w-auto px-4 py-2 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 rounded-lg text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -731,7 +735,7 @@ export default function SupportersPage() {
                         setShowBlockSelectionModal(false);
                         setLinkSelections([]);
                       }}
-                      className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 transition-colors text-xs sm:text-sm font-medium"
+                      className="px-4 py-2 text-[var(--text-secondary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-main)] hover:text-[var(--text-color)] transition-colors text-xs sm:text-sm font-medium"
                     >
                       {t('SupportersPage.Cancel')}
                     </button>
@@ -1012,7 +1016,7 @@ export default function SupportersPage() {
                     <button
                       type="button"
                       onClick={() => setShowBlockSelectionModal(false)}
-                      className="px-4 py-2 text-[var(--text-secondary)] border border-gray-300 rounded-lg hover:bg-[var(--text-color)]/5 text-xs sm:text-sm font-medium transition-colors"
+                      className="px-4 py-2 text-[var(--text-secondary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-main)] hover:text-[var(--text-color)] text-xs sm:text-sm font-medium transition-colors"
                     >
                       Close
                     </button>
