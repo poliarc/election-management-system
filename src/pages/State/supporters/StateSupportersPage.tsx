@@ -207,6 +207,68 @@ export default function StateSupportersPage() {
   const getFullName = (s: Supporter) =>
     `${s.initials || ''} ${s.first_name || ''} ${s.last_name || ''}`.trim();
 
+  const parseLanguages = (language: any): string[] => {
+    if (!language) return [];
+
+    let parsed = language;
+    if (typeof language === 'string') {
+      try {
+        parsed = JSON.parse(language);
+      } catch {
+        return [language];
+      }
+    }
+
+    if (Array.isArray(parsed)) {
+      return parsed.filter(Boolean).map(String);
+    }
+
+    if (typeof parsed === 'object' && parsed !== null) {
+      const langs: string[] = [];
+      if (parsed.primary) langs.push(String(parsed.primary));
+      if (parsed.secondary && Array.isArray(parsed.secondary)) {
+        langs.push(...parsed.secondary.map(String));
+      }
+      return langs;
+    }
+
+    return [String(parsed)];
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      if (d.getFullYear() === 1970 && d.getMonth() === 0 && d.getDate() === 1) return 'N/A';
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      if (d.getFullYear() === 1970 && d.getMonth() === 0 && d.getDate() === 1) return 'N/A';
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="p-6">
@@ -557,47 +619,523 @@ export default function StateSupportersPage() {
 
         {/* Supporter Details Modal */}
         {viewingSupporter && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-[var(--bg-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-[var(--border-color)] flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--text-color)]">
-                  {t('stateSupporter.Supporter_Details')}
-                </h3>
-                <button onClick={() => setViewingSupporter(null)} className="text-[var(--text-secondary)] hover:opacity-70 transition-opacity">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="px-6 py-4 space-y-6">
-                <div>
-                  <h4 className="text-md font-medium text-[var(--text-color)] mb-3">{t('stateSupporter.Personal_Information')}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Full_Name')}</label>
-                      <p className="text-sm text-[var(--text-color)]">{getFullName(viewingSupporter)}</p>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-in fade-in duration-200">
+            <div className="bg-[var(--bg-card)] rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-[var(--border-color)]">
+              {/* Header / Banner */}
+              <div className="bg-gradient-to-r from-purple-700 via-indigo-600 to-indigo-700 px-6 py-5 text-white relative shrink-0">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center space-x-4 min-w-0">
+                    {/* Initials Avatar */}
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-bold text-xl text-white shadow-inner shrink-0">
+                      {((viewingSupporter.first_name?.[0] || '') +
+                        (viewingSupporter.last_name?.[0] || '')).toUpperCase() ||
+                        viewingSupporter.initials?.toUpperCase() ||
+                        'SP'}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Father_Name')}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.father_name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Age')}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.age} {t('stateSupporter.years')}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Gender')}</label>
-                      <p className="text-sm text-[var(--text-color)]">{viewingSupporter.gender}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[var(--text-secondary)]">{t('stateSupporter.Date_of_Birth')}</label>
-                      <p className="text-sm text-[var(--text-color)]">
-                        {new Date(viewingSupporter.date_of_birth).toLocaleDateString()}
-                      </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-xl font-bold text-white tracking-wide truncate">
+                          {getFullName(viewingSupporter) || 'Supporter Details'}
+                        </h2>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 shrink-0">
+                          #{viewingSupporter.supporter_id}
+                        </span>
+                        {viewingSupporter.isActive === 1 || viewingSupporter.isActive === undefined ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/25 text-emerald-100 border border-emerald-400/40 flex items-center gap-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            {t('stateSupporter.Active', 'Active')}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/25 text-rose-100 border border-rose-400/40 flex items-center gap-1.5 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                            {t('stateSupporter.Inactive', 'Inactive')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5 text-xs text-indigo-100 flex-wrap">
+                        {viewingSupporter.party_name && (
+                          <span className="flex items-center gap-1 font-medium bg-black/20 px-2 py-0.5 rounded">
+                            🏛️ {viewingSupporter.party_name}
+                          </span>
+                        )}
+                        {viewingSupporter.district_name && (
+                          <span className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded">
+                            📍 {viewingSupporter.district_name}
+                          </span>
+                        )}
+                        {viewingSupporter.assembly_name && (
+                          <span className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded">
+                            🗳️ {viewingSupporter.assembly_name}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => setViewingSupporter(null)}
+                    className="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors shrink-0"
+                    title="Close"
+                  >
+                    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path
+                        d="M18 6L6 18M6 6l12 12"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
                 </div>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 bg-[var(--bg-main)]/40">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                  {/* ── LEFT COLUMN ── */}
+                  <div className="space-y-5">
+                    {/* Personal Information */}
+                    <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-color)] shadow-sm">
+                      <h3 className="text-sm font-bold text-[var(--text-color)] mb-4 flex items-center gap-2 pb-2.5 border-b border-[var(--border-color)]">
+                        <span className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7Z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        {t('stateSupporter.Personal_Information', 'Personal Information')}
+                      </h3>
+
+                      <div className="divide-y divide-[var(--border-color)]/60 text-sm">
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Full_Name', 'Full Name')}
+                          </span>
+                          <span className="font-semibold text-[var(--text-color)] text-right">
+                            {getFullName(viewingSupporter) || 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Father_Name', "Father's Name")}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {viewingSupporter.father_name || 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Date_of_Birth', 'Date of Birth')}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {formatDate(viewingSupporter.date_of_birth)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Age', 'Age')}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {viewingSupporter.age
+                              ? `${viewingSupporter.age} ${t('stateSupporter.years', 'Years')}`
+                              : 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Gender', 'Gender')}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {viewingSupporter.gender || 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.EPIC_ID', 'Voter EPIC ID')}
+                          </span>
+                          <span className="text-right">
+                            {viewingSupporter.voter_epic_id ? (
+                              <span className="font-mono text-xs px-2.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold tracking-wider">
+                                {viewingSupporter.voter_epic_id}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-[var(--text-secondary)]">N/A</span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Information */}
+                    <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-color)] shadow-sm">
+                      <h3 className="text-sm font-bold text-[var(--text-color)] mb-4 flex items-center gap-2 pb-2.5 border-b border-[var(--border-color)]">
+                        <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        {t('stateSupporter.Contact_Information', 'Contact Information')}
+                      </h3>
+
+                      <div className="divide-y divide-[var(--border-color)]/60 text-sm">
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Phone_Number', 'Phone Number')}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-[var(--text-color)]">
+                              {viewingSupporter.phone_no || 'N/A'}
+                            </span>
+                            {viewingSupporter.phone_no && (
+                              <a
+                                href={`tel:${viewingSupporter.phone_no}`}
+                                className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 border border-blue-200 dark:border-blue-800 transition"
+                                title="Call"
+                              >
+                                Call
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.WhatsApp_Number', 'WhatsApp Number')}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-[var(--text-color)]">
+                              {viewingSupporter.whatsapp_no || 'N/A'}
+                            </span>
+                            {viewingSupporter.whatsapp_no && (
+                              <a
+                                href={`https://wa.me/91${viewingSupporter.whatsapp_no}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 transition flex items-center gap-1"
+                                title="WhatsApp"
+                              >
+                                WhatsApp
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Record Details */}
+                    <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-color)] shadow-sm">
+                      <h3 className="text-sm font-bold text-[var(--text-color)] mb-4 flex items-center gap-2 pb-2.5 border-b border-[var(--border-color)]">
+                        <span className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0118 0Z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        {t('stateSupporter.Record_Information', 'Record Information')}
+                      </h3>
+
+                      <div className="divide-y divide-[var(--border-color)]/60 text-sm">
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Created_By', 'Created By')}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {viewingSupporter.created_by_name || viewingSupporter.created_by || 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Created_At', 'Created At')}
+                          </span>
+                          <span className="font-medium text-[var(--text-color)] text-right">
+                            {formatDateTime(viewingSupporter.created_at)}
+                          </span>
+                        </div>
+
+                        {viewingSupporter.updated_at && (
+                          <div className="flex items-center justify-between py-2.5">
+                            <span className="text-xs font-medium text-[var(--text-secondary)]">
+                              Updated At
+                            </span>
+                            <span className="font-medium text-[var(--text-color)] text-right">
+                              {formatDateTime(viewingSupporter.updated_at)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── RIGHT COLUMN ── */}
+                  <div className="space-y-5">
+                    {/* Location & Hierarchy */}
+                    <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-color)] shadow-sm">
+                      <h3 className="text-sm font-bold text-[var(--text-color)] mb-4 flex items-center gap-2 pb-2.5 border-b border-[var(--border-color)]">
+                        <span className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="12" cy="10" r="3" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        {t('stateSupporter.Address_Location', 'Address & Location')}
+                      </h3>
+
+                      <div className="divide-y divide-[var(--border-color)]/60 text-sm">
+                        {/* Address */}
+                        <div className="py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)] block mb-1">
+                            {t('stateSupporter.Address', 'Address')}
+                          </span>
+                          <p className="font-medium text-[var(--text-color)] bg-[var(--bg-main)]/50 p-2.5 rounded-lg border border-[var(--border-color)]/60 text-xs leading-relaxed">
+                            {viewingSupporter.address || 'N/A'}
+                          </p>
+                        </div>
+
+                        {/* State */}
+                        {viewingSupporter.state_name && (
+                          <div className="flex items-center justify-between py-2.5">
+                            <span className="text-xs font-medium text-[var(--text-secondary)]">State</span>
+                            <span className="font-semibold text-[var(--text-color)] text-right">
+                              {viewingSupporter.state_name}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* District */}
+                        {viewingSupporter.district_name && (
+                          <div className="flex items-center justify-between py-2.5">
+                            <span className="text-xs font-medium text-[var(--text-secondary)]">District</span>
+                            <span className="font-semibold text-[var(--text-color)] text-right">
+                              {viewingSupporter.district_name}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Assembly */}
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Assembly', 'Assembly')}
+                          </span>
+                          <span className="font-semibold text-indigo-600 dark:text-indigo-400 text-right">
+                            {viewingSupporter.assembly_name || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* Dynamic After-Assembly Hierarchy or Block / Mandal */}
+                        {viewingSupporter.after_assembly_levels &&
+                        viewingSupporter.after_assembly_levels.length > 0 ? (
+                          viewingSupporter.after_assembly_levels.map((lvl) => (
+                            <div key={lvl.depth} className="flex items-center justify-between py-2.5">
+                              <span className="text-xs font-medium text-[var(--text-secondary)]">
+                                {lvl.level_label || lvl.level_type}
+                              </span>
+                              <span className="font-semibold text-[var(--text-color)] text-right">
+                                {lvl.level_name}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <>
+                            {viewingSupporter.block_name && (
+                              <div className="flex items-center justify-between py-2.5">
+                                <span className="text-xs font-medium text-[var(--text-secondary)]">
+                                  {t('stateSupporter.Block', 'Block')}
+                                </span>
+                                <span className="font-semibold text-[var(--text-color)] text-right">
+                                  {viewingSupporter.block_name}
+                                </span>
+                              </div>
+                            )}
+                            {viewingSupporter.mandal_name && (
+                              <div className="flex items-center justify-between py-2.5">
+                                <span className="text-xs font-medium text-[var(--text-secondary)]">
+                                  {t('stateSupporter.Mandal', 'Mandal')}
+                                </span>
+                                <span className="font-semibold text-[var(--text-color)] text-right">
+                                  {viewingSupporter.mandal_name}
+                                </span>
+                              </div>
+                            )}
+                            {viewingSupporter.booth_name && (
+                              <div className="flex items-center justify-between py-2.5">
+                                <span className="text-xs font-medium text-[var(--text-secondary)]">
+                                  Booth
+                                </span>
+                                <span className="font-semibold text-[var(--text-color)] text-right">
+                                  {viewingSupporter.booth_name}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Cultural & Social Information */}
+                    <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border-color)] shadow-sm">
+                      <h3 className="text-sm font-bold text-[var(--text-color)] mb-4 flex items-center gap-2 pb-2.5 border-b border-[var(--border-color)]">
+                        <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                          <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3s-4.5 4.03-4.5 9 2.015 9 4.5 9Z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        {t('stateSupporter.Cultural_Information', 'Cultural & Demographics')}
+                      </h3>
+
+                      <div className="divide-y divide-[var(--border-color)]/60 text-sm">
+                        {/* Languages */}
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Languages', 'Languages')}
+                          </span>
+                          <div>
+                            {(() => {
+                              const langs = parseLanguages(viewingSupporter.language);
+                              if (langs.length === 0)
+                                return (
+                                  <span className="text-xs text-[var(--text-secondary)]">N/A</span>
+                                );
+                              return (
+                                <div className="flex flex-wrap gap-1.5 justify-end">
+                                  {langs.map((l, i) => (
+                                    <span
+                                      key={i}
+                                      className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                                    >
+                                      {l}
+                                    </span>
+                                  ))}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Religion', 'Religion')}
+                          </span>
+                          <span className="font-semibold text-[var(--text-color)] text-right">
+                            {viewingSupporter.religion || 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between py-2.5">
+                          <span className="text-xs font-medium text-[var(--text-secondary)]">
+                            {t('stateSupporter.Category', 'Category')}
+                          </span>
+                          <span className="font-semibold text-[var(--text-color)] text-right">
+                            {viewingSupporter.category || 'N/A'}
+                          </span>
+                        </div>
+
+                        {viewingSupporter.caste && (
+                          <div className="flex items-center justify-between py-2.5">
+                            <span className="text-xs font-medium text-[var(--text-secondary)]">
+                              {t('stateSupporter.Caste', 'Caste')}
+                            </span>
+                            <span className="font-semibold text-[var(--text-color)] text-right">
+                              {viewingSupporter.caste}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Remarks */}
+                    {viewingSupporter.remarks && (
+                      <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl p-4 shadow-sm">
+                        <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 mb-1.5 flex items-center gap-1.5">
+                          <svg
+                            className="h-3.5 w-3.5 text-amber-600"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          {t('stateSupporter.Remarks', 'Remarks')}
+                        </h4>
+                        <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed whitespace-pre-wrap">
+                          {viewingSupporter.remarks}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-3.5 border-t border-[var(--border-color)] bg-[var(--bg-card)] flex items-center justify-between shrink-0">
+                <span className="text-xs text-[var(--text-secondary)]">
+                  Supporter ID: <strong className="text-[var(--text-color)]">#{viewingSupporter.supporter_id}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewingSupporter(null)}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm font-semibold shadow-sm"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
