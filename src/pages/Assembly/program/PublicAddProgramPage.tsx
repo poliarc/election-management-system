@@ -2,17 +2,28 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import type { ProgramStatus } from "./types";
-import { createProgramPublic, getProgramLinkById } from "../../../services/programApi";
+import { createProgramPublic, getProgramLinkById, getProgramLinkByCode } from "../../../services/programApi";
 import type { ProgramLink } from "../../../services/programApi";
-
-const STATUS_OPTIONS: ProgramStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'COMPLETE', 'MISSED'];
 
 export default function PublicAddProgramPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
 
-  const safeNum = (key: string) => { const v = Number(searchParams.get(key)); return isNaN(v) ? 0 : v; };
+  const linkCode = searchParams.get('code');
+
+  const safeNum = (key: string) => {
+    const raw = searchParams.get(key);
+    if (!raw || raw === 'undefined' || raw === 'null') return 0;
+    const v = Number(raw);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const getCleanParam = (key: string) => {
+    const raw = searchParams.get(key);
+    if (!raw || raw === 'undefined' || raw === 'null') return '';
+    return raw;
+  };
+
   const linkId      = safeNum('link_id');
   const stateIdP    = safeNum('state_id');
   const districtIdP = safeNum('district_id');
@@ -21,7 +32,7 @@ export default function PublicAddProgramPage() {
   const creatorIdP  = safeNum('creator_id');
   const partyIdP    = safeNum('party_id');
 
-  const hasAllParams = !!(stateIdP && assemblyIdP && creatorIdP);
+  const hasAllParams = !linkCode && !!(stateIdP && assemblyIdP && creatorIdP);
 
   const [linkData, setLinkData] = useState<ProgramLink | null>(
     hasAllParams ? {
@@ -38,29 +49,54 @@ export default function PublicAddProgramPage() {
   const [linkError, setLinkError] = useState(false);
 
   useEffect(() => {
-    if (hasAllParams || !linkId) {
-      setLinkLoading(false);
-      if (!hasAllParams && !linkId) setLinkError(true);
+    // Case 1: Short code in URL (e.g. ?code=PR884)
+    if (linkCode) {
+      setLinkLoading(true);
+      getProgramLinkByCode(linkCode)
+        .then(data => {
+          if (data) {
+            setLinkData(data);
+          } else {
+            setLinkError(true);
+          }
+        })
+        .catch(() => setLinkError(true))
+        .finally(() => setLinkLoading(false));
       return;
     }
-    getProgramLinkById(linkId)
-      .then(data => {
-        if (data) {
-          setLinkData(data);
-        } else {
-          setLinkError(true);
-        }
-      })
-      .catch(() => setLinkError(true))
-      .finally(() => setLinkLoading(false));
-  }, [linkId, hasAllParams]);
+
+    // Case 2: Legacy with all params passed directly
+    if (hasAllParams) {
+      setLinkLoading(false);
+      return;
+    }
+
+    // Case 3: Legacy with link_id
+    if (linkId) {
+      setLinkLoading(true);
+      getProgramLinkById(linkId)
+        .then(data => {
+          if (data) {
+            setLinkData(data);
+          } else {
+            setLinkError(true);
+          }
+        })
+        .catch(() => setLinkError(true))
+        .finally(() => setLinkLoading(false));
+      return;
+    }
+
+    // Neither code nor link_id provided
+    setLinkError(true);
+    setLinkLoading(false);
+  }, [linkCode, linkId, hasAllParams]);
 
   const [programName, setProgramName] = useState('');
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<ProgramStatus>('PENDING');
   const [creatorName, setCreatorName] = useState('');
   const [creatorPhone, setCreatorPhone] = useState('');
   const [saving, setSaving] = useState(false);
@@ -68,18 +104,18 @@ export default function PublicAddProgramPage() {
 
   if (linkLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-400 text-sm">{t("PublicAddProgramPage.Loading")}</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-gray-400 text-sm font-medium animate-pulse">{t("PublicAddProgramPage.Loading")}</div>
       </div>
     );
   }
 
-  if (!linkId || linkError || !linkData) {
+  if (linkError || !linkData || (!linkCode && !linkId && !hasAllParams)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="text-center text-gray-500">
-          <p className="text-lg font-medium">{t("PublicAddProgramPage.Invalid_Link")}</p>
-          <p className="text-sm mt-1">{t("PublicAddProgramPage.Invalid_Link_Desc")}</p>
+        <div className="text-center text-gray-500 max-w-sm">
+          <p className="text-lg font-semibold text-gray-800">{t("PublicAddProgramPage.Invalid_Link")}</p>
+          <p className="text-sm mt-1 text-gray-500">{t("PublicAddProgramPage.Invalid_Link_Desc")}</p>
         </div>
       </div>
     );
@@ -102,7 +138,7 @@ export default function PublicAddProgramPage() {
           date,
           time,
           description,
-          status,
+          status: 'PENDING',
           created_by: creatorName,
           creator_phone_no: creatorPhone,
           creator_id: Number(linkData.creator_id),
@@ -122,20 +158,24 @@ export default function PublicAddProgramPage() {
   };
 
   const inputCls = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition";
-  const disabledCls = "w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 cursor-not-allowed";
-  const labelCls = "block text-xs font-medium text-gray-500 mb-1";
+  const disabledCls = "w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5 text-sm text-gray-600 font-medium cursor-not-allowed";
+  const labelCls = "block text-xs font-semibold text-gray-600 mb-1";
 
-  const stateName   = searchParams.get('state_name')    || (linkData as any)?.state?.name    || String(linkData?.state_id    || '');
-  const districtName= searchParams.get('district_name') || (linkData as any)?.district?.name || String(linkData?.district_id  || '');
-  const assemblyName= searchParams.get('assembly_name') || (linkData as any)?.assembly?.name || String(linkData?.assembly_id  || '');
-  const candidateName = searchParams.get('candidate_name') || ((linkData as any)?.candidate
-    ? `${(linkData as any).candidate.first_name} ${(linkData as any).candidate.last_name}`.trim()
-    : '');
+  const stateName = (linkData as any)?.state?.name || getCleanParam('state_name') || '';
+  const districtName = (linkData as any)?.district?.name || getCleanParam('district_name') || '';
+  const assemblyName = (linkData as any)?.assembly?.name || getCleanParam('assembly_name') || '';
+  const candidateName =
+    (linkData as any)?.candidate?.full_name ||
+    ((linkData as any)?.candidate
+      ? `${(linkData as any).candidate.first_name || ''} ${(linkData as any).candidate.last_name || ''}`.trim()
+      : '') ||
+    getCleanParam('candidate_name') ||
+    '';
 
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="text-center max-w-sm">
+        <div className="text-center max-w-sm w-full bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <svg className="h-8 w-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M20 6L9 17l-5-5" />
@@ -150,12 +190,11 @@ export default function PublicAddProgramPage() {
               setDate('');
               setTime('');
               setDescription('');
-              setStatus('PENDING');
               setCreatorName('');
               setCreatorPhone('');
               setSubmitted(false);
             }}
-            className="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition"
+            className="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
           >
             + Add Another Program
           </button>
@@ -165,30 +204,31 @@ export default function PublicAddProgramPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-10 px-3 sm:px-6">
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
           <div className="mb-6">
-            <h1 className="text-xl font-bold text-gray-800">{t("PublicAddProgramPage.Title")}</h1>
-            <p className="text-sm text-gray-500 mt-1">{t("PublicAddProgramPage.Subtitle")}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{t("PublicAddProgramPage.Title")}</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">{t("PublicAddProgramPage.Subtitle")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t("PublicAddProgramPage.Location_Info")}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Readonly Location Details */}
+            <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-3.5 sm:p-4 space-y-3">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t("PublicAddProgramPage.Location_Info")}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 <div>
                   <label className={labelCls}>{t("PublicAddProgramPage.State")}</label>
-                  <input readOnly className={disabledCls} value={stateName} />
+                  <input readOnly className={disabledCls} value={stateName || '—'} />
                 </div>
                 <div>
                   <label className={labelCls}>{t("PublicAddProgramPage.District")}</label>
-                  <input readOnly className={disabledCls} value={districtName} />
+                  <input readOnly className={disabledCls} value={districtName || '—'} />
                 </div>
                 <div>
                   <label className={labelCls}>{t("PublicAddProgramPage.Assembly")}</label>
-                  <input readOnly className={disabledCls} value={assemblyName} />
+                  <input readOnly className={disabledCls} value={assemblyName || '—'} />
                 </div>
               </div>
               {candidateName && (
@@ -199,26 +239,22 @@ export default function PublicAddProgramPage() {
               )}
             </div>
 
+            {/* Program Name */}
             <div>
               <label className={labelCls}>{t("PublicAddProgramPage.Program_Name")}</label>
               <input required maxLength={50} className={inputCls} value={programName}
                 onChange={e => setProgramName(e.target.value)} placeholder={t("PublicAddProgramPage.Program_Name_Placeholder")} />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>{t("PublicAddProgramPage.Location")}</label>
-                <input required maxLength={50} className={inputCls} value={location}
-                  onChange={e => setLocation(e.target.value)} placeholder={t("PublicAddProgramPage.Location_Placeholder")} />
-              </div>
-              <div>
-                <label className={labelCls}>{t("PublicAddProgramPage.Status")}</label>
-                <select className={inputCls} value={status} onChange={e => setStatus(e.target.value as ProgramStatus)}>
-                  {STATUS_OPTIONS.map(s => (
-                    <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Location */}
+            <div>
+              <label className={labelCls}>{t("PublicAddProgramPage.Location")}</label>
+              <input required maxLength={50} className={inputCls} value={location}
+                onChange={e => setLocation(e.target.value)} placeholder={t("PublicAddProgramPage.Location_Placeholder")} />
+            </div>
+
+            {/* Date and Time (2 Columns on tablet+, 1 Column on small mobile) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className={labelCls}>{t("PublicAddProgramPage.Date")}</label>
                 <input required type="date" min={new Date().toISOString().split('T')[0]} className={inputCls} value={date} onChange={e => setDate(e.target.value)} />
@@ -229,6 +265,7 @@ export default function PublicAddProgramPage() {
               </div>
             </div>
 
+            {/* Description */}
             <div>
               <label className={labelCls}>{t("PublicAddProgramPage.Description")}</label>
               <textarea required className={inputCls} rows={3} maxLength={1000}
@@ -237,9 +274,10 @@ export default function PublicAddProgramPage() {
               <p className="text-xs text-gray-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
 
+            {/* Submitter Details */}
             <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{t("PublicAddProgramPage.Your_Details")}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">{t("PublicAddProgramPage.Your_Details")}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className={labelCls}>{t("PublicAddProgramPage.Your_Name")}</label>
                   <input required className={inputCls} value={creatorName}
@@ -254,7 +292,7 @@ export default function PublicAddProgramPage() {
             </div>
 
             <button type="submit" disabled={saving}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition mt-2">
+              className="w-full py-2.5 sm:py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition shadow-sm mt-2">
               {saving ? t("PublicAddProgramPage.Submitting") : t("PublicAddProgramPage.Submit")}
             </button>
           </form>

@@ -38,6 +38,7 @@ export interface UpdateProgramStatusPayload {
 
 export interface ProgramLink {
   id: number;
+  code?: string;
   party_id: number;
   state_id: number;
   district_id: number;
@@ -48,8 +49,8 @@ export interface ProgramLink {
   state?: { id: number; name: string };
   district?: { id: number; name: string };
   assembly?: { id: number; name: string };
-  candidate?: { id: number; first_name: string; last_name: string };
-  creator?: { id: number; first_name: string; last_name: string };
+  candidate?: { id: number; first_name: string; last_name: string; full_name?: string; contact_no?: string };
+  creator?: { id: number; first_name: string; last_name: string; full_name?: string };
   created_at?: string;
 }
 
@@ -97,6 +98,15 @@ export const getProgramLinkById = async (linkId: number) => {
   const res = await publicClient.get('/program-links/get-program-links', { params: {} });
   const all = res.data as { success: boolean; data: ProgramLink[] };
   return all.data?.find(l => l.id === linkId) || null;
+};
+
+export const getProgramLinkByCode = async (code: string): Promise<ProgramLink | null> => {
+  try {
+    const res = await publicClient.get(`/program-links/code/${encodeURIComponent(code.trim())}`);
+    return res.data?.data || null;
+  } catch {
+    return null;
+  }
 };
 
 export const createProgramPublic = async (payload: ProgramCreatePayload) => {
