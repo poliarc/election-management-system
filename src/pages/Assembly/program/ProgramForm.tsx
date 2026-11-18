@@ -176,13 +176,13 @@ export default function ProgramForm({ initial, onSubmit, onCancel, loading }: Pr
         </div>
       )}
 
-      <div className="flex justify-end gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-2">
         <button type="button" onClick={onCancel}
-          className="px-4 py-2 rounded-lg border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition">
+          className="w-full sm:w-auto px-4 py-2 rounded-lg border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 transition text-center">
           {t("ProgramForm.Cancel")}
         </button>
         <button type="submit" disabled={loading}
-          className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-60 transition">
+          className="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-60 transition text-center">
           {loading ? t("ProgramForm.Saving") : initial ? t("ProgramForm.Update_Program") : t("ProgramForm.Add_Program")}
         </button>
       </div>
