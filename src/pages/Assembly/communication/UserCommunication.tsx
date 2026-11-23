@@ -7,8 +7,9 @@ import {
 import { useGetProfileQuery } from "../../../store/api/profileApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 import { useTranslation } from "react-i18next";
+import { PhoneCall } from "lucide-react";
 
-type MessageType = "SMS" | "WHATSAPP";
+type MessageType = "SMS" | "WHATSAPP" | "IVR";
 type CommunicationStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
 
 type CommunicationRecord = {
@@ -84,7 +85,7 @@ export default function UserCommunication() {
   // 1. Derive Party ID instantly
   const derivedPartyId = useMemo(() => {
     if (user?.partyId) return user.partyId;
-    
+
     const authUser = localStorage.getItem("auth_user");
     if (authUser) {
       try {
@@ -161,7 +162,7 @@ export default function UserCommunication() {
         }
       }
     }
-    
+
     return null;
   }, [profileData, stateMasterData]);
 
@@ -190,8 +191,7 @@ export default function UserCommunication() {
       }
 
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/api/user-communication/my-communications?${queryParams}`,
         {
           headers: {
@@ -409,7 +409,7 @@ export default function UserCommunication() {
   };
 
   console.log(assemblyUsersLoading, 'assemblyUsersLoading');
-  
+
 
   if (profileLoading || stateLoading) {
     return (
@@ -439,21 +439,19 @@ export default function UserCommunication() {
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab("send")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "send"
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "send"
                   ? "border-indigo-500 text-indigo-600"
                   : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
-              }`}
+                }`}
             >
               {t("userCommunication.tabSendMessage")}
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "history"
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "history"
                   ? "border-indigo-500 text-indigo-600"
                   : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] hover:border-gray-300"
-              }`}
+                }`}
             >
               {t("userCommunication.tabMyCommunications")}
             </button>
@@ -490,31 +488,31 @@ export default function UserCommunication() {
         (activeTab === "send" && apiError) ||
         (activeTab === "send" && assemblyUsersError) ||
         (activeTab === "history" && communicationsError)) && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <svg
-              className="h-5 w-5 text-red-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div className="ml-3">
-              <p className="text-sm text-red-800">
-                {error ||
-                  (activeTab === "send" && apiError && "data" in apiError
-                    ? (apiError.data as { message?: string })?.message
-                    : activeTab === "history" && communicationsError) ||
-                  t("userCommunication.anErrorOccurred")}
-              </p>
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <svg
+                className="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">
+                  {error ||
+                    (activeTab === "send" && apiError && "data" in apiError
+                      ? (apiError.data as { message?: string })?.message
+                      : activeTab === "history" && communicationsError) ||
+                    t("userCommunication.anErrorOccurred")}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Send Message Tab */}
       {activeTab === "send" && (
@@ -524,11 +522,10 @@ export default function UserCommunication() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => setMessageType("SMS")}
-                className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
-                  messageType === "SMS"
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${messageType === "SMS"
                     ? "bg-indigo-600 text-white"
                     : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg
@@ -549,11 +546,10 @@ export default function UserCommunication() {
               </button>
               <button
                 onClick={() => setMessageType("WHATSAPP")}
-                className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${
-                  messageType === "WHATSAPP"
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${messageType === "WHATSAPP"
                     ? "bg-green-600 text-white"
                     : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg
@@ -566,6 +562,18 @@ export default function UserCommunication() {
                   WhatsApp
                 </div>
               </button>
+              <button
+                onClick={() => setMessageType("IVR")}
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-medium transition-colors ${messageType === "IVR"
+                    ? "bg-purple-600 text-white"
+                    : "bg-[var(--bg-color)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+                  }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <PhoneCall className="h-5 w-5" />
+                  IVR Call
+                </div>
+              </button>
             </div>
           </div>
 
@@ -576,7 +584,7 @@ export default function UserCommunication() {
                 htmlFor="message"
                 className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
               >
-                {t("userCommunication.lblMessageContent")}
+                {messageType === "IVR" ? "IVR Voice Message / Script" : t("userCommunication.lblMessageContent")}
               </label>
               <textarea
                 id="message"
@@ -584,7 +592,11 @@ export default function UserCommunication() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                placeholder={t("userCommunication.phTypeYourMessage", { messageType })}
+                placeholder={
+                  messageType === "IVR"
+                    ? "Type your IVR voice message / script here..."
+                    : t("userCommunication.phTypeYourMessage", { messageType })
+                }
                 maxLength={1600}
               />
               <div className="mt-2 text-sm text-[var(--text-secondary)]">
@@ -695,11 +707,10 @@ export default function UserCommunication() {
                         {users.map((user) => (
                           <tr
                             key={user.user_id}
-                            className={`hover:bg-[var(--text-color)]/5 text-[var(--text-secondary)] cursor-pointer transition-colors ${
-                              selectedUsers.has(user.user_id)
+                            className={`hover:bg-[var(--text-color)]/5 text-[var(--text-secondary)] cursor-pointer transition-colors ${selectedUsers.has(user.user_id)
                                 ? " text-[var(--text-secondary)]"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleUserSelect(user.user_id)}
                           >
                             <td className="px-4 py-3 whitespace-nowrap">
@@ -795,11 +806,10 @@ export default function UserCommunication() {
                               <button
                                 key={pageNum}
                                 onClick={() => handlePageChange(pageNum)}
-                                className={`px-3 py-1 text-sm border rounded-md ${
-                                  currentPage === pageNum
+                                className={`px-3 py-1 text-sm border rounded-md ${currentPage === pageNum
                                     ? "bg-indigo-600 text-white border-indigo-600"
                                     : "border-gray-300 hover:bg-[var(--text-color)]/5"
-                                }`}
+                                  }`}
                               >
                                 {pageNum}
                               </button>
@@ -834,11 +844,12 @@ export default function UserCommunication() {
                 <button
                   onClick={handleSendMessage}
                   disabled={sending}
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                    messageType === "SMS"
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${messageType === "SMS"
                       ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                      : "bg-green-600 hover:bg-green-700 text-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      : messageType === "WHATSAPP"
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {sending ? (
                     <div className="flex items-center gap-2">
@@ -846,7 +857,9 @@ export default function UserCommunication() {
                       {t("userCommunication.sending")}
                     </div>
                   ) : (
-                    t("userCommunication.btnSendMessageType", { messageType })
+                    messageType === "IVR"
+                      ? "Send IVR Call"
+                      : t("userCommunication.btnSendMessageType", { messageType })
                   )}
                 </button>
               </div>
@@ -1005,11 +1018,10 @@ export default function UserCommunication() {
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                comm.message_type === "SMS"
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${comm.message_type === "SMS"
                                   ? "bg-indigo-100 text-indigo-800"
                                   : "bg-green-100 text-green-800"
-                              }`}
+                                }`}
                             >
                               {comm.message_type}
                             </span>
@@ -1097,11 +1109,10 @@ export default function UserCommunication() {
                                       </div>
                                       <div className="flex items-center space-x-2">
                                         <span
-                                          className={`inline-flex px-1 py-0.5 rounded text-xs font-semibold ${
-                                            report.status === "SUCCESS"
+                                          className={`inline-flex px-1 py-0.5 rounded text-xs font-semibold ${report.status === "SUCCESS"
                                               ? "bg-green-100 text-green-700"
                                               : "bg-red-100 text-red-700"
-                                          }`}
+                                            }`}
                                         >
                                           {report.status}
                                         </span>
