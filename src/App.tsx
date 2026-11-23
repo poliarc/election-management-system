@@ -173,6 +173,7 @@ import MarketTable from "./pages/Assembly/market/MarketTable";
 import ProgramsPage from "./pages/Assembly/program/ProgramsPage";
 import PublicAddProgramPage from "./pages/Assembly/program/PublicAddProgramPage";
 import SocialMediaManager from "./pages/Assembly/SocialMedia/SocialMedia";
+import SocialMediaLoginPage from "./pages/Assembly/SocialMedia/SocialMediaLoginPage";
 import MarkedVotersPage from "./pages/Assembly/voters/MarkedVotersPage"; 
 import VoterCentricPage from "./pages/Assembly/voters/VoterCentricPage"; 
 import AssemblyListPage from "./pages/District/mark_voter/AssemblyListPage";
@@ -347,6 +348,9 @@ export default function App() {
             <Route path="marked-users" element={<VoterCentricPage />} />
              <Route path="market-table" element={<MarketTable />} />
              <Route path="Social-Media" element={<SocialMediaManager />} />
+             <Route path="social-media/content" element={<SocialMediaLoginPage feature="Content" />} />
+             <Route path="social-media/poster" element={<SocialMediaLoginPage feature="Poster" />} />
+             <Route path="social-media/video" element={<SocialMediaLoginPage feature="Video" />} />
             <Route path="market-discussion" element={<MarketDiscussionTable />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="search-voter" element={<VoterListPage />} />

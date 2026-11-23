@@ -171,7 +171,7 @@
 //   const compareVotersModules = sidebarModules.filter(m => m.moduleName.toLowerCase().includes('compare voters'));
 //   const form20Modules = sidebarModules.filter(m => m.moduleName.toLowerCase().includes('form 20'));
 //   const visitorsModules = sidebarModules.filter(m => m.moduleName.toLowerCase().includes('visitors'));
-  
+
 //   const hasAssemblyTeamAccess = useMemo(() => {
 //     return sidebarModules.some(module =>
 //       module.moduleName.toLowerCase().includes('assembly team') ||
@@ -198,7 +198,7 @@
 //       name.includes('booth management') || name.includes('communication') || name.includes('market') || 
 //       name.includes('voter report') || name.includes('vic') || name.includes('supporter');
 //     const isHandledByExactLabel = allStaticLabels.some(label => (name === label || name.includes(label)) && label !== 'dashboard');
-    
+
 //     return !isHandledByCategory && !isHandledByExactLabel;
 //   });
 
@@ -969,6 +969,37 @@ const Icons = {
       />
     </svg>
   ),
+  share: (
+    <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="18" cy="5" r="3" strokeWidth={1.4} />
+      <circle cx="6" cy="12" r="3" strokeWidth={1.4} />
+      <circle cx="18" cy="19" r="3" strokeWidth={1.4} />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" strokeWidth={1.4} />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" strokeWidth={1.4} />
+    </svg>
+  ),
+  content: (
+    <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="14 2 14 8 20 8" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="16" y1="13" x2="8" y2="13" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="16" y1="17" x2="8" y2="17" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="10 9 9 9 8 9" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  poster: (
+    <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={1.4} />
+      <polyline points="21 15 16 10 5 21" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  video: (
+    <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <polygon points="23 7 16 12 23 17 23 7" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
 };
 
 // Top-level items (excluding team - will be dynamic)
@@ -1041,6 +1072,31 @@ const communicationItems: NavItem[] = [
     to: "communication/voter-communication",
     label: "Voter Communication",
     icon: Icons.team,
+  },
+];
+
+// Social Media dropdown items
+const socialMediaItems: NavItem[] = [
+
+  {
+    to: "social-media/content",
+    label: "Content",
+    icon: Icons.content,
+  },
+  {
+    to: "social-media/poster",
+    label: "Poster",
+    icon: Icons.poster,
+  },
+  {
+    to: "social-media/video",
+    label: "Video",
+    icon: Icons.video,
+  },
+  {
+    to: "Social-Media",
+    label: "Circulation",
+    icon: Icons.share,
   },
 ];
 
@@ -1373,6 +1429,16 @@ export default function AssemblySidebar({
   );
   const [openVoterReports, setOpenVoterReports] = useState<boolean>(
     isVoterReportPathActive
+  );
+
+  // Determine if any social media item is active to default-open the dropdown
+  const isSocialMediaPathActive = useMemo(
+    () =>
+      location.pathname.toLowerCase().includes("social-media"),
+    [location.pathname]
+  );
+  const [openSocialMedia, setOpenSocialMedia] = useState<boolean>(
+    isSocialMediaPathActive
   );
   const [switchDropdownOpen, setSwitchDropdownOpen] = useState(false);
   const [vicDropdownOpen, setVicDropdownOpen] = useState(false);
@@ -1953,33 +2019,33 @@ export default function AssemblySidebar({
                 </NavLink>
 
                 {/* Program */}
-        {programItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={`${base}/${item.to}`}
-            onClick={() => onNavigate?.()}
-            className={({ isActive }) =>
-              [
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
-                "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                isActive
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
-                  : "border border-transparent hover:border-[var(--border-color)]",
-              ].join(" ")
-            }
-          >
-            <span className="text-indigo-600 shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
-            <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-            <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-          </NavLink>
-        ))}
+                {programItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={`${base}/${item.to}`}
+                    onClick={() => onNavigate?.()}
+                    className={({ isActive }) =>
+                      [
+                        "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+                        "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                        isActive
+                          ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                          : "border border-transparent hover:border-[var(--border-color)]",
+                      ].join(" ")
+                    }
+                  >
+                    <span className="text-indigo-600 shrink-0">{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
+                    <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
+                    <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
+                  </NavLink>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        
+
 
         {/* --- NEW VOTERS DROPDOWN --- */}
         <div>
@@ -2113,7 +2179,7 @@ export default function AssemblySidebar({
               className={[
                 "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
                 "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-                compareVotersOpen                          
+                compareVotersOpen
                   ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
                   : "border border-transparent hover:border-[var(--border-color)]",
               ].join(" ")}
@@ -2123,7 +2189,7 @@ export default function AssemblySidebar({
                 <span>Voter Analysis</span>
               </div>
               <svg
-                className={`h-4 w-4 text-blue-600 transition-transform ${compareVotersOpen ? "rotate-180" : ""}`}  
+                className={`h-4 w-4 text-blue-600 transition-transform ${compareVotersOpen ? "rotate-180" : ""}`}
                 viewBox="0 0 20 20"
                 fill="none"
               >
@@ -2131,7 +2197,7 @@ export default function AssemblySidebar({
               </svg>
             </button>
 
-            {compareVotersOpen && (                        
+            {compareVotersOpen && (
               <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
                 {compareVotersModules.map((module) => (
                   <NavLink
@@ -2176,25 +2242,67 @@ export default function AssemblySidebar({
           </div>
         )}
 
-        {/* Social Media Link */}
-        <NavLink
-          to={`${base}/Social-Media`}
-          onClick={() => onNavigate?.()}
-          className={({ isActive }) =>
-            [
-              "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition shadow-sm no-underline",
+        {/* Social Media Dropdown */}
+        <div>
+          <button
+            type="button"
+            aria-haspopup="true"
+            aria-expanded={openSocialMedia}
+            onClick={() => setOpenSocialMedia((v) => !v)}
+            className={[
+              "w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
               "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
-              isActive
-                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+              openSocialMedia
+                ? "bg-indigo-500/10 ring-1 ring-indigo-400/40"
                 : "border border-transparent hover:border-[var(--border-color)]",
-            ].join(" ")
-          }
-        >
-          <span className="text-indigo-600 shrink-0">{Icons.team}</span>
-          <span className="truncate">Social Media</span>
-          <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-indigo-500/0 group-hover:bg-indigo-500/30" />
-          <span className="pointer-events-none absolute inset-y-0 left-0 w-1 rounded-l-xl bg-indigo-500/70 opacity-0 group-[.active]:opacity-100" />
-        </NavLink>
+            ].join(" ")}
+          >
+            <span className="flex items-center gap-3 text-indigo-600">
+              {Icons.team}
+              <span className="text-[var(--text-color)]">Social Media</span>
+            </span>
+            <svg
+              className={[
+                "h-4 w-4 text-indigo-600 transition-transform",
+                openSocialMedia ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M6 8l4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {openSocialMedia && (
+            <div className="mt-2 ml-2 pl-2 border-l border-[var(--border-color)] space-y-1">
+              {socialMediaItems.map((item) => (
+                <NavLink
+                  end
+                  key={item.to}
+                  to={`${base}/${item.to}`}
+                  onClick={() => onNavigate?.()}
+                  className={({ isActive }) =>
+                    [
+                      "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition no-underline",
+                      "text-[var(--text-color)] hover:bg-[var(--text-color)]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                      isActive
+                        ? "bg-indigo-500/10 ring-1 ring-indigo-400/40 text-indigo-700 dark:text-indigo-200"
+                        : "border border-transparent hover:border-[var(--border-color)]",
+                    ].join(" ")
+                  }
+                >
+                  <span className="text-indigo-600">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* VIC Dropdown */}
         <div>

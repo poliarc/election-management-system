@@ -3,8 +3,9 @@ import { useAppSelector } from "../../../store/hooks";
 import { useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersApi";
 import type { VoterList } from "../../../types/voter";
 import { useDebounce } from "../../../hooks/useDebounce";
+import { PhoneCall } from "lucide-react";
 
-type MessageType = "SMS" | "WhatsApp";
+type MessageType = "SMS" | "WhatsApp" | "IVR";
 type ContactField =
   | "contact_number1"
   | "contact_number2"
@@ -83,7 +84,7 @@ export default function VoterCommunication() {
   // Fetch all voters data for "Select All Contacts" functionality
   const fetchAllVoters = async () => {
     if (!assemblyId) return;
-    
+
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/voters/assembly/${assemblyId}?limit=10000${debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : ''}`,
@@ -94,7 +95,7 @@ export default function VoterCommunication() {
           },
         }
       );
-      
+
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
@@ -172,9 +173,8 @@ export default function VoterCommunication() {
           voterId: voter.id,
           contact,
           name:
-            `${voter.voter_first_name_en || ""} ${
-              voter.voter_last_name_en || ""
-            }`.trim() || "Voter",
+            `${voter.voter_first_name_en || ""} ${voter.voter_last_name_en || ""
+              }`.trim() || "Voter",
           partNo: voter.part_no,
           epic: voter.voter_id_epic_no,
           contactField: resolveContactField(voter, contact),
@@ -193,9 +193,8 @@ export default function VoterCommunication() {
         voterId: voter.id,
         contact,
         name:
-          `${voter.voter_first_name_en || ""} ${
-            voter.voter_last_name_en || ""
-          }`.trim() || "Voter",
+          `${voter.voter_first_name_en || ""} ${voter.voter_last_name_en || ""
+            }`.trim() || "Voter",
         partNo: voter.part_no,
         epic: voter.voter_id_epic_no,
         contactField: resolveContactField(voter, contact),
@@ -227,9 +226,8 @@ export default function VoterCommunication() {
         voterId: voter.id,
         contact,
         name:
-          `${voter.voter_first_name_en || ""} ${
-            voter.voter_last_name_en || ""
-          }`.trim() || "Voter",
+          `${voter.voter_first_name_en || ""} ${voter.voter_last_name_en || ""
+            }`.trim() || "Voter",
         partNo: voter.part_no,
         epic: voter.voter_id_epic_no,
         contactField: resolveContactField(voter, contact),
@@ -285,7 +283,7 @@ export default function VoterCommunication() {
     allVotersData.forEach((voter) => {
       const allContacts = getContacts(voter);
       counts.all += allContacts.length;
-      
+
       if (voter.contact_number1?.trim()) counts.contact1++;
       if (voter.contact_number2?.trim()) counts.contact2++;
       if (voter.contact_number3?.trim()) counts.contact3++;
@@ -404,23 +402,33 @@ export default function VoterCommunication() {
         <div className="flex gap-2">
           <button
             onClick={() => setMessageType("SMS")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              messageType === "SMS"
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${messageType === "SMS"
                 ? "bg-indigo-600 text-white"
                 : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
-            }`}
+              }`}
           >
             SMS
           </button>
           <button
             onClick={() => setMessageType("WhatsApp")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              messageType === "WhatsApp"
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${messageType === "WhatsApp"
                 ? "bg-green-600 text-white"
                 : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
-            }`}
+              }`}
           >
             WhatsApp
+          </button>
+          <button
+            onClick={() => setMessageType("IVR")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${messageType === "IVR"
+                ? "bg-purple-600 text-white"
+                : "bg-gray-100 text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5"
+              }`}
+          >
+            <div className="flex items-center gap-1.5">
+              <PhoneCall className="h-4 w-4" />
+              <span>IVR Call</span>
+            </div>
           </button>
         </div>
       </div>
@@ -434,7 +442,7 @@ export default function VoterCommunication() {
       <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
         <div className="p-6 border-b border-[var(--border-color)]">
           <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            Message Content
+            {messageType === "IVR" ? "IVR Voice Message / Script" : "Message Content"}
           </label>
           <textarea
             rows={4}
@@ -442,9 +450,11 @@ export default function VoterCommunication() {
             onChange={(e) => setMessage(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
             placeholder={
-              messageType
-                ? `Type your ${messageType} message here...`
-                : "Pick SMS or WhatsApp to start typing"
+              messageType === "IVR"
+                ? "Type your IVR voice message / script here..."
+                : messageType
+                  ? `Type your ${messageType} message here...`
+                  : "Pick SMS, WhatsApp or IVR Call to start typing"
             }
             maxLength={1000}
           />
@@ -495,57 +505,52 @@ export default function VoterCommunication() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveContactTab("all")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeContactTab === "all"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeContactTab === "all"
                   ? "bg-indigo-600 text-white"
                   : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
-              }`}
+                }`}
             >
               All Contacts ({contactCounts.all})
             </button>
             <button
               onClick={() => setActiveContactTab("contact1")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeContactTab === "contact1"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeContactTab === "contact1"
                   ? "bg-indigo-600 text-white"
                   : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
-              }`}
+                }`}
             >
               Contact 1 ({contactCounts.contact1})
             </button>
             <button
               onClick={() => setActiveContactTab("contact2")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeContactTab === "contact2"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeContactTab === "contact2"
                   ? "bg-indigo-600 text-white"
                   : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
-              }`}
+                }`}
             >
               Contact 2 ({contactCounts.contact2})
             </button>
             <button
               onClick={() => setActiveContactTab("contact3")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeContactTab === "contact3"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeContactTab === "contact3"
                   ? "bg-indigo-600 text-white"
                   : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
-              }`}
+                }`}
             >
               Contact 3 ({contactCounts.contact3})
             </button>
             <button
               onClick={() => setActiveContactTab("contact4")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeContactTab === "contact4"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeContactTab === "contact4"
                   ? "bg-indigo-600 text-white"
                   : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--text-color)]/5 border border-gray-300"
-              }`}
+                }`}
             >
               Contact 4 ({contactCounts.contact4})
             </button>
           </div>
           <p className="text-sm text-[var(--text-secondary)] mt-2">
-            {activeContactTab === "all" 
+            {activeContactTab === "all"
               ? "Showing all available contact numbers for each voter"
               : `Showing only ${activeContactTab.replace('contact', 'Contact ')} for voters who have this contact number`
             }
@@ -597,9 +602,8 @@ export default function VoterCommunication() {
                         </td>
                         <td className="px-4 py-3 text-sm text-[var(--text-color)]">
                           <div className="font-medium">
-                            {`${voter.voter_first_name_en || ""} ${
-                              voter.voter_last_name_en || ""
-                            }`.trim() || "-"}
+                            {`${voter.voter_first_name_en || ""} ${voter.voter_last_name_en || ""
+                              }`.trim() || "-"}
                           </div>
                           <div className="text-[var(--text-secondary)] text-xs">
                             {voter.voter_full_name_hi ||
@@ -710,11 +714,10 @@ export default function VoterCommunication() {
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-1 text-sm border rounded-md ${
-                          page === pageNum
+                        className={`px-3 py-1 text-sm border rounded-md ${page === pageNum
                             ? "bg-indigo-600 text-white border-indigo-600"
                             : "border-gray-300 hover:bg-[var(--text-color)]/5"
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -744,13 +747,14 @@ export default function VoterCommunication() {
             <button
               onClick={handleSendMessage}
               disabled={sending}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                messageType === "SMS"
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${messageType === "SMS"
                   ? "bg-indigo-600 hover:bg-indigo-700"
-                  : "bg-green-600 hover:bg-green-700"
-              } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                  : messageType === "WhatsApp"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-purple-600 hover:bg-purple-700"
+                } text-white disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {sending ? "Sending..." : `Send ${messageType}`}
+              {sending ? "Sending..." : `Send ${messageType === "IVR" ? "IVR Call" : messageType}`}
             </button>
           </div>
         )}
