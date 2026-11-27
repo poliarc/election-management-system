@@ -1382,7 +1382,11 @@
         "emptyNoVotersFound": "No voters found",
         "titleActions": "Actions",
         "btnEdit": "Edit",
-        "btnMark": "Mark"
+        "btnMark": "Mark",
+        "btnUnmark": "Unmark",
+        "confirmUnmark": "Are you sure you want to unmark this voter?",
+        "unmarking": "Unmarking voter...",
+        "unmarkSuccess": "Voter unmarked successfully!"
     },
     "voterListPage": {
         "title": "Voter List",
@@ -3618,7 +3622,6 @@
         "Edit_Booth_Data": "Edit Booth Data",
         "Update": "Update"
     },
-
     "VoterTrackingPage": {
         "Title": "User Activity Report",
         "Desc": "Track all voter data changes — who changed what and when.",
@@ -3682,7 +3685,6 @@
         "Staying_Outside": "Staying Outside",
         "Outside_Country": "Outside Country"
     },
-
     "ProgramsPage": {
         "Programs": "Programs",
         "Links": "Links",
@@ -3728,7 +3730,6 @@
         "Status_Filter": "Filter by status",
         "All_Status": "All Status"
     },
-
     "ProgramForm": {
         "Program_Name": "Program Name *",
         "Program_Name_Placeholder": "Program name",
@@ -3752,7 +3753,6 @@
         "Update_Program": "Update Program",
         "Add_Program": "Add Program"
     },
-
     "CreateProgramLinkModal": {
         "Title": "Generate Program Link",
         "Select_Candidate": "Select Candidate *",
@@ -3763,7 +3763,6 @@
         "Creating": "Creating...",
         "Create_Copy": "Create & Copy Link"
     },
-
     "PublicAddProgramPage": {
         "Loading": "Loading...",
         "Invalid_Link": "Invalid or expired link",

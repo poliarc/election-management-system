@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom"; // 🔥 NEW: Import useParams to r
 import type { VoterList } from "../../../types/voter";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { useCreateVoterMarkerMutation, useGetVoterMarkersQuery } from "../../../store/api/votersApi"; 
+import { useCreateVoterMarkerMutation, useDeleteVoterMarkerMutation, useGetVoterMarkersQuery } from "../../../store/api/votersApi"; 
 import { useAppSelector } from "../../../store/hooks";
 
 type Props = {
@@ -35,14 +35,37 @@ export const VoterListTable: React.FC<Props> = ({
         { skip: !currentUserId } 
     );
 
-    // 3. Create a Set of voter_ids that have been marked for fast lookup
-    const markedVoterIds = useMemo(() => {
+    // 3. Create a Map of voter_id -> marker_id for fast lookup and unmarking
+    const markedVotersMap = useMemo(() => {
         const markersArray = markersData?.data || [];
-        return new Set(markersArray.map((marker: any) => marker.voter_id));
+        const map = new Map<number, number>();
+        markersArray.forEach((marker: any) => {
+            map.set(marker.voter_id, marker.id);
+        });
+        return map;
     }, [markersData]);
 
-    // Initialize the RTK Query mutation for adding new markers
+    // Initialize the RTK Query mutations
     const [createVoterMarker, { isLoading: isMarking }] = useCreateVoterMarkerMutation();
+    const [deleteVoterMarker, { isLoading: isUnmarking }] = useDeleteVoterMarkerMutation();
+
+    // Handle Unmark API call
+    const handleUnmarkVoter = async (markerId: number) => {
+        if (!window.confirm(t("voterListTable.confirmUnmark", "Are you sure you want to unmark this voter?"))) return;
+
+        const toastId = toast.loading(t("voterListTable.unmarking", "Unmarking voter..."));
+
+        try {
+            const response: any = await deleteVoterMarker(markerId).unwrap();
+            if (response.success) {
+                toast.success(t("voterListTable.unmarkSuccess", "Voter unmarked successfully!"), { id: toastId });
+            } else {
+                toast.error(response.message || "Failed to unmark voter.", { id: toastId });
+            }
+        } catch (error: any) {
+            toast.error(error?.data?.message || error?.message || "Failed to unmark voter.", { id: toastId });
+        }
+    };
 
     // Handle the API call
     const handleMarkVoter = async (voter: any) => {
@@ -113,8 +136,9 @@ export const VoterListTable: React.FC<Props> = ({
                     ) : (
                         voters.map((voter: any) => {
                             
-                            // 4. CHECK IF THE SET CONTAINS THIS VOTER'S ID
-                            const hasThisUserMarked = markedVoterIds.has(voter.id);
+                            // 4. CHECK IF THE MAP CONTAINS THIS VOTER'S ID
+                            const markerId = markedVotersMap.get(voter.id);
+                            const hasThisUserMarked = markerId !== undefined;
 
                             return (
                                 <tr
@@ -148,8 +172,16 @@ export const VoterListTable: React.FC<Props> = ({
                                                 {t("voterListTable.btnEdit", "Edit")}
                                             </button>
                                             
-                                            {/* CONDITIONAL RENDER: Hide if markedVoterIds.has(voter.id) is true */}
-                                            {!hasThisUserMarked && (
+                                            {/* CONDITIONAL RENDER: Show Unmark if marked, else Show Mark */}
+                                            {hasThisUserMarked ? (
+                                                <button
+                                                    onClick={() => handleUnmarkVoter(markerId!)}
+                                                    disabled={isUnmarking}
+                                                    className="bg-rose-50 text-rose-700 px-3 py-1.5 rounded-md hover:bg-rose-600 hover:text-white transition font-medium text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {t("voterListTable.btnUnmark", "Unmark Voter")}
+                                                </button>
+                                            ) : (
                                                 <button
                                                     onClick={() => handleMarkVoter(voter)}
                                                     disabled={isMarking}
