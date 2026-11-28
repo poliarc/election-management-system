@@ -8,6 +8,12 @@ import { useGetProfileQuery } from "../../../store/api/profileApi";
 import { useGetAllStateMasterDataQuery } from "../../../store/api/stateMasterApi";
 import { useTranslation } from "react-i18next";
 import { PhoneCall } from "lucide-react";
+import IvrSettingsPanel, {
+  buildIvrOptionsPayload,
+  DEFAULT_IVR_FORM_STATE,
+  validateIvrForm,
+  type IvrFormState,
+} from "./IvrSettingsPanel";
 
 type MessageType = "SMS" | "WHATSAPP" | "IVR";
 type CommunicationStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
@@ -46,6 +52,9 @@ export default function UserCommunication() {
   const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
   const [messageType, setMessageType] = useState<MessageType | null>(null);
   const [message, setMessage] = useState("");
+  const [ivrOptions, setIvrOptions] = useState<IvrFormState>(
+    DEFAULT_IVR_FORM_STATE
+  );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -310,18 +319,28 @@ export default function UserCommunication() {
   };
 
   const handleSendMessage = async () => {
-    if (!messageType || !message.trim() || selectedUsers.size === 0) return;
+    if (!messageType || selectedUsers.size === 0) return;
+
+    const trimmed = message.trim();
+
+    if (messageType === "IVR") {
+      const ivrError = validateIvrForm(ivrOptions);
+      if (ivrError) {
+        setError(ivrError);
+        return;
+      }
+      if (trimmed.length > 1600) {
+        setError(t("userCommunication.messageLengthValidation"));
+        return;
+      }
+    } else if (trimmed.length === 0 || trimmed.length > 1600) {
+      setError(t("userCommunication.messageLengthValidation"));
+      return;
+    }
 
     try {
       setSending(true);
       setError(null);
-
-      const trimmed = message.trim();
-      if (trimmed.length === 0 || trimmed.length > 1600) {
-        setError(t("userCommunication.messageLengthValidation"));
-        setSending(false);
-        return;
-      }
 
       const selectedUsersList = users.filter((user) =>
         selectedUsers.has(user.user_id),
@@ -329,9 +348,14 @@ export default function UserCommunication() {
 
       const payload = {
         message_type: messageType,
-        message_content: trimmed,
+        message_content:
+          trimmed ||
+          `IVR Voice Call (Media ID: ${ivrOptions.voice_medias_id.trim()}, Voice Type: ${ivrOptions.voice_type})`,
         recipient_type: selectedUsersList.length > 1 ? "MULTIPLE" : "SINGLE",
         recipient_users: selectedUsersList.map((user) => user.user_id),
+        ...(messageType === "IVR"
+          ? { ivr_options: buildIvrOptionsPayload(ivrOptions) }
+          : {}),
       };
 
       const response = await fetch(
@@ -348,21 +372,22 @@ export default function UserCommunication() {
         },
       );
 
-      if (!response.ok) {
-        throw new Error(t("userCommunication.failedToSendMessage"));
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message ||
+            result.error ||
+            t("userCommunication.failedToSendMessage")
+        );
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        // Reset form
-        setMessage("");
-        setSelectedUsers(new Set());
-        setMessageType(null);
-        alert(t("userCommunication.messageSentSuccessfully"));
-      } else {
-        setError(result.message || t("userCommunication.failedToSendMessage"));
-      }
+      // Reset form
+      setMessage("");
+      setIvrOptions(DEFAULT_IVR_FORM_STATE);
+      setSelectedUsers(new Set());
+      setMessageType(null);
+      alert(result.message || t("userCommunication.messageSentSuccessfully"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("userCommunication.anErrorOccurred"));
     } finally {
@@ -577,31 +602,40 @@ export default function UserCommunication() {
             </div>
           </div>
 
-          {/* Message Textarea */}
+          {/* Message Textarea & IVR Settings */}
           {messageType && (
             <div className="p-6 border-b border-[var(--border-color)]">
-              <label
-                htmlFor="message"
-                className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-              >
-                {messageType === "IVR" ? "IVR Voice Message / Script" : t("userCommunication.lblMessageContent")}
-              </label>
-              <textarea
-                id="message"
-                rows={4}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                placeholder={
-                  messageType === "IVR"
-                    ? "Type your IVR voice message / script here..."
-                    : t("userCommunication.phTypeYourMessage", { messageType })
-                }
-                maxLength={1600}
-              />
-              <div className="mt-2 text-sm text-[var(--text-secondary)]">
-                {t("userCommunication.characterCount", { count: message.length })}
-              </div>
+              {messageType === "IVR" ? (
+                <IvrSettingsPanel
+                  value={ivrOptions}
+                  onChange={setIvrOptions}
+                />
+              ) : (
+                <>
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+                  >
+                    {t("userCommunication.lblMessageContent")}
+                  </label>
+                  <textarea
+                    id="message"
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                    placeholder={t("userCommunication.phTypeYourMessage", {
+                      messageType,
+                    })}
+                    maxLength={1600}
+                  />
+                  <div className="mt-2 text-sm text-[var(--text-secondary)]">
+                    {t("userCommunication.characterCount", {
+                      count: message.length,
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -834,7 +868,11 @@ export default function UserCommunication() {
           </div>
 
           {/* Send Button */}
-          {messageType && message.trim() && selectedUsers.size > 0 && (
+          {messageType &&
+            selectedUsers.size > 0 &&
+            (messageType === "IVR"
+              ? ivrOptions.voice_medias_id.trim().length > 0
+              : message.trim().length > 0) && (
             <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] rounded-b-lg">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-[var(--text-secondary)]">
@@ -891,6 +929,7 @@ export default function UserCommunication() {
                   <option value="">{t("userCommunication.optAllTypes")}</option>
                   <option value="SMS">SMS</option>
                   <option value="WHATSAPP">WhatsApp</option>
+                  <option value="IVR">IVR Call</option>
                 </select>
               </div>
               <div>
@@ -1020,7 +1059,9 @@ export default function UserCommunication() {
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${comm.message_type === "SMS"
                                   ? "bg-indigo-100 text-indigo-800"
-                                  : "bg-green-100 text-green-800"
+                                  : comm.message_type === "IVR"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-green-100 text-green-800"
                                 }`}
                             >
                               {comm.message_type}
