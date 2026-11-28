@@ -4,6 +4,12 @@ import { useGetVotersByAssemblyPaginatedQuery } from "../../../store/api/votersA
 import type { VoterList } from "../../../types/voter";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { PhoneCall } from "lucide-react";
+import IvrSettingsPanel, {
+  buildIvrOptionsPayload,
+  DEFAULT_IVR_FORM_STATE,
+  validateIvrForm,
+  type IvrFormState,
+} from "./IvrSettingsPanel";
 
 type MessageType = "SMS" | "WhatsApp" | "IVR";
 type ContactField =
@@ -43,6 +49,9 @@ export default function VoterCommunication() {
 
   const [messageType, setMessageType] = useState<MessageType | null>(null);
   const [message, setMessage] = useState("");
+  const [ivrOptions, setIvrOptions] = useState<IvrFormState>(
+    DEFAULT_IVR_FORM_STATE
+  );
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
@@ -294,19 +303,28 @@ export default function VoterCommunication() {
   }, [allVotersData]);
 
   const handleSendMessage = async () => {
-    if (!messageType || !message.trim() || selectedContacts.size === 0) return;
+    if (!messageType || selectedContacts.size === 0) return;
+
+    const trimmedMessage = message.trim();
+
+    if (messageType === "IVR") {
+      const ivrError = validateIvrForm(ivrOptions);
+      if (ivrError) {
+        setSendError(ivrError);
+        return;
+      }
+      if (trimmedMessage.length > 1600) {
+        setSendError("Message must be between 1 and 1600 characters");
+        return;
+      }
+    } else if (trimmedMessage.length === 0 || trimmedMessage.length > 1600) {
+      setSendError("Message must be between 1 and 1600 characters");
+      return;
+    }
 
     try {
       setSending(true);
       setSendError(null);
-
-      const trimmedMessage = message.trim();
-
-      if (trimmedMessage.length === 0 || trimmedMessage.length > 1600) {
-        setSendError("Message must be between 1 and 1600 characters");
-        setSending(false);
-        return;
-      }
 
       const recipients = Array.from(selectedContacts.values()).map((item) => ({
         voter_id: item.voterId,
@@ -323,14 +341,26 @@ export default function VoterCommunication() {
         )
       );
 
+      const apiMessageType =
+        messageType === "WhatsApp"
+          ? "WHATSAPP"
+          : messageType === "IVR"
+            ? "IVR"
+            : "SMS";
+
       const payload = {
-        message_type: messageType === "WhatsApp" ? "WHATSAPP" : "SMS",
-        message_content: trimmedMessage,
+        message_type: apiMessageType,
+        message_content:
+          trimmedMessage ||
+          `IVR Voice Call (Media ID: ${ivrOptions.voice_medias_id.trim()}, Voice Type: ${ivrOptions.voice_type})`,
         contact_field: contactFields[0] || "contact_number1",
         filter_criteria: storedStateId
           ? { state_id: storedStateId }
           : { state_id: null },
         recipients,
+        ...(messageType === "IVR"
+          ? { ivr_options: buildIvrOptionsPayload(ivrOptions) }
+          : {}),
       };
 
       const response = await fetch(
@@ -347,20 +377,19 @@ export default function VoterCommunication() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || result.error || "Failed to send message"
+        );
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        setMessage("");
-        setSelectedContacts(new Map());
-        setMessageType(null);
-        alert("Message sent successfully!");
-      } else {
-        setSendError(result.message || "Failed to send message");
-      }
+      setMessage("");
+      setIvrOptions(DEFAULT_IVR_FORM_STATE);
+      setSelectedContacts(new Map());
+      setMessageType(null);
+      alert(result.message || "Message sent successfully!");
     } catch (err) {
       setSendError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -393,7 +422,7 @@ export default function VoterCommunication() {
             Voter Communication
           </h1>
           <p className="text-[var(--text-secondary)] mt-1">
-            Send SMS or WhatsApp messages to voters
+            Send SMS, WhatsApp, or IVR voice calls to voters
           </p>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             Search filters query the full voter list, not just the current page.
@@ -441,30 +470,40 @@ export default function VoterCommunication() {
 
       <div className="bg-[var(--bg-card)] rounded-lg shadow-sm border border-[var(--border-color)]">
         <div className="p-6 border-b border-[var(--border-color)]">
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            {messageType === "IVR" ? "IVR Voice Message / Script" : "Message Content"}
-          </label>
-          <textarea
-            rows={4}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-            placeholder={
-              messageType === "IVR"
-                ? "Type your IVR voice message / script here..."
-                : messageType
-                  ? `Type your ${messageType} message here...`
-                  : "Pick SMS, WhatsApp or IVR Call to start typing"
-            }
-            maxLength={1000}
-          />
-          <div className="mt-2 flex items-center justify-between text-sm text-[var(--text-secondary)]">
-            <span>{message.length}/1000 characters</span>
-            <span>
-              {totalSelectedContacts} contact
-              {totalSelectedContacts !== 1 ? "s" : ""} selected
-            </span>
-          </div>
+          {messageType === "IVR" ? (
+            <>
+              <IvrSettingsPanel value={ivrOptions} onChange={setIvrOptions} />
+              <div className="text-sm text-[var(--text-secondary)] text-right">
+                {totalSelectedContacts} contact
+                {totalSelectedContacts !== 1 ? "s" : ""} selected
+              </div>
+            </>
+          ) : (
+            <>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Message Content
+              </label>
+              <textarea
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                placeholder={
+                  messageType
+                    ? `Type your ${messageType} message here...`
+                    : "Pick SMS, WhatsApp or IVR Call to start typing"
+                }
+                maxLength={1000}
+              />
+              <div className="mt-2 flex items-center justify-between text-sm text-[var(--text-secondary)]">
+                <span>{message.length}/1000 characters</span>
+                <span>
+                  {totalSelectedContacts} contact
+                  {totalSelectedContacts !== 1 ? "s" : ""} selected
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="p-6 border-b border-[var(--border-color)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -738,7 +777,11 @@ export default function VoterCommunication() {
           </div>
         )}
 
-        {messageType && message.trim() && totalSelectedContacts > 0 && (
+        {messageType &&
+          totalSelectedContacts > 0 &&
+          (messageType === "IVR"
+            ? ivrOptions.voice_medias_id.trim().length > 0
+            : message.trim().length > 0) && (
           <div className="px-6 py-4 bg-[var(--bg-main)] border-t border-[var(--border-color)] rounded-b-lg flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-[var(--text-secondary)]">
               Ready to send {messageType} to {totalSelectedContacts} contact
